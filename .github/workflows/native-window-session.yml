@@ -281,6 +281,15 @@ jobs:
             --seabios-version "$(dpkg-query -W -f='${Version}' seabios)" \
             2>&1 | tee "$CI_EVIDENCE_DIR/package.json"
           sha256sum "$CI_EVIDENCE_DIR/NieuwOS-Venstersessie-Windows-QEMU.zip" > "$CI_EVIDENCE_DIR/package.sha256"
+      - name: Cross-build the read-only grant profile (U03-T3 part 1)
+        if: ${{ matrix.scale == 1 }}
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/readonly-compile
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-readonly-compile
+          CARGO_NET_OFFLINE: 'true'
+        # Compile the cfg-gated kernel checks. The service-refusal walkthrough
+        # belongs to part 2 and is not exercised or accepted by this step.
+        run: python3 -B -u tools/build.py --kernel-feature test-window-session-readonly 2>&1 | tee "$CI_EVIDENCE_DIR/readonly-profile-compile.txt"
       - name: Preserve tracked source integrity
         run: |
           git diff --exit-code

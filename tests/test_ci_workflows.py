@@ -937,8 +937,42 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         )
         self.assertIn("matrix.scale == 1", package["if"])
 
+    def test_materiaal_measurement_is_opt_in_without_weaker_native_bounds(self):
+        """A selected PR head can run the real gate without enabling it globally."""
+        workflow = self.workflows[".github/workflows/materiaal-probe.yml"]
+        self.assertEqual(set(workflow["on"]), {"workflow_dispatch", "pull_request"})
+        self.assertEqual(workflow["on"]["pull_request"], {
+            "branches": ["main"],
+            "types": ["opened", "reopened", "synchronize", "labeled", "ready_for_review"],
+        })
+        self.assertEqual(workflow["on"]["workflow_dispatch"]["inputs"]["full_evidence"]["default"],
+                         "false")
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertEqual(set(workflow["jobs"]), {"materiaal-probe"})
+        job = workflow["jobs"]["materiaal-probe"]
+        # Pin the guard as configuration; actionlint checks GitHub expression syntax.
+        # This test does not emulate GitHub's event delivery or expression engine.
+        self.assertEqual(" ".join(job["if"].split()),
+                         "${{ github.event_name == 'workflow_dispatch' || "
+                         "contains(github.event.pull_request.labels.*.name, 'acceptance-materiaal-probe') }}")
+        self.assertEqual(int(job["timeout-minutes"]), 40)
+        self.assertNotIn("continue-on-error", job)
+        for step in job["steps"]:
+            self.assertNotIn("continue-on-error", step)
+        native, = [step for step in job["steps"]
+                   if step.get("name") == "Actual QMP keys, mouse and exact pixels for the Materiaal chain"]
+        self.assertNotIn("if", native)
+        self.assertEqual(int(native["timeout-minutes"]), 10)
+        self.assertIn("--case normal", native["run"])
+        self.assertIn("--timeout 240", native["run"])
+        self.assertNotIn("||", native["run"])
+        preserve, = [step for step in job["steps"]
+                     if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertEqual(preserve["with"]["full-evidence"],
+                         "${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}")
+
     def test_pr_lifecycle_runs_once_without_skipping_drafts(self):
-        """Draft changes are tested already, so becoming ready need not repeat them."""
+        """Automatic gates test drafts; explicit measurement has its own lifecycle."""
         for path, workflow in self.workflows.items():
             if "pull_request" not in workflow["on"]:
                 continue
@@ -946,12 +980,17 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
             types = trigger.get("types", ["opened", "synchronize", "reopened"])
             with self.subTest(path=path):
                 self.assertLessEqual({"opened", "synchronize", "reopened"}, set(types))
-                self.assertNotIn("ready_for_review", types)
+                if path == ".github/workflows/materiaal-probe.yml":
+                    # The opt-in measurement is separately guarded above; ready
+                    # is an explicit opportunity to measure a selected final head.
+                    self.assertIn("ready_for_review", types)
+                else:
+                    self.assertNotIn("ready_for_review", types)
                 for job in workflow["jobs"].values():
                     self.assertNotIn("draft", job.get("if", ""))
 
     def test_deduplication_keeps_host_and_scalar_component_coverage(self):
-        """Both removed matrix entries retain tests, lint and scalar target builds."""
+        """Dedicated gates retain existing and new standalone component coverage."""
         matrix = self.workflows[".github/workflows/component-leaves.yml"]["jobs"][
             "component-quality"
         ]["strategy"]["matrix"]["include"]
@@ -961,6 +1000,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         for filename, job_id, component in [
             ("artifact-store-quality.yml", "artifact-store-core", "artifact-store-core"),
             ("native-display-input.yml", "native-display-input", "ui/native/Cargo.toml"),
+            ("native-display-input.yml", "native-display-input", "sdk/examples/settings-volume/Cargo.toml"),
+            ("native-display-input.yml", "native-display-input", "sdk/examples/search-volume/Cargo.toml"),
         ]:
             job = self.workflows[f".github/workflows/{filename}"]["jobs"][job_id]
             relevant = [step for step in job["steps"] if component in step.get("run", "")]
@@ -984,6 +1025,45 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                     self.assertIn("no-redzone=yes", flags)
                     self.assertIn("-sse2", flags)
                     self.assertIn("-avx2", flags)
+
+    def test_settings_and_search_oracles_run_in_display_gate(self):
+        """Standalone adapters need independent oracle checks beside Rust coverage."""
+        job = self.workflows[".github/workflows/native-display-input.yml"]["jobs"][
+            "native-display-input"
+        ]
+        commands = "\n".join(step.get("run", "") for step in job["steps"])
+        for module in ("tests.test_settings_oracle", "tests.test_search_oracle",
+                       "tools.tests.test_run_search"):
+            with self.subTest(module=module):
+                self.assertRegex(commands, rf"python3 -B -m unittest[^\n]*\b{re.escape(module)}\b")
+
+    def test_settings_native_gate_and_search_compile_keep_separate_evidence(self):
+        """Settings has a six-boot gate; search is still an S2 target binary."""
+        job = self.workflows[".github/workflows/native-display-input.yml"]["jobs"][
+            "native-display-input"
+        ]
+        commands = "\n".join(step.get("run", "") for step in job["steps"])
+        self.assertIn("for case in settings settings-recover", commands)
+        self.assertIn('tools/build.py --kernel-feature "test-volume-$case"', commands)
+        self.assertIn('tools/run_settings.py', commands)
+        self.assertIn('--settings-build "$NOS_BUILD_DIR/settings"', commands)
+        self.assertIn('--recover-build "$NOS_BUILD_DIR/settings-recover"', commands)
+        self.assertIn('"--bin", "search-app"', commands)
+        self.assertIn('"--target", "x86_64-unknown-none"', commands)
+        self.assertIn('sdk/examples/volume-docs/linker.ld', commands)
+        self.assertNotIn('tools/run_search.py', commands)
+
+    def test_readonly_window_profile_has_a_separate_compile_only_step(self):
+        """The new cfg path compiles without claiming a service-refusal run."""
+        job = self.workflows[".github/workflows/native-window-session.yml"]["jobs"][
+            "native-window-session"
+        ]
+        step = next(step for step in job["steps"]
+                    if "--kernel-feature test-window-session-readonly" in step.get("run", ""))
+        self.assertIn("matrix.scale == 1", step["if"])
+        self.assertIn("readonly-compile", step["env"]["NOS_BUILD_DIR"])
+        self.assertIn("readonly-compile", step["env"]["NOS_TARGET_DIR"])
+        self.assertNotIn("run_window_session.py", step["run"])
 
     def test_artifact_build_preserves_target_rustflags(self):
         """Scalar CI additions must merge with the mandatory target contract."""

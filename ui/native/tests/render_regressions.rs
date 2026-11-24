@@ -3,7 +3,7 @@ use nieuw_os_materiaal::{
     controller::{Error as UiError, Focus, Screen, Status, View},
     design,
     desktop::{Desktop, Page, Target},
-    render::{Frame, Role, SemanticId, SemanticNode},
+    render::{Frame, Layout, Role, SemanticId, SemanticNode},
     Scale, Viewport, TILE_HEIGHT, TILE_PIXELS, TILE_WIDTH,
 };
 
@@ -444,4 +444,67 @@ fn orbit_dock_is_bounded_on_tiny_viewports() {
         assert!(bar.x <= width, "{width}");
         assert!(bar.x + bar.width <= width, "{width}");
     }
+}
+
+/// Wide Editor (784 logical px and up), compact heights included: the box
+/// holds one full text line, keeps the non-compact gap above the status
+/// row, and the title clears both the Rename row and the editor.
+#[test]
+fn wide_editor_keeps_one_line_inside_the_box_at_every_height() {
+    let overlaps = |a: nieuw_os_materiaal::Rect, b: nieuw_os_materiaal::Rect| {
+        a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+    };
+    // Gap the regular (non-compact) layout keeps between editor and status.
+    let reference = Layout::for_screen(
+        Viewport::new(960, 540, Scale::Percent100, 1).unwrap(),
+        Screen::Editor,
+    );
+    let gap = reference.status.y - (reference.editor.y + reference.editor.height);
+    assert_eq!(gap, 16);
+    let mut checked = 0;
+    for w in [784, 800, 880, 960, 1024, 1280] {
+        for h in [240, 250, 260, 287, 288, 300, 359, 360, 510, 540, 720] {
+            for scale in [Scale::Percent100, Scale::Percent200] {
+                let k = scale.factor();
+                let Ok(viewport) = Viewport::new(w * k, h * k, scale, 1) else {
+                    continue;
+                };
+                let l = Layout::for_screen(viewport, Screen::Editor);
+                let name = format!("{w}x{h} {scale:?}");
+                let (editor, bottom) = (l.editor, l.editor.y + l.editor.height);
+                assert!(
+                    editor.height >= 32 + design::LINE_HEIGHT,
+                    "{name}: {editor:?}"
+                );
+                assert!(l.rows() >= 1, "{name}");
+                assert!(l.text_top() + design::LINE_HEIGHT <= bottom, "{name}");
+                assert!(
+                    bottom + gap <= l.status.y,
+                    "{name}: {editor:?} {:?}",
+                    l.status
+                );
+                let title = l.editor_title();
+                assert!(title.width > 0 && title.height > 0, "{name}: {title:?}");
+                for button in [l.rename, l.organize, l.history] {
+                    // The Rename/Organize/History row, at full width.
+                    let row = nieuw_os_materiaal::Rect {
+                        x: 0,
+                        width: w,
+                        ..button
+                    };
+                    assert!(
+                        !overlaps(title, row),
+                        "{name}: title {title:?} on row {row:?}"
+                    );
+                    assert!(editor.y >= button.y + button.height, "{name}");
+                }
+                assert!(
+                    !overlaps(title, editor),
+                    "{name}: title {title:?} in {editor:?}"
+                );
+                checked += 1;
+            }
+        }
+    }
+    assert!(checked >= 66, "only {checked} viewports were valid");
 }

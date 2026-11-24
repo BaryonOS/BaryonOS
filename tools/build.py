@@ -27,10 +27,12 @@ VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", 
                         # S09 test-only second disk (kernel feature test-volume-archive-device).
                         "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
                         "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
+# U05-N1 settings app replaces volume-app in these cases (tools/run_settings.py).
+VOLUME_SETTINGS_CASES = ("settings", "settings-recover")
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
                 # S09 L2 install stages (plain volume-docs app, not the portal).
                 "install", "install-recover", "install-cut",
-                *VOLUME_ARCHIVE_CASES)
+                *VOLUME_ARCHIVE_CASES, *VOLUME_SETTINGS_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES),
@@ -44,7 +46,7 @@ NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 NETWORK_LINK_FEATURES = ("test-system-net-link", "test-system-net-link-storm")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
-WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe")
+WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe", "test-window-session-readonly")
 MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
 NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
@@ -59,7 +61,7 @@ SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit", "native-smp-m3-tlb-reuse",
                        "native-smp-m3-lock-contention", "native-smp-m4", "native-smp-m4-revoke")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
-                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "test-usb-hid-readonly-fault",
+                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "test-usb-hid-readonly-fault",
                    "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
                    "native-smp-m3-load", "native-smp-m3-soak", "native-smp-m4-quotas", "native-smp-qsim", "native-smp-m3-kill",
@@ -225,7 +227,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env, qsim_report = build_nas_users()
     elif kernel_feature in MATERIAAL_FEATURES:
         from build_materiaal import build_users as build_materiaal_users
-        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature in ("native-window-session-probe", "native-window-session-hidpi-probe"), session_preview=kernel_feature=="native-session-route", hid_probe=kernel_feature=="native-hid-input-probe")
+        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature in ("native-window-session-probe", "native-window-session-hidpi-probe", "test-window-session-readonly"), session_preview=kernel_feature=="native-session-route", hid_probe=kernel_feature=="native-hid-input-probe")
     elif kernel_feature == "native-display-probe":
         from run_display_probe import build_users as build_display_users
         extra_env, qsim_report = build_display_users()
@@ -346,6 +348,12 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
                        extra_env={"CARGO_TARGET_DIR": str(portal_target),
                                   "CARGO_PROFILE_RELEASE_OPT_LEVEL": "s"})
             app = portal_target / "x86_64-unknown-none/release/volume-app"
+        elif kernel_feature in (f"test-volume-{case}" for case in VOLUME_SETTINGS_CASES):
+            # U05-N1 settings app (own workspace and target dir); same volume service.
+            settings_target = TARGET / "settings-volume"
+            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/settings-volume/build.py")],
+                       "build-settings-volume", extra_env={"CARGO_TARGET_DIR": str(settings_target)})
+            app = settings_target / "x86_64-unknown-none/release/settings-app"
         qsim_report = {
             "app_sha256": sha256(app), "app_elf": inspect_user(app),
             "service_sha256": sha256(service), "service_elf": inspect_user(service),
