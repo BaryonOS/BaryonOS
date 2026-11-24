@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-24",
-    "source_commit": "0a9915bfce6f7f961a43316aca96f835103d0728",
+    "source_commit": "893aea108434d7af9ae509dceeea02422241fb7e",
     "assessment_basis": "parent_commit",
     "branch": "claude/h06-t5-halt-terminals-20261124",
     "task": "H06-T5 halt-based HW-INV terminal paths (QEMU fixtures)",

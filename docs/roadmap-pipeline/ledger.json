@@ -2996,13 +2996,16 @@
       "executor": "lead",
       "status": "active",
       "title": "Halt-based HW-INV terminal paths (QEMU fixtures)",
-      "goal": "Every terminal path of the native-hw-inventory kernel and hw-inventory loader (kernel panic, M1/M2 failure, M2 kernel exception, HWINV:FAIL, serial timeout, loader M1:FAIL) halts with CLI/HLT instead of writing QEMU's isa-debug-exit port 0xF4; HW-INV v3 adds the M2:FAIL* failure marker; one native QEMU fixture per failure marker.",
+      "goal": "Every terminal path of the native-hw-inventory kernel and hw-inventory loader (kernel panic, M1/M2 failure, M2 kernel exception, HWINV:FAIL, serial timeout, loader M1:FAIL, loader handoff return) halts with CLI/HLT instead of writing QEMU's isa-debug-exit port 0xF4; HW-INV v3 adds the M2:FAIL* failure marker; one native QEMU fixture per failure marker.",
       "deps": [
         "H06-T3"
       ],
       "write_paths": [
         "kernel/src/serial.rs",
         "boot/loader/src/serial.rs",
+        "boot/loader/src/handoff.S",
+        "boot/loader/src/main_default.rs",
+        "boot/loader/src/main_legacy.rs",
         "kernel/Cargo.toml",
         "kernel/src/m2/hw_inventory.rs",
         "tools/build.py",
@@ -3026,7 +3029,7 @@
         "negative control: with the 0xF4 write restored the panic fixture fails (raw 35)",
         "plain and iommu cases and default/M2 smoke (raw 33) unchanged"
       ],
-      "non_claimable": "QEMU only; no physical image, signed record or H06 acceptance. The serial-timeout halt has no fixture; the loader handoff.S return path still writes 0xF4 but is unreachable while the kernel entry never returns. The workflow step addition is a lead change outside this task write set.",
+      "non_claimable": "QEMU only; no physical image, signed record or H06 acceptance. The serial-timeout halt has no fixture; other loaders keep their handoff.S exit tail. The workflow step addition is a lead change outside this task write set.",
       "risk": "low",
       "size": "S",
       "evidence_level": "native QEMU/TCG",
