@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "case": "relay",
-  "source_commit": "49b1557d2f5c068b55b65a24dc15473f4c69d028",
+  "source_commit": "07a8879f1cfaf69941952e026a26960c7acbba5b",
   "source_fingerprint_version": 3,
-  "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
+  "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
   "kernel_feature": "test-system-keystate-relay",
-  "started_utc": "2026-11-24T11:33:24.280296+00:00",
-  "duration_s": 4.585965466999369,
+  "started_utc": "2026-11-24T11:49:51.928915+00:00",
+  "duration_s": 4.577088948999517,
   "timeout_s": 180,
   "raw_qemu_exit": 33,
   "timed_out": false,
@@ -33,15 +33,15 @@
     "none",
     "-no-reboot",
     "-drive",
-    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9/OVMF_CODE.fd",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-2c49d5e3cf564c409b33b3e1a7294389/OVMF_CODE.fd",
     "-drive",
-    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9/OVMF_VARS.fd",
+    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-2c49d5e3cf564c409b33b3e1a7294389/OVMF_VARS.fd",
     "-drive",
-    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9/esp",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-2c49d5e3cf564c409b33b3e1a7294389/esp",
     "-device",
     "isa-debug-exit,iobase=0xf4,iosize=0x04",
     "-drive",
-    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-4ebfb4a978374c87b68dd921d63e590b/volume.img",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-f459b3a8ab764e70a54e4de011bd0dc1/volume.img",
     "-device",
     "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
     "-object",
@@ -56,7 +56,7 @@
     "kernel_feature": "test-system-keystate-relay",
     "loader_feature": null,
     "source_fingerprint_version": 3,
-    "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
+    "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
     "loader": {
       "sha256": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3",
       "format": "AMD64 PE32+",
@@ -64,7 +64,7 @@
       "imports": 0
     },
     "kernel": {
-      "sha256": "cd18d5fdb1dcba4b51585a29ebf68fdcf302f789eb106cd5f8ab22c346d26030",
+      "sha256": "823554b29cc424cfae447c4ec744e969e6e5faafdc9befb8c5ab31ada39b1284",
       "entry": 33554432,
       "segments": [
         {
@@ -80,8 +80,8 @@
           "flags": 4,
           "offset": 176128,
           "address": 33726464,
-          "filesz": 383379,
-          "memsz": 383379,
+          "filesz": 383459,
+          "memsz": 383459,
           "page_start": 33726464,
           "page_end": 34111488
         },
@@ -112,7 +112,7 @@
           "name": ".rodata",
           "type": 1,
           "flags": 50,
-          "size": 383379
+          "size": 383459
         },
         {
           "name": ".data",
@@ -194,7 +194,7 @@
         }
       },
       "system_app": {
-        "sha256": "d511f3a7a3d180b212d1b3dc49fa0058d17b296667fd3220eef8606db4a8a6a2",
+        "sha256": "960ef068289fed2cfebad71bb5a14eec2428cd6e84645bafe47ace780612405b",
         "elf": {
           "entry": 1073741824,
           "segments": [
@@ -229,8 +229,8 @@
               "flags": 5,
               "address": 1073872896,
               "offset": 16384,
-              "filesz": 55749,
-              "memsz": 55749,
+              "filesz": 55813,
+              "memsz": 55813,
               "page_start": 1073872896,
               "page_end": 1073930240
             }
@@ -273,7 +273,7 @@
         }
       },
       "keyring_service": {
-        "sha256": "7e615b16c741de5360ea28fc7c94b1ecd412d203d08a3a8d3d29c966121efff0",
+        "sha256": "1827aa7a6263990e84de904944ed5a350a855f0f565c171b94dbd11ea4135c8a",
         "elf": {
           "entry": 1073741824,
           "segments": [
@@ -308,8 +308,8 @@
               "flags": 5,
               "address": 1073872896,
               "offset": 16384,
-              "filesz": 78131,
-              "memsz": 78131,
+              "filesz": 78147,
+              "memsz": 78147,
               "page_start": 1073872896,
               "page_end": 1073954816
             }
@@ -353,16 +353,16 @@
       }
     }
   },
-  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-e777bfd715bf480f8cac7181d78043c9",
-  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-4ebfb4a978374c87b68dd921d63e590b",
+  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-2c49d5e3cf564c409b33b3e1a7294389",
+  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-f459b3a8ab764e70a54e4de011bd0dc1",
   "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-  "after_sha256": "34c41200d58f55ea3949bb3f17b33def1517406cacf311b8fde7bd79a4bc37c0",
+  "after_sha256": "37240260f5605191c2c7a334284fb15885446d5df5fc27b479f497d64e28078c",
   "firmware_sha256": {
     "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
     "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
   },
   "esp_sha256": {
-    "esp/kernel.elf": "cd18d5fdb1dcba4b51585a29ebf68fdcf302f789eb106cd5f8ab22c346d26030",
+    "esp/kernel.elf": "823554b29cc424cfae447c4ec744e969e6e5faafdc9befb8c5ab31ada39b1284",
     "esp/EFI/BOOT/BOOTX64.EFI": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3"
   },
   "passed": true,
@@ -428,7 +428,7 @@
     "KEYSTATE_RELAY_INIT_BEGUN": 3,
     "KEYSTATE_RELAY_INIT_REVISION": 3,
     "KEYSTATE_RELAY_INIT_GENERATION": 3,
-    "KEYSTATE_RELAY_SUM": 14926720625118913359,
+    "KEYSTATE_RELAY_SUM": 13478807208751798338,
     "KEYSTATE_RELAY_APP_FIRST": 0,
     "KEYSTATE_RELAY_APP_SECOND": 0,
     "LIVE_PROCESSES_AFTER": 0,
@@ -482,7 +482,7 @@
             "chunks": [
               4
             ],
-            "content_hex": "3b254755c9ebc420d6b02d7faa80721067ba3bd361e9083d22931e1517020474339358d13df7f5ffbff65fb7eebeafe611480d4c34abded5a89262d6c00a584a35924a32c35214da0cfaa83eae1f8aaedeb3ecccf82d89bf392d13808dcbea88f3185adb1250dbc4b35c7f6cbd6a1b1f8075718553021ab0d3dd3a9ab44d547416ee730d6d0ff6ac6e1fa60b6019232557b254ab49db4a81d05bf811d526fae69609c123e55d1983"
+            "content_hex": "fe564e923145b8b683e161413c2217a9fbb520c72cb34a3ed0eb85dfb144ce23bcb76a87bd8b533b8231dec9c09e438b327e302521819f43a867b17597418631d5d4f1049c109b89772b2a183581579ef088dec934677f72b115b601ba854bb369a544ada32de252f30d283d06bcead3da1d189a885397824cdd93c72a0aecef97dab1568d262e7c3ebe19ee03de8ffaa06953c63df400fd13b463adde47cd4fdcc16b270e6b88e0"
           }
         ]
       },
@@ -577,7 +577,7 @@
             "chunks": [
               2
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c30310000000085696c6e96d2d3731b31e0898f73673d3af1e5440f07cc40660ab13d37f18070be066eedb772486e5fa61f484004cf08e529c0b6c5d4d005a689544ae9350e645c58d2f16bf417209d39c1e03d5e0e484ae9faac706e3c1c"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000f18baa4d2801f9385ee34eddadd3039058a54a6385d0e26886d00e185b994b81393a618184eb79dea6d8d6d1f927ca026871dc6d6f7046a76a1e3f75f4a53a7658c3ab21936ac5ed65bfd99d03ab0a6d3931bfd017c86f3e"
           },
           {
             "revision": 2,
@@ -587,7 +587,7 @@
             "chunks": [
               1
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000001eb13fc4565346231050e3f977a365ff21f3eaf90f52f3259d2a5876924bd20acf863b8f307abf33e0f3e13829fef86ee32c8acd13e3c67895b5d623e68b2371298ced79ed1c3da4ecc44419f0e5748ba0212562556b65fe"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000000f011a7397c338b1fc7707a252129288f9c076f9a5dce580e005beca60aa52f38b3e176926f0dc27e60cbe29fd50a5475e5296bb0c574c242a49375c71a3e777da248a45163db6117b7a736708e29e3f10abdaf2d8ea5e63"
           },
           {
             "revision": 1,
@@ -597,7 +597,7 @@
             "chunks": [
               0
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000e73e430fa07038019437288c186eaff65661c711992904459e1348225bce482d3a847e6768d012fc65b4b599e4d5465f9cf6702f4601287a4bf3eaef26082b3115c20b33ce82c56ccdb36f85ca6ea99fb92495048d2d251a"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c30310000000046493dd11df85c78efcb05d91a8109088389922f2f0d271d6f912c4ea9b63f4bf1793dda122927a53955857e6a5b8d2644e9c7bc93dcdac7ca7b7ec62b4a92f8442e86542001182ee438abdc3010e3c5a9e3dfd87de11bc5"
           }
         ]
       },
@@ -824,8 +824,8 @@
       false
     ],
     "digests": [
-      11347357048510311056,
-      14582120422364066899
+      4166383542977986218,
+      2357648752523333930
     ]
   }
 }

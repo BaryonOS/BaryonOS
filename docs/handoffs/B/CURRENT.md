@@ -27,8 +27,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Evidence / NOT RUN
 
-- Evidence: `docs/verification/b02-key1-relay-20261124/` (native relay cases re-run at `49b1557d`,
-  B01/host checks at `d4db823e`; see its README):
+- Evidence: `docs/verification/b02-key1-relay-20261124/` (native relay cases and B01 gate re-run at `07a8879f`,
+  host checks at `d4db823e`; see its README):
   relay, relay-not-committed, relay-timeout pass (raw 33); red relay-leak stops at
   `SYSTEM:FAIL:APP_COMMIT_HANDLE` (raw 35, disk unchanged); wrong-case control 12/12
   rejected; `tools/test_system.py` and `tools/test_keyring.py` exit 0.

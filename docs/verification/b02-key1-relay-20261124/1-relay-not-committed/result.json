@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "case": "relay-not-committed",
-  "source_commit": "49b1557d2f5c068b55b65a24dc15473f4c69d028",
+  "source_commit": "07a8879f1cfaf69941952e026a26960c7acbba5b",
   "source_fingerprint_version": 3,
-  "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
+  "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
   "kernel_feature": "test-system-keystate-relay-not-committed",
-  "started_utc": "2026-11-24T11:33:31.351410+00:00",
-  "duration_s": 4.690112030000819,
+  "started_utc": "2026-11-24T11:49:58.955385+00:00",
+  "duration_s": 4.584213833999456,
   "timeout_s": 180,
   "raw_qemu_exit": 33,
   "timed_out": false,
@@ -33,15 +33,15 @@
     "none",
     "-no-reboot",
     "-drive",
-    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933/OVMF_CODE.fd",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44/OVMF_CODE.fd",
     "-drive",
-    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933/OVMF_VARS.fd",
+    "if=pflash,unit=1,format=raw,file=build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44/OVMF_VARS.fd",
     "-drive",
-    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933/esp",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44/esp",
     "-device",
     "isa-debug-exit,iobase=0xf4,iosize=0x04",
     "-drive",
-    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-ff139958a9c44fe3b6d865ed4d1209e7/volume.img",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/relay-20261124/run/system-image-944ae2f386904268be0f661d1f35fb2c/volume.img",
     "-device",
     "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
     "-object",
@@ -56,7 +56,7 @@
     "kernel_feature": "test-system-keystate-relay-not-committed",
     "loader_feature": null,
     "source_fingerprint_version": 3,
-    "source_sha256": "b435ddc59b2668da1e661891aeaf0308d62f8fb37f33c102dbea40d1fdd7bbd4",
+    "source_sha256": "ef8f2718d8bf70e30a356fb445db29640c33cd8020a50e018a43f51a48c1daab",
     "loader": {
       "sha256": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3",
       "format": "AMD64 PE32+",
@@ -64,7 +64,7 @@
       "imports": 0
     },
     "kernel": {
-      "sha256": "ae14c5d8f80f89228b08e3e7801317f6c54a8e317e9a5742a073ef6ffeb8d271",
+      "sha256": "399943e04a60fc2a66770e0622574fd36c4114d4e24b0f91927f5822d724c7e8",
       "entry": 33554432,
       "segments": [
         {
@@ -80,8 +80,8 @@
           "flags": 4,
           "offset": 176128,
           "address": 33726464,
-          "filesz": 383395,
-          "memsz": 383395,
+          "filesz": 383475,
+          "memsz": 383475,
           "page_start": 33726464,
           "page_end": 34111488
         },
@@ -112,7 +112,7 @@
           "name": ".rodata",
           "type": 1,
           "flags": 50,
-          "size": 383395
+          "size": 383475
         },
         {
           "name": ".data",
@@ -194,7 +194,7 @@
         }
       },
       "system_app": {
-        "sha256": "d511f3a7a3d180b212d1b3dc49fa0058d17b296667fd3220eef8606db4a8a6a2",
+        "sha256": "960ef068289fed2cfebad71bb5a14eec2428cd6e84645bafe47ace780612405b",
         "elf": {
           "entry": 1073741824,
           "segments": [
@@ -229,8 +229,8 @@
               "flags": 5,
               "address": 1073872896,
               "offset": 16384,
-              "filesz": 55749,
-              "memsz": 55749,
+              "filesz": 55813,
+              "memsz": 55813,
               "page_start": 1073872896,
               "page_end": 1073930240
             }
@@ -273,7 +273,7 @@
         }
       },
       "keyring_service": {
-        "sha256": "7e615b16c741de5360ea28fc7c94b1ecd412d203d08a3a8d3d29c966121efff0",
+        "sha256": "1827aa7a6263990e84de904944ed5a350a855f0f565c171b94dbd11ea4135c8a",
         "elf": {
           "entry": 1073741824,
           "segments": [
@@ -308,8 +308,8 @@
               "flags": 5,
               "address": 1073872896,
               "offset": 16384,
-              "filesz": 78131,
-              "memsz": 78131,
+              "filesz": 78147,
+              "memsz": 78147,
               "page_start": 1073872896,
               "page_end": 1073954816
             }
@@ -353,16 +353,16 @@
       }
     }
   },
-  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-1bca779445764d5093f1d009ff801933",
-  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-ff139958a9c44fe3b6d865ed4d1209e7",
+  "run_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-relay-not-committed-7f14fbeab90f42e7ba598ecf82627a44",
+  "volume_directory": "/home/simon/projects/BaryonOS-worktrees/b-cycle-20261124/build/relay-20261124/run/system-image-944ae2f386904268be0f661d1f35fb2c",
   "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
-  "after_sha256": "00ca46b0babf9a13145849ce2a41fb50cb908a329b8d255ae807f93f34d51e62",
+  "after_sha256": "00c36fa0249c600a81b7eae3c19f18aaec5e76be0e2d41bc2594812b7203575e",
   "firmware_sha256": {
     "code": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
     "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
   },
   "esp_sha256": {
-    "esp/kernel.elf": "ae14c5d8f80f89228b08e3e7801317f6c54a8e317e9a5742a073ef6ffeb8d271",
+    "esp/kernel.elf": "399943e04a60fc2a66770e0622574fd36c4114d4e24b0f91927f5822d724c7e8",
     "esp/EFI/BOOT/BOOTX64.EFI": "9a430e7728537170f2edfe4afd11013ceff015cdacf5ea1dbe65f0f21aeac6c3"
   },
   "passed": true,
@@ -428,7 +428,7 @@
     "KEYSTATE_RELAY_INIT_BEGUN": 3,
     "KEYSTATE_RELAY_INIT_REVISION": 3,
     "KEYSTATE_RELAY_INIT_GENERATION": 3,
-    "KEYSTATE_RELAY_SUM": 7220131958475666143,
+    "KEYSTATE_RELAY_SUM": 13641874829077358224,
     "KEYSTATE_RELAY_APP_FIRST": 1,
     "KEYSTATE_RELAY_APP_SECOND": 1,
     "LIVE_PROCESSES_AFTER": 0,
@@ -482,7 +482,7 @@
             "chunks": [
               4
             ],
-            "content_hex": "f62c854977cf4b273ba734b1a9f147838260c5d8bce00dcab1648ad86c64d143d1b92aaacf9089d897f0fe436eb5978e26aa36d5fffc6f834e80d050d5b416dc8b3e6c9bc59a5e9aefbd4c23a12e202b58a768ab0c27ee4d6871d816df6d8ce1d12865fb07717f00078b3e871db0a3efbf6d6a4486d23d1415662ed09d9b0b7b4d8a98aecccc9cc95fb2cf59c440321495679706a6077a06b8abbe12a27996aec65c541551aac161"
+            "content_hex": "80f4648477628b60783fc1f9693104c559b068832cca77f3187f2a51a369a68d68c919c31911d62a1ecaa6ac923533be8330b9ea2901cfb4be214ba993b92f3e46f05eaf8755864d1574912801007e23b456511e5bb67152b5415ebe452ec9d4af9a314c993632e1e493f54c55aff654879c8b385b4c6d84fa05ad73964cdd85d96735254cb954c994eacd04b114fba006aeac614aa7b976e6e200eeb8ea7bb52232aa56e63f18f6"
           }
         ]
       },
@@ -577,7 +577,7 @@
             "chunks": [
               2
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000006aa338dc8bfd9ae19695c34d400bcf1a3d3c59fab2419da773479af13c7b16bfe23fc29e99a4a2e43d8e3a8c94e66b4fdac50187055559717ffcdd40e50c208683620f29afada24f17975802529facd20d4d4db2df61482b"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000c7a725ae030d84c95d3b59e9adf985fb5eb5e261328bcb1ba8ce6260eb77c2d1861c62ea943ef7d2f91ca1efa180531510cc534f0b776daaf64f2ad68da1cc44527785a2bcfaa7686fb354c5c68d37813c5e88c0e092a42e"
           },
           {
             "revision": 2,
@@ -587,7 +587,7 @@
             "chunks": [
               1
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c303100000000816b2b1f30d25b0246157ff9a43c86a020c8c4c48ca5596e074fbe11ab9073b91ce8e7b4c3eec9cb355ee9a3d1092041e46a9f0119e18cf013f2d58e6e349015326297c35fdad6441fb701ebcc223059d68397c15a008c27"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c30310000000002b342b196afefb0effdc3a13df1cd6428a1a0d7c5516f4f63792a05e571065e343d016c494c40c878819c85ccaed9a850efca311f9818317d4b077f6fd4388d955cfa0774b061eb0d2c3ba509c50f05616682ae8c640e71"
           },
           {
             "revision": 1,
@@ -597,7 +597,7 @@
             "chunks": [
               0
             ],
-            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000001a53e2f4e5f7b722a210c6240ff4550387d2707d3406fb9340d6f97dd66c4551052d5b66b219cd18e713ace99b346bf29a17384d39db80b2b8f78a2e570a87e4de97b1779829e28ea88ca2beaba6a7e568b948fb0d8562e3"
+            "content_hex": "4e4f534b45593031010001004e4f532d53595354454d2d564f4c3031000000005fe7d59f989639131ed1f641a5089438b43eef3f2553b867771dc8a3bd38028d8796e269511ba3adc14a2e52fdf33350c6f5b1f68a51cfe0a3ac3641ece722906e9020d3f916f8ad1e7172f957246e3f590d86559e8a05d1"
           }
         ]
       },
@@ -824,8 +824,8 @@
       false
     ],
     "digests": [
-      17873677048235248524,
-      6045507901766612736
+      17236954599636199492,
+      10831454344839277794
     ]
   }
 }
