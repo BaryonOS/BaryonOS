@@ -217,6 +217,9 @@ jobs:
           job-status: ${{ job.status }}
           if-no-files-found: error
           path: build/coverage-raw/python/cobertura.xml
+          required-paths: build/coverage-raw/python/cobertura.xml
+          # Keep the complete XML as the suite grows beyond the default 1 MiB.
+          max-file-bytes: '2097152'
       - name: Preserve JavaScript coverage artifact
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence

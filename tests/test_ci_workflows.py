@@ -311,16 +311,23 @@ class WorkflowContractTests(unittest.TestCase):
                 yield path, job_id, job
 
     def test_rust_coverage_report_survives_the_actual_collection_step(self):
-        """Archive a synthetic XML of the observed failing size through CI's shell step."""
+        self.assert_coverage_report_retained("Rust", 2349735, 4 * 1024 * 1024)
+
+    def test_python_coverage_report_survives_the_actual_collection_step(self):
+        self.assert_coverage_report_retained("Python", 1057659, 2 * 1024 * 1024)
+
+    def assert_coverage_report_retained(self, language, observed_size, file_limit):
+        """Archive an observed failing XML size through the actual caller and shell step."""
         steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
-        caller = next(step for step in steps if step.get("name") == "Preserve Rust coverage artifact")
+        caller = next(step for step in steps
+                      if step.get("name") == f"Preserve {language} coverage artifact")
         action = self.actions[EVIDENCE_ACTION]
         inputs = {name: spec.get("default", "") for name, spec in action["inputs"].items()}
         inputs.update(caller["with"])
         inputs["job-status"] = "success"
         collect = next(step for step in action["runs"]["steps"] if step.get("id") == "collect")
         header, footer = b'<coverage><packages/>', b'</coverage>\n'
-        original = header + b" " * (2349735 - len(header) - len(footer)) + footer
+        original = header + b" " * (observed_size - len(header) - len(footer)) + footer
         with tempfile.TemporaryDirectory(prefix="coverage-evidence-") as directory:
             root = Path(directory)
             workspace, runner = root / "workspace", root / "runner"
@@ -341,14 +348,246 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             outputs = dict(line.split("=", 1) for line in (root / "outputs").read_text().splitlines())
             retained = Path(outputs["path"]) / inputs["path"]
-            self.assertTrue(retained.is_file(), "The Rust XML was omitted from compact evidence")
+            self.assertTrue(retained.is_file(), f"The {language} XML was omitted from compact evidence")
             self.assertEqual(retained.read_bytes(), original)
             receipt = json.loads((Path(outputs["path"]) / "_meta/receipt.json").read_text())
             self.assertEqual(receipt["retained"][0]["sha256"], hashlib.sha256(original).hexdigest())
-            self.assertEqual(receipt["limits"]["file_bytes"], 4 * 1024 * 1024)
+            self.assertEqual(receipt["limits"]["file_bytes"], file_limit)
             self.assertEqual(receipt["limits"]["total_bytes_including_receipt"], 8 * 1024 * 1024)
             self.assertEqual(receipt["required_paths"], [inputs["path"]])
             self.assertEqual(outputs["required-files"], "true")
+
+    def window_evidence_fixture(self, scale, *, serial_size=4 * 1024 * 1024):
+        """Make synthetic archive inputs, never a native execution or acceptance report."""
+        temporary = tempfile.TemporaryDirectory(prefix="window-evidence-")
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        workspace, runner = root / "workspace", root / "runner"
+        (workspace / "tools").mkdir(parents=True)
+        runner.mkdir()
+        (workspace / "tools/ci_evidence.py").write_bytes((ROOT / "tools/ci_evidence.py").read_bytes())
+        source = "a" * 40
+        env = dict(os.environ, GITHUB_WORKSPACE=str(workspace), RUNNER_TEMP=str(runner),
+                   GITHUB_SHA=source, NOS_WINDOW_SCALE=str(scale), CI_JOB_STATUS="success",
+                   GITHUB_OUTPUT=str(root / "index-output"))
+        roles = [("native", "probe", scale)]
+        if scale == 1:
+            roles += [("library-write", "probe", 1), ("library-cold", "probe", 1),
+                      ("switcher-scale1", "switcher-scale1", 1),
+                      ("switcher-scale2", "switcher-scale2", 2)]
+        expected = {}
+        reports = {}
+        serial_line = b"Synthetic archive-size fixture; not QEMU evidence.\n"
+        serial = (serial_line * (serial_size // len(serial_line) + 1))[:serial_size]
+        self.assertEqual(len(serial), serial_size)
+        for number, (role, profile, run_scale) in enumerate(roles, 1):
+            run = workspace / f"build/window-session-ci/{profile}/run/window-{number:032x}"
+            run.mkdir(parents=True)
+            report = dict(source_commit=source, run_directory=str(run), scale=run_scale,
+                          workspace_requested=role == "native", clipboard_requested=role == "native",
+                          library_requested=role.startswith("library-"), library_cold=role == "library-cold",
+                          switcher_requested=role.startswith("switcher-"), passed=True,
+                          serial_sha256=hashlib.sha256(serial).hexdigest(),
+                          qmp_trace=[{"synthetic_archive_fixture": role}])
+            data = json.dumps(report).encode()
+            # Exact failed scale-2 report size from hosted artifact 14884099633.
+            data += b" " * (1553981 - len(data))
+            for name, content in (("result.json", data), ("serial.txt", serial)):
+                path = run / name
+                path.write_bytes(content)
+                expected[path.relative_to(workspace).as_posix()] = content
+            reports[role] = run / "result.json"
+            # Existing summary/copy paths deliberately duplicate complete reports.
+            (workspace / f"build/window-session-ci/{profile}/window-session-report.json").write_bytes(data)
+            if role != "native":
+                name = f"switcher-native-scale{run_scale}.json" if role.startswith("switcher-") else role + "-report.json"
+                copy = workspace / "build/window-session-ci/evidence" / name
+                copy.parent.mkdir(parents=True, exist_ok=True)
+                copy.write_bytes(data)
+        common = ["evidence/source.json", "probe/manifest.json", "normal/manifest.json"]
+        if scale == 1:
+            common += ["evidence/package.json", "evidence/package.sha256",
+                       "readonly-compile/manifest.json", "evidence/readonly-profile-compile.txt"]
+        for relative in common:
+            path = workspace / "build/window-session-ci" / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            data = b'{"synthetic_archive_metadata": true}\n' if path.suffix == ".json" else b"Synthetic fixture only\n"
+            path.write_bytes(data)
+            expected[path.relative_to(workspace).as_posix()] = data
+        return workspace, env, reports, expected
+
+    @staticmethod
+    def action_outputs(path):
+        """Read the runner's single-line and delimited output-file formats."""
+        result = {}
+        lines = iter(path.read_text().splitlines())
+        for line in lines:
+            if "<<" in line:
+                key, delimiter = line.split("<<", 1)
+                value = []
+                for item in lines:
+                    if item == delimiter:
+                        break
+                    value.append(item)
+                result[key] = "\n".join(value)
+            else:
+                key, value = line.split("=", 1)
+                result[key] = value
+        return result
+
+    def window_evidence_callers(self, workspace, env):
+        """Run the real path-index step and render this workflow's fixed inputs."""
+        steps = self.workflows[".github/workflows/native-window-session.yml"]["jobs"]["native-window-session"]["steps"]
+        index = next((step for step in steps if step.get("id") == "window-proof-paths"), None)
+        outputs = {}
+        if index is not None:
+            result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", index["run"]],
+                                    cwd=workspace, env=env, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            outputs = self.action_outputs(Path(env["GITHUB_OUTPUT"]))
+        action = self.actions[EVIDENCE_ACTION]
+        callers = []
+        for step in steps:
+            if step.get("uses") != "./.github/actions/preserve-evidence":
+                continue
+            if step.get("if") == "${{ always() && matrix.scale == 1 }}" and env["NOS_WINDOW_SCALE"] != "1":
+                continue
+            inputs = {name: spec.get("default", "") for name, spec in action["inputs"].items()}
+            inputs.update(step["with"])
+            inputs["job-status"] = env["CI_JOB_STATUS"]
+            inputs["full-evidence"] = "false"  # Ordinary PR fixture; no uploads are executed.
+            for key in ("path", "required-paths", "name"):
+                inputs[key] = inputs[key].replace("${{ matrix.scale }}", env["NOS_WINDOW_SCALE"])
+                inputs[key] = re.sub(r"\$\{\{ steps\.window-proof-paths\.outputs\.([\w-]+) \}\}",
+                                     lambda match: outputs[match.group(1)], inputs[key])
+                self.assertNotIn("${{", inputs[key])
+            callers.append((step.get("id", "final"), inputs))
+        return callers
+
+    def collect_window_fixture(self, workspace, base_env, inputs, name):
+        """Execute the actual composite collector shell, with its unchanged bounds."""
+        collect = next(step for step in self.actions[EVIDENCE_ACTION]["runs"]["steps"]
+                       if step.get("id") == "collect")
+        output = workspace.parent / (name + ".outputs")
+        env = dict(base_env, GITHUB_OUTPUT=str(output),
+                   GITHUB_STEP_SUMMARY=str(workspace.parent / (name + ".summary")))
+        for key, expression in collect["env"].items():
+            match = re.fullmatch(r"\$\{\{ inputs\.([\w-]+) \}\}", expression)
+            self.assertIsNotNone(match)
+            env[key] = str(inputs[match.group(1)])
+        result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", collect["run"]],
+                                cwd=workspace, env=env, capture_output=True, text=True, check=False)
+        outputs = self.action_outputs(output)
+        directory = Path(outputs["path"])
+        receipt = json.loads((directory / "_meta/receipt.json").read_text())
+        return result, directory, receipt, outputs
+
+    def test_window_full_scale1_plan_retains_every_original_proof_pair(self):
+        self.assert_window_evidence_plan(1)
+
+    def test_window_observed_scale2_report_and_serial_are_not_omitted(self):
+        self.assert_window_evidence_plan(2, serial_size=1556536)
+
+    def assert_window_evidence_plan(self, scale, **options):
+        """Large independent runs must not compete with duplicates in one 7 MiB payload."""
+        workspace, env, reports, expected = self.window_evidence_fixture(scale, **options)
+        retained = {}
+        proof_count = 0
+        for name, inputs in self.window_evidence_callers(workspace, env):
+            result, directory, receipt, outputs = self.collect_window_fixture(workspace, env, inputs, name)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(receipt["limits"]["total_bytes_including_receipt"], 8 * 1024 * 1024)
+            self.assertLessEqual(sum(item["size_bytes"] for item in receipt["retained"]), 7 * 1024 * 1024)
+            self.assertEqual(receipt["unretained_required_paths"], [])
+            for item in receipt["retained"]:
+                data = (directory / item["path"]).read_bytes()
+                self.assertEqual(hashlib.sha256(data).hexdigest(), item["sha256"])
+                retained[item["path"]] = data
+            if name != "final":
+                proof_count += 1
+                self.assertEqual(len(receipt["required_paths"]), 2)
+                self.assertEqual(set(receipt["required_paths"]),
+                                 {item["path"] for item in receipt["retained"]})
+                self.assertEqual(receipt["limits"]["file_bytes"], 4 * 1024 * 1024)
+                self.assertEqual(outputs["required-files"], "true")
+                self.assertEqual(inputs["full-evidence"], "false")
+                self.assertEqual(inputs["package-path"], "")
+        for path, content in expected.items():
+            self.assertIn(path, retained, "Required native proof was omitted: " + path)
+            self.assertEqual(retained[path], content)
+        self.assertEqual(proof_count, len(reports))
+
+    def test_window_required_proof_omissions_fail_the_actual_collector(self):
+        """Missing, oversized and aggregate-excess evidence must fail a successful job."""
+        for cause in ("missing", "per-file", "aggregate"):
+            with self.subTest(cause=cause):
+                workspace, env, reports, _ = self.window_evidence_fixture(2)
+                callers = dict(self.window_evidence_callers(workspace, env))
+                inputs = callers["window-native-proof"]
+                serial = reports["native"].with_name("serial.txt")
+                if cause == "missing":
+                    serial.unlink()
+                elif cause == "per-file":
+                    serial.write_bytes(b"x" * (4 * 1024 * 1024 + 1))
+                else:
+                    report = reports["native"]
+                    report.write_bytes(report.read_bytes().ljust(4 * 1024 * 1024, b" "))
+                result, _, receipt, outputs = self.collect_window_fixture(workspace, env, inputs, cause)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertEqual(outputs["required-files"], "false")
+                self.assertIn(serial.relative_to(workspace).as_posix(), receipt["unretained_required_paths"])
+
+    def test_window_failed_run_and_first_switcher_remain_diagnostic_evidence(self):
+        """A later failed case does not discard earlier proof or invent a job pass."""
+        workspace, env, reports, _ = self.window_evidence_fixture(1)
+        env["CI_JOB_STATUS"] = "failure"
+        reports["switcher-scale2"].unlink()
+        raw = json.loads(reports["library-cold"].read_text())
+        raw["passed"] = False
+        reports["library-cold"].write_text(json.dumps(raw))
+        callers = dict(self.window_evidence_callers(workspace, env))
+        for role in ("library-cold", "switcher-scale1"):
+            inputs = callers["window-" + role + "-proof"]
+            result, _, receipt, _ = self.collect_window_fixture(workspace, env, inputs, role)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(receipt["job_status_before_archive"], "failure")
+            self.assertEqual(receipt["unretained_required_paths"], [])
+            self.assertIn(reports[role].relative_to(workspace).as_posix(),
+                          {item["path"] for item in receipt["retained"]})
+
+    def test_window_missing_normal_manifest_fails_despite_other_retained_proof(self):
+        """The final collection binds the normal build as well as the native probe."""
+        workspace, env, _, _ = self.window_evidence_fixture(2)
+        inputs = dict(self.window_evidence_callers(workspace, env))["final"]
+        missing = "build/window-session-ci/normal/manifest.json"
+        (workspace / missing).unlink()
+        result, _, receipt, _ = self.collect_window_fixture(workspace, env, inputs, "missing-normal")
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(receipt["unretained_required_paths"], [missing])
+
+    def test_window_proof_index_rejects_stale_or_ambiguous_source(self):
+        """A previous head or two matching run directories cannot supply current proof."""
+        for cause in ("stale", "ambiguous", "missing"):
+            with self.subTest(cause=cause):
+                workspace, env, reports, _ = self.window_evidence_fixture(2)
+                report = reports["native"]
+                if cause == "stale":
+                    data = json.loads(report.read_text())
+                    data["source_commit"] = "b" * 40
+                    report.write_text(json.dumps(data))
+                elif cause == "ambiguous":
+                    other = report.parent.with_name("window-" + "f" * 32)
+                    other.mkdir()
+                    data = json.loads(report.read_text())
+                    data["run_directory"] = str(other)
+                    (other / "result.json").write_text(json.dumps(data))
+                else:
+                    report.unlink()
+                steps = self.workflows[".github/workflows/native-window-session.yml"]["jobs"]["native-window-session"]["steps"]
+                index = next(step for step in steps if step.get("id") == "window-proof-paths")
+                result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", index["run"]],
+                                        cwd=workspace, env=env, capture_output=True, text=True, check=False)
+                self.assertNotEqual(result.returncode, 0, result.stdout)
 
     def steps(self):
         """Include nested local-action steps in supply-chain and error checks."""
@@ -919,9 +1158,10 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         """Scale two must retain evidence without requiring or colliding on a scale-one bundle."""
         workflow = self.workflows[".github/workflows/native-window-session.yml"]
         job = workflow["jobs"]["native-window-session"]
-        preserve = next(
+        preserve, = (
             step for step in job["steps"]
             if step.get("uses") == "./.github/actions/preserve-evidence"
+            and step.get("with", {}).get("package-path")
         )
         inputs = preserve["with"]
         self.assertEqual(
@@ -937,8 +1177,42 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         )
         self.assertIn("matrix.scale == 1", package["if"])
 
+    def test_materiaal_measurement_is_opt_in_without_weaker_native_bounds(self):
+        """A selected PR head can run the real gate without enabling it globally."""
+        workflow = self.workflows[".github/workflows/materiaal-probe.yml"]
+        self.assertEqual(set(workflow["on"]), {"workflow_dispatch", "pull_request"})
+        self.assertEqual(workflow["on"]["pull_request"], {
+            "branches": ["main"],
+            "types": ["opened", "reopened", "synchronize", "labeled", "ready_for_review"],
+        })
+        self.assertEqual(workflow["on"]["workflow_dispatch"]["inputs"]["full_evidence"]["default"],
+                         "false")
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertEqual(set(workflow["jobs"]), {"materiaal-probe"})
+        job = workflow["jobs"]["materiaal-probe"]
+        # Pin the guard as configuration; actionlint checks GitHub expression syntax.
+        # This test does not emulate GitHub's event delivery or expression engine.
+        self.assertEqual(" ".join(job["if"].split()),
+                         "${{ github.event_name == 'workflow_dispatch' || "
+                         "contains(github.event.pull_request.labels.*.name, 'acceptance-materiaal-probe') }}")
+        self.assertEqual(int(job["timeout-minutes"]), 40)
+        self.assertNotIn("continue-on-error", job)
+        for step in job["steps"]:
+            self.assertNotIn("continue-on-error", step)
+        native, = [step for step in job["steps"]
+                   if step.get("name") == "Actual QMP keys, mouse and exact pixels for the Materiaal chain"]
+        self.assertNotIn("if", native)
+        self.assertEqual(int(native["timeout-minutes"]), 10)
+        self.assertIn("--case normal", native["run"])
+        self.assertIn("--timeout 240", native["run"])
+        self.assertNotIn("||", native["run"])
+        preserve, = [step for step in job["steps"]
+                     if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertEqual(preserve["with"]["full-evidence"],
+                         "${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}")
+
     def test_pr_lifecycle_runs_once_without_skipping_drafts(self):
-        """Draft changes are tested already, so becoming ready need not repeat them."""
+        """Automatic gates test drafts; explicit measurement has its own lifecycle."""
         for path, workflow in self.workflows.items():
             if "pull_request" not in workflow["on"]:
                 continue
@@ -946,12 +1220,17 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
             types = trigger.get("types", ["opened", "synchronize", "reopened"])
             with self.subTest(path=path):
                 self.assertLessEqual({"opened", "synchronize", "reopened"}, set(types))
-                self.assertNotIn("ready_for_review", types)
+                if path == ".github/workflows/materiaal-probe.yml":
+                    # The opt-in measurement is separately guarded above; ready
+                    # is an explicit opportunity to measure a selected final head.
+                    self.assertIn("ready_for_review", types)
+                else:
+                    self.assertNotIn("ready_for_review", types)
                 for job in workflow["jobs"].values():
                     self.assertNotIn("draft", job.get("if", ""))
 
     def test_deduplication_keeps_host_and_scalar_component_coverage(self):
-        """Both removed matrix entries retain tests, lint and scalar target builds."""
+        """Dedicated gates retain existing and new standalone component coverage."""
         matrix = self.workflows[".github/workflows/component-leaves.yml"]["jobs"][
             "component-quality"
         ]["strategy"]["matrix"]["include"]
@@ -961,6 +1240,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         for filename, job_id, component in [
             ("artifact-store-quality.yml", "artifact-store-core", "artifact-store-core"),
             ("native-display-input.yml", "native-display-input", "ui/native/Cargo.toml"),
+            ("native-display-input.yml", "native-display-input", "sdk/examples/settings-volume/Cargo.toml"),
+            ("native-display-input.yml", "native-display-input", "sdk/examples/search-volume/Cargo.toml"),
         ]:
             job = self.workflows[f".github/workflows/{filename}"]["jobs"][job_id]
             relevant = [step for step in job["steps"] if component in step.get("run", "")]
@@ -984,6 +1265,45 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                     self.assertIn("no-redzone=yes", flags)
                     self.assertIn("-sse2", flags)
                     self.assertIn("-avx2", flags)
+
+    def test_settings_and_search_oracles_run_in_display_gate(self):
+        """Standalone adapters need independent oracle checks beside Rust coverage."""
+        job = self.workflows[".github/workflows/native-display-input.yml"]["jobs"][
+            "native-display-input"
+        ]
+        commands = "\n".join(step.get("run", "") for step in job["steps"])
+        for module in ("tests.test_settings_oracle", "tests.test_search_oracle",
+                       "tools.tests.test_run_search"):
+            with self.subTest(module=module):
+                self.assertRegex(commands, rf"python3 -B -m unittest[^\n]*\b{re.escape(module)}\b")
+
+    def test_settings_native_gate_and_search_compile_keep_separate_evidence(self):
+        """Settings has a six-boot gate; search is still an S2 target binary."""
+        job = self.workflows[".github/workflows/native-display-input.yml"]["jobs"][
+            "native-display-input"
+        ]
+        commands = "\n".join(step.get("run", "") for step in job["steps"])
+        self.assertIn("for case in settings settings-recover", commands)
+        self.assertIn('tools/build.py --kernel-feature "test-volume-$case"', commands)
+        self.assertIn('tools/run_settings.py', commands)
+        self.assertIn('--settings-build "$NOS_BUILD_DIR/settings"', commands)
+        self.assertIn('--recover-build "$NOS_BUILD_DIR/settings-recover"', commands)
+        self.assertIn('"--bin", "search-app"', commands)
+        self.assertIn('"--target", "x86_64-unknown-none"', commands)
+        self.assertIn('sdk/examples/volume-docs/linker.ld', commands)
+        self.assertNotIn('tools/run_search.py', commands)
+
+    def test_readonly_window_profile_has_a_separate_compile_only_step(self):
+        """The new cfg path compiles without claiming a service-refusal run."""
+        job = self.workflows[".github/workflows/native-window-session.yml"]["jobs"][
+            "native-window-session"
+        ]
+        step = next(step for step in job["steps"]
+                    if "--kernel-feature test-window-session-readonly" in step.get("run", ""))
+        self.assertIn("matrix.scale == 1", step["if"])
+        self.assertIn("readonly-compile", step["env"]["NOS_BUILD_DIR"])
+        self.assertIn("readonly-compile", step["env"]["NOS_TARGET_DIR"])
+        self.assertNotIn("run_window_session.py", step["run"])
 
     def test_artifact_build_preserves_target_rustflags(self):
         """Scalar CI additions must merge with the mandatory target contract."""

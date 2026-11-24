@@ -352,13 +352,17 @@ fn case() -> u64 {
         21
     } else if cfg!(feature = "test-volume-install-cut") {
         22
+    } else if cfg!(feature = "test-volume-settings") {
+        23
+    } else if cfg!(feature = "test-volume-settings-recover") {
+        24
     } else {
         0
     }
 }
 /// Device-level read-only mount (emulator, virtio negotiation and service).
 fn read_only() -> bool {
-    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5 | 21)
+    cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5 | 21 | 24)
 }
 /// Archive export (also into a too-small target, or followed by the ustar
 /// export) writes only the archive range: the device stays writable, but the
@@ -409,6 +413,8 @@ fn marker() -> &'static [u8] {
         19 => b"VOLUME:CASE:ARCHIVE_DISK_VERIFY:PASS\n",
         20 => b"VOLUME:CASE:INSTALL:PASS\n",
         21 => b"VOLUME:CASE:INSTALL_RECOVER:PASS\n",
+        23 => b"VOLUME:CASE:SETTINGS:PASS\n",
+        24 => b"VOLUME:CASE:SETTINGS_RECOVER:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -1536,6 +1542,10 @@ fn finish(s: &mut State) -> ! {
         if index == 0 {
             print_number(b"VOLUME:A:RECOVERED_COLLECTION:", app.recovered_collection);
             print_number(b"VOLUME:A:RECOVERED_SECOND:", app.recovered_second);
+        } else if matches!(case(), 23 | 24) {
+            // Settings cases: slot B's encoded value and status words.
+            print_number(b"VOLUME:B:RECOVERED_COLLECTION:", app.recovered_collection);
+            print_number(b"VOLUME:B:RECOVERED_SECOND:", app.recovered_second);
         }
     }
     for (label, offset) in [

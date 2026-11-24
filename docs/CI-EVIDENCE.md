@@ -7,7 +7,7 @@ collector remains an error.
 
 ## Normal runs
 
-The sixteen workflows that preserve evidence use
+The workflows that preserve evidence use
 `.github/actions/preserve-evidence/action.yml`. The action reads only the
 explicitly selected existing evidence and performs the following steps:
 
@@ -32,6 +32,30 @@ The Rust Cobertura report in `ci.yml` explicitly uses `max-file-bytes: '4194304'
 (4 MiB) and is a required exact path. Run `43594581854` generated a
 2,349,735-byte report that exceeded the default. This allowance preserves the
 complete XML; it does not truncate the report or change coverage measurements.
+The Python Cobertura caller also requires its exact path and explicitly permits
+2 MiB. Run `45311246616` produced a 1,057,659-byte report; its tests passed, but
+the previous 1 MiB allowance correctly failed to preserve the required evidence.
+The caller repair retains the complete original XML and does not change coverage
+measurements or missing-evidence failure.
+
+The native window workflow preserves each phase's original `result.json` and
+`serial.txt` in a separate compact proof collection. Each file is limited to
+4 MiB, and the pair must fit within the unchanged 7 MiB payload budget plus
+1 MiB receipt reserve. The base native phase applies to both scales; library
+write, library cold recovery and the two switcher profiles apply only to the
+scale-1 matrix job. Required proof cannot be silently omitted for a missing file,
+individual-file limit or aggregate-budget limit. The existing final collection
+continues to hold host logs and manifests and to offer the original optional
+full archive and Windows package. Phase collections add no duplicate raw archive
+or package upload.
+
+This separation addresses run `45311246725`: its successful scale-2 native job
+produced a 1,553,981-byte result and 1,556,536-byte serial log that exceeded the
+old per-file default. Runtime success remained distinct from the unavailable
+complete report. Copies of one report and other phases must not compete with a
+required original result/serial pair for the same compact budget. An uploaded
+receipt or hash alone does not supply omitted report bytes for revalidation.
+
 Other callers keep the 1 MiB default. The collector accepts per-call limits
 up to 7 MiB, always reserving a fixed 1 MiB for the receipt within the unchanged
 8 MiB total budget. Receipt metadata records the actual selected file limit.

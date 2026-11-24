@@ -1,20 +1,30 @@
 # Current overview
 
-Updated 19 November 2026. Source baseline: main `ea628ef5` (#393).
-Integration pass of 19 November 2026 squash-merged PRs #365–#379 and #381–#393 in
-creation order, with review repairs where findings were valid. Open PRs: #360
-(Claude UI/UX, excluded) and #380 (blocked native full-port sweep). Overall 41/100
-unchanged. [Executable continuation](PROJECT-STATE.md).
+Updated 24 November 2026. Verified prior-main baseline:
+`c3afc04ac2bc92228f2201af02ab69148c47e596` ([#478](https://github.com/BaryonOS/BaryonOS/pull/478)).
+The final UI/input contribution is included in this source. The acceptance score
+remains **41/100**; criterion states, weights and accepted evidence are unchanged.
+Read the [current handoff](PROJECT-STATE.md) for source mappings and continuation.
 
-| Workstream | Current boundary | Next step |
+| Area | Incorporated source PRs | Evidence boundary |
 |---|---|---|
-| Codex H/U/N/B/A/P/L/R | Released READY queue processed; bounded code/native slices and supporting proposals preserved in draft PRs | N02-T3 after PR370 integration/write ownership release; actual source blockers in checkpoint |
-| Integration | Separate Integration Manager owns existing PR review, merge and closure | No Codex development duplicate integration or CI polling |
-| ClaudeS09/UI | Claude-owned worktrees preserved; main includes S09 #340 | Follow those workstreams' own handoffs; no Codex writes |
-| Shared governance | Contracts/adapters/roles/skills integrated in main #362 | Runtime parity and held automation remain separate |
-| Unsafe unattended runner | Source hold and disabled policy preserved | No activation; existing Daybreak/model-client/runtime findings remain open |
-| Former #355 WIP | Original preserved checkout and recovery-only #357 remain unincorporated | Do not discard or publish blindly |
+| Security and boot — #476 | #427, #457, #470, #456, #434 | B01/B04 evidence remains source-bound; ordinary B03 CI does not establish B04 trusted-boot acceptance. |
+| Governance — #479 | #452, #473, #465 | Delegated PR completion and manual-session repair; merge-group support is preparation, not an operational queue. |
+| Volume and restore — #477 | #407, #408, #411, #459, #462, #413, #414 | Explicit recovery across INSTALL; uncertain COMMIT/collection replies can hide durable changes. The final batch passed its native volume and NAS gates. |
+| Network — #478 | #426, #440, #428, #431, #444, #468, #474, #445 | Final native extension and baseline gates passed. #380's failed prototype is replaced by the separate bounded full-port-sweep successor. |
+| UI, settings and input — included here | #436, #441, #455, #463, #469, #472, #461 | Exact-head native acceptance is recorded on the containing integration PR. Search S3 and the read-only service-refusal walkthrough remain separate work. |
 
-Branch-bound host/QEMU evidence does not establish current-main acceptance,
-physical support, a human audit or release readiness. Proposed owner/security
-boundaries remain proposed. No wiki or new project-management system was created.
+The issue-driven controller remains disabled under `EXECUTION_HOLD`. Queue
+activation still requires verified predecessor-rerun handling, ruleset/check
+assumptions and actual operation. Manual-session repair does not activate either.
+
+Five UI cases remain explicitly ignored: four new defect specifications from
+#472 and the inherited History reading-order case. #472 delivers its test matrix;
+it does not implement those production fixes. Physical hardware, human task
+studies and accessibility acceptance also remain open.
+
+Start from freshly fetched main, AGENTS.md and the current handoff. Compare old
+branches with current files, preserve child deltas across squash merges, and use
+one writer per branch or shared file. Continue independent work while PR checks
+run, or construct a deliberate dependent branch. Historical handoffs describe
+their original sources and do not reserve ownership. Proposals remain proposals.

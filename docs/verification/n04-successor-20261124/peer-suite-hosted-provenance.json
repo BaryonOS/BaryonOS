@@ -1,0 +1,12 @@
+{
+  "source_job_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933",
+  "full_job_log_sha256": "a36a6961a5181dc3a44f27265db9de7efde6d11433f223faa66af1d3c7168122",
+  "full_job_log_bytes": 582958,
+  "excerpt_start_line_1based": 815,
+  "excerpt_end_line_1based": 895,
+  "excerpt_start_byte": 72489,
+  "excerpt_end_byte": 79017,
+  "excerpt_sha256": "5bf17043585c9f8724b11a118a66473562909da55bbe0e0d981035ddeb3c61ee",
+  "excerpt_bytes": 6528,
+  "selection": "Exact contiguous bytes for the existing protocol/client/peer host-check step; native execution logs excluded."
+}

@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "source_sha256": "be030a90ac63b9da0eb7684698c45dc0f40792b5b91737881d03e8640cd6312f",
+  "passed": true,
+  "steps": [
+    {
+      "step": 1,
+      "case": "settings",
+      "image_source": "fresh",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+      "after_sha256": "53f3e394e0b3d0baaed0e6b1bbd14c892622c07f8f55f8c6adc478a7352c3d1b",
+      "reported": {
+        "0": [
+          2,
+          9830658,
+          0
+        ],
+        "1": [
+          2,
+          13107457,
+          0
+        ]
+      },
+      "expected": {
+        "0": [
+          2,
+          9830658,
+          0
+        ],
+        "1": [
+          2,
+          13107457,
+          0
+        ]
+      },
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings/run/settings-1-f72fc914af",
+      "error": null
+    },
+    {
+      "step": 2,
+      "case": "settings-recover",
+      "image_source": "previous",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "before_sha256": "53f3e394e0b3d0baaed0e6b1bbd14c892622c07f8f55f8c6adc478a7352c3d1b",
+      "after_sha256": "53f3e394e0b3d0baaed0e6b1bbd14c892622c07f8f55f8c6adc478a7352c3d1b",
+      "reported": {
+        "0": [
+          2,
+          9830658,
+          0
+        ],
+        "1": [
+          2,
+          13107457,
+          0
+        ]
+      },
+      "expected": {
+        "0": [
+          2,
+          9830658,
+          0
+        ],
+        "1": [
+          2,
+          13107457,
+          0
+        ]
+      },
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings-recover/run/settings-2-ab828b0bc4",
+      "error": null
+    },
+    {
+      "step": 3,
+      "case": "settings",
+      "image_source": "previous",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "before_sha256": "53f3e394e0b3d0baaed0e6b1bbd14c892622c07f8f55f8c6adc478a7352c3d1b",
+      "after_sha256": "3ddcd0b21be628bd0ebbc2f3876d8e4f1716c9cb16e15ddd032fe99e732d0dcc",
+      "reported": {
+        "0": [
+          3,
+          6553601,
+          0
+        ],
+        "1": [
+          3,
+          8192000,
+          0
+        ]
+      },
+      "expected": {
+        "0": [
+          3,
+          6553601,
+          0
+        ],
+        "1": [
+          3,
+          8192000,
+          0
+        ]
+      },
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings/run/settings-3-633479b3e8",
+      "error": null
+    },
+    {
+      "step": 4,
+      "case": "settings-recover",
+      "image_source": "damage-newest",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "before_sha256": "42d8192bda6cf623809705d8b387a837f3564729a9948794045da396d48fbe8c",
+      "after_sha256": "42d8192bda6cf623809705d8b387a837f3564729a9948794045da396d48fbe8c",
+      "reported": {
+        "0": [
+          2,
+          9830658,
+          0
+        ],
+        "1": [
+          3,
+          8192000,
+          0
+        ]
+      },
+      "expected": {
+        "0": [
+          2,
+          9830658,
+          0
+        ],
+        "1": [
+          3,
+          8192000,
+          0
+        ]
+      },
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings-recover/run/settings-4-8d7bf49dee",
+      "error": null
+    },
+    {
+      "step": 5,
+      "case": "settings-recover",
+      "image_source": "damage-both",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "before_sha256": "ede93f8f6889e4e1ad58e3ae00cfee62f53654d325343b989691ee9c9d79e9c7",
+      "after_sha256": "ede93f8f6889e4e1ad58e3ae00cfee62f53654d325343b989691ee9c9d79e9c7",
+      "reported": {
+        "0": [
+          0,
+          0,
+          5
+        ],
+        "1": [
+          3,
+          8192000,
+          0
+        ]
+      },
+      "expected": {
+        "0": [
+          0,
+          0,
+          5
+        ],
+        "1": [
+          3,
+          8192000,
+          0
+        ]
+      },
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings-recover/run/settings-5-df457baa27",
+      "error": null
+    },
+    {
+      "step": 6,
+      "case": "settings-recover",
+      "image_source": "schema-2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "before_sha256": "c224d6bc08f765da811f4d9922a9dff08f51c7a8379a185bb2bde8e563358f8b",
+      "after_sha256": "c224d6bc08f765da811f4d9922a9dff08f51c7a8379a185bb2bde8e563358f8b",
+      "reported": {
+        "0": [
+          0,
+          0,
+          6
+        ],
+        "1": [
+          3,
+          8192000,
+          0
+        ]
+      },
+      "expected": {
+        "0": [
+          0,
+          0,
+          6
+        ],
+        "1": [
+          3,
+          8192000,
+          0
+        ]
+      },
+      "run_directory": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings-recover/run/settings-6-5c793e083e",
+      "error": null
+    }
+  ],
+  "builds": {
+    "settings": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings",
+    "settings-recover": "/home/simon/projects/BaryonOS-worktrees/u05-settings-native/build-u05n/test-volume-settings-recover"
+  }
+}

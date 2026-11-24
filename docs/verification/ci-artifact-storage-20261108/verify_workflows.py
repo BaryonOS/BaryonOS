@@ -25,6 +25,23 @@ import yaml
 
 
 DEFAULT_BASELINE = "338bec8ca34ba8eb2451eb660a0f1790c194efd2"
+WINDOW_SCALE1_PROOF_STEPS = {
+    "window-library-write-proof": "Preserve complete library write proof",
+    "window-library-cold-proof": "Preserve complete library cold proof",
+    "window-switcher-scale1-proof": "Preserve complete switcher scale 1 proof",
+    "window-switcher-scale2-proof": "Preserve complete switcher scale 2 proof",
+}
+
+
+def preservation_condition(path, job_id, step):
+    """Keep failure evidence unconditional except four scale-one-only window gates."""
+    if step.get("if") == "${{ always() }}":
+        return True
+    return (path == ".github/workflows/native-window-session.yml"
+            and job_id == "native-window-session"
+            and step.get("id") in WINDOW_SCALE1_PROOF_STEPS
+            and step.get("name") == WINDOW_SCALE1_PROOF_STEPS[step["id"]]
+            and step.get("if") == "${{ always() && matrix.scale == 1 }}")
 
 
 class UniqueLoader(yaml.BaseLoader):
@@ -203,9 +220,11 @@ def run(repo, baseline=DEFAULT_BASELINE):
                           if step.get("uses") == "./.github/actions/preserve-evidence"]
         if after_preserve:
             archive_workflows.append(path)
-            for new in after_preserve:
+            for job_id, new in ((job_id, step) for job_id, job in after["jobs"].items()
+                                for step in job["steps"]
+                                if step.get("uses") == "./.github/actions/preserve-evidence"):
                 record("preservation-invocation:" + path,
-                       new.get("if") == "${{ always() }}"
+                       preservation_condition(path, job_id, new)
                        and new.get("continue-on-error", "false") == "false"
                        and new["with"].get("job-status") == "${{ job.status }}")
                 package = new["with"].get("package-path", "")

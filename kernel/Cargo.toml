@@ -22,7 +22,12 @@ native-virtio-snd-probe = ["milestone-m2", "if0-device-window", "dep:pci-core", 
 test-snd-fence-reinit = ["native-virtio-snd-probe"]
 test-snd-quarantine = ["native-virtio-snd-probe"]
 native-usb-hid-probe = ["native-xhci-probe", "dep:nieuw-os-usb-core"]
-native-usb-hid-reattach = ["native-usb-hid-probe"]
+# Internal: the shared same-port USB reattach path; selected only through the
+# keyboard and mouse reattach profiles below.
+usb-hid-reattach-core = ["native-usb-hid-probe"]
+native-usb-hid-reattach = ["usb-hid-reattach-core"]
+# H02-T4: same-port USB mouse reattach; a separate boot from the keyboard profile.
+native-usb-hid-mouse-reattach = ["usb-hid-reattach-core"]
 test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
 test-xhci-dma-fault = ["native-xhci-probe"]
 test-xhci-no-dmar = ["native-xhci-probe"]
@@ -111,6 +116,7 @@ native-system-materiaal = ["native-system-display-input", "ipc-wait"]
 native-system-session-preview = ["native-system-materiaal"]
 native-window-session = ["native-system-materiaal"]
 native-window-session-probe = ["native-window-session"]
+test-window-session-readonly = ["native-window-session-probe"]
 native-hid-input-probe = ["native-window-session"]
 native-window-session-hidpi = ["native-window-session"]
 native-window-session-hidpi-probe = ["native-window-session-probe", "native-window-session-hidpi"]
@@ -371,6 +377,9 @@ test-volume-archive-disk-small = ["test-volume-archive-device"]
 test-volume-archive-disk-wrong = ["test-volume-archive-device"]
 test-volume-archive-disk-cut = ["test-volume-archive-device"]
 test-volume-archive-disk-verify = ["test-volume-archive-device"]
+# U05-N1 settings persistence through the volume service (own app ELF).
+test-volume-settings = ["native-volume"]
+test-volume-settings-recover = ["native-volume"]
 
 # B03 signed updates: generic broker over the slot store, one ring-3 update
 # service; the kernel's own version comes from the build env NOS_IMAGE_VERSION.
