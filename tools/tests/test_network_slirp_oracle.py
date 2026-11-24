@@ -109,6 +109,27 @@ class PcapTest(unittest.TestCase):
                 summary = self.parse(pcap([bytes(bad)]))
                 self.assertEqual((summary["other_ip"], summary["http_syns"]), (1, 0))
 
+    def test_dns_answers_follow_the_guest_resolver_rules(self):
+        def message(records):
+            body = struct.pack("!HHHHHH", 7, 0x8180, 1, len(records), 0, 0) + qname() + struct.pack("!HH", 1, 1)
+            for owner, rtype, rclass, data in records:
+                body += owner + struct.pack("!HHIH", rtype, rclass, 60, len(data)) + data
+            return body
+        a = lambda ip, owner=b"\xc0\x0c", rclass=1: (owner, 1, rclass, socket.inet_aton(ip))
+        alias = qname("cdn.example")
+        cases = {
+            "duplicate": ([a("1.2.3.4"), a("1.2.3.4"), a("5.6.7.8")], ["1.2.3.4", "5.6.7.8"]),
+            "class": ([a("1.2.3.4", rclass=3), a("5.6.7.8")], ["5.6.7.8"]),
+            "cname": ([(b"\xc0\x0c", 5, 1, alias), a("9.9.9.9", owner=alias), a("1.1.1.1", owner=qname("x.example"))],
+                      ["9.9.9.9"]),
+        }
+        for name, (records, expected) in cases.items():
+            with self.subTest(name):
+                self.assertEqual(slirp.dns_answers(message(records), slirp.NAME), (0, expected))
+        with self.subTest("cname loop"):
+            loop = [(b"\xc0\x0c", 5, 1, alias), (alias, 5, 1, qname())]
+            self.assertIsNone(slirp.dns_answers(message(loop), slirp.NAME))
+
     def test_malformed_captures_are_refused(self):
         for name, data in (("magic", pcap([ack()], magic=b"\xa1\xb2\xc3\xd4")), ("linktype", pcap([ack()], linktype=0)),
                            ("sliced", pcap([ack()], slice_last=True)), ("truncated", pcap([ack()])[:-3]),
@@ -132,10 +153,18 @@ class OracleTest(unittest.TestCase):
                     data = b""
                     while chunk := client.recv(4096):
                         data += chunk
-        with patch.object(slirp.socket, "getaddrinfo", return_value=[]):
-            evidence = oracle.finish()
+        evidence = oracle.finish()
         self.assertEqual(data, RESPONSES[1])
         self.assertEqual((evidence["connections"], evidence["request_ok"], evidence["error"]), (1, True, None))
+
+    def test_bytes_after_the_request_are_refused(self):
+        with patch.object(slirp, "HTTP_PORT", 0):
+            with slirp.SlirpOracle(2) as oracle:
+                with socket.create_connection(("127.0.0.1", oracle.listener.getsockname()[1])) as client:
+                    client.sendall(REQUESTS[1] + b"x")
+                    while client.recv(4096):
+                        pass
+        self.assertEqual(oracle.finish()["error"], "bytes after app B's request")
 
     def test_wrong_request_is_refused(self):
         with patch.object(slirp, "HTTP_PORT", 0):
@@ -143,8 +172,7 @@ class OracleTest(unittest.TestCase):
                 with socket.create_connection(("127.0.0.1", oracle.listener.getsockname()[1])) as client:
                     client.sendall(REQUESTS[0])
                     self.assertEqual(client.recv(4096), b"")
-        with patch.object(slirp.socket, "getaddrinfo", return_value=[]):
-            evidence = oracle.finish()
+        evidence = oracle.finish()
         self.assertEqual((evidence["request_ok"], evidence["error"]), (False, "request differs from app B's request"))
 
 
@@ -192,6 +220,8 @@ class SlirpRunnerTest(unittest.TestCase):
             "nxdomain": (self.report(dns_responses=[dict(rcode=3, addresses=["93.184.215.14", "96.7.128.198"])]), {}),
             "private answer": (self.report(dns_responses=[dict(rcode=0, addresses=["10.0.0.1"])]),
                                dict(a656=0x0a000001, a664=1)),
+            "multicast answer": (self.report(dns_responses=[dict(rcode=0, addresses=["224.0.0.1"])]),
+                                 dict(a656=0xe0000001, a664=1)),
             "oracle": (self.report(), dict(oracle=dict(connections=2, request_ok=True, response_sent=True,
                                                        error="more than one connection reached the oracle"))),
         }

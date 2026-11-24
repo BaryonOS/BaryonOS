@@ -94,19 +94,28 @@ class SlirpOracle:
                     self.result["request_ok"] = True
                     connection.sendall(RESPONSES[1])
                     self.result["response_sent"] = True
+                    # Any byte after the exact request is a duplicate or corrupt exchange.
+                    connection.shutdown(socket.SHUT_WR)
+                    connection.settimeout(2)
+                    try:
+                        if connection.recv(1):
+                            self.result["error"] = "bytes after app B's request"
+                    except socket.timeout:
+                        pass
                 except OSError as error:
                     self.result["error"] = f"exchange: {error}"
 
     def finish(self) -> dict:
-        try:
-            host = sorted({info[4][0] for info in socket.getaddrinfo(NAME, None, socket.AF_INET)})
-        except OSError as error:
-            host = f"unresolved: {error}"
-        return dict(self.result, http_port=HTTP_PORT, name=NAME, host_resolution=host)
+        return dict(self.result, http_port=HTTP_PORT, name=NAME)
 
 
 def dns_answers(payload: bytes, question: str):
-    """(rcode, A addresses) of a well-formed DNS response to `question`, else None."""
+    """(rcode, A addresses) of a well-formed DNS response to `question`, else None.
+
+    Mirrors net-protocol dns::resolve_path: only class-IN answer records owned
+    by the current name count, CNAMEs are followed (at most 8 hops) and
+    duplicate addresses are dropped, so the result matches the guest's view.
+    """
     def name(at, depth=0):
         out = []
         while True:
@@ -128,17 +137,31 @@ def dns_answers(payload: bytes, question: str):
         at += 4
         if ".".join(labels) != question:
             return None
-        addresses = []
+        records = []
         for _ in range(an):
-            _, at = name(at)
-            rtype, _, _, length = struct.unpack("!HHIH", payload[at:at + 10])
+            owner, at = name(at)
+            rtype, rclass, _, length = struct.unpack("!HHIH", payload[at:at + 10])
             at += 10
             if at + length > len(payload):
                 return None
-            if rtype == 1 and length == 4:
-                addresses.append(socket.inet_ntoa(payload[at:at + 4]))
+            if rclass == 1 and rtype == 1 and length == 4:
+                records.append((".".join(owner), "A", socket.inet_ntoa(payload[at:at + 4])))
+            elif rclass == 1 and rtype == 5:
+                records.append((".".join(owner), "CNAME", ".".join(name(at)[0])))
             at += length
-        return flags & 0xf, addresses
+        current, seen = question, set()
+        for _ in range(9):
+            if current in seen:
+                return None
+            seen.add(current)
+            addresses = list(dict.fromkeys(v for o, t, v in records if o == current and t == "A"))
+            aliases = {v for o, t, v in records if o == current and t == "CNAME"}
+            if not aliases:
+                return flags & 0xf, addresses
+            if addresses or len(aliases) != 1:
+                return None
+            current = aliases.pop()
+        return None
     except (ValueError, struct.error):
         return None
 
@@ -156,7 +179,8 @@ def _options(payload: bytes) -> dict:
 
 def parse_pcap(path: Path) -> dict:
     """Bounded summary of the filter-dump capture of the libslirp netdev."""
-    data = path.read_bytes()
+    with path.open("rb") as capture:
+        data = capture.read(MAX_PCAP_BYTES + 1)
     if len(data) > MAX_PCAP_BYTES or len(data) < 24 or data[:4] != b"\xd4\xc3\xb2\xa1":
         raise ValueError("Missing, oversized or non-little-endian pcap")
     if struct.unpack("<I", data[20:24])[0] != 1:

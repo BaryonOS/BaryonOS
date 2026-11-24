@@ -319,7 +319,8 @@ def evaluate_slirp(report, oracle, observed):
         raise ValueError("App A's resolved address/count is not a DNS answer seen on the wire")
     if len(wire.get("dns_responses", [])) != service["448"]:
         raise ValueError("DNS answers on the wire differ from the service's one UDP query")
-    if not ipaddress.ip_address(first).is_global:
+    address = ipaddress.ip_address(first)
+    if not address.is_global or address.is_multicast:
         raise ValueError("App A's resolved address is not a public unicast address")
     return observed
 
