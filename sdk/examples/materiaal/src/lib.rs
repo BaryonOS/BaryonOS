@@ -762,6 +762,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         self.step_succeeded = false;
         self.frame = 0;
         self.next_tile = 0;
+        self.blitted = (0, 0);
+        self.stale = (0, 0);
         self.evidence.presented_generation = 0;
         self.evidence.ready = false;
         Ok(())

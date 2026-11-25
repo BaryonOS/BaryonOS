@@ -69,6 +69,13 @@ changed since its base frame, which would fail the surface).
   the ten runs at `c3721894`. Cause not established; it is a Calculator
   focus/input step, but a timing effect of the faster Materiaal paint is not
   excluded. Kept open.
+- Evidence limit: the tile digest is FNV-1a, which is not collision-resistant.
+  A document crafted so that a changed tile's bytes collide with the cached
+  digest of the tile on screen would leave that tile stale (this app's own
+  surface only) until it changes again or a new surface epoch starts. `main`
+  already accepts this for the non-retained skip; this change extends it to
+  retained mode. Possible follow-up: a keyed digest or a periodic full
+  refresh. Not tested.
 - Pre-existing on `main`, outside this change: input loss on an idle view
   does not repaint, so the InputLost banner appears only on the next view
   change (issue #537, owner U).
