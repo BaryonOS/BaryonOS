@@ -74,6 +74,21 @@ acceptance.
   Native normal/denied pass; a mutation that skips retirement fails the gate. Retarget it to main after
   #531 merges.
 
+## Merge-lane status (25 Nov ~17:05Z)
+
+- Merge-lane protocol (owner P0, 16:00Z) and temporary CI priority (owner,
+  ~17:00Z) apply: CI optimization PRs (#542) get the lane first; no catch-up
+  pushes outside the lane; infrastructure failures get `gh run rerun --failed`
+  only.
+- #531 at 4a6f8ca2 is fully green on main a571d87c (rollup SUCCESS 16:36Z,
+  after infra reruns of the #421 flake, coverage uploads and merge-hold). CI D2
+  carries over to exactly this head. Lane order: CI PRs (#542, then CI's next)
+  first, then #531. Wait for the PR guard's explicit lane hand-over, do one
+  catch-up merge of main (a new head needs CI's delta confirmation and green
+  checks), then squash with `--match-head-commit` at that head.
+- #535 (draft) stays stacked; it catches up and retargets to main in one push
+  after #531 lands.
+
 ## Next action
 
 Keep #531 and the T2b PR green. Merge #531 with --match-head-commit set to its current head once CI's conditions
