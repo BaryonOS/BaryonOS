@@ -874,3 +874,19 @@ U2 is thereby observed for the SHA-256 bank of PCR 13 on the local Ubuntu OVMF
 other three banks were not read back. M1-HAUTH steps up to BOUND in this TEST
 profile only: first provisioning is unauthorised because S3b, genesis,
 ACCEPTED and the UEFI copy are not built.
+
+### Loader M1-HAUTH halt path and DA counter (25 November 2026)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-hauth-halt-20261125](../verification/b03-rel05-hauth-halt-20261125/README.md).
+The loader reads `TPM_PT_LOCKOUT_COUNTER` (`0x20E`, `PT_VAR + 14`) before
+and after the refused owner command and halts if it changed; on swtpm it
+stays 0 on both boots, which does not show that the property moves on a
+DA-counted failure. The residue scan now follows that final read and
+re-anchors on its response. A halt after a successful `CLOSED` extend reports
+the PCR 13 state before the failure code. The new case
+`loader-hauth-no-rng` observes the designed halt order natively: leftover
+undefines, no `EFI_RNG_PROTOCOL`, PCR 13 (SHA-256) = `P_CLOSED`, raw exit 35,
+no kernel. Halts after `HAUTH` or `LREC` are written, and the squat,
+unbound-record, foreign-ownerAuth and power-cut cases, still need a pre-seeded
+swtpm state and remain NOT RUN.

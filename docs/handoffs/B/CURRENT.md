@@ -47,8 +47,10 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   frozen Names, swtpm probe `docs/verification/b03-rel05-lrec-probe-20261125/`), TEST loader M1-HAUTH BOUND provisioning
   (`tpm-hauth-provision-test`, `run_tpm.py --case loader-hauth`: provision, then verify on a second boot of the same swtpm
   state; PCR 13 `CLOSED` through `HashLogExtendEvent`, SHA-256 bank = `P_CLOSED`; policy read and empty-ownerAuth refused;
-  no secret residue in the CRB buffer; `docs/verification/b03-rel05-hauth-bound-20261125/`, local commits 8f45c07e, 1a46fa21).
-- NOT RUN: native negative HAUTH/LREC cases (squat, unbound, foreign ownerAuth, power cut), PCR 13 read-back of the
+  no secret residue in the CRB buffer; `docs/verification/b03-rel05-hauth-bound-20261125/`, local commits 8f45c07e, 1a46fa21), DA lockout counter `0x20E` unchanged around the refused owner command, native halt case `loader-hauth-no-rng`
+  (CLOSED extend, then `RNG_ABSENT`, raw 35, no kernel; `docs/verification/b03-rel05-hauth-halt-20261125/`, local commit 89d00679).
+- NOT RUN: pre-seeded native negative HAUTH/LREC cases (squat, unbound, foreign ownerAuth, power cut), a halt after
+  `HAUTH`/`LREC` were written, a DA-counter sensitivity check, PCR 13 read-back of the
   SHA-1/384/512 banks, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
   the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
 - Licensing register: `boot/loader/src/tpm_probe.rs` and `tpm_hauth.rs` are not listed in `MPL-2.0-FILES.txt` (no
@@ -89,8 +91,9 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   `tools/test.py` (boot acceptance). `agent_gate.py --job ci.yml#host-quality` cannot resolve locally (`uses:` step). Observed: undefine of a missing index =
   `0x28B`; refused owner command = `0x9A2` (`BAD_AUTH`; DA exemption inferred from the RC only, lockout counter not
   read); policy read after the extend = `0x99D`.
-- Next on #524, in order: (a) native negative cases for the loader halt paths (squatted `HAUTH`, unbound `LREC`, foreign
-  ownerAuth; a swtpm pre-seeding step in `run_tpm.py`), (b) S3/U27 and the section 7.9 halt, (c) native S5 with N's joint
+- Done locally: 89d00679 halt path + DA counter (`loader-hauth-no-rng`), evidence commit after it.
+- Next on #524, in order: (a) pre-seeded native negative cases (squatted `HAUTH`, unbound `LREC`, foreign ownerAuth;
+  reuse the swtpm driving of `docs/verification/b03-rel05-hauth-probe-20261125/probe.py` for a pre-seeding step), (b) S3/U27 and the section 7.9 halt, (c) native S5 with N's joint
   tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
   body and post a HANDOFF comment; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
