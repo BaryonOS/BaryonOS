@@ -320,7 +320,6 @@ fn search_field_is_a_text_field_whose_enter_launches_the_first_result() {
 }
 
 #[test]
-#[ignore = "U04 defect: ds-1.1 B8 (ui/design/system/gallery.js:392) — Shell::key accepts KeyAction::Repeat like Press (shell.rs:432 at a91d5ade), so a held Enter/Space re-activates; e.g. held Enter on Lock walks Users -> Auth"]
 fn held_enter_or_space_activates_exactly_once() {
     let mut failures = Vec::new();
     for d in DISPLAYS {

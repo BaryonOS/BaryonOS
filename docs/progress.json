@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "0fb488d26e7745ad7e97f13fca5ba3e41f9ec81b",
+    "source_commit": "8699d65f64d3f6434101643b77f195fc4f2fa8ae",
     "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/ui-u-keyboard-only-20261124",
-    "task": "U04-K1: keyboard-only reachability and activation host test for the window-session shell",
+    "branch": "claude/ui-u-held-key-20261124",
+    "task": "U04 ds-1.1 B8: held Enter/Space activates exactly once in the window-session shell",
     "previous_score": 43,
-    "summary": "43/100: unchanged. Test evidence (host only): passing tests show that on the Lock, Users, Auth, Search, Settings, Session, Notifications and Capability pages Tab visits each listed control in reading order, Shift+Tab reverses without a trap, Escape returns to Lock or Desktop, and at scales 1 and 2 Enter matches a pointer click on every control except the search text field (where Enter launches the first result), while Space matches a click on every page except Search. Known defects, pinned by ignored tests and not covered by the passing evidence: held Enter/Space repeats activation, Space on a focused search result types instead of activating, and the Notifications page has no keyboard route from the Desktop. U04 stays open: these defects, native keyboard evidence, the screen-reader chain (TTS/braille owner decision) and human trials are missing. The delivery-review snapshot remains pinned to its own commit."
+    "summary": "43/100: unchanged. Host-test evidence: Shell::key now consumes an auto-repeated Enter/Space without activating, while Tab and arrow repeat still move focus (shell unit test repeat_moves_focus_but_never_activates); keyboard_only.rs held_enter_or_space_activates_exactly_once now passes at scales 1 and 2 for every control on all keyboard-reachable pages, with Search Space excluded. U04 stays open: Space on a focused search result still types into the query, the Notifications page has no keyboard route, and native keyboard evidence, the screen-reader chain (TTS/braille owner decision) and human trials are missing. The delivery-review snapshot remains pinned to its own commit."
   },
   "tracks": [
     {
