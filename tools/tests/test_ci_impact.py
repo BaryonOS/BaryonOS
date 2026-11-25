@@ -7,6 +7,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -406,6 +407,8 @@ class SelectionTests(FixtureTestCase):
     def test_extra_target_sources_select_their_consumers(self):
         cases = {"ui/tokens.css": {"leaves#quality/sheet", "window#a", "window#b", "window#c"},
                  "shared/main.rs": {"leaves#quality/solo"},
+                 # A `mod` file beside an external target is compiled with it.
+                 "shared/sibling.rs": {"leaves#quality/solo"},
                  "probe/contract.rs": {"net#broker"}}
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -1431,7 +1434,51 @@ class EscapeScopeTests(TestCase):
                 return full.read_bytes() if full.exists() else None
 
             roots = ci_impact.root_target_paths(read, set(crates))
-            return ci_impact.scan_escapes(tmp, set(crates), sorted(files), roots)
+            external = ci_impact.external_root_targets(read, set(crates))
+            return ci_impact.scan_escapes(tmp, set(crates), sorted(files), roots, external)
+
+    def test_declared_targets_outside_the_crate_are_scanned_for_it(self):
+        """CodeRabbit on #504: a bin outside its crate, and the `mod` files beside it, are scanned."""
+        found = self.scan({
+            "app/Cargo.toml": '[package]\nname = "app"\n[[bin]]\nname = "x"\npath = "../ext/src/main.rs"\n',
+            "app/src/lib.rs": "// lib\n",
+            "ext/src/main.rs": "mod m;\n",
+            "ext/src/m.rs": 'const A: &str = include_str!("../../data/a.txt");\n'
+                            'const B: &str = include_str!("near.txt");\n',
+            "other/src/lib.rs": 'const C: &str = include_str!("../../data/c.txt");\n'})
+        self.assertEqual(found, [("app", "data/a.txt", "ext/src/m.rs:1", True)])
+        # Library code that reaches into the external directory stays reported, at library scope:
+        # only root gates take that directory as an input (CodeRabbit on #510).
+        found = self.scan({
+            "app/Cargo.toml": '[package]\nname = "app"\n[[bin]]\nname = "x"\npath = "../ext/src/main.rs"\n',
+            "app/src/lib.rs": '#[path = "../../ext/src/helper.rs"]\nmod helper;\n',
+            "ext/src/main.rs": "fn main() {}\n",
+            "ext/src/helper.rs": "// helper\n"})
+        self.assertEqual(found, [("app", "ext/src/helper.rs", "app/src/lib.rs:1", False)])
+        # A target at the repository root: its sibling root files are scanned, nothing deeper.
+        found = self.scan({
+            "app/Cargo.toml": '[package]\nname = "app"\n[[bin]]\nname = "x"\npath = "../main.rs"\n',
+            "app/src/lib.rs": "// lib\n",
+            "main.rs": 'mod helper;\nconst S: &str = include_str!("settings.txt");\n',
+            "helper.rs": 'const A: &str = include_str!("data/a.txt");\n',
+            "settings.txt": "x\n",
+            "deep/other.rs": 'const B: &str = include_str!("../data/b.txt");\n'})
+        # Only root-level `*.rs` is an input of such a target: other root files stay reported.
+        self.assertEqual(found, [("app", "data/a.txt", "helper.rs:1", True),
+                                 ("app", "settings.txt", "main.rs:2", True)])
+
+    def test_external_target_keeps_the_declaring_crate_for_escapes(self):
+        """CodeRabbit on #510: an external target must not rebind the crate directory."""
+        files = {"app/Cargo.toml": b'[package]\nname = "app"\n[[bin]]\nname = "x"\npath = "../ext/main.rs"\n'}
+        escapes = [{"crate": "app", "when": "always", "inputs": ["data/**"], "evidence": []}]
+        globs, dirs = ci_impact.cargo_closure(["app/Cargo.toml"], files.get, escapes)
+        self.assertIn("data/**", globs)
+        self.assertIn("ext/**", globs)
+        self.assertIn("ext/main.rs", globs)
+        self.assertIn("app", dirs)
+        self.assertEqual(ci_impact.external_root_targets(
+            lambda path: b'[[bin]]\nname = "x"\npath = "../ext/src/main.rs"\n' if path == "app/Cargo.toml" else None,
+            {"app"}), {"app": ["ext/src"]})
 
     def test_runtime_manifest_dir_joins_are_found(self):
         found = self.scan({
@@ -1492,8 +1539,24 @@ class EscapeScopeTests(TestCase):
         self.assertTrue(problem([], "app", "data/x.bin", "app/src/lib.rs:2", False)
                         .startswith("escape-unregistered"))
         directory = [{"crate": "app", "when": "always", "inputs": ["keys/**"], "evidence": []}]
-        self.assertIsNone(problem(directory, "app", "keys", "app/tests/t.rs:2", True, is_dir=True))
-        # A glob over a file's would-be contents never covers the file itself.
+        self.assertIsNone(problem(directory, "app", "keys", "app/tests/t.rs:2", True, descendants=["keys/a", "keys/b"]))
+        # Every tracked file below a directory target must be covered (CodeRabbit on #504).
+        partial = [{"crate": "app", "when": "always", "inputs": ["keys/a"], "evidence": []}]
+        self.assertTrue(problem(partial, "app", "keys", "app/tests/t.rs:2", True, descendants=["keys/a", "keys/b"])
+                        .startswith("escape-unregistered"))
+        # The directory's own name covers none of its files (CodeRabbit on #510).
+        bare = [{"crate": "app", "when": "always", "inputs": ["keys"], "evidence": []}]
+        self.assertTrue(problem(bare, "app", "keys", "app/tests/t.rs:2", True, descendants=["keys/a"])
+                        .startswith("escape-unregistered"))
+        self.assertIsNone(problem(bare, "app", "keys", "app/tests/t.rs:2", True))  # a file target
+        by_type = [{"crate": "app", "when": "always", "inputs": ["keys/*.bin"], "evidence": []}]
+        self.assertIsNone(problem(by_type, "app", "keys", "app/tests/t.rs:2", True, descendants=["keys/a.bin"]))
+        # A one-level glob leaves a deeper tracked file uncovered.
+        shallow = [{"crate": "app", "when": "always", "inputs": ["keys/*"], "evidence": []}]
+        self.assertTrue(problem(shallow, "app", "keys", "app/tests/t.rs:2", True, descendants=["keys/a", "keys/s/b"])
+                        .startswith("escape-unregistered"))
+        # Without tracked descendants the target is a file: a glob over its would-be
+        # contents never covers the file itself.
         self.assertTrue(problem(directory, "app", "keys", "app/tests/t.rs:2", True)
                         .startswith("escape-unregistered"))
         child_only = [{"crate": "app", "when": "always", "inputs": ["data/a.bin/**"], "evidence": []}]
@@ -1521,6 +1584,189 @@ class EscapeScopeTests(TestCase):
                 repo.commit("escape", {"src/a/lib.rs": 'const X: &str = include_str!("../../outside.txt");\n'})
                 self.assertEqual(ci_impact.main(args), 1)
                 self.assertEqual(ci_impact.main(args[:-1]), 0)  # without --strict it stays a report
+
+
+
+class SelectOutputTests(TestCase):
+    """Phase 4: the select job narrows only for a trusted, select-mode pull_request plan."""
+
+    LEAVES = ".github/workflows/leaves.yml"
+
+    def catalogue(self):
+        catalogue = valid_catalogue()
+        for variant in catalogue["workflow"][1]["job"][0]["variant"]:
+            variant["matrix"] = {"component": variant["id"]}
+        return catalogue
+
+    def plan(self, selected=("leaves#quality/viewer",), **over):
+        ids = [x["id"] for x in ci_impact.executions(self.catalogue())]
+        plan = {"event": "pull_request", "ref": "main", "mode": "select", "policy_mode": "select",
+                "selector": {"trusted": True}, "shas": {"tested": "a" * 40, "base": "c" * 40},
+                "catalogue": {"source_sha": "c" * 40}, "plan_id": "sha256:x",
+                "selected": [{"id": xid} for xid in selected],
+                "excluded": [{"id": xid} for xid in ids if xid not in selected]}
+        plan.update(over)
+        return plan
+
+    def outputs(self, plan, catalogue=None, workflow=None, mode="select", base_ref="main"):
+        return ci_impact.select_outputs(plan, catalogue or self.catalogue(), workflow or self.LEAVES, "a" * 40,
+                                        mode, base_ref)
+
+    def test_trusted_select_plan_narrows_to_the_selected_variants(self):
+        out = self.outputs(self.plan())
+        self.assertEqual(out["narrowed"], "true")
+        self.assertEqual(out["run-quality"], "true")
+        self.assertEqual(json.loads(out["matrix-quality"]), {"include": [{"component": "viewer"}]})
+
+    def test_nothing_selected_skips_the_job_with_a_non_empty_matrix(self):
+        out = self.outputs(self.plan(selected=()))
+        self.assertEqual(out["run-quality"], "false")
+        self.assertEqual(len(json.loads(out["matrix-quality"])["include"]), 6)
+
+    def test_every_other_plan_runs_everything(self):
+        for over in ({"policy_mode": "enforce"}, {"policy_mode": "full"}, {"mode": "full"}, {"event": "push"},
+                     {"selector": {"trusted": False}}, {"shas": {"tested": "b" * 40}}, {"event": "merge_group"}):
+            with self.subTest(over=over):
+                out = self.outputs(self.plan(selected=(), **over))
+                self.assertEqual(out["narrowed"], "false")
+                self.assertEqual(out["run-quality"], "true")
+                self.assertEqual(len(json.loads(out["matrix-quality"])["include"]), 6)
+        # The plan must also agree with select-ci's mode output, the target branch and its base catalogue.
+        cases = [({}, {"mode": "full"}), ({}, {"mode": ""}), ({}, {"base_ref": "release"}), ({}, {"base_ref": ""}),
+                 ({"ref": "release"}, {}), ({"catalogue": {"source_sha": "d" * 40}}, {}),
+                 ({"catalogue": None}, {}), ({"shas": {"tested": "a" * 40, "base": None}}, {})]
+        for over, call in cases:
+            with self.subTest(over=over, call=call):
+                out = self.outputs(self.plan(selected=(), **over), **call)
+                self.assertEqual((out["narrowed"], out["run-quality"]), ("false", "true"))
+        # Malformed nested data from any selector never narrows and never fails the job (CodeRabbit on #510).
+        for over in ({"selector": ["invalid"]}, {"selected": [["x"]]}, {"selected": "x"},
+                     {"excluded": [{"id": 3}]}, {"excluded": None}):
+            with self.subTest(over=over):
+                plan = self.plan(selected=())
+                plan.update(over)
+                out = self.outputs(plan)
+                self.assertEqual((out["narrowed"], out["run-quality"]), ("false", "true"))
+        for garbage in ([], "plan", None, {}):
+            with self.subTest(plan=garbage):
+                out = self.outputs(garbage)
+                self.assertEqual((out["narrowed"], out["run-quality"]), ("false", "true"))
+
+    def test_variants_and_jobs_unknown_to_the_base_plan_always_run(self):
+        catalogue = self.catalogue()
+        catalogue["workflow"][1]["job"][0]["variant"].append(
+            {"id": "fresh", "check_name": "quality (fresh)", "matrix": {"component": "fresh"},
+             "cargo": ["apps/fresh/Cargo.toml"]})
+        plan = self.plan()
+        out = self.outputs(plan, catalogue)
+        self.assertEqual(json.loads(out["matrix-quality"]),
+                         {"include": [{"component": "viewer"}, {"component": "fresh"}]})
+        net = self.outputs(self.plan(selected=()), workflow=".github/workflows/net.yml")
+        self.assertEqual((net["run-broker"], net["run-native"]), ("false", "false"))
+        unknown = self.plan(selected=())
+        unknown["excluded"] = [row for row in unknown["excluded"] if row["id"] != "net#native"]
+        net = self.outputs(unknown, workflow=".github/workflows/net.yml")
+        self.assertEqual((net["run-broker"], net["run-native"]), ("false", "true"))
+
+    def test_invalid_catalogue_or_unknown_workflow_fails_the_select_job(self):
+        catalogue = self.catalogue()
+        catalogue["schema_version"] = 2
+        with self.assertRaises(ValueError):
+            self.outputs(self.plan(), catalogue)
+        with self.assertRaises(ValueError):
+            self.outputs(self.plan(), workflow=".github/workflows/ghost.yml")
+
+    def test_cli_prints_outputs_and_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, ".github").mkdir()
+            Path(tmp, ".github/ci-impact.toml").write_text(re.sub(
+                r'\{ id = "(\w+)", check_name = "quality \(\1\)", ',
+                r'{ id = "\1", check_name = "quality (\1)", matrix = { component = "\1" }, ', CATALOGUE))
+            Path(tmp, "plan.json").write_text(json.dumps(self.plan()))
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                code = ci_impact.main(["jobs", f"--plan={tmp}/plan.json", f"--workflow={self.LEAVES}",
+                                       f"--tested-sha={'a' * 40}", f"--repo={tmp}"])
+            self.assertEqual(code, 0, err.getvalue())
+            self.assertIn("run-quality=true", out.getvalue().splitlines())
+            # Without --mode=select nothing narrows.
+            self.assertIn("narrowed=false", out.getvalue().splitlines())
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+                code = ci_impact.main(["jobs", f"--plan={tmp}/plan.json", f"--workflow={self.LEAVES}",
+                                       f"--tested-sha={'a' * 40}", f"--repo={tmp}", "--mode=select",
+                                       "--base-ref=main"])
+            self.assertEqual(code, 0)
+            self.assertIn("narrowed=true", out.getvalue().splitlines())
+            # A missing or malformed plan (a failed planner step) runs everything.
+            Path(tmp, "list.json").write_text("[]")
+            for bad in ("missing.json", "list.json"):
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+                    code = ci_impact.main(["jobs", f"--plan={tmp}/{bad}", f"--workflow={self.LEAVES}",
+                                           f"--tested-sha={'a' * 40}", f"--repo={tmp}", "--mode=select",
+                                           "--base-ref=main"])
+                self.assertEqual(code, 0, bad)
+                self.assertIn("narrowed=false", out.getvalue().splitlines())
+                self.assertIn("run-quality=true", out.getvalue().splitlines())
+            # A broken catalogue fails the select job; its dependents are skipped and merge-hold blocks.
+            Path(tmp, ".github/ci-impact.toml").write_text("schema_version = [\n")
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(ci_impact.main(["jobs", f"--plan={tmp}/plan.json", f"--workflow={self.LEAVES}",
+                                                 f"--tested-sha={'a' * 40}", f"--repo={tmp}"]), 1)
+
+    def test_selection_condition_is_decidable_and_true_when_planned(self):
+        catalogue = valid_catalogue()
+        catalogue["workflow"][1]["job"].insert(0, {"id": "select", "class": "core", "activation": "automatic"})
+        quality = catalogue["workflow"][1]["job"][1]
+        quality["needs"] = ["select"]
+        quality["condition"] = "${{ needs.select.outputs.run-quality == 'true' }}"
+        self.assertEqual(ci_impact.validate(catalogue), [])
+        jobs = {job["id"]: job for job in catalogue["workflow"][1]["job"]}
+        self.assertIs(ci_impact.job_runs(jobs, "quality", "pull_request"), True)
+        # Any other use of a select output is rejected: the evaluator answers every key alike.
+        for condition in ("${{ needs.select.outputs.run-quality != 'true' }}",
+                          "${{ needs.select.outputs.run-quality == 'false' }}",
+                          "${{ needs.select.outputs.run-other == 'true' }}",
+                          "${{ needs.select.outputs.run-quality == 'true' && github.event_name == 'push' }}"):
+            with self.subTest(condition=condition):
+                quality["condition"] = condition
+                self.assertTrue(any("select-condition" in p for p in ci_impact.validate(catalogue)))
+        quality["condition"] = "${{ needs.select.outputs.run-quality == 'true' }}"
+        quality["needs"] = []
+        self.assertTrue(any("select-condition needs the select job" in p for p in ci_impact.validate(catalogue)))
+
+
+    def test_coverage_accepts_only_a_correctly_wired_catalogue_matrix(self):
+        catalogue = self.catalogue()
+        leaves = catalogue["workflow"][1]
+        leaves["job"].insert(0, {"id": "select", "name": "leaves select", "class": "core", "activation": "automatic"})
+        quality = leaves["job"][1]
+        quality["needs"] = ["select"]
+        quality["condition"] = "${{ needs.select.outputs.run-quality == 'true' }}"
+        catalogue["workflow"] = [leaves]
+        doc = {"on": {"pull_request": {"paths-ignore": catalogue["policy"]["inert"]}, "push": {},
+                      "workflow_dispatch": {}},
+               "jobs": {"select": {"name": "leaves select"},
+                        "quality": {"name": "quality (${{ matrix.component }})", "needs": "select",
+                                    "if": "${{ needs.select.outputs.run-quality == 'true' }}",
+                                    "strategy": {"matrix": "${{ fromJSON(needs.select.outputs.matrix-quality) }}"}}}}
+        problems = ci_impact.workflow_problems({self.LEAVES: doc}, catalogue)
+        self.assertEqual(problems, [])
+        wrong = copy.deepcopy(doc)
+        wrong["jobs"]["quality"]["strategy"]["matrix"] = "${{ fromJSON(needs.select.outputs.matrix-other) }}"
+        self.assertTrue(any("selects the matrix of other" in p
+                            for p in ci_impact.workflow_problems({self.LEAVES: wrong}, catalogue)))
+        unwired = copy.deepcopy(catalogue)
+        unwired["workflow"][0]["job"][1]["condition"] = "${{ github.event_name != 'push' }}"
+        doc_unwired = copy.deepcopy(doc)
+        doc_unwired["jobs"]["quality"]["if"] = "${{ github.event_name != 'push' }}"
+        self.assertTrue(any("condition must be the run-quality output" in p
+                            for p in ci_impact.workflow_problems({self.LEAVES: doc_unwired}, unwired)))
+        renamed = copy.deepcopy(catalogue)
+        renamed["workflow"][0]["job"][1]["variant"][0]["check_name"] = "quality (renamed)"
+        self.assertTrue(any("rendered name differs" in p
+                            for p in ci_impact.workflow_problems({self.LEAVES: doc}, renamed)))
 
 
 if __name__ == "__main__":

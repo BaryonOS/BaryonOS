@@ -853,6 +853,51 @@ class GateTests(TestCase):
         runs_ = GOOD_RUNS + [wf_run(5, merge_hold.GATE_WORKFLOW, conclusion="failure")]
         self.assertTrue(self.decide(runs_=runs_)[0])
 
+    def test_phase4_select_job_shapes(self):
+        """Phase 4 (#494): merge-hold judges the select job's effect, never its own claim."""
+        plan = plan_fixture(policy_mode="select")
+        plan["selected"].insert(1, row("leaves#select", LEAVES, "leaves select", "core"))
+        template = "quality (${{ matrix.component }})"
+        select_ok = job(20, 2, "leaves select")
+        # (a) select succeeded; it narrowed the matrix to the planned variant; the rest never ran.
+        passed, out, _ = self.decide(plan=plan, jobs={**GOOD_JOBS, 2: [select_ok, job(21, 2, "quality (viewer)")]})
+        self.assertTrue(passed, out)
+        # (a') nothing of the job was needed: GitHub reports one skipped template job, which is ignored.
+        quiet = plan_fixture(policy_mode="select")
+        quiet["selected"] = [r for r in quiet["selected"] if r["id"] != "leaves#quality/viewer"]
+        quiet["selected"].insert(1, row("leaves#select", LEAVES, "leaves select", "core"))
+        quiet["excluded"].append({"id": "leaves#quality/viewer", "class": "rwa", "workflow": LEAVES,
+                                  "job": "quality", "check_name": "quality (viewer)", "reason": "no-input-match"})
+        jobs = {**GOOD_JOBS, 2: [select_ok, job(21, 2, template, "skipped")]}
+        passed, out, _ = self.decide(plan=quiet, jobs=jobs)
+        self.assertTrue(passed, out)
+        # (b) select narrowed too far: the expected variant is absent from the completed run.
+        jobs = {**GOOD_JOBS, 2: [select_ok, job(22, 2, "quality (crop)")]}
+        passed, out, _ = self.decide(plan=plan, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("quality (viewer): missing from run 2", out)
+        # ... or skipped the whole job: the skipped template does not stand in for the variant.
+        jobs = {**GOOD_JOBS, 2: [select_ok, job(21, 2, template, "skipped")]}
+        passed, out, _ = self.decide(plan=plan, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("quality (viewer): missing from run 2", out)
+        # (c) select failed and GitHub skipped its dependents.
+        jobs = {**GOOD_JOBS, 2: [job(20, 2, "leaves select", "failure"), job(21, 2, template, "skipped")]}
+        passed, out, _ = self.decide(plan=plan, runs_=[wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")],
+                                     jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("Failed: leaves select: failure", out)
+        self.assertIn("quality (viewer): missing from run 2", out)
+
+    def test_failed_gate_job_inside_a_successful_run_blocks(self):
+        """CodeRabbit on #504: job-level continue-on-error can hide a failure behind a success run."""
+        runs_ = GOOD_RUNS + [wf_run(3, STORAGE)]
+        jobs = {**GOOD_JOBS, 3: [job(31, 3, "s", "failure")]}
+        passed, out, _ = self.decide(runs_=runs_, jobs=jobs)
+        self.assertFalse(passed)
+        self.assertIn("s: failure in run 3", out)
+        self.assertTrue(self.decide(runs_=runs_, jobs={**GOOD_JOBS, 3: [job(31, 3, "s")]})[0])
+
     def test_paginated_listings_are_read_completely(self):
         filler = [wf_run(100 + index, ".github/workflows/other.yml") for index in range(150)]
         passed, out, state = self.decide(runs_=filler + GOOD_RUNS, page_size=100)

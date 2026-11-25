@@ -21,69 +21,64 @@ defaults:
     shell: bash
 
 jobs:
+  select:
+    # Phase 4 of #494 (docs/CI-CONTRACT.md "Selection"): which jobs and variants of
+    # this workflow the trusted base plan needs. merge-hold verifies the result.
+    name: component-leaves select
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      narrowed: ${{ steps.jobs.outputs.narrowed }}
+      run-component-quality: ${{ steps.jobs.outputs.run-component-quality }}
+      matrix-component-quality: ${{ steps.jobs.outputs.matrix-component-quality }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history: the merge base never depends on a shallow clone.
+          fetch-depth: 0
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Plan with the trusted base selector
+        id: plan
+        uses: ./.github/actions/select-ci
+        with:
+          event-name: ${{ github.event_name }}
+          tested-sha: ${{ github.sha }}
+          head-sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          # Empty on pull_request (the action uses the merge ref's first parent) and on dispatch.
+          base-sha: ${{ (github.event_name == 'push' && github.event.before) || '' }}
+          base-ref: ${{ github.event.pull_request.base.ref || github.ref_name }}
+      - name: Jobs and variants to run
+        id: jobs
+        shell: bash
+        env:
+          PLAN_PATH: ${{ steps.plan.outputs.plan-path }}
+          PLAN_MODE: ${{ steps.plan.outputs.mode }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.ref_name }}
+          TESTED_SHA: ${{ github.sha }}
+        run: |
+          set -o pipefail
+          # Untrusted rendering (the checkout's copy); merge-hold alone decides.
+          python3 -B tools/ci_impact.py jobs --plan="$PLAN_PATH" \
+            --mode="$PLAN_MODE" --base-ref="$BASE_REF" \
+            --workflow=.github/workflows/component-leaves.yml --tested-sha="$TESTED_SHA" | tee -a "$GITHUB_OUTPUT"
+
   component-quality:
     name: component-quality (${{ matrix.component }})
+    needs: select
+    if: ${{ needs.select.outputs.run-component-quality == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
       # Keep runner capacity available for required checks and native gates.
       max-parallel: 4
-      matrix:
-        include:
-          - component: ai-model-reader
-            manifest: experiments/ai/model-store-contract/Cargo.toml
-            toolchain: "1.100.0"
-          - component: image-viewer
-            manifest: sdk/examples/image-viewer/Cargo.toml
-            toolchain: "1.100.0"
-          - component: virtio-snd
-            manifest: drivers/virtio-snd/Cargo.toml
-            toolchain: "1.100.0"
-          - component: power-lifecycle-core
-            manifest: crates/power-lifecycle-core/Cargo.toml
-            toolchain: "1.100.0"
-          - component: acpi-power
-            manifest: drivers/acpi-power/Cargo.toml
-            toolchain: "1.100.0"
-          - component: usb
-            manifest: drivers/usb/Cargo.toml
-            toolchain: "1.100.0"
-          - component: document-import
-            manifest: sdk/examples/document-import/Cargo.toml
-            toolchain: "1.100.0"
-            features: "--features host-cli"
-          - component: document-export
-            manifest: sdk/examples/document-export/Cargo.toml
-            toolchain: "1.100.0"
-            features: "--features host-cli"
-          - component: image-crop
-            manifest: sdk/examples/image-crop/Cargo.toml
-            toolchain: "1.100.0"
-            features: "--features host-cli"
-          - component: image-export
-            manifest: sdk/examples/image-export/Cargo.toml
-            toolchain: "1.100.0"
-            features: "--features host-cli"
-          - component: audio-clip
-            manifest: sdk/examples/audio-clip/Cargo.toml
-            toolchain: "1.100.0"
-            features: "--features host-cli"
-          - component: presentation
-            manifest: sdk/examples/presentation/Cargo.toml
-            toolchain: "1.100.0"
-            features: "--features host-cli"
-          - component: spreadsheet
-            manifest: sdk/examples/spreadsheet/Cargo.toml
-            toolchain: "1.100.0"
-            features: "--features host-cli"
-          - component: table-editor
-            manifest: sdk/examples/table-editor/Cargo.toml
-            toolchain: "1.100.0"
-            features: "--features host-cli"
-          - component: net-config
-            manifest: services/net-config/Cargo.toml
-            toolchain: "1.100.0"
+      # Variants come from .github/ci-impact.toml through the select job (phase 4).
+      matrix: ${{ fromJSON(needs.select.outputs.matrix-component-quality) }}
     env:
       RUST_TOOLCHAIN: ${{ matrix.toolchain }}
       COMPONENT_MANIFEST: ${{ matrix.manifest }}

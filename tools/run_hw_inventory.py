@@ -122,10 +122,18 @@ def evaluate(text: str, case: str, qmp_pci: set | None, alive_at_pass: bool) -> 
     return checks, inventory, None
 
 
+def marker_matches(line: str, marker: str) -> bool:
+    """A marker ending in ':' carries a value and needs a non-empty suffix; any other marker
+    must be the whole line, so `M2:PASSED` or `HWINV:BEGIN_X` never stand in for it."""
+    if marker.endswith(":"):
+        return line.startswith(marker) and len(line) > len(marker)
+    return line == marker
+
+
 def evaluate_fixture(text: str, fixture: str, alive: bool) -> dict:
     """Checks for one terminal-fixture log: markers in order, failure seen, no exit port."""
     lines = text.replace("\r", "").splitlines()
-    positions = [next((i for i, line in enumerate(lines) if line.startswith(marker)), -1)
+    positions = [next((i for i, line in enumerate(lines) if marker_matches(line, marker)), -1)
                  for marker in FIXTURES[fixture][1]]
     # A serial timeout leaves no failure marker: the protocol must reject the truncated block.
     expected = ("log needs exactly one HWINV:BEGIN and one HWINV:PASS" if fixture == "serial-timeout"
