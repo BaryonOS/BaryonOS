@@ -8,7 +8,7 @@
     "branch": "claude/h02-t5-usb-refusal-20261125",
     "task": "H02-T5 h02-t5-20261125: native per-port refusal of out-of-profile USB devices",
     "previous_score": 43,
-    "summary": "43/100 unchanged. The exclusive native-usb-hid-refusal profile refuses a hub, a non-boot tablet, a high-speed keyboard and USB storage on xHCI root port 1 at the driver boundary (slot disabled and proven gone), keeps the port-2 mouse in service and recovers port 1 with a new-generation keyboard; QEMU raw 33 for all four cases, regressions unchanged, six mutants fail. H02 stays open: physical USB devices, hubs, physical hotplug, IRQ delivery, the reference hardware matrix and human acceptance are missing; evidence is QEMU only."
+    "summary": "43/100 unchanged. The exclusive native-usb-hid-refusal profile refuses a hub, a non-boot tablet, a high-speed keyboard and USB storage on xHCI root port 1 at the driver boundary (speed refusals before Enable Slot allocate no slot; hub and tablet refusals disable the allocated slot and prove it gone), keeps the port-2 mouse in service and recovers port 1 with a new-generation keyboard; QEMU raw 33 for all four cases, regressions unchanged, six mutants fail. H02 stays open: physical USB devices, hubs, physical hotplug, IRQ delivery, the reference hardware matrix and human acceptance are missing; evidence is QEMU only."
   },
   "tracks": [
     {

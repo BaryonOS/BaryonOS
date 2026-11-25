@@ -2341,7 +2341,7 @@
       "executor": "lead",
       "status": "active",
       "title": "Native per-port refusal of out-of-profile USB devices (QEMU)",
-      "goal": "An out-of-profile device on one root port (hub, HID without a boot interface, high-speed keyboard, storage) is refused with a reason-specific marker; its slot is disabled and its DCBAA entry cleared when one was allocated, the port stays unenabled, and the in-profile device on the other port still enumerates and delivers reports. Today every refusal ends the whole controller run (xhci.rs result.expect after stop).",
+      "goal": "An out-of-profile device on one root port (hub, HID without a boot interface, high-speed keyboard, storage) is refused with a reason-specific marker; its slot is disabled and its DCBAA entry cleared when one was allocated, the port stays unenabled, and the in-profile device on the other port still enumerates and delivers reports. Previous behaviour: every refusal ended the whole controller run (xhci.rs result.expect after stop).",
       "invariant": "A refused device never receives SET_CONFIGURATION, an interrupt/input endpoint context, a Session or an input path. Only the temporary EP0 control context needed to read its descriptors before Session::new may exist; refusal cleanup disables that slot and clears its DCBAA entry. Refusal never stops service of the other in-profile port.",
       "deps": [
         "H02-T4"
@@ -2364,7 +2364,7 @@
       ],
       "checks": [
         "python3 -B -m unittest discover -s tools/tests -p 'test_usb_hid*.py' -v",
-        "python3 -B tools/build.py --kernel-feature native-usb-hid-refusal && for c in refuse-hub refuse-tablet refuse-hs-kbd refuse-storage; do python3 -B tools/run_usb_hid.py --case $c; done",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-refusal && for c in refuse-hub refuse-tablet refuse-hs-kbd refuse-storage; do python3 -B tools/run_usb_hid.py --case \"$c\" || exit \"$?\"; done",
         "python3 -B tools/build.py --kernel-feature native-usb-hid-probe && python3 -B tools/run_usb_hid.py --case reports",
         "python3 -B tools/build.py --kernel-feature test-usb-hid-readonly-fault && python3 -B tools/run_usb_hid.py --case readonly",
         "python3 -B tools/build.py --kernel-feature native-usb-hid-reattach && python3 -B tools/run_usb_hid.py --case reattach",
@@ -2380,8 +2380,8 @@
       "non_claimable": "QEMU only. Storage reaches only the speed refusal: QEMU usb-storage attaches at high speed on the USB2-only fixture controller, so a class-level storage refusal is not exercised. No hub support, physical hotplug or H02 acceptance.",
       "risk": "medium",
       "size": "M",
-      "evidence_level": "feasibility: native QEMU/TCG probe without source change",
-      "next": "Implement the exclusive native-usb-hid-refusal profile after the feasibility record.",
+      "evidence_level": "native QEMU/TCG (QEMU 10.2.1, pc-q35-8.2): four refusal cases and four regression cases raw 33, six mutants fail; hosted native-xhci pending",
+      "next": "Hosted native-xhci and merge-hold green on the final head, squash-merge #515, then set H02-T5 verified.",
       "history": [
         {
           "event": "active",
