@@ -38,22 +38,20 @@ session's context must rotate were only in issue comments.
    as "Specialist U (UI/UX)". The coordination session is "BaryonOS - PR
    Bewaker" (PR guard).
 4. **Handoffs.** Each specialist keeps one compact resume pointer in
-   `docs/handoffs/<letter>/CURRENT.md`. CI uses `docs/handoffs/CI/` and the PR
-   guard uses `docs/handoffs/PR-WATCHER/`. A resume pointer records the scope
+   `docs/handoffs/<letter>/CURRENT.md`. CI uses `docs/handoffs/CI/`, UI/UX
+   uses the existing `docs/handoffs/UI-U/` and the PR guard uses
+   `docs/handoffs/PR-WATCHER/`. A resume pointer records the scope
    and mandate once and holds no live SHAs or volatile state. Live checkpoints
    stay in the pull request description and the workstream's handoff issue
    comment.
-5. **Context rotation.** This rule replaces the earlier fixed percentage
-   thresholds:
+5. **Context rotation:**
    - 65% context use is a moment to assess, not a stop;
    - from about 60%, the session updates its durable checkpoint and finishes
      the current phase;
    - above about 75%, it starts no new large phase;
    - by 80–85% at the latest, a verified handoff is ready;
    - ownership of a subtask continues across rotations;
-   - no replacement chat is started;
-   - the project owner runs `/clear` manually after a verified CLEAR_READY;
-   - the PR guard rotates only at the project owner's explicit request.
+   - no replacement chat is started.
 6. **Product priority.** The product is a general-purpose OS with European data
    sovereignty. Conventional PCs and laptops come first, then server and
    business use. It aims at broad consumer and professional compatibility.
@@ -64,7 +62,7 @@ session's context must rotate were only in issue comments.
    - Post-quantum cryptography is a current obligation under ADR-007, ADR-012,
      ADR-017 and ADR-028, `docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md`
      and `docs/implementation/QUANTUM-SPEC.md`. B owns that content, together
-     with N for transport. It covers harvest-now-decrypt-later exposure and the
+     It covers harvest-now-decrypt-later exposure and the
      classical dependencies that remain.
    - Physical quantum hardware is a future research line for L and does not
      block the consumer release.
@@ -79,8 +77,7 @@ session's context must rotate were only in issue comments.
 - Issues #494 (CI) and #503 (PR guard) stay the places for decisions,
   operational notices and history.
 
-**Rollback:** a new project-owner decision. Merge delegation for A, P, L or R
-can be withdrawn individually without changing the other workstreams.
+**Rollback:** a new project-owner decision.
 
 ## ADR-PROGRESS-ASSESSMENTS-20261125 — Per-task assessment files; CI owner decisions D1 and D2
 
