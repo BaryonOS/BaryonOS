@@ -190,7 +190,10 @@ on its own.
 A cleared, replaced or rolled-back TPM yields `Unavailable` (index missing or
 public area changed, or the REL-05 TPM identity check of section 10.5 fails)
 or a store that no longer matches (stale `S`, fork): fail closed, 5A
-behaviour. Explicit recovery is the authenticated REL-05 recovery (owner
+behaviour. This holds only when the rollback leaves the store or another
+independent check inconsistent: a host administrator who restores an earlier
+swtpm snapshot together with its matching store passes both the identity and
+the binding check (see Limits). Explicit recovery is the authenticated REL-05 recovery (owner
 decision C665: signed recovery record naming the new TPM's EK) plus N04
 rejecting its old store and reinitialising at the new genesis. B carries no
 tombstone or generation across; old network grants are not restored and need

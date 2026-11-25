@@ -226,7 +226,9 @@ pub enum Identity {
     /// A valid enrollment record (signed under the update trust anchors) names
     /// this TPM's endorsement key, and the TPM proved possession of it.
     Verified,
-    /// No enrollment record: the device was never bound. No trial, no write.
+    /// No enrollment record. The ESP file's existence is not protected (a
+    /// deleted record looks like a never-enrolled device), so this halts like
+    /// [`Identity::Mismatch`]: enrollment or recovery only.
     Unenrolled,
     /// An enrollment record exists but the proof failed or names another key:
     /// unknown, replaced or unverifiable TPM. Normal boot is blocked.
@@ -309,8 +311,6 @@ pub enum TpmClass {
     PcrDirty,
     AnchorLost,
     AnchorBehind,
-    /// [`Identity::Unenrolled`].
-    Unenrolled,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -377,6 +377,12 @@ pub enum Halt {
     TpmExtend,
     /// [`Identity::Mismatch`]: only authenticated recovery proceeds.
     TpmIdentity,
+    /// [`Identity::Unenrolled`]: authenticated enrollment or recovery only.
+    TpmUnenrolled,
+    /// Verified TPM, `FLOOR` above zero, but the UEFI floor variable is
+    /// absent (NVRAM reset): C665 allows no automatic heal; authenticated
+    /// recovery only.
+    UefiFloorMissing,
     /// A `UefiFloor` write failed; see [`Plan::uefi_write_failed`].
     UefiFloorWrite,
 }
@@ -415,6 +421,8 @@ pub enum Marker {
     FailNoValidSlot,
     FailTpmExtend,
     FailTpmIdentity,
+    FailTpmUnenrolled,
+    FailUefiFloorMissing,
     FailUefiFloorWrite,
 }
 
@@ -435,7 +443,6 @@ impl fmt::Display for Marker {
                 TpmClass::PcrDirty => "BOOT:TPM:FAULT:PCR_DIRTY",
                 TpmClass::AnchorLost => "BOOT:TPM:ANCHOR_LOST",
                 TpmClass::AnchorBehind => "BOOT:TPM:ANCHOR_BEHIND",
-                TpmClass::Unenrolled => "BOOT:TPM:UNENROLLED",
             }),
             Marker::ModeDegraded => f.write_str("BOOT:MODE:DEGRADED"),
             Marker::ModeKnownGood => f.write_str("BOOT:MODE:KNOWN_GOOD"),
@@ -471,6 +478,8 @@ impl fmt::Display for Marker {
             Marker::FailNoValidSlot => f.write_str("BOOT:FAIL:NO_VALID_SLOT"),
             Marker::FailTpmExtend => f.write_str("BOOT:FAIL:TPM_EXTEND"),
             Marker::FailTpmIdentity => f.write_str("BOOT:FAIL:TPM_IDENTITY"),
+            Marker::FailTpmUnenrolled => f.write_str("BOOT:FAIL:TPM_UNENROLLED"),
+            Marker::FailUefiFloorMissing => f.write_str("BOOT:FAIL:UEFI_FLOOR_MISSING"),
             Marker::FailUefiFloorWrite => f.write_str("BOOT:FAIL:UEFI_FLOOR_WRITE"),
         }
     }
@@ -694,15 +703,16 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
         Tpm::Ready(anchor) => anchor,
     };
     // C665/U13: no record of an unidentified TPM is trusted or written.
-    match anchor.identity {
-        Identity::Verified => {}
-        Identity::Unenrolled => return degraded(obs, plan, TpmClass::Unenrolled),
-        Identity::Mismatch => {
-            plan.path.push(State::Halt);
-            plan.markers.push(Marker::FailTpmIdentity);
-            plan.outcome = Outcome::Halt(Halt::TpmIdentity);
-            return plan;
-        }
+    let (marker, halt) = match anchor.identity {
+        Identity::Verified => (None, None),
+        Identity::Unenrolled => (Some(Marker::FailTpmUnenrolled), Some(Halt::TpmUnenrolled)),
+        Identity::Mismatch => (Some(Marker::FailTpmIdentity), Some(Halt::TpmIdentity)),
+    };
+    if let (Some(marker), Some(halt)) = (marker, halt) {
+        plan.path.push(State::Halt);
+        plan.markers.push(marker);
+        plan.outcome = Outcome::Halt(halt);
+        return plan;
     }
     let floor_rec = anchor.floor.as_ref().and_then(FloorRecord::decode);
     let trial_rec = anchor.trial.as_ref().and_then(TrialRecord::decode);
@@ -727,6 +737,14 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
         ConfirmCheck::Absent
     };
     let valid = matches!(check, ConfirmCheck::Valid);
+    // C665: floors are provisioned >= 1, so 0 means the UEFI variable is gone
+    // (NVRAM reset). That is healed only by authenticated recovery, never here.
+    if obs.uefi_floor == 0 && fr.floor > 0 {
+        plan.path.push(State::Halt);
+        plan.markers.push(Marker::FailUefiFloorMissing);
+        plan.outcome = Outcome::Halt(Halt::UefiFloorMissing);
+        return plan;
+    }
     let mut uefi = obs.uefi_floor;
     // Step 2: UEFI ahead of FLOOR is only the interrupted finalization (F1 done).
     if uefi > fr.floor && !(valid && t.version == uefi) {

@@ -244,14 +244,19 @@ CONFIRM.gen, FLOOR.floor, FLOOR.last_gen, UEFI floor, GEN)`.
 1. `INIT`: locate TCG2; `PCR_Read(13)` must be zero, otherwise `DEGRADED`
    (`PCR_DIRTY`). Verify the TPM identity (section 10.5) before any record is
    trusted: `MISMATCH` → halt `BOOT:FAIL:TPM_IDENTITY` (authenticated recovery
-   only); `UNENROLLED` → `DEGRADED` (`BOOT:TPM:UNENROLLED`, no write). Check all public areas; read `TRIAL`, `FLOOR`, `CONFIRM`,
+   only); `UNENROLLED` → halt `BOOT:FAIL:TPM_UNENROLLED` (no write; authenticated
+   enrollment or recovery only, because the existence of the ESP record is not
+   protected and a deleted record must not open a degraded route). Check all public areas; read `TRIAL`, `FLOOR`, `CONFIRM`,
    `GEN`, UEFI floor.
    `TRIAL`, `FLOOR` and `CONFIRM` are read only if `NV_ReadPublic` reports
    `TPMA_NV_WRITTEN`; an unwritten `CONFIRM` means "no confirmation" (normal
    after provisioning), an unwritten `TRIAL`/`FLOOR` is anchor loss.
    Provisioning increments `GEN` once so that it is readable (reading a
    never-incremented counter is expected to fail, U16).
-2. Consistency: if `FLOOR.floor > UEFI` → heal: SetVariable(UEFI :=
+2. Consistency: if the UEFI floor variable is absent (reads 0) while
+`FLOOR.floor > 0`, this is an NVRAM reset: halt `BOOT:FAIL:UEFI_FLOOR_MISSING`
+without any write; only the authenticated recovery of section 10.5 restores
+it (owner decision C665). Otherwise, if `FLOOR.floor > UEFI` → heal: SetVariable(UEFI :=
    FLOOR.floor). The heal runs only for a verified TPM identity (step 1,
    owner decision C665); if this write fails the loader halts
    (`BOOT:FAIL:UEFI_FLOOR_WRITE`) instead of degrading below `FLOOR`. If `UEFI > FLOOR.floor`, this is the interrupted
@@ -483,7 +488,7 @@ known-good fallback. Installation resumes after finalization.
 | No TCG2 protocol **and** no ACPI `TPM2` table | `ABSENT` |
 | TCG2 present and any command fails (including `GetCapability`), timeout, self-test failure; or an ACPI `TPM2` table without TCG2; `PCR_Read(13) ≠ 0` | `FAULT` (the `CLOSED` extend is attempted; if it fails or no TCG2 exists: halt `BOOT:FAIL:TPM_EXTEND`) |
 | Enrollment present, identity proof fails or names another key | `MISMATCH`: halt `BOOT:FAIL:TPM_IDENTITY` (section 10.5) |
-| No enrollment record | `UNENROLLED`: `DEGRADED`, no write, no trial |
+| No enrollment record | `UNENROLLED`: halt `BOOT:FAIL:TPM_UNENROLLED`, no write, no trial (a deleted record is indistinguishable from a never-enrolled device) |
 | Any index missing, public area ≠ constants, `TRIAL`/`FLOOR` unwritten, bad magic, read-back mismatch | `ANCHOR_LOST` |
 | `UEFI floor > FLOOR.floor` | `ANCHOR_BEHIND` (rollback or replacement of TPM state) |
 
@@ -497,7 +502,9 @@ known-good fallback. Installation resumes after finalization.
 
 In `DEGRADED`: effective floor = UEFI floor (never lowered). Boot only the
 verified slot with `version == floor`, the last confirmed version (equal
-versions follow the header hint; versions are never reused, 6.4). If no such
+versions are never reused, 6.4; two different verified manifests at that
+version halt with `BOOT:FAIL:NO_VALID_SLOT`, as I7 requires, and the header
+hint never breaks that tie). If no such
 slot exists, halt with `BOOT:FAIL:NO_VALID_SLOT`. A slot above the UEFI floor
 was never confirmed and may be a rejected or abandoned trial; the TPM content
 that would say so is untrusted in this mode, so booting it as known-good would
@@ -549,11 +556,26 @@ halts with authenticated recovery (option B as the fail-closed fallback).
   private key can produce a valid response. Matching public areas, NV
   indices, device properties or a higher reported floor are never evidence of
   identity.
-- **Outcomes:** `VERIFIED` → section 7; `UNENROLLED` (no record) → `DEGRADED`,
-  no write, no trial; `MISMATCH` (record present, proof fails, other key,
+- **Outcomes:** `VERIFIED` → section 7; `UNENROLLED` (no record) → halt
+  `BOOT:FAIL:TPM_UNENROLLED`, no write, no trial (the signature protects the
+  record's content, not its existence); `MISMATCH` (record present, proof fails, other key,
   bad signature) → halt `BOOT:FAIL:TPM_IDENTITY`. The UEFI floor is raised
   only after a verified identity (heal, F1); the anti-rollback floor is never
   lowered silently.
+- **Accepted-serial store** (open design item U13c; mechanism open for the
+  design review, rules normative): the signature shows that a record is
+  authentic, not that it is current. The loader therefore accepts an `ENROLL`
+  or recovery record only if its serial is at least the last accepted serial,
+  kept like the floor in two copies with independent failure modes: one in a
+  loader-only, phase-bound TPM index (`PolicyPCR(13 = 0³²)`) and one in a UEFI
+  variable; the effective value is the maximum of the surviving copies. A
+  record replacement writes the TPM copy, then the UEFI copy, then the new ESP
+  record; a cut leaves the old record below the accepted serial, which halts
+  (denial, never acceptance of an older record) until the new record is
+  written. A record naming another EK fails the identity proof regardless of
+  its serial. Not defended: rolling back both copies together with the TPM
+  state and the disk (T7, section 10.4). Until U13c is implemented, C28 is
+  open.
 - **Authenticated recovery** (TPM replacement, motherboard replacement, TPM
   clear, NVRAM reset): a recovery record signed like `ENROLL` names the new EK
   and a floor `≥` every surviving copy (UEFI, compiled-in minimum). The loader
@@ -605,8 +627,9 @@ named marker (TEST hook markers emitted before each write in a test feature).
 | C24 | identity: replacement with identical settings | new swtpm state, indices and records copied byte for byte, `FLOOR` above UEFI | `BOOT:FAIL:TPM_IDENTITY`, no write, UEFI floor unchanged |
 | C25 | identity: higher reported floor | enrolled TPM vs replacement, `FLOOR.floor > UEFI` | heal only on the enrolled TPM; halt on the replacement |
 | C26 | identity: lower reported floor | replacement with `FLOOR.floor < UEFI` | halt; UEFI floor never lowered |
-| C27 | NVRAM reset | fresh `OVMF_VARS`, enrolled TPM intact | heal from the verified `FLOOR` to UEFI, boots the known-good release |
-| C28 | replay | an old `ENROLL` or recovery record, or a recorded TPM response | record refused (serial/signature) or session HMAC fails → halt |
+| C27 | NVRAM reset | fresh `OVMF_VARS`, enrolled TPM intact | `BOOT:FAIL:UEFI_FLOOR_MISSING`, no write; after authenticated recovery the floor is restored and the known-good release boots |
+| C27a | enrollment deleted | `ENROLL` removed from the ESP of an enrolled device (optionally with a replaced TPM) | `BOOT:FAIL:TPM_UNENROLLED`, no write, no degraded boot |
+| C28 | replay | an old `ENROLL` or recovery record (serial below the accepted serial), or a recorded TPM response | record refused (accepted-serial store, 10.5) or session HMAC fails → halt |
 | C29 | failed authentication | recovery record with a bad signature or a foreign key | refused; normal boot stays blocked |
 | C30 | interrupted recovery | power loss at every recovery write | the old record stays in force or the new one is complete; never a lower floor |
 

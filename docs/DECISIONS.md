@@ -71,8 +71,10 @@ identity binding (U13) through an authorised enrollment record signed under
 the compiled-in update trust anchors (an anchor independent of TPM, UEFI
 variables and disk), with an EK-salted session per boot. Until that binding
 is demonstrably reliable, an unknown, replaced, reset or unverifiable TPM
-blocks the normal boot route (`BOOT:FAIL:TPM_IDENTITY`; unenrolled → no-write
-`DEGRADED`) and only an authenticated recovery proceeds. The UEFI floor is
+blocks the normal boot route (`BOOT:FAIL:TPM_IDENTITY`; an unenrolled TPM halts
+with `BOOT:FAIL:TPM_UNENROLLED`, since a deleted record cannot be told apart from
+no enrollment; an NVRAM reset halts with `BOOT:FAIL:UEFI_FLOOR_MISSING` instead
+of healing automatically) and only an authenticated recovery proceeds. The UEFI floor is
 never raised from an unverified TPM and the anti-rollback floor is never
 lowered silently. Legitimate TPM or motherboard replacement and NVRAM reset
 go through authorised recovery without touching user data. The anchor domains

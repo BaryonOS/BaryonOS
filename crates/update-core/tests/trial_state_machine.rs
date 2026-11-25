@@ -168,7 +168,11 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
     let mut cur = pre.clone();
     for w in plan.writes.iter() {
         match *w {
-            Write::UefiFloor(v) => assert!(v >= cur.uefi, "UEFI lowered: {}", ctx()),
+            Write::UefiFloor(v) => {
+                assert!(v >= cur.uefi, "UEFI lowered: {}", ctx());
+                let reset = pre.uefi == 0 && pre.floor_rec().is_some_and(|f| f.floor > 0);
+                assert!(!reset, "C665 auto-heal after NVRAM reset: {}", ctx());
+            }
             Write::Floor(r) => {
                 let old = cur.floor_rec().unwrap_or_else(|| panic!("{}", ctx()));
                 assert!(r.floor >= old.floor, "FLOOR lowered: {}", ctx());
@@ -194,8 +198,15 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
     let degraded = plan.path.iter().any(|s| *s == State::Degraded);
     // I7: DEGRADED never writes and never trials.
     // C665/U13: an unidentified TPM is never written and never trialled.
-    if dev == Dev::IdentityMismatch {
-        assert_eq!(plan.outcome, Outcome::Halt(Halt::TpmIdentity), "{}", ctx());
+    // An enrolled device whose ENROLL file was deleted looks unenrolled, so
+    // UNENROLLED must fail closed too (review: record existence is not protected).
+    if dev == Dev::IdentityMismatch || dev == Dev::Unenrolled {
+        let halt = if dev == Dev::Unenrolled {
+            Halt::TpmUnenrolled
+        } else {
+            Halt::TpmIdentity
+        };
+        assert_eq!(plan.outcome, Outcome::Halt(halt), "{}", ctx());
         assert!(plan.writes.is_empty(), "U13 write: {}", ctx());
         return pre.clone();
     }
@@ -290,8 +301,17 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
             }
         }
         Outcome::Halt(Halt::TpmExtend) => assert_eq!(dev, Dev::ExtendBroken, "{}", ctx()),
-        Outcome::Halt(Halt::TpmIdentity) => panic!("identity halt without mismatch: {}", ctx()),
+        Outcome::Halt(Halt::TpmIdentity | Halt::TpmUnenrolled) => {
+            panic!("identity halt without an identity failure: {}", ctx())
+        }
         Outcome::Halt(Halt::UefiFloorWrite) => panic!("executor-only halt: {}", ctx()),
+        // C665: an absent UEFI floor (NVRAM reset) is never auto-healed; only
+        // authenticated recovery restores it. No write before the halt.
+        Outcome::Halt(Halt::UefiFloorMissing) => {
+            assert_eq!(pre.uefi, 0, "{}", ctx());
+            assert!(matches!(dev, Dev::Ready | Dev::ExtendBroken), "{}", ctx());
+            assert!(plan.writes.is_empty(), "{}", ctx());
+        }
         Outcome::Halt(Halt::NoValidSlot) => {
             // I5: a valid known-good slot is never refused. Known-good means the
             // floor version and, once finalized, the recorded manifest (M2).
@@ -1202,11 +1222,24 @@ fn floor_heal_requires_verified_tpm_identity() {
         .any(|m| m.to_string() == "BOOT:FAIL:TPM_IDENTITY"));
     let unenrolled = boot(&s, &disk, 0, Dev::Unenrolled);
     check_plan(&s, &disk, Dev::Unenrolled, &unenrolled);
+    assert_eq!(unenrolled.outcome, Outcome::Halt(Halt::TpmUnenrolled));
     assert!(unenrolled.writes.is_empty());
+    assert!(!unenrolled.path.iter().any(|p| *p == State::Degraded));
     assert!(unenrolled
         .markers
         .iter()
-        .any(|m| m.to_string() == "BOOT:TPM:UNENROLLED"));
+        .any(|m| m.to_string() == "BOOT:FAIL:TPM_UNENROLLED"));
+    // C27/C665: NVRAM reset on the enrolled TPM is not auto-healed.
+    let mut reset = s.clone();
+    reset.uefi = 0;
+    let halted = boot(&reset, &disk, 0, Dev::Ready);
+    check_plan(&reset, &disk, Dev::Ready, &halted);
+    assert_eq!(halted.outcome, Outcome::Halt(Halt::UefiFloorMissing));
+    assert!(halted.writes.is_empty());
+    assert!(halted
+        .markers
+        .iter()
+        .any(|m| m.to_string() == "BOOT:FAIL:UEFI_FLOOR_MISSING"));
     // A failed heal write halts instead of degrading below FLOOR.
     let mut failed = plan;
     failed.uefi_write_failed();
