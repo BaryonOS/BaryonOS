@@ -1,14 +1,19 @@
 # B03 REL-05 — trial boot with TPM 2.0 health confirmation (option A)
 
-**Status:** specification only (task B03-REL05-D1, 25 November 2026). Nothing
-in this document is implemented or tested. Decision record:
+**Status (separated):** *design* in this document (task B03-REL05-D1,
+25 November 2026). *Implementation*: S1 host model `crates/update-core/src/trial.rs`
+and S2 frozen TPM constants `crates/update-core/src/trial_tpm.rs`; nothing is wired
+into the loader or the kernel. *Executed tests*: host tests only
+(`tests/trial_state_machine.rs`, `tests/trial_tpm_constants.rs`); no native, swtpm
+or QEMU test (S5 onwards). *Pending*: review round 1 findings and the owner
+decision on C665 (TPM identity binding, U13; PR #524). Decision record:
 [ADR-B03-REL05-TPM-20261125](../DECISIONS.md#adr-b03-rel05-tpm-20261125--trial-boot-with-tpm-20-health-confirmation-rel-05-option-a).
 Owner decision: issue #41, 25 November 2026 (items O1–O9 below).
 Scope: public TEST keys, disposable QEMU with swtpm only. No production keys,
 signing, physical TPM, firmware change, production activation or new trust root.
 
 The document separates four things throughout: **design** (this text),
-**implementation** (none yet), **executed tests** (none) and **unverified
+**implementation** (S1/S2 host code only), **executed tests** (host only) and **unverified
 assumptions** (marked *[unverified]* and collected in section 14).
 
 ## 1. Problem (REL-05)
