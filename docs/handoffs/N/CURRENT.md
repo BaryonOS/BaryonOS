@@ -17,37 +17,58 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
   protected or shared files and keeps the review outside the workstream.
 - At most one primary open pull request per cycle. A host handshake is not a
   native handshake; a staged fixture is not internet acceptance.
-- Owner-gated, unchanged: the N03 native TLS provider, test peer, certificate
-  time and random route (`docs/implementation/N03-PROVIDER-DECISION-PROPOSAL.md`,
-  PROPOSED) and all N04 issuer, subgrant, regrant and durable-denial code
-  (`docs/implementation/N04-ISSUER-ADR-PROPOSAL.md`, PROPOSED).
+- Owner decisions, 25 November 2026 (do not re-ask):
+  - N03: provider route B1 with a later B2 migration, H3, P3, T3, R1,
+    ml-kem and a verified ed25519-dalek (`ADR-N03-PROVIDER-20261125`).
+  - N04: issuer ADR approved; the cold rollback anchor is agreed with B02
+    (`ADR-NET-ISSUER-20261125`). Decision 5B (TPM anchor use) is approved;
+    5A stays in force until native 5B acceptance.
+  - M1 (stale store after a revocation): the protected-slot route through B,
+    superseding the earlier reseal approval, which host tests showed to be
+    insufficient. B owns the protected slot and the extend-chain contract.
+  - HAUTH: TEST/QEMU/swtpm only. Residual: code at PCR13=0 can read HAUTH
+    until B04.
+  - N02: the silent or timeout real-resolver case runs QEMU inside a network
+    namespace.
 - Owner decision, 24 November 2026: the N02 libslirp case may use
   `-netdev user,restrict=off` (guest reaches a host-loopback oracle and the
   runner's real DNS resolver) in a separate, non-required CI job.
+- B contract for the N04 store (agreed P1–P3): `read() -> chain`,
+  `extend(expected_chain, D(S))` with the domain-derived event `E` computed by
+  the kernel, `instance()`, a single `Stale` error, `Foreign` on an instance
+  mismatch, and no Pending or Exhausted states. Startup: `chain ==
+  H(S.prev ‖ E(S))` accepts; `chain == S.prev` rolls forward a
+  never-acknowledged store only; anything else is `Stale`. B's golden vectors
+  are in `COLD-FRESHNESS-ANCHOR.md`. A torn A1 write is a binding requirement
+  on the N04 store.
+- Handoff agreement: after each merged part, update this file or the
+  workstream handoff comment, then report CLEAR_READY to the PR guard. The
+  owner runs `/clear`. Rotation follows `ADR-SPECIALIST-TEAM-20261125`.
 
 ## Current cycle
 
-- cycle_id: `N-20261124-nxdomain-nosoa`
-- task: N02-T6 host regression — the network service never caches an
-  NXDOMAIN without an authority SOA (lesson 4)
-- branch: `claude/fervent-mccarthy-wykkfa`
+- cycle_id: `N-20261125-n03-n04-adr`
+- task: record the N03 and N04 owner decisions (ADRs), the N03-T2 host
+  handshake against an OpenSSL peer, and the host-only N04 durable-store
+  freshness model (`services/net-broker/src/durable.rs`)
+- branch: `claude/n03-n04-adr-20261125`; tracking issue #529
 - pull request, tested source SHA, hosted runs: recorded in the pull request
   description, not in this file
-- evidence: `services/network-service/tests/dns_resolve.rs`
-  `nxdomain_without_soa_is_not_found_and_never_cached` replays the stub's
-  33-byte reply (NSCOUNT 0); the caller gets `NotFound` and the next Resolve
-  sends a fresh query. A mutant that invents a lifetime for a missing SOA
-  fails only this test. Host evidence only.
-- previous cycle `N-20261124-slirp-nx` merged as `734820d6` (#502).
+- evidence: host tests only. `durable.rs` binds a store to the anchor
+  instance (`Foreign` on a mismatch) and models the protected slot with a
+  fake; the three M1 residual cases stay as ignored red tests until the port
+  to B's extend-chain contract. No native evidence; N03 and N04 stay open.
+- previous cycle `N-20261125-open-deadline` (N01 OpenTcp tick fix, #518).
 
 ## Blockers
 
 - N02 stays open: libslirp is still QEMU user networking on the same host; no
   physical NIC, operator router or internet HTTP endpoint. Timeout,
   truncation and stale-response cases against a real resolver are not run;
-  a silent real resolver needs a new harness boundary (a re-pointed host
-  resolver or a network namespace), which is an owner decision.
-- N03 and N04: the owner decisions above.
+  a silent real resolver runs in a network namespace (owner decision above;
+  not built yet).
+- N04 durable store: waits for B's protected slot and extend-chain kernel
+  side (#524) for native evidence.
 
 ## Lessons
 
@@ -66,6 +87,7 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Next executable task
 
-After the merge: once the owner decides the N03 or N04 ADR, the first slice
-of that decision; otherwise the owner question on a harness boundary for a
-real-resolver timeout, truncation or stale-response case.
+After this merge (order: N ADR pull request, then B's #524): port
+`durable.rs` to B's extend-chain contract. Implement `chain_after` locally
+(`sha2 =0.10.9`, force-soft), check B's golden vectors, and turn the three
+ignored M1 tests green against a hostile `extend`, using B's test names.
