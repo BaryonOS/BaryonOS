@@ -639,11 +639,13 @@ fn admin_interrupt() -> ! {
     let mut evict = named(Op::Evict, namespace);
     evict.request = rpc.next;
     let bytes = evict.encode(false).unwrap_or_else(|_| fail(61));
+    // Publish the waiting marker before Evict: the NAS may exit, and the
+    // kernel check word 40, before this process runs again after the send.
+    stack_mark();
+    support::put(40, INTERRUPTED);
     send(rpc.send, TAG, &bytes).unwrap_or_else(|_| fail(62));
     // No reply is expected. The kernel closes the case on the NAS exit and
     // reaps this process; it never reaches the bounded failure below.
-    stack_mark();
-    support::put(40, INTERRUPTED);
     for _ in 0..LIMIT {
         native::yield_now().unwrap_or_else(|_| fail(63));
     }
