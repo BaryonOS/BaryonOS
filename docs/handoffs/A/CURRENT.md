@@ -1,6 +1,7 @@
 # Workstream A handoff (Applications, SDK, Installation and Ecosystem)
 
-Owner session: BaryonOS - Specialist A (`local_163a86f0-2d5c-421d-a9dc-10cda1c5a245`).
+Owner session: BaryonOS - Specialist A (session ref `f2d7d9`, resumed 2026-11-25 ~18:15Z;
+the earlier `local_163a86f0` session is retired).
 Coordination: BaryonOS - PR Bewaker. Merge mandate: recorded on main in
 ADR-SPECIALIST-TEAM-20261125 clause 2 (#527, 9cc1b86f), which extends
 ADR-MERGE-DELEGATION-20261123 to A; squash with --match-head-commit after the
@@ -105,6 +106,10 @@ notice is a fixture; no full A03 acceptance.
 6. When all required checks and merge-hold are green: mark ready and squash with
    --match-head-commit at that head; report the merge to the PR guard.
 
-Then A03-T2c: bind the broker to real Materiaal volume objects (per-object READ
-via the volume service; coordinate the volume.rs boundary with S) and replace
-the exit fixture with a product exit-notification path (kernel owner decision).
+Then A03-T2c, specified in `docs/handoffs/A/T2C-SPEC.md` (read-only analysis,
+25 Nov): T2c-1 host-only broker over `volume_core::client::Transport` (no kernel,
+no owner decision; may be developed locally on a branch stacked on #535);
+T2c-2 native `native-system` variant without `volume.rs` edits (shared
+`m3.rs`/`Cargo.toml`/`build.py` ranges reported to the PR guard first);
+T2c-3 product exit notification needs an OWNER decision (A reply-endpoint
+closure recommended, B Process object, C kernel exit-event channel).
