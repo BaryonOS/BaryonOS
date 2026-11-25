@@ -125,6 +125,35 @@ fn grouped_query_heads_share_their_kv_head() {
 }
 
 #[test]
+fn grouped_heads_read_their_own_kv_head_over_two_tokens() {
+    // Two KV heads (head_dim 1), four query heads: heads 0-1 use KV head 0,
+    // heads 2-3 use KV head 1. Keys and queries differ per head, so a wrong
+    // head mapping changes the softmax weights.
+    let (mut k, mut v) = ([0.; 4], [0.; 4]);
+    let mut cache = KvCache::new(2, 1, &mut k, &mut v).unwrap();
+    cache.append(&[1., -1.], &[10., 30.]).unwrap();
+    cache.append(&[-1., 1.], &[20., 40.]).unwrap();
+    let mut out = [0.; 4];
+    attention(
+        &[2., -2., 3., -3.],
+        4,
+        &cache,
+        &mut [0.; 6],
+        &mut out,
+        &mut nb(),
+    )
+    .unwrap();
+    let w = |score: f32| 1.0 / (1.0 + (-score).exp());
+    let expected = [
+        10. * w(4.) + 20. * (1. - w(4.)),
+        10. * w(-4.) + 20. * (1. - w(-4.)),
+        30. * w(-6.) + 40. * (1. - w(-6.)),
+        30. * w(6.) + 40. * (1. - w(6.)),
+    ];
+    assert!(close(&out, &expected), "{out:?} vs {expected:?}");
+}
+
+#[test]
 fn attention_refuses_empty_cache_bad_inputs_and_excess_work() {
     let (mut k, mut v) = ([0.; 2], [0.; 2]);
     let mut cache = KvCache::new(1, 2, &mut k, &mut v).unwrap();
