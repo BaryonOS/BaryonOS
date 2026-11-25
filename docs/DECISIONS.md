@@ -11,11 +11,12 @@ wording and speaker.
 decision to the PR guard session at about 11:25Z. The owner then confirmed the
 wording for recording in the CI specialist session at about 11:45Z ("Yes,
 confirmed"). The CI checkpoint is #494, comment 7161215540. Item 8 was decided
-separately at about 12:35Z and given to the PR guard. The owner's formal review
-of this pull request is the confirmation that D2 requires. During the review of
-#527 (CI session, about 13:30Z), the owner added that the context thresholds in
-item 5 apply only to the executing specialists and that the PR guard rotates
-only at the owner's explicit request.
+separately at about 12:35Z and given to the PR guard. At about 13:30Z, in the
+CI session while #527 was under review, the owner clarified that the context
+thresholds in item 5 apply only to the executing specialists and that the PR
+guard rotates only at the owner's explicit request. These chat-only
+sources are recorded on #494, comment 7162652798. The owner's formal review of
+this pull request, on the current text, is the confirmation that D2 requires.
 
 **Problem:** six workstream sessions handled their own pull requests under
 `ADR-MERGE-DELEGATION-20261123`: S09, U, N, UI/UX design, B and H. Applications,
@@ -55,12 +56,12 @@ session's context must rotate were only in issue comments.
    - from about 60%, the session updates its durable checkpoint and finishes
      the current phase;
    - above about 75%, it starts no new large phase;
-   - by 80–85% at the latest, a verified handoff is ready;
-   - ownership of a subtask continues across rotations;
-   - no replacement chat is started.
+   - by 80–85% at the latest, a verified handoff is ready.
 
    The PR guard does not follow these thresholds. It rotates its own context
-   only at the project owner's explicit request.
+   only at the project owner's explicit request. For every session, including
+   the PR guard, ownership of a subtask continues across a rotation and no
+   replacement chat is started.
 6. **Product priority.** The product is a general-purpose OS with European data
    sovereignty. Conventional PCs and laptops come first, then server and
    business use. It aims at broad consumer and professional compatibility.
@@ -97,22 +98,21 @@ session's context must rotate were only in issue comments.
    - A specialist checks for duplicates before creating an issue.
    - An issue stays within the specialist's own workstream.
 
-**Alternatives:** the owner recorded no alternatives that were considered. The
-implicit alternative is the previous state: six delegated workstreams, with
-applications, personal NAS, local AI and reliability work handled under
-separate ad-hoc mandates or not owned at all. The record does not establish
-why four new specialists were chosen rather than another split.
+**Alternatives:** none recorded. The owner recorded no alternatives that were
+considered, and the record does not establish why four new specialists were
+chosen rather than another split.
 
 **Rationale/sources:**
 
-- **Rationale:** the ownership gap described under Problem. No further
+- **Rationale:** the gaps described under Problem. No further
   rationale is recorded.
 - **Sources:**
   - the owner's decision given to the PR guard at about 11:25Z;
-  - the confirmation in the CI session at about 11:45Z (#494, comment
-    7161215540);
-  - the tracking-issue decision of about 12:35Z, relayed by the PR guard;
+  - the owner's confirmation in the CI session at about 11:45Z, recorded in
+    the CI checkpoint (#494, comment 7161215540);
+  - the tracking-issue decision of about 12:35Z, given to the PR guard;
   - the clarification of item 5 during the review of #527;
+  - the record of these chat-only sources on #494, comment 7162652798;
   - the PR guard's operational history in #503.
 
 **Consequences:**
@@ -128,7 +128,11 @@ why four new specialists were chosen rather than another split.
 
 **Security invariant:**
 
-- Apart from the expansions in items 2 and 8, no authority is widened beyond `ADR-MERGE-DELEGATION-20261123` as amended by D2.
+- Apart from two expansions, no authority is widened beyond
+  `ADR-MERGE-DELEGATION-20261123` as amended by D2. Item 2 extends that merge
+  delegation to A, P, L and R. Item 8 lets the executing specialists create
+  tracking issues and subtasks in their own workstream without separate
+  permission.
 - Protected-file review, `ADR-MERGE-HOLD-20261113`, required checks and branch
   protection are unchanged.
 - The PR guard has no commit, push, merge, label or review authority.
@@ -138,9 +142,14 @@ why four new specialists were chosen rather than another split.
 `tools.tests.test_agent_governance` pass. They check the documents only; they
 do not prove that sessions follow the rules.
 
-**Review trigger:** reassess this decision when any of the following occurs:
-- a delegated specialist merges a change that the rules above would block;
-- a CLEAR_READY handoff fails to resume its subtask;
+**Review trigger:** added by the CI specialist when recording this decision;
+it is not part of the owner's wording. Reassess this decision when any of the
+following occurs:
+
+- a delegated specialist merges a change that `ADR-MERGE-DELEGATION-20261123`
+  as amended by D2 would block;
+- a CLEAR_READY handoff (the signal that a session's context may be cleared
+  safely) fails to resume its subtask;
 - the PR guard needs write authority to do its job;
 - issue creation produces duplicates or backlog without implementation.
 
