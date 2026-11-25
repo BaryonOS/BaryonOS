@@ -63,13 +63,17 @@ acceptance.
 - CI D2 review of #531 ci.yml at 3075c1b3: no blocking findings. Conditions:
   hosted qemu-smoke, host-quality and merge-hold pass on the head; any new head
   needs a ci.yml-only delta check by CI before merge.
-- A03-T2b (grant retirement on process exit) is being built in
+- A03-T2b (grant retirement on process exit) is implemented in
   `~/projects/BaryonOS-worktrees/a-track-t2b`, branch
-  `claude/a03-t2b-retire-20261125`, stacked on #531.
+  `claude/a03-t2b-retire-20261125`, as a stacked draft PR on #531. The exit notice is a
+  kernel-written word in the broker's private page (labelled fixture, as nas.rs).
+  Native normal/denied pass; a mutation that skips retirement fails the gate. Retarget it to main after
+  #531 merges.
 
 ## Next action
 
-Watch hosted checks on the A03-T2a draft PR and fix failures; ask CI to review
-the two qemu-smoke steps in ci.yml. Next A-executable slice: A03-T2b — broker
-learns client exit (retire_process on kernel observe_exit) and revision advance,
-so grants die with the process; then per-object volume binding with S/U.
+Keep #531 and the T2b PR green. Merge #531 after governance PR #527 lands and
+CI's conditions hold, then retarget T2b. Next A slice: bind the broker to real
+Materiaal volume objects (per-object READ via the volume service; coordinate the
+volume.rs boundary with S) and replace the exit fixture with a product
+exit-notification path (kernel owner decision).

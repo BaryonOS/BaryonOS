@@ -2,7 +2,8 @@
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
 //! A03 broker client. One ELF, two processes: role 1 is the owner app, role 2
-//! is a hostile helper that claims the owner's identity in every request.
+//! is a hostile helper that claims the owner's identity in every request,
+//! including a forged RETIRE and a read after the owner has exited.
 //!
 //! Startup words (kernel bootstrap): 0 role, 56 reply receive handle, 64
 //! request send handle, 176 broker PID, 184 owner PID (the claimed actor).
@@ -17,7 +18,7 @@ mod support;
 use nieuw_os_sdk_runtime::{native, Handle, ReceiveEndpoint, SendEndpoint};
 use nieuw_os_task_grant_broker_example::{
     decode_reply, encode_request, Request, DATA_MAX, OBJECT_ONE, OBJECT_TWO, OP_CLOSE, OP_READ,
-    OP_WRITE, STATUS_GO, STATUS_OK, STATUS_RESUME, TAG,
+    OP_RETIRE, OP_WRITE, STATUS_GO, STATUS_OK, STATUS_RESUME, TAG,
 };
 
 const OWNER: u64 = 1;
@@ -98,11 +99,21 @@ fn run() -> Result<(), ()> {
             client.call(OP_READ, OBJECT_ONE)?;
             client.call(OP_CLOSE, OBJECT_ONE)?;
             client.call(OP_READ, OBJECT_ONE)?;
+            // Second fixture grant, then a read after the helper's forged
+            // RETIRE; exiting afterwards triggers the kernel exit notice.
+            client.call(OP_READ, OBJECT_ONE)?;
+            client.wait(STATUS_RESUME)?;
+            client.call(OP_READ, OBJECT_ONE)?;
         }
         HELPER => {
             client.wait(STATUS_GO)?;
             client.call(OP_READ, OBJECT_ONE)?;
             client.call(OP_CLOSE, OBJECT_ONE)?;
+            client.wait(STATUS_GO)?;
+            client.call(OP_RETIRE, OBJECT_ONE)?;
+            // Released only after the broker retired the exited owner.
+            client.wait(STATUS_GO)?;
+            client.call(OP_READ, OBJECT_ONE)?;
         }
         _ => return Err(()),
     }
