@@ -26,11 +26,17 @@ The code also shows an expensive rendering path:
 - `ui/surface-protocol/src/client.rs::Session::blit`: each complete tile
   sends BEGIN + five CHUNK + COMMIT and waits for one acknowledgement.
 - `sdk/examples/compositor/src/surface.rs::Surface::step`: processes at most
-  one request per call. The compositor yields its CPU turn after each main
-  loop (`yield_now`).
-- `sdk/examples/materiaal/src/lib.rs::paint_step`: one tile per app iteration;
-  a changed view generation restarts at tile zero. There is no protocol yet
-  for changed rectangles only.
+  one request per call; since `380111b6` the main loop in
+  `sdk/examples/compositor/src/main.rs` drains a bounded batch of up to eight
+  messages per turn before it yields (`yield_now`).
+- `ui/surface-protocol`: `Operation::Retain` confirms runs of unchanged tiles
+  against the receiver's retained base frame without resending their bytes.
+- `sdk/examples/materiaal/src/lib.rs::paint_step`: one tile transaction per
+  app iteration; a changed view generation restarts at tile zero. In retained
+  mode, tiles whose rendered bytes match the digest of what the surface shows
+  are confirmed with RETAIN instead of being re-sent (branch
+  `claude/r02-dirty-repaint-20261125`; local KVM A/B in
+  `docs/verification/r02-materiaal-repaint-ab-20261125/`).
 - `kernel/src/framebuffer.rs::write_pixels`: validated scalar volatile stores
   to a supervisor-only uncached framebuffer. This is not GPU acceleration.
 
@@ -113,16 +119,18 @@ configuration, not fictional rendering measurements. A timeout counts as an
 error. Do not treat TCG/WHPX results as interchangeable with existing native
 gates.
 
-The next rendering optimisation can proceed without broader app permissions:
-process a small bounded number of already available SUR1 messages per
-compositor turn and check clock, terminal state and input/control between
-batches. Retain sender/capability/epoch/length checks and COMMIT acknowledgement;
-prevent unbounded draining/starvation. Test stalled clients, revocation
-mid-batch and checking of every acknowledged frame. This changes timing and
-requires native acceptance; here it is only a proposal. Then versionable
-dirty-region transport; longer term, a capability-bound transfer buffer with
-explicit ownership, bounded length and revocation. Do not give apps raw
-framebuffer or DMA permission for speed.
+Bounded compositor batching (eight SUR1 messages per turn, `380111b6`) and
+retained tiles now exist. A local KVM baseline on 25 November 2026
+(`docs/verification/r02-window-baseline-20261125/`) found the dominant cost
+in the window-session profile to be Materiaal re-sending about 1785 tiles
+after most view changes. Digest-proven RETAIN in the client paint
+path reduced the window-session duration in a local KVM A/B from a median of
+26.93 s to 18.69 s (ten runs per side, host-side timing, `-smp 1`); this is
+not hosted, physical or budget evidence. Remaining per-tile costs: one
+acknowledgement per tile and one tile transaction per app iteration. Longer
+term, a capability-bound transfer buffer with explicit ownership, bounded
+length and revocation. Do not give apps raw framebuffer or DMA permission for
+speed.
 
 ## Executed checks
 
