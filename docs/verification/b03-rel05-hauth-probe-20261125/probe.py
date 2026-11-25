@@ -15,7 +15,7 @@ The secret is generated per run from os.urandom and redacted in the transcript.
 
 Usage: python3 -B probe.py <workdir>   (workdir: disposable, holds swtpm state)
 """
-import hashlib
+import importlib.util
 import os
 import shutil
 import struct
@@ -23,9 +23,12 @@ import subprocess
 import sys
 import time
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "b03-rel05-probe-20261125"))
-import probe as p0  # noqa: E402  (shared raw-command helpers of the S0 probe)
-from probe import H, Z32, b2, pcr_select, decode_rc, log, check  # noqa: E402
+# Shared raw-command helpers of the S0 probe, loaded under a distinct name.
+_S0 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "b03-rel05-probe-20261125", "probe.py")
+_spec = importlib.util.spec_from_file_location("b03_rel05_s0_probe", _S0)
+p0 = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(p0)
+H, Z32, b2, decode_rc, log, check = p0.H, p0.Z32, p0.b2, p0.decode_rc, p0.log, p0.check
 
 p0.CC.update(NV_UndefineSpace=0x122, Clear=0x126, HierarchyChangeAuth=0x129, NV_Extend=0x136,
              DictionaryAttackLockReset=0x139)

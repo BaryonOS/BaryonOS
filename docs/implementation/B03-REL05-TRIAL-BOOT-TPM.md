@@ -752,6 +752,10 @@ named marker (TEST hook markers emitted before each write in a test feature).
   `EFI_RNG_PROTOCOL` (UEFI 2.10, section 37.5) with its default algorithm in
   the loader phase. It is the entropy source of the M1-HAUTH secrets; when it
   is absent, provisioning halts (no fallback, no derivation from records).
+- U26 Design of the M1-HAUTH loader record that binds `SHA-256(HAUTH)` and
+  names the anchored instances (policy-written at PCR 13 = 0³²; handle, size,
+  per-domain layout and public-area check open; see
+  [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md)).
 
 ### Feasibility probe results (25 November 2026, swtpm 0.10.1)
 

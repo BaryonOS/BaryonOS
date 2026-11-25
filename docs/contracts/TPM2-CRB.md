@@ -178,6 +178,20 @@ Maximum command sizes are 59, 26, 18, 109, 99, 67, 20, 97, 14, 63 (password
 combination above 128 B (for example a 32 B password with 64 B of NV data)
 is refused before any output byte changes.
 
+For the cold-freshness anchor and M1-HAUTH
+(`docs/implementation/COLD-FRESHNESS-ANCHOR.md`, TEST profile only) the codec
+additionally encodes: `NV_DefineSpace` of an extend index (exactly 32 B);
+`NV_Extend` of one 32 B digest with `authHandle` = the index (password);
+owner-authorized `NV_UndefineSpace`; `HierarchyChangeAuth` for the owner and
+lockout hierarchies only (endorsement and platform are not encodable); and
+`NV_Read` with a policy session (POLICYREAD index such as `HAUTH`). Maximum
+sizes are 97, 63, 93 and 35 B. `HierarchyChangeAuth`, `NV_UndefineSpace` and
+the `HAUTH` read carry the hierarchy secret in clear in the command or
+response buffer; the caller wipes those buffers and never formats them.
+Golden bytes are the commands swtpm 0.10.1 accepted
+(`docs/verification/b03-rel05-hauth-probe-20261125/`). No `TPM2_Clear`,
+`ClearControl` or platform-hierarchy command is encoded.
+
 A policy session is sent with an empty nonce, empty HMAC and
 continueSession clear, so the TPM flushes it after one successful use; after
 a failed command (for example `TPM_RC_POLICY_FAIL`) it stays loaded and the
