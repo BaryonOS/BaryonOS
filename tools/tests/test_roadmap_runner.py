@@ -833,8 +833,31 @@ class Session(unittest.TestCase):
                 run.return_value = rr.subprocess.CompletedProcess([], 0, "", "")
                 rr.Controller(rr.Config(), root / "state").record_assessment(dict(task("A"), title="t"), "a" * 40,
                                                                            "verified")
+            files = sorted((root / "docs" / "progress" / "assessments").iterdir())
+            record = json.loads(files[0].read_text())
+            # D3: an unchanged score writes one task file and never rewrites progress.json.
+            self.assertEqual(json.loads((root / "docs" / "progress.json").read_text()), {"tracks": []})
         argv = [c.args[0] for c in run.call_args_list]
-        self.assertEqual([a[1:4] for a in argv], [["-I", "-B", "tools/progress.py"]] * 2)
+        self.assertEqual([a[1:5] for a in argv], [["-I", "-B", "tools/progress.py", "--check"]])
+        self.assertRegex(files[0].name, r"^\d{4}-\d{2}-\d{2}-roadmap-a-verified\.json$")
+        self.assertEqual(record["previous_score"], 0)
+        self.assertEqual(record["source_commit"], "a" * 40)
+
+    def test_a_second_assessment_of_the_same_task_gets_its_own_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs").mkdir()
+            (root / "docs" / "progress.json").write_text(json.dumps({"tracks": []}))
+            with unittest.mock.patch.object(rr, "ROOT", root), \
+                    unittest.mock.patch.object(rr.subprocess, "run") as run, \
+                    unittest.mock.patch.object(rr, "git", return_value=""):
+                run.return_value = rr.subprocess.CompletedProcess([], 0, "", "")
+                controller = rr.Controller(rr.Config(), root / "state")
+                for _ in range(2):
+                    controller.record_assessment(dict(task("A"), title="t"), "a" * 40, "verified")
+            names = sorted(p.name for p in (root / "docs" / "progress" / "assessments").iterdir())
+        self.assertEqual(len(names), 2)
+        self.assertTrue(names[1].endswith("-verified-2.json") or names[0].endswith("-verified-2.json"))
 
 
 class RunnerResiduals(unittest.TestCase):
