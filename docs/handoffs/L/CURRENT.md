@@ -21,9 +21,10 @@ issues and pull requests. Newer ADRs and live evidence take precedence over it.
 ## Current cycle
 
 - cycle_id: `L-20261125-decoder-layer`
-- tasks: L01-T4 (RoPE, KV cache, GQA attention) and L01-T5 (per-request work
-  budget with cancellation, in-place BF16 weights, full decoder layer, pinned
-  configuration and tokenizer verification) in `experiments/ai/reference-forward`
+- tasks: L01-T4 (RoPE, KV cache, GQA attention), L01-T5 (work budget with
+  cancellation, in-place BF16 weights, decoder layer, pinned config/tokenizer
+  hashes) and L01-T6 (full `Model`, host Candle oracle `experiments/ai/candle-oracle`,
+  opt-in real-model test `tests/qwen_oracle.rs`, which matches)
 - branch: `claude/l01-attention-kv-20261125`, worktree
   `~/projects/BaryonOS-worktrees/l01-attention-kv`
 - pull request, tested source SHA and hosted runs: recorded in the pull request
@@ -35,11 +36,10 @@ issues and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Next action
 
-1. Candle host oracle: pin a release, review dependencies, download the pinned
-   model (988,097,824 bytes, verify SHA-256) and emit small golden fixtures
-   (token ids, layer-0 hidden state, final top-k logits).
-2. Full-model graph (embedding, 24 layers, final norm, tied head) checked against
-   those fixtures; then a no_std byte-level BPE tokenizer checked id-for-id.
-3. Native: needs the numeric-profile decision; meanwhile the LP-05 network-denial
+1. no_std byte-level BPE tokenizer, checked id-for-id against the oracle
+   fixture ids; refuse input it cannot normalize or classify.
+2. Model file: `~/projects/BaryonOS-scratch/l/qwen-7ae5576/model.safetensors`
+   (SHA-256 verified); run the oracle test with `NOS_QWEN_DIR` set.
+3. Native: needs the numeric-profile (SSE) owner decision, asked 25 Nov; meanwhile the LP-05 network-denial
    probe does not depend on the engine.
 4. L02: no reopen without a concrete technical trigger.
