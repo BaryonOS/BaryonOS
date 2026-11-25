@@ -156,7 +156,10 @@ event data *[unverified, U2]*. `CLOSED` and `SEAL` are the analogous strings
 `d1 = H(0³² ‖ TPM_CC_PolicyPCR ‖ pcrSelect{SHA256,13} ‖ H(pcrValue))`,
 `authPolicy = H(d1 ‖ TPM_CC_PolicyCommandCode ‖ commandCode)`. A host tool
 computes them; host tests freeze them; native tests prove that swtpm accepts
-exactly them.
+exactly them. S2 freezes them in `crates/update-core/src/trial_tpm.rs`
+(`P_OPEN`, policy digests, attributes, `NvSpec` public areas incl. anchor
+domains); `crates/update-core/tests/trial_tpm_constants.rs` recomputes them
+with `sha2` and pins the NV names, cross-checked once with Python `hashlib`.
 
 On every boot the loader issues `NV_ReadPublic` for each index and compares
 type, attributes, size, `nameAlg` and `authPolicy` with the constants. Any

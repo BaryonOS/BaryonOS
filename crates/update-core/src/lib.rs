@@ -22,6 +22,7 @@ pub mod policy_envelope;
 #[cfg(feature = "test-signing-anchors")]
 pub mod test_policy;
 pub mod trial;
+pub mod trial_tpm;
 
 pub const SECTOR: usize = 512;
 pub const MANIFEST_MAGIC: [u8; 8] = *b"NOSMAN01";

@@ -1,0 +1,173 @@
+//! S2 host tool: recompute every frozen REL-05 TPM constant with `sha2`
+//! (TPM 2.0 Part 3: PolicyPCR 23.7, PolicyCommandCode 23.11) and fail on drift.
+//! The NV names were also computed independently with Python `hashlib`;
+//! swtpm must report the same names in S5.
+use sha2::{Digest, Sha256};
+use update_core::trial_tpm::*;
+
+fn sha(parts: &[&[u8]]) -> [u8; 32] {
+    let mut d = Sha256::new();
+    for p in parts {
+        d.update(p);
+    }
+    d.finalize().into()
+}
+
+fn extend(pcr: [u8; 32], event: &[u8]) -> [u8; 32] {
+    sha(&[&pcr, &sha(&[event])])
+}
+
+fn policy(pcr_value: [u8; 32], cc: u32) -> [u8; 32] {
+    let d1 = sha(&[
+        &[0u8; 32],
+        &TPM_CC_POLICY_PCR.to_be_bytes(),
+        &PCR_SELECTION_PHASE,
+        &sha(&[&pcr_value]),
+    ]);
+    sha(&[
+        &d1,
+        &TPM_CC_POLICY_COMMAND_CODE.to_be_bytes(),
+        &cc.to_be_bytes(),
+    ])
+}
+
+fn name(spec: &NvSpec) -> String {
+    let (buf, len) = spec.encode_public();
+    let mut n = TPM_ALG_SHA256.to_be_bytes().to_vec();
+    n.extend_from_slice(&sha(&[&buf[..len]]));
+    n.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+#[test]
+fn phase_values() {
+    assert_eq!(DIGEST_OPEN, sha(&[EVENT_OPEN]));
+    assert_eq!(DIGEST_CLOSED, sha(&[EVENT_CLOSED]));
+    assert_eq!(DIGEST_SEAL, sha(&[EVENT_SEAL]));
+    assert_eq!(P_OPEN, extend(PCR_ZERO, EVENT_OPEN));
+    assert_eq!(P_CLOSED, extend(PCR_ZERO, EVENT_CLOSED));
+    // The kernel's SEAL must close the CONFIRM window.
+    assert_ne!(extend(P_OPEN, EVENT_SEAL), P_OPEN);
+    assert_ne!(P_OPEN, P_CLOSED);
+}
+
+#[test]
+fn pcr_selection_is_pcr13_sha256() {
+    let sel = &PCR_SELECTION_PHASE;
+    assert_eq!(u32::from_be_bytes(sel[0..4].try_into().unwrap()), 1);
+    assert_eq!(
+        u16::from_be_bytes(sel[4..6].try_into().unwrap()),
+        TPM_ALG_SHA256
+    );
+    assert_eq!(sel[6], 3);
+    let bits = u32::from(sel[7]) | (u32::from(sel[8]) << 8) | (u32::from(sel[9]) << 16);
+    assert_eq!(bits, 1 << PCR_PHASE);
+}
+
+#[test]
+fn policy_digests() {
+    assert_eq!(POLICY_LOADER_WRITE, policy(PCR_ZERO, TPM_CC_NV_WRITE));
+    assert_eq!(POLICY_CONFIRM_WRITE, policy(P_OPEN, TPM_CC_NV_WRITE));
+    assert_eq!(
+        POLICY_LOADER_INCREMENT,
+        policy(PCR_ZERO, TPM_CC_NV_INCREMENT)
+    );
+    // The kernel phase (P_OPEN) satisfies no loader policy, and vice versa.
+    for p in [POLICY_LOADER_WRITE, POLICY_LOADER_INCREMENT] {
+        assert_ne!(p, policy(P_OPEN, TPM_CC_NV_WRITE));
+        assert_ne!(p, policy(P_OPEN, TPM_CC_NV_INCREMENT));
+    }
+    assert_ne!(POLICY_CONFIRM_WRITE, policy(PCR_ZERO, TPM_CC_NV_WRITE));
+    assert_ne!(POLICY_CONFIRM_WRITE, policy(P_CLOSED, TPM_CC_NV_WRITE));
+}
+
+#[test]
+fn attributes_match_spec_6_1() {
+    // PPWRITE, OWNERWRITE, POLICY_DELETE, WRITEDEFINE, WRITE_STCLEAR, ORDERLY, READ_STCLEAR.
+    let forbidden: u32 =
+        (1 << 0) | (1 << 1) | (1 << 10) | (1 << 13) | (1 << 14) | (1 << 26) | (1 << 31);
+    for spec in [NV_TRIAL, NV_CONFIRM, NV_FLOOR, NV_GEN] {
+        assert_eq!(spec.attributes & TPMA_NV_AUTHWRITE, 0, "{:#x}", spec.handle);
+        assert_ne!(spec.attributes & TPMA_NV_POLICYWRITE, 0);
+        assert_eq!(spec.attributes & forbidden, 0);
+    }
+    for (c, s) in (0..ANCHOR_DOMAINS).map(|d| anchor_domain(d).unwrap()) {
+        assert_eq!((c.attributes | s.attributes) & forbidden, 0);
+    }
+    assert_eq!(ATTR_UPDATE_ORDINARY, 0x0204_1008);
+    assert_eq!(ATTR_UPDATE_COUNTER, 0x0204_0018);
+    assert_eq!(ATTR_ANCHOR_COUNTER, 0x0204_0014);
+    assert_eq!(ATTR_ANCHOR_SLOT, 0x0204_1004);
+}
+
+#[test]
+fn nv_names_frozen() {
+    let expect = [
+        (
+            NV_TRIAL,
+            "000b9e8b10f8d7144551838b922be39c6147beeaa56c7c8fff64b59aa6f98ee6eb8f",
+        ),
+        (
+            NV_CONFIRM,
+            "000ba3a467a8867f40431a7e7d89740fe735e0a53cc02852395926d43b3ce7588642",
+        ),
+        (
+            NV_FLOOR,
+            "000bbf1bb71997212d93d900850521e9e2b1fb9aee10dfce4bd1aa518f9f2355b2f1",
+        ),
+        (
+            NV_GEN,
+            "000b959b5113b338f9129a3715e8ab4329a0fd0790db8721fbedf57244585c13c91c",
+        ),
+    ];
+    for (spec, n) in expect {
+        assert_eq!(name(&spec), n, "{:#x}", spec.handle);
+    }
+    let (c, s) = anchor_domain(0).unwrap();
+    assert_eq!(
+        name(&c),
+        "000b7fedf269bced1bf936970265f7fc5ce8301d1e419fbb921e4a0959e0cf82b1fc"
+    );
+    assert_eq!(
+        name(&s),
+        "000bf15be6867f6bdc9e6df31de29fec2c08afd6762c4ca336bc006ae040e994d974"
+    );
+}
+
+#[test]
+fn anchor_handles() {
+    let pair = |d| anchor_domain(d).map(|(c, s)| (c.handle, s.handle));
+    assert_eq!(pair(0), Some((0x0100_B310, 0x0100_B311)));
+    assert_eq!(pair(1), Some((0x0100_B312, 0x0100_B313)));
+    assert_eq!(pair(7), Some((0x0100_B31E, 0x0100_B31F)));
+    assert_eq!(pair(ANCHOR_DOMAINS), None);
+    let update = [
+        NV_TRIAL.handle,
+        NV_CONFIRM.handle,
+        NV_FLOOR.handle,
+        NV_GEN.handle,
+    ];
+    for d in 0..ANCHOR_DOMAINS {
+        let (c, s) = anchor_domain(d).unwrap();
+        for h in [c.handle, s.handle] {
+            assert!((0x0100_B300..=0x0100_B31F).contains(&h));
+            assert!(!update.contains(&h));
+        }
+    }
+}
+
+#[test]
+fn matches_is_fail_closed() {
+    let s = NV_CONFIRM;
+    let p = s.auth_policy.unwrap();
+    assert!(s.matches(TPM_ALG_SHA256, s.attributes, &p, 64));
+    assert!(s.matches(TPM_ALG_SHA256, s.attributes | TPMA_NV_WRITTEN, &p, 64));
+    assert!(!s.matches(0x0004, s.attributes, &p, 64));
+    assert!(!s.matches(TPM_ALG_SHA256, s.attributes | TPMA_NV_AUTHWRITE, &p, 64));
+    assert!(!s.matches(TPM_ALG_SHA256, s.attributes, &POLICY_LOADER_WRITE, 64));
+    assert!(!s.matches(TPM_ALG_SHA256, s.attributes, &p[..31], 64));
+    assert!(!s.matches(TPM_ALG_SHA256, s.attributes, &[], 64));
+    assert!(!s.matches(TPM_ALG_SHA256, s.attributes, &p, 63));
+    let (a, _) = anchor_domain(0).unwrap();
+    assert!(a.matches(TPM_ALG_SHA256, a.attributes, &[], 8));
+    assert!(!a.matches(TPM_ALG_SHA256, a.attributes, &p, 8));
+}
