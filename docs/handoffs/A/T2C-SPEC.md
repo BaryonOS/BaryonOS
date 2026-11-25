@@ -39,12 +39,21 @@ kernel has nothing to revoke. Object addressing matches document-session
 Risk: the broker holds full domain-0 write authority (confused deputy if its
 request construction is wrong); tests must pin READ-only request shapes.
 
+**Agreed with S (25 Nov ~18:30Z):** broker-side READ/STAT restraint is not
+enforcement, so it is not the product route. S builds a read-only ingress in
+volume-core (fixed at profile construction; every op except STAT/READ refused
+with Access before dispatch) and a deterministic read-only seed variant in
+`tools/volume_disk.py`. T2c-2 runs natively ONLY over that ingress and image
+(no broker seeding, no full-authority native fixture), creates no block
+grants on device 1 and stays clear of the O13 latch. The broker's host tests
+that pin request shapes remain as defence in depth.
+
 ## Slices
 
 | Slice | Content | Kernel | Owner decision | Depends on |
 |---|---|---|---|---|
 | T2c-1 | Broker over `client::Transport`; stat registration; Stale retires; host tests against an in-process `Service` on a RAM disk (pattern `settings-volume/src/tests.rs:36`) | none | no | #535 |
-| T2c-2 | Native `native-system` variant: new `kernel/src/m2/m3/task_grant_volume.rs` via path-swapped `mod system` (`m3.rs` ~98-120, 2-12 lines), 2 features in `kernel/Cargo.toml`, `tools/build.py` (:53,:99,:245,:477-491), new `tools/build_task_grant_volume.py`, `run_task_grant.py` cases `volume`/`volume-denied`; reuses m5 runtime and volume-docs ELF unchanged; **no `volume.rs` edit** | shared files (report to PR guard; S/H notice) | no | T2c-1 |
+| T2c-2 | Native `native-system` variant: new `kernel/src/m2/m3/task_grant_volume.rs` via path-swapped `mod system` (`m3.rs` ~98-120, 2-12 lines), 2 features in `kernel/Cargo.toml`, `tools/build.py` (:53,:99,:245,:477-491), new `tools/build_task_grant_volume.py`, `run_task_grant.py` cases `volume`/`volume-denied`; reuses m5 runtime and volume-docs ELF unchanged; **no `volume.rs` edit** | shared files (report to PR guard; S/H notice) | no | T2c-1, S read-only ingress + seed image, #539/N38 on main |
 | T2c-3 | Product exit notification replacing the `observe_exit` fixture | yes | **yes** (A/B/C below) | T2c-2 |
 
 T2c-2 native cases: VOLUME_READ_OK, UNGRANTED_OBJECT_DENIED (0 volume
@@ -79,6 +88,5 @@ paths reach the same cleanup (looks shared; only normal exit is tested).
 
 ## Evidence limits
 
-QEMU x86_64 only; broker-seeded content (a pre-seeded read-only image would need
-an S-owned `tools/volume_disk.py` variant); trusted dialog remains a fixture;
+QEMU x86_64 only; content from S's pre-seeded read-only image; trusted dialog remains a fixture;
 one domain; no WRITE/EXPORT; bytes already read cannot be revoked.
