@@ -50,7 +50,7 @@ jobs:
         uses: ./.github/actions/setup-qemu
       - name: Prepare report directory
         run: mkdir -p "$NOS_BUILD_DIR/logs"
-      - name: Host oracles, S5 parser and formatting
+      - name: Host oracles, S5 parser and lint
         run: |
           python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/logs/preflight.json"
           python3 -B -m unittest discover -s tools/tests -p test_power.py -v

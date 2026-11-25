@@ -1022,11 +1022,18 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         """#494 B5: host-quality runs on every pull request, merge group and main push with the same
         toolchain, so native jobs do not repeat its root format check or clippy of these packages."""
         ci = self.workflows[".github/workflows/ci.yml"]
-        for event in ("pull_request", "merge_group", "push"):
-            self.assertFalse({"paths", "paths-ignore"} & set(ci["on"][event]), event)
+        for event in ("pull_request", "merge_group"):
+            self.assertFalse({"paths", "paths-ignore", "branches", "branches-ignore"} & set(ci["on"][event]), event)
+        self.assertFalse({"paths", "paths-ignore"} & set(ci["on"]["push"]))
         self.assertNotIn("if", ci["jobs"]["host-quality"])
-        host = "\n".join(step.get("run", "") for step in ci["jobs"]["host-quality"]["steps"])
+        covering = [step for step in ci["jobs"]["host-quality"]["steps"] if step.get("name") in
+                    ("Root Rust host tests", "SDK tests and lint", "User allocator and RTC core")]
+        self.assertEqual(len(covering), 3)
+        for step in covering:
+            self.assertFalse({"if", "continue-on-error"} & set(step), step["name"])
+        host = "\n".join(step["run"] for step in covering)
         clippy, = [line for line in host.splitlines() if "cargo +1.100.0 clippy --locked -p boot-protocol " in line]
+        self.assertTrue(clippy.rstrip().endswith(" --all-targets -- -D warnings"))
         for package in ("boot-protocol", "kernel-core", "pci-core", "keyring-core"):
             self.assertIn(f" -p {package} ", clippy)
         for covered in ("cargo +1.100.0 fmt --all -- --check",
@@ -1037,7 +1044,9 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         for name in ("native-foundation", "native-hw-inventory", "native-power", "native-rtc",
                      "native-smp", "native-xhci"):
             text = (ROOT / ".github/workflows" / f"{name}.yml").read_text(encoding="utf-8")
-            self.assertNotIn("fmt --all -- --check", text, name)
+            self.assertIsNone(re.search(r"fmt --all -- --check|fmt --manifest-path sdk/Cargo\.toml|clippy [^\n]*"
+                                        r"(-p (boot-protocol|kernel-core|pci-core|keyring-core)\b|drivers/rtc/Cargo\.toml)",
+                                        text), name)
 
     def test_cache_action_matches_documented_provenance(self):
         """Every cache use must match its reviewed pin, version and policy source."""

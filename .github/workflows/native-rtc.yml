@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$NOS_BUILD_DIR/logs"
-      - name: Host oracles, RTC codec and formatting
+      - name: Host oracles and RTC codec
         run: |
           python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/logs/preflight.json"
           python3 -B -m unittest discover -s tools/tests -p test_rtc.py -v
