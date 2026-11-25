@@ -455,4 +455,35 @@ mod tests {
         anchor.state.binding = x.digest;
         assert_ne!(startup(&mut anchor, &x), Ok(Startup::Accept));
     }
+
+    /// M1 candidate (not yet a rule): after a cold Accept at S=A the policy
+    /// process first acknowledges a content-identical reseal Z at A+1, so the
+    /// first effective change lands at A+2. Not enforced by `startup` today.
+    #[test]
+    fn reseal_after_cold_accept_bounds_a_hostile_slot_write() {
+        let x = state(6, [3; 32], D1); // stale, never acknowledged
+        let z = state(6, [4; 32], D1); // reseal: content of S=A, no new change
+        let y = state(7, D2, z.digest); // carries the acknowledged revocation
+        // Hostile write inside the reseal window: X wins, but X only carries
+        // unacknowledged changes and Y can no longer chain to it.
+        let mut anchor = Fake::at(5, D1);
+        assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
+        assert_eq!(acknowledge(&mut anchor, &z), Ok(()));
+        anchor.state.binding = x.digest;
+        assert_eq!(startup(&mut anchor, &x), Ok(Startup::Accept));
+        assert_eq!(acknowledge(&mut anchor, &y), Err(Denied::Fork));
+        // Hostile write after Y is acknowledged: X is now a rollback.
+        let mut anchor = Fake::at(5, D1);
+        assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
+        assert_eq!(acknowledge(&mut anchor, &z), Ok(()));
+        assert_eq!(acknowledge(&mut anchor, &y), Ok(()));
+        anchor.state.binding = x.digest;
+        assert_eq!(startup(&mut anchor, &x), Err(Denied::Rollback));
+        // Crash mid-reseal (Z on disk, slot not written) and a replay of S=A:
+        // accepted again, so the next boot reseals again; X rolls forward only
+        // as the legitimate pre-crash commit.
+        let mut anchor = Fake::at(5, D1);
+        assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
+        assert_eq!(startup(&mut anchor, &x), Ok(Startup::RolledForward));
+    }
 }
