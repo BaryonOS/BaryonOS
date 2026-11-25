@@ -41,8 +41,12 @@ acceptance.
 
 - Worktree: `~/projects/BaryonOS-worktrees/a-track`
 - Branch: `claude/a-track-20261125`
-- PR: none yet (draft only; A is not listed in ADR-MERGE-DELEGATION-20261123,
-  so no self-merge until the extension is durably recorded by the lead).
+- PR: draft, see the branch on GitHub (self-merge only after CI's governance PR
+  records the A mandate and the guard's merge hold allows it).
+- Verified on head rebased onto 3b9a94c5: native-task-grant normal and
+  test-task-grant-denied QEMU raw 33 accepted; native-sdk-app normal still
+  accepted; broker host tests 7/7; progress.py --check exit 0.
+- Toolchain is 1.100.0 per rust-toolchain.toml (root AGENTS.md text still says 1.90.0).
 
 ## Coordination notes
 
@@ -58,5 +62,7 @@ acceptance.
 
 ## Next action
 
-Review the builder result for A03-T2a, re-run the gates, commit, push and open
-a draft PR; then notify the PR Bewaker and the CI session.
+Watch hosted checks on the A03-T2a draft PR and fix failures; ask CI to review
+the two qemu-smoke steps in ci.yml. Next A-executable slice: A03-T2b — broker
+learns client exit (retire_process on kernel observe_exit) and revision advance,
+so grants die with the process; then per-object volume binding with S/U.
