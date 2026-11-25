@@ -850,8 +850,8 @@ def cargo_closure(roots, read, escapes):
                 globs.add(path)
                 # Its `mod` files resolve relative to it, outside this crate: cover the directory.
                 # At the repository root only its sibling sources: '**' would be every path.
-                directory = posixpath.dirname(path)
-                globs.add(f"{directory}/**" if directory else "*.rs")
+                target_directory = posixpath.dirname(path)  # never rebind the crate's `directory`
+                globs.add(f"{target_directory}/**" if target_directory else "*.rs")
         for escape in escapes:
             if escape["crate"] == directory and (escape["when"] == "always" or directory in root_dirs):
                 globs.update(escape["inputs"])
@@ -1635,8 +1635,10 @@ def root_target_paths(read, crate_dirs):
 
 
 def _within(path, directory):
-    """Is `path` covered by an external target directory's input? The root ('') covers its own files only."""
-    return "/" not in path if directory == "" else path.startswith(f"{directory}/")
+    """Is `path` covered by an external target directory's input? The root ('') covers its `*.rs` files only."""
+    if directory == "":
+        return "/" not in path and path.endswith(".rs")
+    return path.startswith(f"{directory}/")
 
 
 def external_root_targets(read, crate_dirs):

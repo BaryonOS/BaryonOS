@@ -1459,10 +1459,23 @@ class EscapeScopeTests(TestCase):
         found = self.scan({
             "app/Cargo.toml": '[package]\nname = "app"\n[[bin]]\nname = "x"\npath = "../main.rs"\n',
             "app/src/lib.rs": "// lib\n",
-            "main.rs": "mod helper;\n",
+            "main.rs": 'mod helper;\nconst S: &str = include_str!("settings.txt");\n',
             "helper.rs": 'const A: &str = include_str!("data/a.txt");\n',
+            "settings.txt": "x\n",
             "deep/other.rs": 'const B: &str = include_str!("../data/b.txt");\n'})
-        self.assertEqual(found, [("app", "data/a.txt", "helper.rs:1", True)])
+        # Only root-level `*.rs` is an input of such a target: other root files stay reported.
+        self.assertEqual(found, [("app", "data/a.txt", "helper.rs:1", True),
+                                 ("app", "settings.txt", "main.rs:2", True)])
+
+    def test_external_target_keeps_the_declaring_crate_for_escapes(self):
+        """CodeRabbit on #510: an external target must not rebind the crate directory."""
+        files = {"app/Cargo.toml": b'[package]\nname = "app"\n[[bin]]\nname = "x"\npath = "../ext/main.rs"\n'}
+        escapes = [{"crate": "app", "when": "always", "inputs": ["data/**"], "evidence": []}]
+        globs, dirs = ci_impact.cargo_closure(["app/Cargo.toml"], files.get, escapes)
+        self.assertIn("data/**", globs)
+        self.assertIn("ext/**", globs)
+        self.assertIn("ext/main.rs", globs)
+        self.assertIn("app", dirs)
         self.assertEqual(ci_impact.external_root_targets(
             lambda path: b'[[bin]]\nname = "x"\npath = "../ext/src/main.rs"\n' if path == "app/Cargo.toml" else None,
             {"app"}), {"app": ["ext/src"]})
