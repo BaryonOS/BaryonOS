@@ -115,7 +115,8 @@ const HANDLES: usize = 4;
 
 pub struct Broker {
     grants: Grants<2, HANDLES>,
-    handles: [Option<Handle>; HANDLES],
+    /// Broker-side index of issued grants: holder, object and core handle.
+    handles: [Option<(Actor, Object, Handle)>; HANDLES],
 }
 
 impl Default for Broker {
@@ -159,17 +160,22 @@ impl Broker {
             DURATION_SESSION => Duration::Session,
             _ => return Err(Error::Denied),
         };
+        self.reclaim();
         let slot = self
             .handles
             .iter()
             .position(Option::is_none)
             .ok_or(Error::GrantTableFull)?;
-        let handle = self.grants.grant(
+        let (holder, object) = (
             actor(pid),
             Object {
                 id: object,
                 revision,
             },
+        );
+        let handle = self.grants.grant(
+            holder,
+            object,
             Rights {
                 read: rights & RIGHT_READ != 0,
                 write: rights & RIGHT_WRITE != 0,
@@ -177,8 +183,27 @@ impl Broker {
             },
             duration,
         )?;
-        self.handles[slot] = Some(handle);
+        self.handles[slot] = Some((holder, object, handle));
         Ok(())
+    }
+
+    /// Frees index entries whose core grant no longer authorizes anything
+    /// (closed, revoked or retired). Live session grants keep their entry.
+    fn reclaim(&mut self) {
+        for slot in &mut self.handles {
+            if let Some((holder, object, handle)) = *slot {
+                let live = [Operation::Read, Operation::Write, Operation::Export]
+                    .into_iter()
+                    .any(|operation| {
+                        self.grants
+                            .authorize(handle, holder, object, operation)
+                            .is_ok()
+                    });
+                if !live {
+                    *slot = None;
+                }
+            }
+        }
     }
 
     fn object(id: u64) -> Option<Object> {
@@ -189,7 +214,7 @@ impl Broker {
     }
 
     fn permitted(&self, actor: Actor, object: Object, operation: Operation) -> bool {
-        self.handles.iter().flatten().any(|handle| {
+        self.handles.iter().flatten().any(|(_, _, handle)| {
             self.grants
                 .authorize(*handle, actor, object, operation)
                 .is_ok()
@@ -250,6 +275,36 @@ mod tests {
             )
             .unwrap();
         broker
+    }
+
+    #[test]
+    fn closed_grants_free_their_index_entries() {
+        let mut broker = Broker::new();
+        for _ in 0..HANDLES + 2 {
+            broker
+                .trusted_grant(
+                    OWNER,
+                    OBJECT_ONE,
+                    REVISION,
+                    RIGHT_READ,
+                    DURATION_UNTIL_CLOSE,
+                )
+                .unwrap();
+            assert_eq!(
+                broker.handle(OWNER, request(OP_CLOSE, OBJECT_ONE, OWNER)).0,
+                STATUS_OK
+            );
+        }
+        for _ in 0..HANDLES {
+            broker
+                .trusted_grant(OWNER, OBJECT_ONE, REVISION, RIGHT_READ, DURATION_SESSION)
+                .unwrap();
+        }
+        // Live session grants are never reclaimed.
+        assert_eq!(
+            broker.trusted_grant(OWNER, OBJECT_ONE, REVISION, RIGHT_READ, DURATION_SESSION),
+            Err(Error::GrantTableFull)
+        );
     }
 
     fn request(op: u64, object: u64, claimed_actor: u64) -> Request {

@@ -60,6 +60,13 @@ acceptance.
   needs `progress.py --write` plus the views. A self-merge waits for CI's
   governance PR.
 
+- CI D2 review of #531 ci.yml at 3075c1b3: no blocking findings. Conditions:
+  hosted qemu-smoke, host-quality and merge-hold pass on the head; any new head
+  needs a ci.yml-only delta check by CI before merge.
+- A03-T2b (grant retirement on process exit) is being built in
+  `~/projects/BaryonOS-worktrees/a-track-t2b`, branch
+  `claude/a03-t2b-retire-20261125`, stacked on #531.
+
 ## Next action
 
 Watch hosted checks on the A03-T2a draft PR and fix failures; ask CI to review

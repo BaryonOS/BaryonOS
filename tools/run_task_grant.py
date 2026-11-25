@@ -32,25 +32,29 @@ def main() -> int:
         raise ValueError("build the selected current task-grant profile first")
     expected_cases = NORMAL if args.case == "normal" else DENIED
     required = BOOT + ("TASKGRANT:MANIFEST:PASS",) + expected_cases + END
-    guest = run_guest(
-        "native-task-grant-" + args.case,
-        esp=BUILD / "esp",
-        timeout=60,
-        required_markers=with_acpi_markers(required),
-        expected_exit=33,
-        forbidden_markers=("FAIL", "PANIC"),
-        expected_kernel_sha256=manifest["kernel"]["sha256"],
-        expected_loader_sha256=manifest["loader"]["sha256"],
-    )
     report = {
         "schema_version": 1,
         "case": args.case,
         "source_fingerprint_version": 3,
         "source_sha256": frozen,
         "passed": False,
-        "guest": guest,
+        "error": "run did not complete",
     }
+    out = BUILD / f"native-task-grant-{args.case}.json"
+    # Replace any earlier success before the guest can fail to start.
+    save_json(out, report)
     try:
+        guest = run_guest(
+            "native-task-grant-" + args.case,
+            esp=BUILD / "esp",
+            timeout=60,
+            required_markers=with_acpi_markers(required),
+            expected_exit=33,
+            forbidden_markers=("FAIL", "PANIC"),
+            expected_kernel_sha256=manifest["kernel"]["sha256"],
+            expected_loader_sha256=manifest["loader"]["sha256"],
+        )
+        report["guest"] = guest
         if guest.get("passed") is not True or guest.get("raw_qemu_exit") != 33:
             raise ValueError("guest did not pass")
         lines = without_acpi_diagnostics(guest["stdout"]).splitlines()
@@ -68,9 +72,10 @@ def main() -> int:
         if source_hash() != frozen:
             raise ValueError("source changed during task-grant run")
         report.update(passed=True, owner_counter=owner_counter, helper_counter=helper_counter)
+        del report["error"]
     except Exception as error:
         report["error"] = f"{type(error).__name__}: {error}"
-    save_json(BUILD / f"native-task-grant-{args.case}.json", report)
+    save_json(out, report)
     print(f"Native task grant {args.case} accepted={report['passed']}")
     if "error" in report:
         print(report["error"])
