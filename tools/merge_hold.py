@@ -611,7 +611,8 @@ def pull_request_gates(token, repo, number, head_sha):
             time.sleep(POLL_SECONDS)
             if not runs_open(token, repo, pull, head_sha, plan):
                 break
-        fresh = True
+        # A new attempt may start and finish during the next report: allow one refresh again.
+        fresh = False
     skipped = [f"{row['check_name']}: not applicable (path filter)" for row in plan["selected"]
                if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True]
     lines.append(f"{len(passed)} applicable gate(s) passed; {len(skipped)} filtered out; "

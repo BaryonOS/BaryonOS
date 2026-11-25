@@ -1029,6 +1029,27 @@ class GateTests(TestCase):
         self.assertTrue(passed, out)
         self.assertEqual(state["sleeps"], 0)
 
+    def test_a_rerun_that_finishes_during_the_report_after_polling_is_refreshed(self):
+        """CodeRabbit on #517: after a poll the next stale report still gets one refresh."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        done = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="success", attempt=2)]
+        jobs = {**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)")]}
+        reads = {"n": 0}
+        real = merge_hold.fetch_listing
+
+        def listing(token, url, key):
+            if key == "workflow_runs":
+                reads["n"] += 1
+                if reads["n"] == 4:  # the report after the poll (read 3) still sees attempt 1 running
+                    return running
+            return real(token, url, key)
+
+        with mock.patch.object(merge_hold, "fetch_listing", listing):
+            passed, out, state = self.decide(plan=plan, polls=[running, done], jobs=jobs)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 1)
+
     def test_a_superseded_open_run_does_not_hold_the_wait(self):
         """CodeRabbit on #517: the wait poll applies gate_report's newest-run rule."""
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
