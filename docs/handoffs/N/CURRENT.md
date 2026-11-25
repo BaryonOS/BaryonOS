@@ -58,7 +58,8 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
   instance (`Foreign` on a mismatch) and models the protected slot with a
   fake; the three M1 residual cases stay as ignored red tests until the port
   to B's extend-chain contract. No native evidence; N03 and N04 stay open.
-- previous cycle `N-20261125-open-deadline` (N01 OpenTcp tick fix, #518).
+- previous cycle `N-20261125-open-deadline-tick` (N01 OpenTcp tick fix)
+  merged as `a571d87c` (#518).
 
 ## Blockers
 
@@ -84,6 +85,10 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
    and no authority SOA (33 bytes, NSCOUNT 0), so the resolver derives no
    negative-cache lifetime; the case therefore asserts one query only and
    does not claim negative caching against the real resolver.
+5. A service must sample its tick after receiving a request when that tick
+   starts a deadline the client measures from its own earlier reading; the
+   loop-top tick can predate the client's send. The native Timeout check has
+   a zero-tick margin (observed - start = 300 exactly).
 
 ## Next executable task
 

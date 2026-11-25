@@ -898,6 +898,31 @@ impl NodePeer {
         let lines = BufReader::new(child.stdout.take().unwrap()).lines();
         Self { child, lines }
     }
+    /// Waits for the client-role peer to connect; fails instead of hanging
+    /// when the peer exits first or does not connect within 10 s.
+    fn accept(&mut self, listener: &TcpListener) -> TcpStream {
+        listener.set_nonblocking(true).unwrap();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+        loop {
+            match listener.accept() {
+                Ok((socket, _)) => {
+                    socket.set_nonblocking(false).unwrap();
+                    return socket;
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    if let Some(status) = self.child.try_wait().unwrap() {
+                        panic!("node client peer exited before connecting: {status}");
+                    }
+                    assert!(
+                        std::time::Instant::now() < deadline,
+                        "node client peer did not connect within 10 s"
+                    );
+                    std::thread::sleep(std::time::Duration::from_millis(20));
+                }
+                Err(error) => panic!("accept failed: {error}"),
+            }
+        }
+    }
     fn event(&mut self) -> serde_like::Event {
         let line = self.lines.next().expect("node peer closed stdout").unwrap();
         serde_like::Event(line)
@@ -1027,7 +1052,7 @@ fn h2_openssl_client_with_profile_server_is_pinned_hybrid_tls13() {
     let config = server_config(&Side::profile(rng), client_pin.clone(), &peers.server).unwrap();
     let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
     let port = listener.local_addr().unwrap().port();
-    let node = NodePeer::spawn(
+    let mut node = NodePeer::spawn(
         "client",
         &peers.client,
         &peers.server,
@@ -1035,7 +1060,7 @@ fn h2_openssl_client_with_profile_server_is_pinned_hybrid_tls13() {
         Some(port),
     );
 
-    let (socket, _) = listener.accept().unwrap();
+    let socket = node.accept(&listener);
     let mut tls = StreamOwned::new(
         ServerConnection::new(Arc::new(config)).unwrap(),
         bounded(socket),

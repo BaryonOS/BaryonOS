@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "f9a48ead4e626abfc6ca156d178248d4c003a9a2",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/r-track-20261125",
+  "task": "R02 local KVM window-session baseline and R handoff (#526)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Diagnostic local KVM evidence and handoff only; R02 budgets still need an owner decision (R02-L1) and physical measurements, so no R criterion is accepted."
+}
