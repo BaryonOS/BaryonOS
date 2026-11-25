@@ -31,6 +31,9 @@ struct Client {
     step: u64,
 }
 
+// The reply copy below splits the data into two 8-byte words.
+const _: () = assert!(DATA_MAX == 16);
+
 impl Client {
     /// Accepts only a well-formed reply whose kernel-supplied sender is the broker.
     fn reply(&mut self) -> Result<u64, ()> {

@@ -27,11 +27,6 @@ def main() -> int:
     args = parser.parse_args()
     feature = "native-task-grant" if args.case == "normal" else "test-task-grant-denied"
     frozen = source_hash()
-    manifest = json.loads((BUILD / "manifest.json").read_text())
-    if manifest.get("kernel_feature") != feature or manifest.get("source_sha256") != frozen:
-        raise ValueError("build the selected current task-grant profile first")
-    expected_cases = NORMAL if args.case == "normal" else DENIED
-    required = BOOT + ("TASKGRANT:MANIFEST:PASS",) + expected_cases + END
     report = {
         "schema_version": 1,
         "case": args.case,
@@ -43,6 +38,11 @@ def main() -> int:
     out = BUILD / f"native-task-grant-{args.case}.json"
     # Replace any earlier success before the guest can fail to start.
     save_json(out, report)
+    manifest = json.loads((BUILD / "manifest.json").read_text())
+    if manifest.get("kernel_feature") != feature or manifest.get("source_sha256") != frozen:
+        raise ValueError("build the selected current task-grant profile first")
+    expected_cases = NORMAL if args.case == "normal" else DENIED
+    required = BOOT + ("TASKGRANT:MANIFEST:PASS",) + expected_cases + END
     try:
         guest = run_guest(
             "native-task-grant-" + args.case,
