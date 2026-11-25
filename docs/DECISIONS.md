@@ -5,6 +5,112 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-N03-PROVIDER-20261125 — Native TLS provider route, test peers, certificate time and randomness
+
+**Status:** accepted by the project owner on 25 November 2026 in the N-track
+session. Owner wording in chat: "N03 B1 met latere B2-migratie, H3, P3, T3,
+R1, ml-kem en geverifieerde ed25519-dalek." The fuller owner text relayed the
+same day by the PR-watcher session adds the conditions reflected below:
+integration code conforming to RFC 10024 only after a separate security
+review, no self-written cryptographic primitives, the host randomness
+exception only for the test oracle, and ml-kem and ed25519-dalek preferred
+subject to verified compatibility, stability and dependency policy. The
+options are those of
+[N03-PROVIDER-DECISION-PROPOSAL.md](implementation/N03-PROVIDER-DECISION-PROPOSAL.md).
+This decision supersedes the 23 November "host oracle first" gating for the
+items below.
+
+**Decision:**
+
+- **Provider route (P1 = B1, later B2).** The native provider is project glue
+  that implements the rustls 0.23.46 `CryptoProvider` traits over released
+  `no_std` primitives; the project writes no cryptographic primitives. Once
+  rustls 0.24 is stable and suitable, the provider migrates to B2 (project primitive
+  adapters, with the hybrid share concatenation in rustls).
+- **Hybrid share handling.** B1 places the RFC 10024 concatenation and
+  fixed-length split of the X25519MLKEM768 shares in project code. That code is
+  permitted only in the RFC 10024 byte layout, mirrors the upstream rustls
+  implementation, is covered by known-answer and negative tests and requires a
+  separate security review before merge. It does not relax ADR-028 for any
+  other construction.
+- **ML-KEM primitive.** `ml-kem` is the preferred ML-KEM crate, subject to
+  verified compatibility, stability and dependency policy. The FIPS 203 section 7.2 encapsulation-key check
+  is unverified for `ml-kem`; route B is not accepted until a test shows it
+  (or project code performs it).
+- **Signatures.** `ed25519-dalek` is preferred and admissible only after
+  verification of compatibility and stability under
+  ADR-VERSION-POLICY-20261117 and `docs/DEPENDENCIES.md` (provenance, licence,
+  maintenance, `no_std`, build script, pinned version).
+- **Host peers (P2 = H3).** Host loopback evidence uses both rustls 0.23.46
+  with aws-lc-rs (host-only test dependency) and the existing Node.js/OpenSSL
+  peer. The host randomness exception applies only to these test oracles,
+  never to the native provider.
+- **Test peer pinning (P3).** A repository-public test CA, named as such and
+  never in a product trust store; exact SPKI SHA-256 pins bound to the
+  peer-pin generation; Ed25519 leaf certificates; fixed test DNS name and
+  ALPN, with wrong name, ALPN, pin, CA, suite or group as mandatory negatives.
+- **Certificate time (P4 = T3).** Development probes may use pin-only
+  acceptance for pinned test peers (T2), labelled as such and without an
+  "expired certificate" claim. N03 acceptance requires the trusted calendar
+  authority (T1).
+- **Randomness (P5 = R1).** Every random request in the TLS service is a
+  separate `KeyServiceRandom` draw of at most 128 bytes. A process-global
+  getrandom backend and batched per-handshake draws are not admissible in the
+  native provider.
+
+**Consequences:** N03-T2 (host loopback with H3) and the B1 provider work may
+start. New dependencies still pass the dependency procedure before they are
+added. No N03 points are awarded by this decision; N03 acceptance remains
+native, with T1 time.
+
+**Rollback:** a later decision may select another route; until native
+acceptance nothing in the product depends on B1.
+
+## ADR-NET-ISSUER-20261125 — Network grant issuer, helper subgrants, regrant and durable denial
+
+**Status:** accepted by the project owner on 25 November 2026 in the N-track
+session. Owner wording in chat: "N04 issuer-ADR goedkeuren, cold rollback
+anchor afstemmen met B02." The fuller owner text relayed by the PR-watcher
+session names kernel-bound identity, a separate policy authority, bounded
+helper delegation and durable revocation, a cold-rollback trust anchor agreed
+jointly with B02, and fail-closed behaviour until reliable freshness can be
+guaranteed. The adopted text is
+[N04-ISSUER-ADR-PROPOSAL.md](implementation/N04-ISSUER-ADR-PROPOSAL.md); its
+recommendations become decisions as listed here.
+
+**Decision:**
+
+- **Decision 1 = 1A.** Kernel IPC metadata identifies callers in the trusted
+  service loop; one dedicated policy process holds PolicyAuthority through a
+  kernel-delegated private control endpoint and is the single durable owner of
+  grant and denial state. The network service holds no storage capability.
+- **Decision 2 = 2A.** Only PolicyAuthority authorises helper subgrants, with
+  depth one and the attenuation rules of the proposal; a parent holder may only
+  request.
+- **Decision 3 = 3A.** Regrant within a running service issues a strictly
+  higher persisted owner generation, under the proposal's rules.
+- **Decision 4.** The acknowledgement states `LiveDenied`, `DurablePending`,
+  `Durable` and the reported failure state, and the rule that no time-bounded
+  grant survives restart, are adopted.
+- **Decision 5 (cold freshness).** The cold rollback anchor is aligned with
+  workstream B (B02 secure records and the ADR-B03-B04-TARGET anchor backend);
+  no network-specific trust root is introduced. Until reliable freshness can be
+  guaranteed, behaviour stays fail-closed and cold reinstatement unavailable
+  (5A): after a cold
+  boot every network grant starts denied, and persisted grants are only
+  suggestions for explicit re-confirmation.
+
+**Open:** proposal questions 6 (whether N04 acceptance requires durable
+revocation across restart), 7 (the component holding boot-lifetime denial
+entries) and 8 (the per-boot incarnation source) are not decided by this
+entry.
+
+**Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
+N04 stays open until its native evidence exists; the score is unchanged.
+
+**Rollback:** reverting this entry restores the 23 November hold; no shipped
+grant format depends on it yet.
+
 ## ADR-CI-SELECTION-20261124 — Targeted pull request selection for component gates
 
 **Status:** accepted under the project owner's CI mandate for issue #494 (phase
