@@ -107,7 +107,29 @@ restarts processes.
     travels in the frame.
   - acceptance: nas-workspace steps on 1.100.0 for native-client and
     native-probe, including a lost-Commit-reply regression.
-- 2b (native): new root stage `resume` (startup word 112 = 4, feature
+  - local result (321cfdaa): nas-workspace steps on 1.100.0 pass for all
+    four NAS crates (client 21 tests, probe 16 incl. 3 new client-over-NASP
+    tests), native probe clippy passes, NAS Python unittests OK, native gate
+    4/4 raw 33. `source_hash` covers `services/`, so the gate binds
+    native-client too. The probe `Cargo.lock` gains only the local path crate
+    `nieuw-os-nas-client` (no external crate). Not run: hosted CI, a native
+    NaspRemote call.
+- 2b finding (owner-approved in-boot restart, ~19:10Z): a second NAS process
+  in the same boot needs a runtime re-grant. The NAS ingress and volume-reply
+  endpoints are owned by the NAS pid and `observe_exit` calls
+  `process_died`; admin, guest and volume hold bootstrap-delegated send caps
+  and pin the NAS pid in word 160. The `native-supervisor` profile restarts
+  workers through launch capabilities and endpoints that survive the worker,
+  so in-boot restart means redesigning NAS endpoint ownership: capability
+  design for an OWNER decision, not P code. Zero-re-grant alternative: the
+  cross-boot cold restart, which needs a write-enabled stage (`RECOVER` maps
+  the block device read-only) and carries the guest edit through the test
+  harness handoff. A NAS-process-internal `Service::recover` is not what was
+  approved: requests would queue, so the not-delivered path never runs.
+  Either way the 2b spec must map a timeout after a queued send to
+  `Delivery::Sent`, and must decide who drops a late reply with an older
+  correlation (today it would make every later exchange `Unknown`).
+- 2b (native, original proposal): new root stage `resume` (startup word 112 = 4, feature
   `test-system-nas-resume`, fresh disk). The guest commits revision 1, the NAS
   process exits at a coordinated point, the guest queues an offline edit
   (prepare fails, edit stays `NeedsReconcile`), the fixture kernel observes the
@@ -137,5 +159,6 @@ restarts processes.
    NOS_BUILD_DIR must lie inside the checkout, e.g. `build/<name>`, or
    `private_path` refuses it), and make one push. Rerun only infra failures,
    then squash with `--match-head-commit <new head>`.
-2. Locally: P02-T3 slice 2a (host `Remote` trait and NASP adapter) on the
-   stacked branch; 2b after the restart-model choice above.
+2. P02-T3 slice 2a is committed locally (321cfdaa). 2b waits on the owner's
+   choice between the capability redesign for an in-boot restart and the
+   cross-boot cold restart.
