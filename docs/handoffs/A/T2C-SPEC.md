@@ -90,3 +90,24 @@ paths reach the same cleanup (looks shared; only normal exit is tested).
 
 QEMU x86_64 only; content from S's pre-seeded read-only image; trusted dialog remains a fixture;
 one domain; no WRITE/EXPORT; bytes already read cannot be revoked.
+
+## T2c-2 read-only interface (from S, 25 Nov ~18:40Z; verify against code before use)
+
+- No volume-core or ELF change: the read-only mount mode already exists.
+- Kernel (`task_grant_volume.rs`): create the volume block grant with
+  `BLOCK_READ` only, as `nas.rs` RECOVER mode does (~197-203,
+  `create_block_device_with_rights(.., BLOCK_READ)`), and set bootstrap word
+  120 = 1 for the volume-docs ELF; WRITE/FLUSH become kernel capability refusals.
+- Service: `Service::recover(epoch, read_only=true)` (`services/volume/src/service.rs`
+  ~408-420) refuses every op outside {STAT, READ, LIST, COLLECTION_STAT,
+  DOMAIN_STAT, VERSION_STAT, PROVENANCE_STAT} with `Status::Access` (-5) on both
+  ingresses after the wire check, before dispatch (token upload path included).
+- ELF needs two distinct non-zero client PIDs (words 160/168) and two ingresses
+  (56/80): domain 1 needs its own (silent) client process; SHUTDOWN (word 104)
+  need not be wired.
+- Seed (S slice, `tools/volume_disk.py` variant `seeded-read`): domain 0 object 0
+  `seed-a.txt` 4196 B (2 chunks) and object 1 `seed-b.txt` 300 B, revision 1,
+  content `volume_disk.fixture(obj, 1, length)`; objects 2-15 absent; domain 1
+  empty. Fixture use: grant object 0, leave object 1 ungranted.
+- Runner assertions: image sha256 unchanged after the run; `volume_disk.analyse()`
+  objects 0/1 unchanged. S reports commit and exact sums when green.
