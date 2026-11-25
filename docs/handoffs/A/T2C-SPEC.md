@@ -40,21 +40,22 @@ kernel has nothing to revoke. Object addressing matches document-session
 Risk: the broker holds full domain-0 write authority (confused deputy if its
 request construction is wrong); tests must pin READ-only request shapes.
 
-**Agreed with S (25 Nov ~18:30Z):** broker-side READ/STAT restraint is not
-enforcement, so it is not the product route. S builds a read-only ingress in
-volume-core (fixed at profile construction; every op except STAT/READ refused
-with Access before dispatch) and a deterministic read-only seed variant in
-`tools/volume_disk.py`. T2c-2 runs natively ONLY over that ingress and image
-(no broker seeding, no full-authority native fixture), creates no block
-grants on device 1 and stays clear of the O13 latch. The broker's host tests
-that pin request shapes remain as defence in depth.
+**Agreed with S (25 Nov):** broker-side READ/STAT restraint is not
+enforcement, so it is not the product route. T2c-2 uses the volume service's
+EXISTING whole-volume read-only mode (kernel grant `BLOCK_READ` plus bootstrap
+word 120 = 1; both ingresses refuse mutating ops with Access) and S's
+deterministic `seeded-read` image; no new volume-core flag, no broker seeding,
+no full-authority native fixture, no block grants on device 1, clear of the O13
+latch. The broker's host tests pinning request shapes remain defence in depth.
+Open question to S: whether a per-ingress read-only flag on a writable volume
+is the later product route (needed once writers and readers coexist).
 
 ## Slices
 
 | Slice | Content | Kernel | Owner decision | Depends on |
 |---|---|---|---|---|
 | T2c-1 | Broker over `client::Transport`; stat registration; Stale retires; host tests against an in-process `Service` on a RAM disk (pattern `settings-volume/src/tests.rs:36`) | none | no | #535 |
-| T2c-2 | Native `native-system` variant: new `kernel/src/m2/m3/task_grant_volume.rs` via path-swapped `mod system` (`m3.rs` ~98-120, 2-12 lines), 2 features in `kernel/Cargo.toml`, `tools/build.py` (:53,:99,:245,:477-491), new `tools/build_task_grant_volume.py`, `run_task_grant.py` cases `volume`/`volume-denied`; reuses m5 runtime and volume-docs ELF unchanged; **no `volume.rs` edit** | shared files (report to PR guard; S/H notice) | no | T2c-1, S read-only ingress + seed image, #539/N38 on main |
+| T2c-2 | Native `native-system` variant: new `kernel/src/m2/m3/task_grant_volume.rs` via path-swapped `mod system` (`m3.rs` ~98-120, 2-12 lines), 2 features in `kernel/Cargo.toml`, `tools/build.py` (:53,:99,:245,:477-491), new `tools/build_task_grant_volume.py`, `run_task_grant.py` cases `volume`/`volume-denied`; reuses m5 runtime and volume-docs ELF unchanged; **no `volume.rs` edit** | shared files (report to PR guard; S/H notice) | no | T2c-1, S seeded-read image (6206b8c8), #539/N38 on main |
 | T2c-3 | Product exit notification replacing the `observe_exit` fixture | yes | **yes** (A/B/C below) | T2c-2 |
 
 T2c-2 native cases: VOLUME_READ_OK, UNGRANTED_OBJECT_DENIED (0 volume
@@ -91,9 +92,10 @@ paths reach the same cleanup (looks shared; only normal exit is tested).
 ## Evidence limits
 
 QEMU x86_64 only; content from S's pre-seeded read-only image; trusted dialog remains a fixture;
-one domain; no WRITE/EXPORT; bytes already read cannot be revoked.
+one domain; no WRITE/EXPORT; bytes already read cannot be revoked. The volume
+is mounted read-only, so no writer exists and the Stale path is host-tested only.
 
-## T2c-2 read-only interface (from S, 25 Nov ~18:40Z; verify against code before use)
+## T2c-2 read-only interface (from S, 25 Nov; verify against code before use)
 
 - No volume-core or ELF change: the read-only mount mode already exists.
 - Kernel (`task_grant_volume.rs`): create the volume block grant with
@@ -110,10 +112,11 @@ one domain; no WRITE/EXPORT; bytes already read cannot be revoked.
 - Seed (S slice, `tools/volume_disk.py` variant `seeded-read`): domain 0 object 0
   `seed-a.txt` 4196 B (2 chunks) and object 1 `seed-b.txt` 300 B, revision 1,
   content `volume_disk.fixture(obj, 1, length)`; objects 2-15 absent; domain 1
-  empty. Fixture use: grant object 0, leave object 1 ungranted.
+  empty. Fixture use: grant object 1 (the broker's existing OBJECT_ONE id), leave object 0
+  ungranted (avoids an untested id-0 edge case).
 - Runner assertions: image sha256 unchanged after the run; `volume_disk.analyse()`
   objects 0/1 unchanged. S reports commit and exact sums when green.
-- Seed ready (S, 25 Nov ~18:55Z): local commit 6206b8c8 on
+- Seed ready (S, 25 Nov): local commit 6206b8c8 on
   `claude/s09-volume-seed-read-20261125` (worktree `BaryonOS-worktrees/s-seed`,
   base c04ea98d, not pushed; lands after #539/N38). `volume_disk.create_image(path,
   "seeded-read")`; fresh image sha256
