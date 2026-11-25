@@ -95,6 +95,13 @@ notice is a fixture; no full A03 acceptance.
   genuinely blocked CI PR) or the CI end criterion. Then merge current
   main once more, re-validate, push once, ask CI for the ci.yml delta, merge.
 
+- 25 Nov ~18:20Z: main is c04ea98d (#544 landed). `git merge-tree` dry run of
+  c04ea98d into local d1475f34: clean, no conflicts. T2c-1 is developed in the
+  separate worktree `~/projects/BaryonOS-worktrees/a-track-t2c1` (branch
+  `claude/a03-t2c1-volume-broker-20261125`, stacked on d1475f34), so #535 stays
+  'merge main, re-validate, push once'. S was asked to agree to the broker
+  being the sole volume domain-0 client (T2c-2 prerequisite).
+
 ## Next action
 
 1. Wait for the PR guard's explicit lane grant for #535 (CI-first freeze).
