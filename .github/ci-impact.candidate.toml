@@ -8,6 +8,9 @@
 # edit makes the plan full. It starts as a copy of
 # .github/ci-impact.toml; later increments put their candidate selection data here and
 # activate it only on counterexample-free shadow evidence.
+# Validate this file with `python3 -B tools/ci_impact.py validate
+# .github/ci-impact.candidate.toml`; the validate and coverage commands in the
+# copied header below check the enforced catalogue.
 #
 # CI impact catalogue (schema 1). Contract: docs/CI-CONTRACT.md.
 #
