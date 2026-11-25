@@ -240,7 +240,9 @@ class SmpCiAggregationTests(unittest.TestCase):
         names = [s.get("name") for s in contract]
         settle_step = contract[names.index("Let the artifact service settle after the uploads")]
         self.assertEqual(settle.strip(), 'sleep "${ARTIFACT_SETTLE_SECONDS}"')
-        self.assertTrue(0 < int(settle_step["env"]["ARTIFACT_SETTLE_SECONDS"]) <= 60)
+        self.assertTrue(15 <= int(settle_step["env"]["ARTIFACT_SETTLE_SECONDS"]) <= 60)
+        self.assertNotIn("if", settle_step)
+        self.assertNotIn("continue-on-error", settle_step)
         uploads = [i for i, s in enumerate(contract) if s.get("uses", "").startswith("actions/upload-artifact@")]
         first_download = contract.index(downloads[0])
         self.assertLess(max(uploads), contract.index(settle_step))
