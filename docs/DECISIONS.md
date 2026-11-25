@@ -11,10 +11,8 @@ wording and speaker.
 decision to the PR guard session at about 11:25Z. The owner then confirmed the
 wording for recording in the CI specialist session at about 11:45Z ("Yes,
 confirmed"). The CI checkpoint is #494, comment 7161215540. Item 8 was decided
-separately at about 12:35Z and given to the PR guard. Before the merge, the owner
-reviewed the full diff including item 8 at head `01cbd5c2` and raised no
-substantive objection. The owner's formal review of the pull request remains
-the confirmation required by D2.
+separately at about 12:35Z and given to the PR guard. The owner's formal review
+of this pull request is the confirmation that D2 requires.
 
 **Problem:** six workstream sessions handled their own pull requests under
 `ADR-MERGE-DELEGATION-20261123`: S09, U, N, UI/UX design, B and H. Applications,
