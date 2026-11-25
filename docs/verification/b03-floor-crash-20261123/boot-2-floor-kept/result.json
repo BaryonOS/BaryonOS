@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "characterization": "CHARACTERIZATION ONLY (REL-05): exit 0 means the floor-before-health hazard was observed. This is not a fix and earns no progress points.",
+  "boot": "boot-2-floor-kept",
+  "state": "hazard",
+  "header_active": 1,
+  "started_utc": "2026-11-23T22:38:32.802966+00:00",
+  "duration_s": 1.5521863370013307,
+  "timeout_s": 300,
+  "timed_out": false,
+  "raw_qemu_exit": 35,
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/update-floor/run/boot-2-floor-kept-9a42df23/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/update-floor/state/hazard/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/update-floor/run/boot-2-floor-kept-9a42df23/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=store,format=raw,cache=writeback,file=build/update-floor/state/hazard/store.img",
+    "-device",
+    "virtio-blk-pci,drive=store,id=storeblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-B03-STORE"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "source_fingerprint_version": 3,
+  "source_sha256": "2584f3e6480865218efc5baea0484230a727eaaeb7970f49b469a00789620ac8",
+  "run_directory": "build/update-floor/run/boot-2-floor-kept-9a42df23",
+  "state_directory": "build/update-floor/state/hazard",
+  "store_before_sha256": "dc29de9f3c6152f3109b35ec9513d12a762ecfda6e0ab190388e0d469f0b36d7",
+  "store_after_sha256": "dc29de9f3c6152f3109b35ec9513d12a762ecfda6e0ab190388e0d469f0b36d7",
+  "vars_before_sha256": "d5e0b73225fc0e94b877646712ea289b0ebcbf5b83cc8fdc3f572af51140cf34",
+  "vars_after_sha256": "50d1181bcfaa53a72a7fa45756808d42998bf9cb4a62e789ebfb7b78faa31a96",
+  "floor_variable_before": true,
+  "floor_variable_after": true,
+  "expected": [
+    "BOOT:FLOOR:2",
+    "BOOT:SLOT:A:REJECTED:DOWNGRADE",
+    "BOOT:SLOT:B:VERSION:2",
+    "BOOT:SIGNED:OK",
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "M1:FAIL:KERNEL_PANIC"
+  ],
+  "stdout": "\u001b[2J\u001b[001;001H\u001b[=3h\u001b[2J\u001b[001;001H\u001b[2J\u001b[001;001H\u001b[8;056;240t\u001b[2J\u001b[001;001HBdsDxe: loading Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0002 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:FLOOR:2\nBOOT:SLOT:A:REJECTED:DOWNGRADE\nBOOT:SLOT:B:VERSION:2\nBOOT:SIGNED:OK\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM1:FAIL:KERNEL_PANIC\n",
+  "stderr": "",
+  "passed": true,
+  "markers": [
+    "BOOT:FLOOR:2",
+    "BOOT:SLOT:A:REJECTED:DOWNGRADE",
+    "BOOT:SLOT:B:VERSION:2",
+    "BOOT:SIGNED:OK",
+    "BOOT:EBS_OK",
+    "KERNEL:ENTRY",
+    "BOOTINFO:OK",
+    "M1:FAIL:KERNEL_PANIC"
+  ],
+  "oracle": {
+    "header": {
+      "active": 1,
+      "generation": 1
+    },
+    "regions": {
+      "A": {
+        "manifest": {
+          "image_length": 20872,
+          "version": 1,
+          "min_version": 0,
+          "image_sha256": "9f5c4b12c0ce21166c7e79ba4bf6eb5e3ba9cafa59d4e2e313c2f3882bf45b9e",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "f5efd36b25ac206c729e863eb972ec7e92c486e55e7381897d7c44a22bfe1716"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "f5efd36b25ac206c729e863eb972ec7e92c486e55e7381897d7c44a22bfe1716",
+        "image_region_sha256": "a5e228963cd026427011a17e2b84808fee48d97ee5085f50aac7b8961819fa32",
+        "image_nonzero_sectors": 27,
+        "image_sha256": "9f5c4b12c0ce21166c7e79ba4bf6eb5e3ba9cafa59d4e2e313c2f3882bf45b9e",
+        "image_matches_manifest": true
+      },
+      "B": {
+        "manifest": {
+          "image_length": 20944,
+          "version": 2,
+          "min_version": 0,
+          "image_sha256": "60fa3f26305a6e7c3cac6a25fa40298f747031c7e70c49c8d6f4d6b722412d88",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "14e1310f115ddd29c346f8b56ef6ddb6d17c24a3a133ce357691fcb1644574a5"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "14e1310f115ddd29c346f8b56ef6ddb6d17c24a3a133ce357691fcb1644574a5",
+        "image_region_sha256": "7ceddc76e4a00bf3a6ace90ece35d1deb9149a894690e38b89a62336baf70606",
+        "image_nonzero_sectors": 26,
+        "image_sha256": "60fa3f26305a6e7c3cac6a25fa40298f747031c7e70c49c8d6f4d6b722412d88",
+        "image_matches_manifest": true
+      },
+      "inbox": {
+        "manifest": null,
+        "manifest_error": null,
+        "manifest_region_sha256": "35b2040a56c60e04e883349c5f2fd0edc0a8530b798eb9d29268d14ee5a0fc4f",
+        "image_region_sha256": "5647f05ec18958947d32874eeb788fa396a05d0bab7c1b71f112ceb7e9b31eee",
+        "image_nonzero_sectors": 0,
+        "image_sha256": null,
+        "image_matches_manifest": null
+      }
+    }
+  }
+}
