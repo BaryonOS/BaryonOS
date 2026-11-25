@@ -10,7 +10,11 @@ wording and speaker.
 **Status:** decided by the project owner on 25 November 2026. The owner gave the
 decision to the PR guard session at about 11:25Z. The owner then confirmed the
 wording for recording in the CI specialist session at about 11:45Z ("Yes,
-confirmed"). The CI checkpoint is #494, comment 7161215540.
+confirmed"). The CI checkpoint is #494, comment 7161215540. Item 8 was decided
+separately at about 12:35Z and given to the PR guard. Before the merge, the owner
+reviewed the full diff including item 8 at head `01cbd5c2` and raised no
+substantive objection. The owner's formal review of the pull request remains
+the confirmation required by D2.
 
 **Problem:** six workstream sessions handled their own pull requests under
 `ADR-MERGE-DELEGATION-20261123`: S09, U, N, UI/UX design, B and H. Applications,
@@ -41,7 +45,7 @@ session's context must rotate were only in issue comments.
    `docs/handoffs/<letter>/CURRENT.md`. CI uses `docs/handoffs/CI/`, UI/UX
    uses the existing `docs/handoffs/UI-U/` and the PR guard uses
    `docs/handoffs/PR-WATCHER/`. A resume pointer records the scope
-   and mandate once and holds no live SHAs or volatile state. Live checkpoints
+   and mandate once. It holds no live head SHAs, locks, PIDs or cursors. Live checkpoints
    stay in the pull request description and the workstream's handoff issue
    comment.
 5. **Context rotation.** These thresholds apply only to the executing
@@ -63,10 +67,14 @@ session's context must rotate were only in issue comments.
    ambition and product specification remain in `docs/DESIGN-AMBITION.md` and
    `docs/implementation/PRODUCT-SPEC.md`.
 7. **Quantum.**
-   - Post-quantum cryptography is a current obligation under ADR-007, ADR-012,
-     ADR-017 and ADR-028, `docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md`
-     and `docs/implementation/QUANTUM-SPEC.md`. B owns that content. It covers
-     harvest-now-decrypt-later exposure and the classical dependencies that remain.
+   - From this decision on, post-quantum cryptography is a current obligation.
+     It builds on ADR-007, ADR-012, ADR-017 and ADR-028; those decisions alone
+     scheduled it for later integration.
+   - B owns the PQC content: `docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md`
+     and the PQC policy in `docs/implementation/QUANTUM-SPEC.md`. That content
+     must address harvest-now-decrypt-later exposure and the classical
+     dependencies that remain.
+   - L keeps the local quantum-execution part of `QUANTUM-SPEC.md` (L02).
    - Physical quantum hardware is a future research line for L and does not
      block the consumer release.
    - No claim of full quantum resistance is made without bounded evidence.
@@ -83,6 +91,8 @@ session's context must rotate were only in issue comments.
    workstream without asking separate permission. Check for duplicates first.
    Record this authority durably and communicate it to all specialists.
    Creating issues supports development and does not replace implementation.)
+   - The authority belongs to the executing specialists listed in item 5. The
+     PR guard's role is unchanged.
    - A specialist checks for duplicates before creating an issue.
    - An issue stays within the specialist's own workstream.
 
@@ -94,6 +104,20 @@ session's context must rotate were only in issue comments.
   A, P, L and R in the same way as to the existing workstreams.
 - Issues #494 (CI) and #503 (PR guard) stay the places for decisions,
   operational notices and history.
+- Item 8 replaces the earlier practice of asking the owner before creating an
+  issue. The PR guard communicates it to all specialists.
+
+**Security invariant:**
+
+- No authority is widened beyond `ADR-MERGE-DELEGATION-20261123` as amended by D2.
+- Protected-file review, `ADR-MERGE-HOLD-20261113`, required checks and branch
+  protection are unchanged.
+- The PR guard has no commit, push, merge, label or review authority.
+- Issue creation is limited to a specialist's own workstream.
+
+**Test evidence:** `progress.py --check`, `check_english_docs.py` and
+`tools.tests.test_agent_governance` pass. They check the documents only; they
+do not prove that sessions follow the rules.
 
 **Rollback:** a new project-owner decision.
 

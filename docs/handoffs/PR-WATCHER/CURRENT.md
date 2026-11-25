@@ -1,4 +1,4 @@
-# PR watcher — resume pointer
+# PR watcher (PR guard) — resume pointer
 
 Compact resume pointer for the local coordination session "BaryonOS - PR Bewaker"
 (PR watcher). It is not a backlog and not a status board: live state is in the

@@ -14,7 +14,9 @@ this file.
   - The CI specialist is not the PR guard. It feeds new heads to "BaryonOS - PR Bewaker".
 - **Mandate:** the standing CI maintenance mandate is issue #494, under
   ADR-MERGE-DELEGATION-20261123 and ADR-PROGRESS-ASSESSMENTS-20261125 (D1–D3).
-  - Under D2, an independent AI review is enough for CI files.
+  - Under D2, for `.github/**`, `tools/merge_hold.py` and `tools/ci_impact.py`,
+    an independent AI review is enough. It must come from a separate agent
+    without write access, after the bot findings are resolved.
   - Policy, register and security files need the project owner's review on the pull request.
 - **Never:** bypass protections, weaken gates or tests, change a ruleset or
   enable the merge queue. Enabling the queue needs the owner's explicit
