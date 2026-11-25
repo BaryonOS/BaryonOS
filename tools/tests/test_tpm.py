@@ -1,3 +1,6 @@
+import os
+import re
+import shutil
 import sys
 import tempfile
 import unittest
@@ -6,6 +9,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_tpm as probe
+import tpm_seed
 from tools.tests import test_ipc_wait
 
 
@@ -19,14 +23,14 @@ class NativeTpmTranscriptTests(unittest.TestCase):
              "LOADER-HAUTH:READ:REFUSED\nLOADER-HAUTH:OWNER:REFUSED\n"
              "LOADER-HAUTH:DA:0000000000000000:0000000000000000\n"
              "LOADER-HAUTH:RESIDUE:NONE\nLOADER-HAUTH:PASS\n")
-    HALT = ("LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:0000000000000400\n"
-            "LOADER-HAUTH:MODE:PROVISION\nLOADER-HAUTH:HALT:PCR13:CLOSED\n"
-            "LOADER-HAUTH:FAIL:RNG_ABSENT:0000000000000000\n")
 
     def transcript(self, case, boot=0):
-        if case == "loader-hauth-no-rng":
-            return self.LOADER + self.HALT
-        if case == "loader-hauth":
+        if (case, boot) in probe.HALT:
+            bits, steps = probe.HALT[case, boot]
+            return (self.LOADER.replace("RNG:ABSENT", f"RNG:{probe.LOADER_RNG[case]}")
+                    + f"LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:{0x400 | bits:016x}\n"
+                    + "".join(f"{step}\n" for step in steps))
+        if case in probe.PROVISIONED:
             mode, lockout = probe.HAUTH_MODE[boot]
             hauth = self.HAUTH.format(permanent=0x405 if boot else 0x400, mode=mode, lockout=lockout)
             return self.LOADER.replace("RNG:ABSENT", "RNG:PASS") + hauth + self.transcript("normal")
@@ -45,7 +49,7 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         return text + "\n".join(extra + [f"TPMCRB:{k}:{v:020d}" for k, v in values.items()]) + "\n"
 
     def test_completed_and_missing_device_cases(self):
-        for case in set(probe.FEATURES) - set(probe.HALT):
+        for case in (case for case in probe.FEATURES if (case, 0) not in probe.HALT):
             self.assertEqual(probe.evaluate(self.transcript(case), case)["BOUNDS_REJECTED"], 7)
 
     def test_loader_probe_records_firmware_facts_and_rejects_gaps(self):
@@ -130,6 +134,34 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             probe.evaluate(self.transcript("loader-hauth"), "loader-hauth-no-rng")
 
+    def test_pre_seeded_cases_pin_the_boot_that_halts_and_its_exact_failure(self):
+        # Boots before the seed, and the repaired cut, behave exactly like loader-hauth.
+        for case, boot in (("loader-hauth-unbound", 0), ("loader-hauth-cut", 0), ("loader-hauth-cut", 1)):
+            result = probe.evaluate(self.transcript(case, boot), case, boot)
+            self.assertEqual(result["HAUTH_PERMANENT"] & 0x5, 5 if boot else 0)
+        for case in ("loader-hauth-squat", "loader-hauth-foreign-owner"):
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                probe.evaluate(self.transcript(case), case, 1)
+        failures = {steps[-1] for _, steps in probe.HALT.values()}
+        for (case, boot), (bits, steps) in probe.HALT.items():
+            good = self.transcript(case, boot)
+            self.assertEqual(probe.evaluate(good, case, boot)["HAUTH_PERMANENT"], 0x400 | bits)
+            mode = probe.EXISTING if steps[0] == probe.PROVISION else probe.PROVISION
+            for bad in (
+                good.replace(steps[0], mode),
+                good.replace(f"HAUTH:PERMANENT:{0x400 | bits:016x}", f"HAUTH:PERMANENT:{0x400 | bits ^ 1:016x}"),
+                good.replace(f"{probe.CLOSED}\n", ""),
+                good + "KERNEL:ENTRY\n",
+                *(good.replace(steps[-1], other) for other in failures - {steps[-1]}),
+            ):
+                with self.subTest(case=case, bad=bad), self.assertRaises(ValueError):
+                    probe.evaluate(bad, case, boot)
+            for other in set(probe.HALT) - {(case, boot)}:
+                with self.subTest(case=case, other=other), self.assertRaises(ValueError):
+                    probe.evaluate(good, *other)
+        self.assertEqual(probe.markers("loader-hauth-unbound", 1)[-1], "LOADER-HAUTH:FAIL:UNBOUND:0000000000000000")
+        self.assertEqual(probe.markers("loader-hauth-unbound", 0), probe.markers("loader-hauth", 0))
+
     def test_virtio_rng_is_a_boolean_opt_in_of_the_tpm_fixture_only(self):
         import run
         for kwargs in ({"virtio_rng": True}, {"virtio_rng": 1, "tpm_socket": "x"},
@@ -207,6 +239,49 @@ class NativeTpmBackendTests(unittest.TestCase):
                     with self.subTest(other=other), self.assertRaisesRegex(ValueError, "Reused TPM state"):
                         with probe.backend(report, other):
                             pass
+
+
+@unittest.skipUnless(shutil.which("swtpm"), "NOT RUN: swtpm absent")
+class TpmSeedTests(unittest.TestCase):
+    """The seeds build the frozen trial_tpm templates and read back only public state."""
+
+    def setUp(self):
+        source = (Path(__file__).resolve().parents[2] / "crates/update-core/src/trial_tpm.rs").read_text()
+        self.names = {name: "000b" + digest for name, digest in re.findall(
+            r'pub const (NAME_\w+): \[u8; 34\] = name\(h\(\s*"([0-9a-f]{64})"', source)}
+        self.assertEqual(set(self.names), {"NAME_HAUTH", "NAME_HAUTH_WRITTEN", "NAME_LREC_WRITTEN"})
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.directory = Path(temporary.name)
+        (self.directory / "state").mkdir()
+        self.tool = (shutil.which("swtpm"), dict(os.environ))
+
+    def test_each_seed_produces_the_documented_public_state(self):
+        cut = tpm_seed.seed(*self.tool, self.directory, "cut")
+        self.assertEqual((cut["permanent"] & 0x5, cut["hauth"]["name"]), (0, self.names["NAME_HAUTH_WRITTEN"]))
+        self.assertFalse(cut["lrec"]["attributes"] & tpm_seed.WRITTEN)
+        self.assertNotIn("sha256", cut["lrec"])
+        with tpm_seed.server(*self.tool, self.directory) as tpm:
+            tpm.write_lrec(b"NOSLRC01" + bytes(40) + bytes(range(16)))
+            before = tpm.lrec()
+        flipped = tpm_seed.seed(*self.tool, self.directory, "unbound")
+        self.assertEqual(flipped["lrec"]["name"], self.names["NAME_LREC_WRITTEN"])
+        with tpm_seed.server(*self.tool, self.directory) as tpm:
+            after = tpm.lrec()
+        self.assertEqual([at for at in range(64) if before[at] != after[at]], [48])
+        self.assertEqual(tpm_seed.snapshot(*self.tool, self.directory), flipped)
+        fresh = self.directory / "fresh"
+        for name, permanent, hauth in (("foreign-owner", 1, {"rc": 0x18B}),
+                                       ("squat", 0, None)):
+            with self.subTest(name=name):
+                shutil.rmtree(fresh, ignore_errors=True)
+                (fresh / "state").mkdir(parents=True)
+                state = tpm_seed.seed(*self.tool, fresh, name)
+                self.assertEqual((state["permanent"] & 0x5, state["lrec"]), (permanent, {"rc": 0x18B}))
+                if hauth:
+                    self.assertEqual(state["hauth"], hauth)
+                else:
+                    self.assertTrue(state["hauth"]["attributes"] & tpm_seed.PLATFORMCREATE)
 
 
 if __name__ == "__main__":

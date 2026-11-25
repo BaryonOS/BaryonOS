@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Real kernel CRB MMIO over a disposable local swtpm. The loader-hauth case
 writes TEST hierarchy auth and NV (M1-HAUTH) into that disposable state only;
-loader-hauth-no-rng checks that the loader halts after the CLOSED extend."""
+loader-hauth-no-rng checks that the loader halts after the CLOSED extend, and the
+pre-seeded cases (tools/tpm_seed.py) that it halts or repairs on a prepared state."""
 from __future__ import annotations
 
 import argparse
@@ -19,24 +20,37 @@ from build import build
 from common import BUILD, LOCAL, ROOT, environment, save_json, sha256, source_hash
 import run_ipc_wait
 from run import run_guest
+import tpm_seed
 
+# Pre-seeded M1-HAUTH cases: (boot before which tools/tpm_seed.py prepares the state, seed).
+SEED = {"loader-hauth-squat": (0, "squat"), "loader-hauth-foreign-owner": (0, "foreign-owner"),
+        "loader-hauth-unbound": (1, "unbound"), "loader-hauth-cut": (0, "cut")}
 FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
             "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb",
-            "loader-hauth": "native-tpm-crb", "loader-hauth-no-rng": "native-tpm-crb"}
+            "loader-hauth": "native-tpm-crb", "loader-hauth-no-rng": "native-tpm-crb",
+            **dict.fromkeys(SEED, "native-tpm-crb")}
 # B03 REL-05 S6 step 1: firmware TCG2/RNG before EBS, then the normal kernel case.
 # loader-hauth (M1-HAUTH BOUND, TEST): the probe, then provisioning on boot 0 and
 # verification on boot 1 of the same swtpm state.
 LOADER = {"loader-probe": "tpm-loader-probe-test", "loader-rng": "tpm-loader-probe-test",
-          "loader-hauth": "tpm-hauth-provision-test", "loader-hauth-no-rng": "tpm-hauth-provision-test"}
-BOOTS = {"loader-hauth": 2}
-# Halt cases: the loader extends CLOSED, then stops before any secret and before the kernel.
-HALT = {"loader-hauth-no-rng": ("LOADER-HAUTH:BEGIN", "LOADER-HAUTH:MODE:PROVISION",
-                                "LOADER-HAUTH:HALT:PCR13:CLOSED",
-                                "LOADER-HAUTH:FAIL:RNG_ABSENT:0000000000000000")}
+          **dict.fromkeys(("loader-hauth", "loader-hauth-no-rng", *SEED), "tpm-hauth-provision-test")}
+BOOTS = {"loader-hauth": 2, "loader-hauth-unbound": 2, "loader-hauth-cut": 2}
+# Cases whose non-halt boots must provision or verify exactly like loader-hauth.
+PROVISIONED = ("loader-hauth", "loader-hauth-unbound", "loader-hauth-cut")
+PROVISION, EXISTING = "LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:MODE:EXISTING"
+CLOSED = "LOADER-HAUTH:HALT:PCR13:CLOSED"
+# Halt boots, (case, boot) -> (TPMA_PERMANENT ownerAuthSet | lockoutAuthSet, the loader lines
+# after BEGIN and PERMANENT): the loader extends CLOSED, then stops before the kernel.
+HALT = {("loader-hauth-no-rng", 0): (0, (PROVISION, CLOSED, "LOADER-HAUTH:FAIL:RNG_ABSENT:0000000000000000")),
+        # C21 platform squat: the owner undefine of a PLATFORMCREATE HAUTH is refused.
+        ("loader-hauth-squat", 0): (0, (PROVISION, CLOSED, "LOADER-HAUTH:FAIL:TPM_RC:0000000000000149")),
+        # Foreign ownerAuth, nothing provisioned: NV_ReadPublic(HAUTH) is TPM_RC_HANDLE on handle 1.
+        ("loader-hauth-foreign-owner", 0): (1, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:TPM_RC:000000000000018b")),
+        ("loader-hauth-unbound", 1): (5, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:UNBOUND:0000000000000000"))}
 HALT_EXIT = 35  # loader serial::exit(0x11), as tools/test.py pins for M1:FAIL
-# U25: the TEST profile has no firmware RNG; `loader-rng` and `loader-hauth` add a virtio-rng device.
+# U25: the TEST profile has no firmware RNG; `loader-rng` and the HAUTH cases add a virtio-rng device.
 LOADER_RNG = {"loader-probe": "ABSENT", "loader-rng": "PASS", "loader-hauth": "PASS",
-              "loader-hauth-no-rng": "ABSENT"}
+              "loader-hauth-no-rng": "ABSENT", **dict.fromkeys(SEED, "PASS")}
 LOADER_MARKERS = ("LOADER-TPM:TCG2:PRESENT", "LOADER-TPM:PCR13:ZERO", "LOADER-TPM:PASS")
 HAUTH_MODE = (("LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:LOCKOUT:SET"),
               ("LOADER-HAUTH:MODE:EXISTING", "LOADER-HAUTH:LOCKOUT:KEPT"))
@@ -52,10 +66,10 @@ COMMON = ("M2:PASS", "TPMCRB:BOUNDS:PASS", "TPMCRB:MAPPING:PASS",
 
 
 def markers(case, boot=0):
-    if case in HALT:
-        return LOADER_MARKERS + HALT[case]
+    if (case, boot) in HALT:
+        return LOADER_MARKERS + ("LOADER-HAUTH:BEGIN",) + HALT[case, boot][1]
     final = ("TPMCRB:ABSENT:PASS",) if case == "absent" else ("TPMCRB:RELEASED:PASS", "TPMCRB:PASS")
-    hauth = hauth_markers(boot) if case == "loader-hauth" else ()
+    hauth = hauth_markers(boot) if case in PROVISIONED else ()
     # run.is_success matches in serial order: the loader prints before EBS.
     return ((LOADER_MARKERS if case in LOADER else ()) + hauth + COMMON + final
             + run_ipc_wait.MARKERS[3:])
@@ -64,13 +78,13 @@ def markers(case, boot=0):
 def evaluate(stdout, case, boot=0):
     if case not in FEATURES or not 0 <= boot < BOOTS.get(case, 1):
         raise ValueError("Unknown native TPM case")
-    if case in HALT:
-        return halted(stdout, case)
+    if (case, boot) in HALT:
+        return halted(stdout, case, boot)
     result = run_ipc_wait.evaluate(stdout)
     for marker in markers(case, boot):
         if stdout.splitlines().count(marker) != 1:
             raise ValueError(f"Expected exactly one {marker}")
-    if case == "loader-hauth":
+    if case in PROVISIONED:
         if set(HAUTH_MODE[1 - boot]) & set(stdout.splitlines()):
             raise ValueError("HAUTH boot mode does not match the swtpm state")
         permanent = re.findall(r"^LOADER-HAUTH:PERMANENT:([0-9a-f]{16})$", stdout, re.M)
@@ -111,12 +125,13 @@ def evaluate(stdout, case, boot=0):
     return result
 
 
-def halted(stdout, case):
+def halted(stdout, case, boot):
     lines = stdout.splitlines()
     permanent = re.findall(r"^LOADER-HAUTH:PERMANENT:([0-9a-f]{16})$", stdout, re.M)
-    expected = [HALT[case][0], *(f"LOADER-HAUTH:PERMANENT:{value}" for value in permanent[:1]),
-                *HALT[case][1:]]
-    if (len(permanent) != 1 or int(permanent[0], 16) & 0x5
+    bits, steps = HALT[case, boot]
+    expected = ["LOADER-HAUTH:BEGIN", *(f"LOADER-HAUTH:PERMANENT:{value}" for value in permanent[:1]),
+                *steps]
+    if (len(permanent) != 1 or int(permanent[0], 16) & 0x5 != bits
             or [line for line in lines if line.startswith("LOADER-HAUTH:")] != expected):
         raise ValueError("The loader must halt at exactly the expected HAUTH step")
     if any(line.startswith(("KERNEL:", "M1:PASS", "M2:", "TPMCRB:", "IPCWAIT:")) for line in lines):
@@ -142,9 +157,8 @@ def loader_observations(stdout):
     return found
 
 
-@contextmanager
-def backend(report, directory=None):
-    """A swtpm on a fresh private state, or on `directory` from an earlier boot."""
+def swtpm():
+    """The swtpm binary (documented local prefix, else PATH) and its environment."""
     prefix = LOCAL / "swtpm-native"
     env = environment()
     binary = prefix / "usr/bin/swtpm"
@@ -159,12 +173,26 @@ def backend(report, directory=None):
         [str(p) for p in libraries if p.is_dir()]
         + ([env["LD_LIBRARY_PATH"]] if env.get("LD_LIBRARY_PATH") else [])
     )
+    return binary, env
+
+
+def fresh_state():
+    if not BUILD.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("TPM state must be generated inside the checkout")
+    directory = BUILD / "tpm" / uuid.uuid4().hex[:10]
+    directory.mkdir(parents=True)
+    (directory / "state").mkdir(mode=0o700)
+    return directory
+
+
+@contextmanager
+def backend(report, directory=None):
+    """A swtpm on a fresh private state, or on `directory` from an earlier boot."""
+    binary, env = swtpm()
     if not BUILD.resolve().is_relative_to(ROOT.resolve()):
         raise ValueError("TPM state must be generated inside the checkout")
     if directory is None:
-        directory = BUILD / "tpm" / uuid.uuid4().hex[:10]
-        directory.mkdir(parents=True)
-        (directory / "state").mkdir(mode=0o700)
+        directory = fresh_state()
     elif not (directory / "state").is_dir() or not directory.resolve().is_relative_to(BUILD.resolve()):
         raise ValueError("Reused TPM state must be an existing state under the build directory")
     control = directory / "ctrl.sock"
@@ -213,7 +241,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; no product keys, genesis, ACCEPTED or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, flipped LREC binding after a provisioning boot, power-cut leftovers) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
@@ -227,11 +255,11 @@ def run(case):
             report["guest"] = run_guest(
                 label, required_markers=markers(case, boot), tpm_socket=control,
                 forbidden_markers=("TPMCRB:FAIL:", "IPCWAIT:FAIL:", "PANIC", "M3:FAIL:", "LOADER-TPM:FAIL:")
-                + (() if case in HALT else ("LOADER-HAUTH:FAIL:",)),
-                expected_exit=HALT_EXIT if case in HALT else 33,
+                + (() if (case, boot) in HALT else ("LOADER-HAUTH:FAIL:",)),
+                expected_exit=HALT_EXIT if (case, boot) in HALT else 33,
                 expected_kernel_sha256=manifest["kernel"]["sha256"],
                 expected_loader_sha256=manifest["loader"]["sha256"],
-                virtio_rng=case in ("loader-rng", "loader-hauth"),
+                virtio_rng=LOADER_RNG.get(case) == "PASS",
             )
             if not report["guest"]["passed"]:
                 raise ValueError("Native TPM guest failed; inspect retained serial/stderr")
@@ -239,13 +267,22 @@ def run(case):
 
         if case == "absent":
             guest()
-        elif case in BOOTS:
+        elif case in BOOTS or case in SEED:
             directory, report["boots"] = None, []
-            for boot in range(BOOTS[case]):
+            for boot in range(BOOTS.get(case, 1)):
+                entry = {}
+                if SEED.get(case, (None,))[0] == boot:
+                    directory = directory or fresh_state()
+                    entry["seeded"] = tpm_seed.seed(*swtpm(), directory, SEED[case][1])
                 with backend(report, directory) as control:
                     guest(control, boot)
                 directory = control.parent
-                report["boots"].append({key: report.pop(key) for key in ("backend", "guest", "observed")})
+                if case in SEED:
+                    # Public state after the boot; a halt must leave the seeded state as it was.
+                    entry["after"] = tpm_seed.snapshot(*swtpm(), directory)
+                    if (case, boot) in HALT and entry["after"] != entry["seeded"]:
+                        raise ValueError("The loader changed the seeded TPM state before halting")
+                report["boots"].append(entry | {key: report.pop(key) for key in ("backend", "guest", "observed")})
         else:
             with backend(report) as control:
                 guest(control)
