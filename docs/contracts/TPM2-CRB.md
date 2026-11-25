@@ -171,7 +171,7 @@ authValue, `authPolicy` empty or 32 B); `NV_Write` of 1–64 B with
 `authHandle` = the index and either a password or a policy session;
 `NV_Increment` with the same two authorization forms (a policy session for a
 POLICYWRITE counter such as `GEN`; the counter attributes are not widened);
-`FlushContext` of a policy session; `NV_Read` of 1–64 B; `PCR_Read` and `PCR_Extend` of one SHA-256 PCR; and
+`FlushContext` of a policy session; password `NV_Read` of 1–64 B; `PCR_Read` and `PCR_Extend` of one SHA-256 PCR; and
 `NV_ReadPublic` decoded into attributes (with type), size and `authPolicy`.
 Maximum command sizes are 59, 26, 18, 109, 99, 67, 20, 97, 14, 63 (password
 `NV_Increment`), 31 (policy `NV_Increment`) and 14 B (`FlushContext`); a
@@ -183,17 +183,23 @@ For the cold-freshness anchor and M1-HAUTH
 additionally encodes: `NV_DefineSpace` of an extend index (exactly 32 B);
 `NV_Extend` of one 32 B digest with `authHandle` = the index (password);
 owner-authorized `NV_UndefineSpace`; `HierarchyChangeAuth` for the owner and
-lockout hierarchies only (endorsement and platform are not encodable); and
-`NV_Read` with a policy session (POLICYREAD index such as `HAUTH`). Maximum
-sizes are 97, 63, 93 and 35 B. `HierarchyChangeAuth`, `NV_UndefineSpace` and
-the `HAUTH` read carry the hierarchy secret in clear in the command or
-response buffer; the caller wipes those buffers and never formats them.
+lockout hierarchies only (endorsement and platform are not encodable);
+owner-authorised `NV_Write` of 1–64 B at offset 0 (`authHandle` =
+`TPM_RH_OWNER`, `Request::NvWriteOwner`, for the OWNERWRITE `HAUTH`); and the
+policy-session read of the 64 B `HAUTH` secret (`Request::NvReadSecret`).
+Maximum sizes are 97, 63, 93, 128 and 35 B (a 30 B ownerAuth with 64 B of
+data is refused). `HierarchyChangeAuth`, `NV_UndefineSpace`, the owner
+`NV_Write` and the `HAUTH` read carry the hierarchy secret in clear in the
+command or response buffer; the caller wipes those buffers and never formats
+them. A policy-session `NV_Read` exists only as that secret read: its
+response decodes only through `Command::decode_secret` into a caller-owned
+64 B buffer that is written after every check has passed; `Command::decode`
+returns `Error::Input` for it, and `Transport::execute` refuses it before any
+register or buffer access, because the kernel maps the CRB buffer.
 Golden bytes are the commands swtpm 0.10.1 accepted
-(`docs/verification/b03-rel05-hauth-probe-20261125/`). No `TPM2_Clear`,
-`ClearControl` or platform-hierarchy command is encoded. Gap: `NV_Write` encodes only
-`authHandle` = the index, so the owner-authorised `HAUTH` write (OWNERWRITE)
-is not yet encodable; the loader slice adds an owner-authorised variant
-instead of widening `HAUTH` to AUTHWRITE.
+(`docs/verification/b03-rel05-hauth-probe-20261125/`,
+`docs/verification/b03-rel05-squat-probe-20261125/`). No `TPM2_Clear`,
+`ClearControl` or platform-hierarchy command is encoded.
 
 A policy session is sent with an empty nonce, empty HMAC and
 continueSession clear, so the TPM flushes it after one successful use; after

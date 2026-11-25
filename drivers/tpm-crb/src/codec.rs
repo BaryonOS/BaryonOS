@@ -185,13 +185,21 @@ pub enum Request<'a> {
         owner_auth: Password<'a>,
         data: &'a [u8],
     },
-    /// `NV_Read` of 1..=64 bytes with `authHandle` = the index: AUTHREAD
-    /// password, or a policy session for POLICYREAD indices such as `HAUTH`.
+    /// `NV_Read` of 1..=64 bytes with `authHandle` = the index (AUTHREAD
+    /// password). Policy reads exist only as [`Request::NvReadSecret`].
     NvRead {
         index: NvIndex,
-        auth: Auth<'a>,
+        auth: Password<'a>,
         size: u16,
         offset: u16,
+    },
+    /// Policy-session `NV_Read` of a 64-byte POLICYREAD secret (REL-05
+    /// `HAUTH`) at offset 0. Its response decodes only through
+    /// [`Command::decode_secret`]; [`Command::decode`] and the CRB transport
+    /// refuse it, so the secret never reaches a `Copy`/`Debug` [`Response`].
+    NvReadSecret {
+        index: NvIndex,
+        session: PolicySession,
     },
     PcrRead {
         pcr: u8,
@@ -252,6 +260,7 @@ pub(crate) enum Expectation {
     Counter,
     Session { nonce_len: u8 },
     Data { size: u16 },
+    Secret,
     Pcr { pcr: u8 },
     PublicArea { index: NvIndex },
 }
@@ -277,6 +286,20 @@ impl Command<'_> {
     /// as the CRB path; nothing is returned on error.
     pub fn decode(&self, response: &[u8]) -> Result<Response, Error> {
         validate(self.expect, self.sessions, response)
+    }
+    /// Decode the response to [`Request::NvReadSecret`] straight into `out`,
+    /// which is written only after every check passed (any other command:
+    /// `Error::Input`). The caller wipes `out` and `response` after use.
+    pub fn decode_secret(&self, response: &[u8], out: &mut [u8; MAX_NV_DATA]) -> Result<(), Error> {
+        if !matches!(self.expect, Expectation::Secret) {
+            return Err(Error::Input);
+        }
+        let body = envelope(self.sessions, response)?;
+        if body.len() != 2 + MAX_NV_DATA || usize::from(u16at(body, 0)) != MAX_NV_DATA {
+            return Err(Error::Length);
+        }
+        out.copy_from_slice(&body[2..]);
+        Ok(())
     }
 }
 struct Writer<'a> {
@@ -454,13 +477,20 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
                 return Err(Error::Input);
             }
             (
-                22 + auth.len(),
+                35 + auth.0.len(),
                 0x14e,
-                auth.tail(),
+                Tail::Password,
                 Expectation::Data { size: *size },
                 false,
             )
         }
+        Request::NvReadSecret { session, .. } => (
+            35,
+            0x14e,
+            Tail::Policy(session.1),
+            Expectation::Secret,
+            false,
+        ),
         Request::NvExtend { auth, .. } => (
             65 + auth.0.len(),
             0x136,
@@ -612,9 +642,16 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
         } => {
             w.u32(index.0);
             w.u32(index.0);
-            w.authorize(auth);
+            w.auth(auth);
             w.u16(size);
             w.u16(offset);
+        }
+        Request::NvReadSecret { index, session } => {
+            w.u32(index.0);
+            w.u32(index.0);
+            w.authorize(Auth::Policy(session));
+            w.u16(MAX_NV_DATA as u16);
+            w.u16(0);
         }
         Request::NvExtend { index, auth, data } => {
             w.u32(index.0);
@@ -750,54 +787,10 @@ pub(crate) fn validate(
     sessions: Tail,
     bytes: &[u8],
 ) -> Result<Response, Error> {
-    if bytes.len() < 10 || bytes.len() > MAX_RESPONSE || u32at(bytes, 2) as usize != bytes.len() {
-        return Err(Error::Length);
+    if matches!(expect, Expectation::Secret) {
+        return Err(Error::Input);
     }
-    let tag = u16at(bytes, 0);
-    let rc = u32at(bytes, 6);
-    if rc != 0 {
-        if tag != NO_SESSIONS || bytes.len() != 10 {
-            return Err(Error::Protocol);
-        }
-        return Err(Error::Tpm(rc));
-    }
-    if tag
-        != if sessions == Tail::None {
-            NO_SESSIONS
-        } else {
-            SESSIONS
-        }
-    {
-        return Err(Error::Protocol);
-    }
-    let trailer = match sessions {
-        Tail::None => 0,
-        Tail::Password => 5,
-        Tail::Policy(n) => 5 + usize::from(n),
-    };
-    let body = if trailer == 0 {
-        &bytes[10..]
-    } else {
-        if bytes.len() < 14 + trailer {
-            return Err(Error::Length);
-        }
-        let parameters = u32at(bytes, 10) as usize;
-        let end = 14usize.checked_add(parameters).ok_or(Error::Length)?;
-        if end.checked_add(trailer) != Some(bytes.len()) {
-            return Err(Error::Protocol);
-        }
-        let t = &bytes[end..];
-        let ok = match sessions {
-            // TPM_RS_PW responses have empty nonce/HMAC and continueSession=1.
-            Tail::Password => t == [0, 0, 1, 0, 0],
-            Tail::Policy(n) => u16at(t, 0) == u16::from(n) && t[2 + usize::from(n)..] == [0, 0, 0],
-            Tail::None => false,
-        };
-        if !ok {
-            return Err(Error::Protocol);
-        }
-        &bytes[14..end]
-    };
+    let body = envelope(sessions, bytes)?;
     match expect {
         Expectation::Empty | Expectation::SessionEmpty => {
             if !body.is_empty() {
@@ -805,6 +798,7 @@ pub(crate) fn validate(
             }
             Ok(Response::Empty)
         }
+        Expectation::Secret => Err(Error::Input),
         Expectation::Counter => {
             if body.len() != 10 || u16at(body, 0) != 8 {
                 return Err(Error::Length);
@@ -939,4 +933,56 @@ pub(crate) fn validate(
             }))
         }
     }
+}
+/// Header, response code and authorization trailer; returns the parameters.
+fn envelope(sessions: Tail, bytes: &[u8]) -> Result<&[u8], Error> {
+    if bytes.len() < 10 || bytes.len() > MAX_RESPONSE || u32at(bytes, 2) as usize != bytes.len() {
+        return Err(Error::Length);
+    }
+    let tag = u16at(bytes, 0);
+    let rc = u32at(bytes, 6);
+    if rc != 0 {
+        if tag != NO_SESSIONS || bytes.len() != 10 {
+            return Err(Error::Protocol);
+        }
+        return Err(Error::Tpm(rc));
+    }
+    if tag
+        != if sessions == Tail::None {
+            NO_SESSIONS
+        } else {
+            SESSIONS
+        }
+    {
+        return Err(Error::Protocol);
+    }
+    let trailer = match sessions {
+        Tail::None => 0,
+        Tail::Password => 5,
+        Tail::Policy(n) => 5 + usize::from(n),
+    };
+    let body = if trailer == 0 {
+        &bytes[10..]
+    } else {
+        if bytes.len() < 14 + trailer {
+            return Err(Error::Length);
+        }
+        let parameters = u32at(bytes, 10) as usize;
+        let end = 14usize.checked_add(parameters).ok_or(Error::Length)?;
+        if end.checked_add(trailer) != Some(bytes.len()) {
+            return Err(Error::Protocol);
+        }
+        let t = &bytes[end..];
+        let ok = match sessions {
+            // TPM_RS_PW responses have empty nonce/HMAC and continueSession=1.
+            Tail::Password => t == [0, 0, 1, 0, 0],
+            Tail::Policy(n) => u16at(t, 0) == u16::from(n) && t[2 + usize::from(n)..] == [0, 0, 0],
+            Tail::None => false,
+        };
+        if !ok {
+            return Err(Error::Protocol);
+        }
+        &bytes[14..end]
+    };
+    Ok(body)
 }

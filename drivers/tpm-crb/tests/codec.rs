@@ -3,7 +3,7 @@
 //! and decoding only. Acceptance by swtpm is step S5.
 use nieuw_os_tpm_crb::codec::{
     self, Auth, Error, Hierarchy, NvDefinition, NvIndex, Password, PolicySession, Request,
-    Response, MAX_COMMAND,
+    Response, MAX_COMMAND, MAX_NV_DATA,
 };
 
 // The real S2 constants, compiled from update-core's source: the cross-check
@@ -532,7 +532,7 @@ fn nv_write_response_trailer_must_match_the_session_kind() {
 fn nv_read_ordinary_returns_exact_bytes() {
     let req = || Request::NvRead {
         index: NvIndex::new(0x0100_B302).unwrap(),
-        auth: Auth::Password(none()),
+        auth: none(),
         size: 64,
         offset: 0,
     };
@@ -560,7 +560,7 @@ fn nv_read_ordinary_returns_exact_bytes() {
         assert_eq!(
             enc_err(Request::NvRead {
                 index: index(0x0100_B302),
-                auth: Auth::Password(none()),
+                auth: none(),
                 size,
                 offset: 0
             }),
@@ -759,7 +759,7 @@ fn every_new_command_fits_the_128_byte_bound_at_its_maximum() {
         (
             Request::NvRead {
                 index: index(0x0100_0000),
-                auth: Auth::Password(pw),
+                auth: pw,
                 size: 64,
                 offset: 0,
             },
@@ -796,11 +796,9 @@ fn every_new_command_fits_the_128_byte_bound_at_its_maximum() {
         ),
         (Request::FlushContext { session: session() }, 14),
         (
-            Request::NvRead {
+            Request::NvReadSecret {
                 index: index(0x0100_0000),
-                auth: Auth::Policy(session()),
-                size: 64,
-                offset: 0,
+                session: session(),
             },
             35,
         ),
@@ -914,29 +912,101 @@ fn hierarchy_change_auth_golden_bytes_owner_and_lockout_only() {
     }
 }
 
+fn secret_read() -> Request<'static> {
+    Request::NvReadSecret {
+        index: index(trial_tpm::NV_HAUTH.handle),
+        session: session(),
+    }
+}
+/// `decode_secret` into a sentinel-filled buffer; on error the buffer must
+/// come back unchanged.
+fn decode_secret(response: &[u8]) -> Result<[u8; MAX_NV_DATA], Error> {
+    let mut b = [0u8; MAX_COMMAND];
+    let mut out = [0xa5; MAX_NV_DATA];
+    let r = codec::encode(secret_read(), &mut b)
+        .unwrap()
+        .decode_secret(response, &mut out);
+    if r.is_err() {
+        assert_eq!(out, [0xa5; MAX_NV_DATA], "out changed on error");
+    }
+    r.map(|()| out)
+}
+
 #[test]
-fn nv_read_policy_session_golden_bytes_and_policy_tail() {
-    let req = || Request::NvRead {
-        index: index(0x0100_B304),
-        auth: Auth::Policy(session()),
-        size: 64,
-        offset: 0,
-    };
+fn nv_read_secret_decodes_only_into_the_caller_buffer() {
+    // Byte-identical to the policy NV_Read of HAUTH in the M1-HAUTH probe.
     assert_eq!(
-        enc(req()),
+        enc(secret_read()),
         hex("8002000000230000014e0100b3040100b3040000000903000000000000000000400000")
     );
-    let data = [0x5au8; 64];
+    let mut b = [0u8; MAX_COMMAND];
+    assert!(!codec::encode(secret_read(), &mut b)
+        .unwrap()
+        .is_nv_mutation());
+    let data: Vec<u8> = (1..=64).collect();
     let mut params = vec![0, 64];
     params.extend_from_slice(&data);
     let good = rsp_s(&params, &policy_tail());
-    let Ok(Response::Data { len, bytes }) = decode(req(), &good) else {
-        panic!("decode");
+    assert_eq!(decode_secret(&good).unwrap()[..], data[..]);
+    // The Copy/Debug Response path refuses even a valid response.
+    assert_eq!(decode(secret_read(), &good), Err(Error::Input));
+    // Every strict prefix, as-is and resized, fails without touching `out`.
+    for len in 0..good.len() {
+        assert!(decode_secret(&good[..len]).is_err(), "prefix {len}");
+        if len >= 6 {
+            let mut p = good[..len].to_vec();
+            p[2..6].copy_from_slice(&(len as u32).to_be_bytes());
+            assert!(decode_secret(&p).is_err(), "resized prefix {len}");
+        }
+    }
+    for i in 0..good.len() {
+        for bit in 0..8 {
+            let mut m = good.clone();
+            m[i] ^= 1 << bit;
+            let _ = decode_secret(&m);
+        }
+    }
+    // TPM error (policy failure), password trailer, 63 bytes, size field 63,
+    // trailing byte: all refused.
+    assert_eq!(
+        decode_secret(&head(codec::NO_SESSIONS, 0x99d, &[])),
+        Err(Error::Tpm(0x99d))
+    );
+    assert!(decode_secret(&rsp_s(&params, &PW_TAIL)).is_err());
+    let mut short = vec![0, 63];
+    short.extend_from_slice(&data[..63]);
+    assert_eq!(
+        decode_secret(&rsp_s(&short, &policy_tail())),
+        Err(Error::Length)
+    );
+    let mut size63 = params.clone();
+    size63[1] = 63;
+    assert_eq!(
+        decode_secret(&rsp_s(&size63, &policy_tail())),
+        Err(Error::Length)
+    );
+    let mut long = params.clone();
+    long.push(0);
+    assert_eq!(
+        decode_secret(&rsp_s(&long, &policy_tail())),
+        Err(Error::Length)
+    );
+    // decode_secret refuses every other command, even with a matching shape.
+    let other = || Request::NvRead {
+        index: index(trial_tpm::NV_HAUTH.handle),
+        auth: none(),
+        size: 64,
+        offset: 0,
     };
-    assert_eq!((len, &bytes[..]), (64, &data[..]));
-    // A password trailer on a policy-authorised read is a protocol error.
-    assert!(decode(req(), &rsp_s(&params, &PW_TAIL)).is_err());
-    truncations_fail(req, &good);
+    let mut out = [0xa5; MAX_NV_DATA];
+    let pw_good = rsp_s(&params, &PW_TAIL);
+    assert_eq!(
+        codec::encode(other(), &mut b)
+            .unwrap()
+            .decode_secret(&pw_good, &mut out),
+        Err(Error::Input)
+    );
+    assert_eq!(out, [0xa5; MAX_NV_DATA]);
 }
 
 #[test]
