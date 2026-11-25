@@ -121,8 +121,8 @@ chosen rather than another split.
 
 - `AGENTS.md` lists the ten specialists and the naming rule in the merge
   delegation paragraph.
-- The PR guard routes signals, metadata checks and CLEAR_READY verification (CLEAR_READY is the signal that a session's
-  context may be cleared safely) to
+- The PR guard routes signals, metadata checks and CLEAR_READY verification
+  (CLEAR_READY is the signal that a session's context may be cleared safely) to
   A, P, L and R in the same way as to the existing workstreams.
 - Issues #494 (CI) and #503 (PR guard) stay the places for decisions,
   operational notices and history.
