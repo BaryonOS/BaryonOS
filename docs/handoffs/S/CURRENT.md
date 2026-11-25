@@ -20,14 +20,27 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261125-2 (local session "BaryonOS - Specialist S", resumed
-  from the cloud on 25 November 2026 through #503). Cycle S-20261125-1 landed
-  on `main` as `8acf1dea` (PR #513: real formatted-count-below-scope case,
-  verdict for every reverse-corpus image).
-- **This branch:** `claude/s09-o13-latch-20261125` (PR #521): the O13 kernel
-  write latch specification in `docs/implementation/S09-DESTINATION-SERVICE.md`
-  2.7, with N38. O13-SPEC-REVIEW-1 and -2 (AI) returned REQUEST_CHANGES; all
-  findings applied; verifier O13-SPEC-VERIFY-3 confirmed the review-2 fixes.
+- **cycle_id:** S-20261125-3. Cycle S-20261125-2 landed on `main` as
+  `77dd864e` (PR #521: O13 kernel write latch specification, S09 2.7, N38).
+- **Owner (25 November 2026):** S is held by the local S session that the PR
+  guard started and registered as route S (handoff comment 7158653076 on
+  PR #522). Earlier holders: [7279be] (`local_ccd5edd7`) and `local_55c5182e`.
+- **This branch:** `claude/s09-o13-virtio-latch-20261125`, draft PR #522:
+  O13 step 1, an add-only latch table (4 entries) inside each device
+  `Policy` in `crates/virtio-core/src/lib.rs`; the L1 hook where `Unknown` is
+  set (`complete`, `start_reset`, `exit`); `latch_operation` (L1b refusal
+  rule), `write_latched` (enforcement query) and `latch_scope` (0x44
+  whole-entry rule, `Range` when no whole entry; step 2 maps it to -5).
+  15 `o13_*` host tests. Independent AI review O13-STEP1-REVIEW-1: APPROVE
+  with one should-fix (FLUSH at the `start_reset`/`timeout`/`exit` sites
+  untested), applied; the WRITE-only `start_reset` mutant is now killed.
+  Executed with toolchain 1.100.0, exit 0: on source `fc38cd11` (the
+  current implementation; later commits change only docs and progress),
+  virtio-core and the virtio-blk/-net/-rng drivers test and clippy
+  `-D warnings` and `fmt --all --check`; on the earlier source `741103a9`
+  (before the review fixes), `tools/build.py --kernel-feature
+  native-volume`. That build is not evidence for `fc38cd11`; the hosted
+  native gates on the PR head are.
 - **Coordinator requests:** C1–C5 in `COORDINATOR-REQUEST-20261124.md` are
   still open. The assessment-block conflict is decided by the coordinator
   (D3: per-PR assessment files, CI PR #519; then D1 merge queue); until #519
@@ -80,7 +93,8 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Next executable task
 
-1. O13 implementation, step 1: the add-only latch table beside `Policy` in
+1. O13 step 1 (PR #522, see above): hosted checks, merge-hold, progress
+   assessment, squash merge. Specification: the add-only latch table beside `Policy` in
    `crates/virtio-core` (open-to-latched only; WRITE intersection; a FLUSH
    with an `Unknown` completion or a device-side refused submission latches
    the whole device, full trigger list in S09 2.7; `Unknown` hook in `complete`, `start_reset` and

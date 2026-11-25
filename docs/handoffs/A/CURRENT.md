@@ -41,8 +41,11 @@ acceptance.
 
 - Worktree: `~/projects/BaryonOS-worktrees/a-track`
 - Branch: `claude/a-track-20261125`
-- PR: draft, see the branch on GitHub (self-merge only after CI's governance PR
-  records the A mandate and the guard's merge hold allows it).
+- PR: #531 (draft), tracking issue #536; stacked #535 (A03-T2b). The A merge
+  mandate is recorded on main in ADR-SPECIALIST-TEAM-20261125 clause 2 (#527,
+  9cc1b86f): squash with --match-head-commit after the checks and merge-hold pass.
+- L #538 (native-ai-job) has hunks adjacent to #531 in kernel/Cargo.toml and
+  tools/build.py; whichever PR merges second keeps both sets of lines.
 - Verified on head rebased onto 3b9a94c5: native-task-grant normal and
   test-task-grant-denied QEMU raw 33 accepted; native-sdk-app normal still
   accepted; broker host tests 7/7; progress.py --check exit 0.
