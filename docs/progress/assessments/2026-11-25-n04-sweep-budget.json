@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "a571d87cf2332442c8c3acf4a7f2abb4d8af1cb0",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/n04-sweep-budget-20261125",
+  "task": "N04 guard: port-sweep fixture deadline raised from 32,000 to 48,000 ticks and host watchdog from 360 to 520 s after slow hosted runners exceeded it",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Two hosted runs on #539 (run 45644765624, attempts 1 and 2) failed the native port sweep with raw exit 35 at about 323 s: both completed the pre-revocation sweep and were 97.6% and 98.4% through the post-revocation sweep when the 32,000-tick aggregate fixture deadline fired. Hosted sweep times on 25 November split into about 180 s and 269-323 s independent of the diff. The aggregate fixture deadline rises to 48,000 ticks and the host watchdog to 520 s (40 s gap kept); per-socket, IPC and app deadlines are unchanged, and every port must still be refused before and after revocation. No criterion changes."
+}
