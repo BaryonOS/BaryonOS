@@ -176,6 +176,9 @@ def boot_once(name: str, state_dir, qemu: str, env, files: dict[str, bytes], fro
 def main() -> int:
     argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter).parse_args()
     print(LABEL)
+    if not OUT.is_relative_to(ROOT):
+        # shortcut: run_update.qemu_command passes repository-relative paths; extend it if external builds are needed
+        raise SystemExit(f"error: NOS_BUILD_DIR must lie inside the repository for this runner (got {BUILD})")
     frozen = source_hash()
     env = environment()
     qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
@@ -215,13 +218,15 @@ def main() -> int:
             summary["rollback_store_equals_control"] = same
             summary["observed"] = same and source_hash() == frozen
     finally:
-        save_json(OUT / "summary.json", summary)
-        from build import build
         try:
-            build()  # restore the normal artifacts, as tools/test.py does
-        except Exception as exc:  # keep the original error visible; never report success afterwards
-            restore_error = exc
-            print(f"error: restoring normal artifacts failed: {exc}", file=sys.stderr)
+            save_json(OUT / "summary.json", summary)
+        finally:  # restore even if the summary cannot be written
+            from build import build
+            try:
+                build()  # restore the normal artifacts, as tools/test.py does
+            except Exception as exc:  # keep the original error visible; never report success afterwards
+                restore_error = exc
+                print(f"error: restoring normal artifacts failed: {exc}", file=sys.stderr)
     print(f"REL-05 hazard observed={summary['observed']} boots={len(summary['boots'])} {OUT / 'summary.json'}")
     if restore_error is not None:
         return 2  # the shared ESP may still hold the signed TEST loader
