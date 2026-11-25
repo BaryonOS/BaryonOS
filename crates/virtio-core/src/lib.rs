@@ -532,8 +532,11 @@ pub const LATCH_ENTRIES: usize = 4;
 /// One destination range of the O13 kernel write latch, in absolute sectors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct LatchEntry {
+    /// First absolute sector of the destination range.
     pub first: u64,
+    /// Number of sectors; registration guarantees `first + count` fits.
     pub count: u64,
+    /// Open (`false`) or latched (`true`); only ever goes to `true`.
     pub latched: bool,
 }
 impl LatchEntry {
@@ -583,10 +586,13 @@ impl Policy {
         });
         Ok(())
     }
+    /// Snapshot of the latch table for markers and tests.
+    #[must_use]
     pub const fn latches(&self) -> [Option<LatchEntry>; LATCH_ENTRIES] {
         self.latches
     }
     /// True when a WRITE to this absolute sector must be refused (`Access`).
+    #[must_use]
     pub fn write_latched(&self, sector: u64) -> bool {
         self.latches
             .iter()
@@ -838,6 +844,8 @@ impl Policy {
     }
     pub fn start_reset(&mut self) -> Result<(), Error> {
         if self.phase == Phase::Quarantined {
+            // No latch is missed here: a published uncompleted mutation was
+            // marked Unknown (and latched) on the way into Resetting.
             return Err(Error::Offline);
         }
         if let Some(r) = &mut self.pending {

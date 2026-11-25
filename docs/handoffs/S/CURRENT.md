@@ -25,16 +25,18 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 - **Owner (25 November 2026):** S is held by the local session "BaryonOS -
   Specialist S" [7279be] (`local_ccd5edd7`); project owner decision relayed by
   the PR guard. The previous session (`local_55c5182e`) stopped here.
-- **This branch:** `claude/s09-o13-virtio-latch-20261125` (no PR yet), O13
-  step 1 at `a72e06eb`: an add-only latch table (4 entries) inside each
-  device `Policy` in `crates/virtio-core/src/lib.rs`; the L1 hook where
-  `Unknown` is set (`complete`, `start_reset`, `exit`); `latch_operation`
-  (L1b refusal rule), `write_latched` (enforcement query) and `latch_scope`
-  (0x44 whole-entry rule, `Range` when no whole entry). 14 `o13_*` host tests.
-  Passed on that head: `cargo +1.90.0 test --locked -p virtio-core`
-  (35 + 6), clippy `-D warnings` and `fmt --all --check`, exit 0.
-  NOT RUN: consumer tests (virtio drivers, kernel builds), an independent
-  review, a mutation run; no PR.
+- **This branch:** `claude/s09-o13-virtio-latch-20261125`, draft PR #522:
+  O13 step 1, an add-only latch table (4 entries) inside each device
+  `Policy` in `crates/virtio-core/src/lib.rs`; the L1 hook where `Unknown` is
+  set (`complete`, `start_reset`, `exit`); `latch_operation` (L1b refusal
+  rule), `write_latched` (enforcement query) and `latch_scope` (0x44
+  whole-entry rule, `Range` when no whole entry; step 2 maps it to -5).
+  15 `o13_*` host tests. Independent AI review O13-STEP1-REVIEW-1: APPROVE
+  with one should-fix (FLUSH at the `start_reset`/`timeout`/`exit` sites
+  untested), applied; the WRITE-only `start_reset` mutant is now killed.
+  Passed with toolchain 1.100.0: virtio-core and the virtio-blk/-net/-rng
+  drivers test and clippy `-D warnings`, `fmt --all --check`, and
+  `tools/build.py --kernel-feature native-volume`, exit 0.
 - **Coordinator requests:** C1–C5 in `COORDINATOR-REQUEST-20261124.md` are
   still open. The assessment-block conflict is decided by the coordinator
   (D3: per-PR assessment files, CI PR #519; then D1 merge queue); until #519
@@ -87,8 +89,8 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Next executable task
 
-1. O13 step 1 (WIP on this branch, see above): finish with consumer tests,
-   review and a draft PR. Specification: the add-only latch table beside `Policy` in
+1. O13 step 1 (PR #522, see above): hosted checks, merge-hold, progress
+   assessment, squash merge. Specification: the add-only latch table beside `Policy` in
    `crates/virtio-core` (open-to-latched only; WRITE intersection; a FLUSH
    with an `Unknown` completion or a device-side refused submission latches
    the whole device, full trigger list in S09 2.7; `Unknown` hook in `complete`, `start_reset` and

@@ -749,11 +749,31 @@ fn o13_read_outcomes_never_latch() {
     let r = published(&mut p, read);
     assert!(p.timeout(r.deadline));
     p.reset_completed(true).unwrap();
-    let r = published(&mut p, read);
+    published(&mut p, read);
     p.exit(binding().pid).unwrap();
-    let _ = r;
+    p.reset_completed(true).unwrap();
+    // A caller-passed Unknown on a READ is stored but still never latches.
+    let r = published(&mut p, read);
+    p.complete(r.epoch, r.ticket, Completion::Unknown).unwrap();
     p.latch_operation(read);
     assert_eq!(latched(&p), [false; LATCH_ENTRIES]);
+}
+
+#[test]
+fn o13_flush_latches_whole_device_at_every_unknown_site() {
+    let entries = [(100, 10), (200, 10)];
+    let mut p = latch_policy(&entries);
+    published(&mut p, Operation::Flush);
+    p.start_reset().unwrap();
+    assert_eq!(latched(&p), [true, true, false, false]);
+    let mut p = latch_policy(&entries);
+    let r = published(&mut p, Operation::Flush);
+    assert!(p.timeout(r.deadline));
+    assert_eq!(latched(&p), [true, true, false, false]);
+    let mut p = latch_policy(&entries);
+    published(&mut p, Operation::Flush);
+    p.exit(binding().pid).unwrap();
+    assert_eq!(latched(&p), [true, true, false, false]);
 }
 
 #[test]
@@ -818,6 +838,7 @@ fn o13_scope_latch_requires_whole_entries() {
     assert_eq!(p.latch_scope(5, 10), Err(Error::Range));
     assert_eq!(p.latch_scope(30, 10), Err(Error::Range));
     assert_eq!(p.latch_scope(u64::MAX, 2), Err(Error::Range));
+    assert_eq!(p.latch_scope(0, 0), Err(Error::Range));
     assert_eq!(latched(&p), [false; LATCH_ENTRIES]);
     assert_eq!(p.latch_scope(0, 15), Ok(()));
     assert_eq!(latched(&p), [true, false, false, false]);
