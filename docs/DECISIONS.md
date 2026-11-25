@@ -104,6 +104,37 @@ recommendations become decisions as listed here.
   (5A): after a cold
   boot every network grant starts denied, and persisted grants are only
   suggestions for explicit re-confirmation.
+- **Decision 5B (TPM anchor use, approved 25 November 2026).** The project
+  owner explicitly approved option 5B in the N-track session: N may use the
+  TPM 2.0 infrastructure owned by workstream B (ADR-B03-REL05-TPM-20261125,
+  `docs/implementation/COLD-FRESHNESS-ANCHOR.md`) for durable network grants
+  and rollback protection. This is an approved, bounded extension of the trust
+  boundary. Binding conditions from the owner:
+  1. One shared TPM infrastructure with logically separate anchor domains for
+     network grants, storage and system updates.
+  2. B remains owner of the TPM infrastructure, trust anchors and their
+     lifecycle.
+  3. N gets access only through a bounded, capability-checked interface: no
+     direct TPM access and no authority over other security domains.
+  4. The generation is bound to the exact authenticated grant and tombstone
+     data; rollback, replay and reactivation of revoked network rights are
+     prevented.
+  5. Crash consistency, atomic commit semantics, recovery procedures and
+     protection against counter exhaustion are required.
+  6. TPM writes are limited responsibly, considering performance and hardware
+     endurance.
+  7. 5A fail-closed behaviour stays in force while the TPM anchor is missing,
+     unreliable or not yet fully validated.
+  8. No cloud, NAS or software fallback that weakens rollback protection.
+  9. Positive and negative native tests are run jointly with B, including cold
+     restarts, replay, interrupted writes, TPM failure and domain isolation.
+  Agreed ordering with B: commit-then-advance. A grant, subgrant, revocation or
+  durable denial is acknowledged only after the anchor advance succeeds. With
+  store generation S and anchor generation A at startup: S == A is accepted;
+  S == A + 1 rolls forward (the entry at S must authenticate and was never
+  acknowledged); S < A and S > A + 1 are rejected fail-closed. The advance is a
+  monotonic compare-and-swap from A to A + 1. Reserve-first was rejected because
+  every ordinary crash would leave the store looking rolled back.
 
 **Open:** proposal questions 6 (whether N04 acceptance requires durable
 revocation across restart), 7 (the component holding boot-lifetime denial
