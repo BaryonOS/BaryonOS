@@ -6,13 +6,15 @@
 //! extended (`CLOSED`, every active bank through firmware) on every path that
 //! reached the TPM, before the loader continues or stops. Markers carry
 //! results only, never secret bytes.
-use super::tpm_probe::{codec_fail, exchange, locate, Fail, Submit, Tcg2, TCG2_GUID};
+use super::tpm_probe::{
+    active_banks, codec_fail, exchange, locate, Fail, Submit, Tcg2, TCG2_GUID,
+};
 use super::Firmware;
 use crate::serial;
 use core::{ffi::c_void, mem::size_of, ptr};
 use nieuw_os_tpm_crb::codec::{
     encode, Auth, Hierarchy, NvDefinition, NvIndex, Password, PolicySession, Request, Response,
-    MAX_COMMAND, MAX_NV_DATA, MAX_RESPONSE,
+    ALG_SHA1, ALG_SHA256, ALG_SHA384, ALG_SHA512, MAX_COMMAND, MAX_NV_DATA, MAX_RESPONSE,
 };
 use nieuw_os_tpm_crb::transport::{BASE, BUFFER_OFFSET, BUFFER_SIZE};
 use r_efi::{efi, protocols::rng};
@@ -198,6 +200,28 @@ fn after(fw: &Firmware, tpm: &Tpm, secret: &[u8; MAX_NV_DATA]) -> Result<(), Fai
         return Err((b"PCR13_NOT_CLOSED", 0));
     }
     serial::write(b"LOADER-HAUTH:PCR13:CLOSED\n");
+    // Public read-back of every bank (U2); the runner checks each value. A bank
+    // the firmware reports inactive is not read. Before the 0x20E reads below,
+    // so the residue check still sees that answer last.
+    let active = active_banks(tpm.protocol)?;
+    for (bit, alg) in [(1, ALG_SHA1), (2, ALG_SHA256), (4, ALG_SHA384), (8, ALG_SHA512)] {
+        let bank = if active & bit == 0 {
+            None
+        } else {
+            match tpm.command(Request::PcrReadBank { pcr: 13, alg })? {
+                Response::PcrBank { len, digest, .. } => Some((len, digest)),
+                _ => return Err((b"PCR13_BANK", u64::from(alg))),
+            }
+        };
+        serial::write(b"LOADER-HAUTH:PCR13:BANK:");
+        serial::hex(u64::from(alg));
+        serial::write(b":");
+        match bank {
+            Some((len, digest)) => serial::bytes_hex(&digest[..usize::from(len)]),
+            None => serial::write(b"INACTIVE"),
+        }
+        serial::write(b"\n");
+    }
     let hauth = index(&rel05::NV_HAUTH)?;
     let session = tpm.policy(fw, rel05::TPM_CC_NV_READ)?;
     let mut scratch = Wiped([0u8; MAX_NV_DATA]);
@@ -386,7 +410,7 @@ impl Tpm {
     }
 
     /// `HashLogExtendEvent(13, CLOSED)`: firmware hashes the event string in
-    /// every active bank and logs it (U2; only the SHA-256 bank is read back).
+    /// every active bank and logs it (U2; `after` reads every active bank back).
     fn extend_closed(&self) -> Result<(), Fail> {
         // SAFETY: Aligned, firmware-owned TCG2 instance; one pointer is copied.
         let extend =

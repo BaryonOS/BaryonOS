@@ -20,6 +20,7 @@ class NativeTpmTranscriptTests(unittest.TestCase):
 
     HAUTH = ("LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:{permanent:016x}\n{mode}\n"
              "LOADER-HAUTH:BOUND\n{lockout}\nLOADER-HAUTH:PCR13:CLOSED\n"
+             + "".join(f"{line}\n" for line in probe.closed_banks(0xF)) +
              "LOADER-HAUTH:READ:REFUSED\nLOADER-HAUTH:OWNER:REFUSED\n"
              "LOADER-HAUTH:DA:{da:016x}:{da:016x}\n"
              "LOADER-HAUTH:RESIDUE:NONE\nLOADER-HAUTH:PASS\n")
@@ -100,12 +101,28 @@ class NativeTpmTranscriptTests(unittest.TestCase):
             (good.replace("LOADER-HAUTH:DA:0000000000000000:0000000000000000\n", ""), 0),
             (good + "LOADER-HAUTH:HALT:PCR13:CLOSED\n", 0),
             (good, 2),
+            # Every active bank must hold H(0^n || H(CLOSED)), once and in order.
+            (good.replace(":f6e96e2d", ":f6e96e2e"), 0),
+            (good.replace(probe.closed_banks(0xF)[0] + "\n", ""), 0),
+            (good.replace(probe.closed_banks(0xF)[3], probe.closed_banks(0x7)[3]), 0),
+            (good.replace(probe.closed_banks(0xF)[1] + "\n", "") + probe.closed_banks(0xF)[1] + "\n", 0),
+            (good + probe.closed_banks(0xF)[2] + "\n", 0),
+            (good.replace("BANKS:000000000000000f", "BANKS:000000000000000b"), 0),
         ):
             with self.subTest(bad=bad, boot=boot), self.assertRaises(ValueError):
                 probe.evaluate(bad, "loader-hauth", boot)
         for case in ("loader-rng", "normal"):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 probe.evaluate(good, case)
+        # An inactive bank is reported, not read; the expected values follow trial_tpm.rs.
+        inactive = good.replace("BANKS:000000000000000f", "BANKS:000000000000000b").replace(
+            probe.closed_banks(0xF)[2], probe.closed_banks(0xB)[2])
+        self.assertEqual(probe.evaluate(inactive, "loader-hauth")["LOADER_BANKS"], 0xB)
+        self.assertTrue(probe.closed_banks(0xB)[2].endswith(":INACTIVE"))
+        source = (Path(__file__).resolve().parents[2] / "crates/update-core/src/trial_tpm.rs").read_text()
+        self.assertIn(f'EVENT_CLOSED: &[u8] = b"{probe.EVENT_CLOSED.decode()}";', source)
+        closed = re.search(r'P_CLOSED: \[u8; 32\] =\s*h\("([0-9a-f]{64})"\)', source)
+        self.assertEqual(probe.closed_banks(0x2)[1].rsplit(":", 1)[1], closed.group(1))
 
     def test_loader_halt_stops_after_the_closed_extend_and_before_the_kernel(self):
         good = self.transcript("loader-hauth-no-rng")

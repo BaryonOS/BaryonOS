@@ -71,21 +71,29 @@ pub(super) fn locate<T>(fw: &Firmware, guid: efi::Guid) -> Result<Option<*mut T>
     Ok(Some(protocol))
 }
 
-fn tcg2(fw: &Firmware) -> Result<(), Fail> {
-    let Some(protocol) = locate::<Tcg2>(fw, TCG2_GUID)? else {
-        serial::write(b"LOADER-TPM:TCG2:ABSENT\n");
-        return Ok(());
-    };
-    serial::write(b"LOADER-TPM:TCG2:PRESENT\n");
-    // SAFETY: Aligned, firmware-owned TCG2 instance; only two pointers are copied.
-    let (submit, banks) = unsafe { ((*protocol).submit_command, (*protocol).get_active_pcr_banks) };
-    let (submit, banks) = submit.zip(banks).ok_or((b"TCG2_TABLE" as &[u8], 0))?;
+/// `GetActivePcrBanks`: the firmware bitmap of active PCR banks.
+pub(super) fn active_banks(protocol: *mut Tcg2) -> Result<u32, Fail> {
+    // SAFETY: Aligned, firmware-owned TCG2 instance; one pointer is copied.
+    let banks =
+        unsafe { (*protocol).get_active_pcr_banks }.ok_or((b"TCG2_TABLE" as &[u8], 0))?;
     let mut active = 0u32;
     // SAFETY: Firmware TCG2 call before EBS with a valid local output.
     let status = unsafe { banks(protocol, &mut active) };
     if status != efi::Status::SUCCESS {
         return Err((b"BANKS", status.as_usize() as u64));
     }
+    Ok(active)
+}
+
+fn tcg2(fw: &Firmware) -> Result<(), Fail> {
+    let Some(protocol) = locate::<Tcg2>(fw, TCG2_GUID)? else {
+        serial::write(b"LOADER-TPM:TCG2:ABSENT\n");
+        return Ok(());
+    };
+    serial::write(b"LOADER-TPM:TCG2:PRESENT\n");
+    // SAFETY: Aligned, firmware-owned TCG2 instance; one pointer is copied.
+    let submit = unsafe { (*protocol).submit_command }.ok_or((b"TCG2_TABLE" as &[u8], 0))?;
+    let active = active_banks(protocol)?;
     serial::write(b"LOADER-TPM:BANKS:");
     serial::hex(u64::from(active));
     serial::write(b"\n");

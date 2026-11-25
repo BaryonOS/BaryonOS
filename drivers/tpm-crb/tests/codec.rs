@@ -608,6 +608,56 @@ fn pcr_read_decodes_one_sha256_digest_and_refuses_empty_bank() {
 }
 
 #[test]
+fn pcr_read_bank_decodes_each_bank_and_refuses_other_algorithms() {
+    for (alg, size) in [
+        (codec::ALG_SHA1, 20usize),
+        (codec::ALG_SHA256, 32),
+        (codec::ALG_SHA384, 48),
+        (codec::ALG_SHA512, 64),
+    ] {
+        let req = || Request::PcrReadBank { pcr: 13, alg };
+        let mut selection = trial_tpm::PCR_SELECTION_PHASE;
+        selection[4..6].copy_from_slice(&alg.to_be_bytes());
+        assert_eq!(enc(req()), head(codec::NO_SESSIONS, 0x17e, &selection));
+        let value: Vec<u8> = (1..=size as u8).collect();
+        let mut body = 5u32.to_be_bytes().to_vec();
+        body.extend_from_slice(&selection);
+        body.extend_from_slice(&[0, 0, 0, 1]);
+        body.extend_from_slice(&(size as u16).to_be_bytes());
+        body.extend_from_slice(&value);
+        let good = rsp(codec::NO_SESSIONS, &body);
+        let mut digest = [0; codec::MAX_DIGEST];
+        digest[..size].copy_from_slice(&value);
+        assert_eq!(
+            decode(req(), &good),
+            Ok(Response::PcrBank {
+                update_counter: 5,
+                len: size as u8,
+                digest
+            })
+        );
+        truncations_fail(req, &good);
+        // Same length, another bank or PCR selected; and an unallocated bank.
+        for (i, v) in [(9usize, alg as u8 ^ 1), (12, 0x40)] {
+            let mut b = body.clone();
+            b[i] = v;
+            assert_eq!(
+                decode(req(), &rsp(codec::NO_SESSIONS, &b)),
+                Err(Error::Protocol)
+            );
+        }
+        let mut empty = 5u32.to_be_bytes().to_vec();
+        empty.extend_from_slice(&[0; 8]);
+        assert!(decode(req(), &rsp(codec::NO_SESSIONS, &empty)).is_err());
+    }
+    for alg in [0x0000, 0x000e, 0x0010, 0x0012] {
+        assert_eq!(enc_err(Request::PcrReadBank { pcr: 13, alg }), Error::Input);
+    }
+    let alg = codec::ALG_SHA512;
+    assert_eq!(enc_err(Request::PcrReadBank { pcr: 24, alg }), Error::Input);
+}
+
+#[test]
 fn pcr_extend_golden_bytes_and_size() {
     let req = || Request::PcrExtend {
         pcr: 13,
@@ -766,6 +816,13 @@ fn every_new_command_fits_the_128_byte_bound_at_its_maximum() {
             67,
         ),
         (Request::PcrRead { pcr: 23 }, 20),
+        (
+            Request::PcrReadBank {
+                pcr: 23,
+                alg: codec::ALG_SHA512,
+            },
+            20,
+        ),
         (
             Request::PcrExtend {
                 pcr: 23,

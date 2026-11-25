@@ -8,11 +8,17 @@ pub const SESSIONS: u16 = 0x8002;
 pub const COUNTER_ATTRIBUTES: u32 = 0x0004_0014;
 /// Largest NV payload any REL-05 index carries (section 6.1: 64-byte records).
 pub const MAX_NV_DATA: usize = 64;
-/// SHA-256 digest size; the only hash this codec speaks.
+/// SHA-256 digest size; the only hash this codec speaks, except that
+/// `PcrReadBank` reads (never extends) the SHA-1, SHA-384 and SHA-512 banks.
 pub const DIGEST: usize = 32;
+/// Largest bank digest `PcrReadBank` returns (SHA-512).
+pub const MAX_DIGEST: usize = 64;
 /// Highest PCR index addressable by the 3-byte selection (PC client: 24 PCRs).
 pub const MAX_PCR: u8 = 23;
-const ALG_SHA256: u16 = 0x000b;
+pub const ALG_SHA1: u16 = 0x0004;
+pub const ALG_SHA256: u16 = 0x000b;
+pub const ALG_SHA384: u16 = 0x000c;
+pub const ALG_SHA512: u16 = 0x000d;
 const ALG_NULL: u16 = 0x0010;
 const RH_NULL: u32 = 0x4000_0007;
 const RH_OWNER: u32 = 0x4000_0001;
@@ -204,6 +210,12 @@ pub enum Request<'a> {
     PcrRead {
         pcr: u8,
     },
+    /// `PCR_Read` of one PCR in one bank: `ALG_SHA1`, `ALG_SHA256`,
+    /// `ALG_SHA384` or `ALG_SHA512`; an unallocated bank is refused.
+    PcrReadBank {
+        pcr: u8,
+        alg: u16,
+    },
     /// `PCR_Extend` with exactly one SHA-256 digest.
     PcrExtend {
         pcr: u8,
@@ -262,6 +274,7 @@ pub(crate) enum Expectation {
     Data { size: u16 },
     Secret,
     Pcr { pcr: u8 },
+    PcrBank { pcr: u8, alg: u16 },
     PublicArea { index: NvIndex },
 }
 pub struct Command<'a> {
@@ -342,7 +355,7 @@ impl Writer<'_> {
         self.put(data);
     }
     fn selection(&mut self, pcr: u8) {
-        self.put(&selection(pcr));
+        self.put(&selection(pcr, ALG_SHA256));
     }
     fn public(&mut self, index: NvIndex) {
         self.u16(14);
@@ -516,6 +529,15 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
             check_pcr(*pcr)?;
             (20, 0x17e, Tail::None, Expectation::Pcr { pcr: *pcr }, false)
         }
+        Request::PcrReadBank { pcr, alg } => {
+            check_pcr(*pcr)?;
+            digest_size(*alg)?;
+            let expect = Expectation::PcrBank {
+                pcr: *pcr,
+                alg: *alg,
+            };
+            (20, 0x17e, Tail::None, expect, false)
+        }
         Request::PcrExtend { pcr, auth, .. } => {
             check_pcr(*pcr)?;
             (
@@ -677,6 +699,7 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
             w.tpm2b(new_auth.0);
         }
         Request::PcrRead { pcr } => w.selection(pcr),
+        Request::PcrReadBank { pcr, alg } => w.put(&selection(pcr, alg)),
         Request::PcrExtend { pcr, auth, digest } => {
             w.u32(pcr.into());
             w.auth(auth);
@@ -702,11 +725,22 @@ fn check_pcr(pcr: u8) -> Result<(), Error> {
         Err(Error::Input)
     }
 }
-/// `TPML_PCR_SELECTION` {count 1, SHA-256, sizeofSelect 3, one bit}.
-fn selection(pcr: u8) -> [u8; 10] {
-    let mut s = [0, 0, 0, 1, 0x00, 0x0b, 3, 0, 0, 0];
+/// `TPML_PCR_SELECTION` {count 1, `alg`, sizeofSelect 3, one bit}.
+fn selection(pcr: u8, alg: u16) -> [u8; 10] {
+    let [high, low] = alg.to_be_bytes();
+    let mut s = [0, 0, 0, 1, high, low, 3, 0, 0, 0];
     s[7 + usize::from(pcr / 8)] = 1 << (pcr % 8);
     s
+}
+/// Digest size of a bank `PcrReadBank` may read.
+fn digest_size(alg: u16) -> Result<usize, Error> {
+    match alg {
+        ALG_SHA1 => Ok(20),
+        ALG_SHA256 => Ok(32),
+        ALG_SHA384 => Ok(48),
+        ALG_SHA512 => Ok(MAX_DIGEST),
+        _ => Err(Error::Input),
+    }
 }
 fn u16at(b: &[u8], at: usize) -> u16 {
     u16::from_be_bytes(b[at..at + 2].try_into().unwrap())
@@ -745,6 +779,11 @@ pub enum Response {
     Pcr {
         update_counter: u32,
         digest: [u8; DIGEST],
+    },
+    PcrBank {
+        update_counter: u32,
+        len: u8,
+        digest: [u8; MAX_DIGEST],
     },
     NvPublicArea(NvPublicArea),
 }
@@ -886,7 +925,7 @@ pub(crate) fn validate(
                 return Err(Error::Length);
             }
             // An unallocated bank comes back as an empty selection: refuse it.
-            if body[4..14] != selection(pcr)
+            if body[4..14] != selection(pcr, ALG_SHA256)
                 || u32at(body, 14) != 1
                 || u16at(body, 18) != DIGEST as u16
             {
@@ -896,6 +935,25 @@ pub(crate) fn validate(
             digest.copy_from_slice(&body[20..]);
             Ok(Response::Pcr {
                 update_counter: u32at(body, 0),
+                digest,
+            })
+        }
+        Expectation::PcrBank { pcr, alg } => {
+            let size = digest_size(alg)?;
+            if body.len() != 20 + size {
+                return Err(Error::Length);
+            }
+            if body[4..14] != selection(pcr, alg)
+                || u32at(body, 14) != 1
+                || usize::from(u16at(body, 18)) != size
+            {
+                return Err(Error::Protocol);
+            }
+            let mut digest = [0; MAX_DIGEST];
+            digest[..size].copy_from_slice(&body[20..]);
+            Ok(Response::PcrBank {
+                update_counter: u32at(body, 0),
+                len: size as u8,
                 digest,
             })
         }

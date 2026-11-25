@@ -7,6 +7,7 @@ counter on a prepared state."""
 from __future__ import annotations
 
 import argparse
+import hashlib
 from contextlib import contextmanager
 import json
 import os
@@ -70,6 +71,26 @@ def hauth_markers(boot):
     return ("LOADER-HAUTH:BEGIN", mode, "LOADER-HAUTH:BOUND", lockout, "LOADER-HAUTH:PCR13:CLOSED",
             "LOADER-HAUTH:READ:REFUSED", "LOADER-HAUTH:OWNER:REFUSED",
             "LOADER-HAUTH:RESIDUE:NONE", "LOADER-HAUTH:PASS")
+
+
+# PCR 13 after the loader's CLOSED extend, per firmware bank bit: H(0^n || H(event)).
+EVENT_CLOSED = b"BARYON-TRIAL-CLOSED-V1"
+PCR_BANKS = ((0x0004, 0x1, "sha1"), (0x000B, 0x2, "sha256"), (0x000C, 0x4, "sha384"),
+             (0x000D, 0x8, "sha512"))
+
+
+def closed_banks(mask):
+    """The loader's PCR13:BANK lines for a firmware bank mask; inactive banks are not read."""
+    lines = []
+    for alg, bit, name in PCR_BANKS:
+        value = "INACTIVE"
+        if mask & bit:
+            size = hashlib.new(name).digest_size
+            value = hashlib.new(name, bytes(size) + hashlib.new(name, EVENT_CLOSED).digest()).hexdigest()
+        lines.append(f"LOADER-HAUTH:PCR13:BANK:{alg:016x}:{value}")
+    return lines
+
+
 COMMON = ("M2:PASS", "TPMCRB:BOUNDS:PASS", "TPMCRB:MAPPING:PASS",
           "IPCWAIT:MANIFEST:PASS", "IPCWAIT:REVOKED_FULL_QUEUE:PASS")
 
@@ -113,6 +134,9 @@ def evaluate(stdout, case, boot=0):
         result.update(loader_observations(stdout))
         if result["LOADER_RNG"] != LOADER_RNG[case]:
             raise ValueError(f"Loader RNG must be {LOADER_RNG[case]} in {case}")
+        banks = re.findall(r"^LOADER-HAUTH:PCR13:BANK:.*$", stdout, re.M)
+        if banks != (closed_banks(result["LOADER_BANKS"]) if case in PROVISIONED else []):
+            raise ValueError("PCR 13 banks do not all hold the CLOSED value")
         case = "normal"
     elif "LOADER-TPM:" in stdout:
         raise ValueError("Loader TPM probe output in a kernel-only case")
