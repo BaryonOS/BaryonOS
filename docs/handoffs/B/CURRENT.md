@@ -72,4 +72,5 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 ## Next executable task
 
 - Finish the B03-F1 PR (gates, merge-hold re-run, expected-head squash merge, verify on main, post
-  `HANDOFF B b03-f1-floor-crash-20261125`), then draft the REL-05 policy proposal for the owner.
+  `HANDOFF B b03-f1-floor-crash-20261125`). REL-05 policy proposal: `docs/implementation/B03-REL05-FLOOR-POLICY-PROPOSAL.md`
+  (owner decision A/B/C pending; no loader change before it).
