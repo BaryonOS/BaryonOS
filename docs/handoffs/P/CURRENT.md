@@ -38,13 +38,18 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   a571d87c), and the local native gate passes there (4/4, raw exit 33). The
   GitHub incident reruns were accepted at 16:34Z (runs 45644871049 coverage,
   45644871306 CodeQL). merge-hold failed only on a wait timeout (unchanged
-  head), so rerun it once after its pending runs finish. Reviews are handled:
+  head). At ~18:10Z main was de242a3f (#542 merged) and #533 was BEHIND, so
+  merge-hold is not rerun on f7fa786f: the catch-up head re-runs it with the
+  #542 poll fix. Reviews are handled:
   the CodeRabbit race is fixed, and the AI review and Graphify findings are
   answered. Codex and Copilot have no quota, so they are not retriggered.
-- P0 CI-first mode (owner, ~17:25Z): main is frozen while CI batch #544 is
-  verified. No push that triggers hosted CI. Lane order after #544:
-  #515 → #539 → #533. This handoff commit (local, ahead of origin) goes out in
-  the single catch-up push when #533 gets the lane.
+- P0 CI-first mode (owner, ~17:25Z; corrected ~18:05Z): CI keeps priority
+  until all CI batches are resolved, so the main freeze continues after #544
+  lands. #533 gets the lane only when a CI PR is genuinely blocked (non-infra
+  failure, 15 min without progress, or 60 min) or the CI exit criterion is
+  met; order #515 → #539 → #533. No push that triggers hosted CI. Local
+  handoff commits stay local and go out in the single catch-up push when the
+  PR guard grants #533 the lane.
 
 ## Next
 
