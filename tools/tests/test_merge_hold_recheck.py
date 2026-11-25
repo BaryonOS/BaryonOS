@@ -175,6 +175,16 @@ class RecheckTests(TestCase):
         self.assertEqual((len(api.sleeps), api.posts), (1, []))
         self.assertIn("concluded success", lines[-1])
 
+    def test_no_rerun_when_a_gate_reopens_during_the_wait(self):
+        # CodeRabbit on #550: the open-gate rule applies to the refreshed listing too.
+        reopened = [run(1, CI), run(2, LEAVES, status="in_progress", attempt=2),
+                    run(3, HOLD, conclusion="failure")]
+        api, lines = decide([run(1, CI), run(2, LEAVES), run(3, HOLD, status="in_progress")],
+                            later=[reopened])
+        self.assertEqual((len(api.sleeps), api.posts), (1, []))
+        self.assertIn("gate runs open again after the wait", lines[-1])
+        self.assertIn("(run 2, in_progress)", lines[-1])
+
     def test_the_wait_for_a_running_merge_hold_is_bounded(self):
         api, lines = decide([run(1, CI), run(3, HOLD, status="in_progress")])
         self.assertEqual(api.sleeps, [recheck_module.POLL_SECONDS] * recheck_module.WAIT_POLLS)

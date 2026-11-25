@@ -134,6 +134,16 @@ def rerun(post, repo, run):
     return f"re-ran merge-hold run {run['id']} ({run['conclusion']}, {endpoint})"
 
 
+def open_gates(runs, trigger, watched, repo):
+    """Gate runs of this head, other than the trigger, that have not completed."""
+    # Workflow names come from the pull request branch: JSON-escape them so no line of the
+    # log starts with a workflow command or carries a control character.
+    return sorted(f"{json.dumps(run.get('name'))} (run {run['id']}, {run.get('status')})" for run in runs
+                  if run.get("path") in watched and run["id"] != trigger["id"]
+                  and (run.get("head_repository") or {}).get("full_name") == repo
+                  and run.get("status") != "completed")
+
+
 def recheck(event, repo, watched, get, post, sleep=time.sleep):
     """Re-run stale merge-hold runs for the head of a finished watched run; return report lines."""
     trigger = event["workflow_run"]
@@ -163,10 +173,7 @@ def recheck(event, repo, watched, get, post, sleep=time.sleep):
         return lines + ["No listed pull request is still at this head; nothing to re-check."]
     runs = head_runs(get, repo, sha)
     # The triggering run has finished even if the listing still lags behind.
-    still_open = sorted(f"{json.dumps(run.get('name'))} (run {run['id']}, {run.get('status')})" for run in runs
-                        if run.get("path") in watched and run["id"] != trigger["id"]
-                        and (run.get("head_repository") or {}).get("full_name") == repo
-                        and run.get("status") != "completed")
+    still_open = open_gates(runs, trigger, watched, repo)
     if still_open:
         return lines + ["Gate runs still open; their completion re-checks again: " + ", ".join(still_open)]
     polls = WAIT_POLLS  # one budget for all listed pull requests
@@ -196,6 +203,10 @@ def recheck(event, repo, watched, get, post, sleep=time.sleep):
             lines.append(f"{where} concluded {newest.get('conclusion')}; nothing to re-run.")
         elif run_order(newest)[0] >= finished:
             lines.append(f"{where} started after this run finished; its verdict already covers it.")
+        elif reopened := open_gates(runs, trigger, watched, repo):
+            # A gate can start a new attempt during the wait; its completion re-checks again.
+            lines.append(f"#{number}: gate runs open again after the wait; their completion "
+                         "re-checks again: " + ", ".join(reopened))
         else:
             # Narrow the window in which a push makes this re-run cancel the new head's merge-hold.
             head = get(f"/repos/{repo}/pulls/{number}")["head"]["sha"]
