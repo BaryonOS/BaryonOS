@@ -69,7 +69,7 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   `--flags not-need-init,startup-clear`, verified only on swtpm 0.10.1. `ci.yml#host-quality` installs no swtpm, so
   they skip there, but `native-system.yml` runs `tools.tests.test_tpm` with the pinned swtpm 0.7.3, so they run on
   the first lane push; the halt-unchanged check
-  in `run_tpm.run()` has no unit test; ci-impact selects host-quality through the `tools/**` glob.
+  and the repair-changes-only-lockoutAuthSet check in `run_tpm.run()` have no unit test; ci-impact selects host-quality through the `tools/**` glob.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
   staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; the TEST loader does not check
   ownerAuth against `HAUTH[..32]` (a foreign owner planting a well-formed `HAUTH`/`LREC` would bind); U25 on the hosted OVMF image and real firmware.
@@ -129,7 +129,9 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Done locally: 94acc222 `loader-hauth-lockout-cut` (seed `lockout-cut`: host TEST `HAUTH` secret, BOUND `LREC` through
   the PCR 13 = 0 write policy with the `trial.rs` encoding pinned in `test_tpm`, ownerAuth = `HAUTH[:32]`, lockoutAuth
   empty; runner `REPAIRED` table and an after-boot check that only lockoutAuthSet changed), then the evidence/handoff
-  commit. Fourteen native cases at source 6817b4e7; results in the new evidence directory.
+  commit, then the assessment/spec commit (CHECKPOINT 7173740570, ~20:30Z). Fourteen native cases at source
+  6817b4e7; results in the new evidence directory. #524 checks on 5e126571: 69 pass, 10 skipped, only merge-hold
+  red (BEHIND); 0 unresolved review threads.
 - Next on #524, decision-free: the remaining seeded cut points of the provisioning sequence (HAUTH defined but
   unwritten; HAUTH written before the LREC define; LREC written before the ownerAuth change), each expected to repair
   through `MODE:PROVISION` like `loader-hauth-cut`. Then, only after the owner

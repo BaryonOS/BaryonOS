@@ -940,3 +940,18 @@ requires, on every provisioned boot, exactly the four lines that
 This extends the U2 observation from the SHA-256 bank to every bank that
 OVMF 2025.11 activates; the hosted OVMF image remains NOT RUN. Halt paths
 never reach the read-back, so they keep their output.
+
+### Loader M1-HAUTH cut between the ownerAuth and lockoutAuth changes (25 November 2026)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-hauth-lockout-cut-20261125](../verification/b03-rel05-hauth-lockout-cut-20261125/README.md).
+The `lockout-cut` seed of `tools/tpm_seed.py` writes `HAUTH` and a BOUND
+`LREC` (the `trial.rs` encoding, through the PCR 13 = 0 write policy) and sets
+ownerAuth to `HAUTH[:32]`, leaving lockoutAuth empty: the state after a power
+cut between the two `HierarchyChangeAuth` calls. The TEST loader reports
+`MODE:EXISTING`, `BOUND` and `LOCKOUT:SET`; `run_tpm.py` requires that the
+public state afterwards differs only in lockoutAuthSet and that the next boot
+follows the `loader-hauth` path. Because the loader does not compare ownerAuth
+with `HAUTH[..32]`, the same result would follow from any non-empty ownerAuth
+with a consistent `HAUTH` and `LREC`. The other cut points of the provisioning
+sequence and fault injection remain NOT RUN.
