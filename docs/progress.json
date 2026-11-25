@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "a4b4d550999598cc092bb4e5ff3e711f0e1cb393",
+    "source_commit": "9b24c9d5cb102b72db5688d2dc99f7ac25c50274",
     "assessment_basis": "parent_commit",
     "branch": "claude/sweet-franklin-ljra1f",
     "task": "H06-T8 exact-line matching for full-line HW-INV fixture markers",

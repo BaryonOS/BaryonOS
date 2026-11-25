@@ -7,8 +7,8 @@ and not H06 acceptance.
 
 | Item | Value |
 |---|---|
-| Source commit | `a4b4d55` (branch `claude/sweet-franklin-ljra1f` after merging main `a2595a3a`, which contains #500 and #504), clean tree. The first run on `013b60ad` (fingerprint `74c732d2…`) also passed; this rerun rebinds the evidence because main changed `tools/`. |
-| Source fingerprint (v3) | `56ff972a05ed7cc1ae038fc54a7d4d869cafb8d62229b5c1ceb0310a6eab8583` |
+| Source commit | `9b24c9d` (branch `claude/sweet-franklin-ljra1f` after merging main `a2595a3a`, which contains #500 and #504, plus removal of a merge-duplicated test class), clean tree. Earlier runs on `013b60ad` (fingerprint `74c732d2…`) and `a4b4d55` (fingerprint `56ff972a…`) also passed; each rerun rebinds the evidence because `tools/` changed. |
+| Source fingerprint (v3) | `d1cb0845caee93f1db03be98fc19e5b1955e56ab198e2953569338eff2a4f819` |
 | Emulator | QEMU 8.2.2 (cloud container), machine `pc-q35-8.2` (the hosted CI pin), TCG, one CPU, 256 MiB, OVMF without enrolled keys, `isa-debug-exit` at `0xf4` |
 | Gate | the steps of `.github/workflows/native-hw-inventory.yml`, run in order; every step's raw exit code was 0 |
 
