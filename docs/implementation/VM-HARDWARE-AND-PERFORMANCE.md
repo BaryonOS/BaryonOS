@@ -32,8 +32,8 @@ The code also shows an expensive rendering path:
 - `ui/surface-protocol`: `Operation::Retain` confirms runs of unchanged tiles
   against the receiver's retained base frame without resending their bytes.
 - `sdk/examples/materiaal/src/lib.rs::paint_step`: one tile transaction per
-  app iteration; a changed view generation restarts at tile zero. In retained
-  mode, tiles whose rendered bytes match the digest of what the surface shows
+  call (`step_interactive` makes up to four calls); a changed view
+  generation restarts at tile zero. In retained mode, tiles whose rendered bytes match the digest of what the surface shows
   are confirmed with RETAIN instead of being re-sent (branch
   `claude/r02-dirty-repaint-20261125`; local KVM A/B in
   `docs/verification/r02-materiaal-repaint-ab-20261125/`).
@@ -127,7 +127,8 @@ after most view changes. Digest-proven RETAIN in the client paint
 path reduced the window-session duration in a local KVM A/B from a median of
 26.93 s to 18.69 s (ten runs per side, host-side timing, `-smp 1`); this is
 not hosted, physical or budget evidence. Remaining per-tile costs: one
-acknowledgement per tile and one tile transaction per app iteration. Longer
+acknowledgement per tile and one tile transaction per `paint_step` (up to
+four per `step_interactive` call). Longer
 term, a capability-bound transfer buffer with explicit ownership, bounded
 length and revocation. Do not give apps raw framebuffer or DMA permission for
 speed.

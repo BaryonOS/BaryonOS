@@ -15,11 +15,13 @@ FNV-1a digest of what the surface already shows. Before the change, retained
 mode disabled the digest skip, so the conservative (often whole-viewport)
 controller damage re-sent about 1785 tiles after most view changes.
 
-Safety conditions: a digest enters the cache only after the tile's blit is
-acknowledged; RETAIN only after a complete frame and with a retained base;
-the last tile always commits; tiles blitted by a superseded partial frame are
-re-sent until the next complete frame (the receiver refuses RETAIN for tiles
-changed since its base frame, which would fail the surface).
+Safety conditions of the digest scan: a digest enters the cache only after
+the tile's blit is acknowledged; digest RETAIN only after a complete frame and
+with a retained base; the scan never confirms the last tile by digest; tiles
+blitted by a superseded partial frame are re-sent until the next complete
+frame (the receiver refuses RETAIN for tiles changed since its base frame,
+which would fail the surface). The pre-existing RETAIN of tiles outside the
+controller damage is unchanged and may cover the last tile.
 
 ## Configuration
 
