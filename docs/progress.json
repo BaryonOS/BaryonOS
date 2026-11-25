@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "9dfff70cbb49a2f2045c21a665e7d4a2cb2b8bfb",
+    "source_commit": "0fb488d26e7745ad7e97f13fca5ba3e41f9ec81b",
     "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/fervent-mccarthy-wykkfa",
-    "task": "N02-T6 host regression: NXDOMAIN without SOA is never cached by the network service",
+    "branch": "claude/ui-u-keyboard-only-20261124",
+    "task": "U04-K1: keyboard-only reachability and activation host test for the window-session shell",
     "previous_score": 43,
-    "summary": "43/100 unchanged. A host test of the network service replays the reply shape the runner's systemd-resolved stub sent for missing.invalid (NXDOMAIN, NSCOUNT 0, 33 bytes): the caller gets NotFound and the next Resolve sends a fresh query because no negative-cache lifetime can be derived without an SOA. A mutant that invents a lifetime fails only this test. This is host evidence only; no physical NIC, timeout, truncation or stale-response case against a real resolver is covered, so N02 remains open and earns no points. Source commit is main 9dfff70c merged into the branch."
+    "summary": "43/100: unchanged. Test evidence (host only): passing tests show that on the Lock, Users, Auth, Search, Settings, Session, Notifications and Capability pages Tab visits each listed control in reading order, Shift+Tab reverses without a trap, Escape returns to Lock or Desktop, and at scales 1 and 2 Enter matches a pointer click on every control except the search text field (where Enter launches the first result), while Space matches a click on every page except Search. Known defects, pinned by ignored tests and not covered by the passing evidence: held Enter/Space repeats activation, Space on a focused search result types instead of activating, and the Notifications page has no keyboard route from the Desktop. U04 stays open: these defects, native keyboard evidence, the screen-reader chain (TTS/braille owner decision) and human trials are missing. The delivery-review snapshot remains pinned to its own commit."
   },
   "tracks": [
     {
