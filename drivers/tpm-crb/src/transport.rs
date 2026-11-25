@@ -108,7 +108,7 @@ pub struct Transport<I: Io> {
     deadline: u64,
     cancel_ticks: u64,
     cancel_fault: Fault,
-    expect: Option<(Expectation, bool)>,
+    expect: Option<(Expectation, codec::Tail)>,
     effect: Effect,
     response: [u8; MAX_RESPONSE],
 }

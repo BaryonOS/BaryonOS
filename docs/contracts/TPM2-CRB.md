@@ -158,6 +158,36 @@ SHA256 digest and thereby proves no lineage. That belongs later to the
 reviewed key/provisioning service outside the kernel. Error responses have
 exactly the fitting 10 B header; no partial data is accepted.
 
+### REL-05 policy-session, NV and PCR codecs (B03 step S3)
+
+For REL-05 (`docs/implementation/B03-REL05-TRIAL-BOOT-TPM.md`, section 13,
+step S3) the codec additionally encodes: `StartAuthSession` for a policy
+session only (tpmKey and bind `TPM_RH_NULL`, i.e. unsalted and unbound, empty
+salt, symmetric `TPM_ALG_NULL`, authHash SHA-256, caller nonce 16–32 B);
+`PolicyPCR` with an empty `pcrDigest` over one SHA-256 PCR 0–23;
+`PolicyCommandCode`; owner-authorized `NV_DefineSpace` with an explicit
+public area (ordinary 1–64 B or counter 8 B, nameAlg SHA-256, empty index
+authValue, `authPolicy` empty or 32 B); `NV_Write` of 1–64 B with
+`authHandle` = the index and either a password or a policy session;
+`NV_Read` of 1–64 B; `PCR_Read` and `PCR_Extend` of one SHA-256 PCR; and
+`NV_ReadPublic` decoded into attributes (with type), size and `authPolicy`.
+Maximum command sizes are 59, 26, 18, 109, 99, 67, 20, 97 and 14 B; a
+combination above 128 B (for example a 32 B password with 64 B of NV data)
+is refused before any output byte changes.
+
+A policy session is sent with an empty nonce, empty HMAC and
+continueSession clear, so the TPM flushes it after one use. Its response must
+carry a 32 B nonceTPM, attributes 0 and an empty HMAC *[unverified against
+swtpm; S4/S5]*. `PCR_Read` refuses an empty or different selection, which is
+how an unallocated SHA-256 bank appears. `NV_ReadPublic` still returns the
+name unverified; REL-05 callers compare the decoded fields with
+`update_core::trial_tpm::NvSpec::matches`. `Command::decode` exposes the same
+response validation for a transport other than CRB (the loader's firmware
+TCG2 path, S6). Host tests in `drivers/tpm-crb/tests/codec.rs` check golden
+bytes, every size bound, truncated and malformed responses, and that the
+`NV_DefineSpace` public area equals `NvSpec::encode_public` for all REL-05
+and anchor indices. This is host evidence only; swtpm acceptance is S5.
+
 ## Rollback, boot, updates and privacy
 
 `services/keyring/src/persistent.rs` requires an independently trusted

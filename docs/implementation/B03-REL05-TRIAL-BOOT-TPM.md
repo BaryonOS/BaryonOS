@@ -2,9 +2,11 @@
 
 **Status (separated):** *design* in this document (task B03-REL05-D1,
 25 November 2026). *Implementation*: S1 host model `crates/update-core/src/trial.rs`
-and S2 frozen TPM constants `crates/update-core/src/trial_tpm.rs`; nothing is wired
+and S2 frozen TPM constants `crates/update-core/src/trial_tpm.rs`; S3 policy-session,
+NV and PCR codecs in `drivers/tpm-crb/src/codec.rs`; nothing is wired
 into the loader or the kernel. *Executed tests*: host tests only
-(`tests/trial_state_machine.rs`, `tests/trial_tpm_constants.rs`); no native, swtpm
+(`tests/trial_state_machine.rs`, `tests/trial_tpm_constants.rs`,
+`drivers/tpm-crb/tests/codec.rs`); no REL-05 native, swtpm
 or QEMU test (S5 onwards). *Decided*: owner decision C665 (25 November 2026,
 PR #524): TPM identity binding (U13), with halt until authenticated recovery
 while the binding is not demonstrably reliable (section 10.5); its host model
