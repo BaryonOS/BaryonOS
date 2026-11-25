@@ -820,6 +820,25 @@ fn judge(rec: Record, accepted: Option<Pair>) -> Result<bool, Halt> {
     }
 }
 
+/// PROPOSED U13c staging rule (REL-05 section 10.5, not owner-approved): the
+/// deliverer stages a new record at a second ESP path before the TPM copy
+/// advances and promotes it only after both copies advanced; the loader reads
+/// both paths and never writes the ESP. It uses the newest record the U13c
+/// rules accept and ignores older ones; two records with one serial halt.
+fn select(esp: &[Record], accepted: Option<Pair>) -> Result<Record, Halt> {
+    if esp.iter().any(|a| {
+        esp.iter()
+            .any(|b| a.serial == b.serial && a.instance != b.instance)
+    }) {
+        return Err(Halt::Corrupt);
+    }
+    esp.iter()
+        .copied()
+        .filter(|r| judge(*r, accepted).is_ok())
+        .max_by_key(|r| r.serial)
+        .ok_or(Halt::NeedsRecovery)
+}
+
 /// Writes of a first provisioning on a fresh TPM.
 const LOADER_STEPS: u32 = 10;
 
@@ -1246,6 +1265,62 @@ fn every_recovery_cut_converges() {
             if done {
                 break;
             }
+        }
+    }
+}
+
+/// PROPOSED U13c staging rule: with the new record staged next to the old one
+/// before the TPM copy advances, every cut of a record replacement and of its
+/// promotion boots the new record, so `every_recovery_cut_converges` needs no
+/// re-presented record. Without the staged copy the old record halts.
+#[test]
+fn staged_record_replacement_converges() {
+    for case in ["stray", "foreign", "foreign-no-lockout"] {
+        staged_cuts(case);
+    }
+}
+
+fn staged_cuts(case: &str) {
+    for cut in 0.. {
+        let (mut a, _, _, mut fw) = provisioned();
+        if case == "stray" {
+            a.tpm.nv_extend(handle(), &[0xee; 32]).unwrap();
+        } else {
+            a.tpm.break_u23();
+            a.tpm.clear(true, &[]).unwrap();
+            foreign_hierarchy(&mut a.tpm, case == "foreign");
+        }
+        let mut tpm = a.tpm;
+        let staged = [ENROLL, RECOVERY]; // current path, staging path
+        let rec = select(&staged, accepted(&tpm, &fw).unwrap()).unwrap();
+        let done = loader(&mut tpm, &mut fw, rec, cut).unwrap();
+        // Promotion states: before, during (copy, then delete) and after.
+        for esp in [&staged[..], &[RECOVERY, RECOVERY], &[RECOVERY]] {
+            let rec = select(esp, accepted(&tpm, &fw).unwrap());
+            assert_eq!(
+                rec.map(|r| r.serial),
+                Ok(RECOVERY.serial),
+                "{case} cut {cut}"
+            );
+        }
+        let mut r = boot(tpm.clone(), RECOVERY, &mut fw.clone()).unwrap();
+        assert_eq!(startup(&mut r, &first(I1, 7)), Ok(Startup::RolledForward));
+        if done {
+            // After acceptance the old record alone is refused, and a second
+            // record with the accepted serial halts.
+            let acc = accepted(&tpm, &fw).unwrap();
+            assert_eq!(
+                select(&[ENROLL], acc).err(),
+                Some(Halt::NeedsRecovery),
+                "{case}"
+            );
+            let reused = Record {
+                instance: I0,
+                serial: RECOVERY.serial,
+            };
+            assert_eq!(select(&[RECOVERY, reused], acc).err(), Some(Halt::Corrupt));
+            assert_eq!(select(&[], acc).err(), Some(Halt::NeedsRecovery));
+            break;
         }
     }
 }

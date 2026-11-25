@@ -276,7 +276,14 @@ write: under that assumption every cut converges
 after the TPM copy has advanced, the boot halts (`Halt::NeedsRecovery`,
 section 10.5: denial, never acceptance of the older record). **Open U13c
 item:** the location and durability of a new record between its arrival and
-the ESP write.
+the ESP write. *Proposed, awaiting the project owner* (REL-05 section 10.5,
+"Record staging"): the deliverer stages the new record at a second ESP path
+before the loader advances the TPM copy and promotes it after both copies
+advanced; the loader reads both paths, uses the newest accepted record and
+never writes the ESP. Under it every cut of the replacement and of the
+promotion boots the new record (host model
+`staged_record_replacement_converges`), which makes the re-presentation
+assumption of `every_recovery_cut_converges` hold.
 Losing one copy keeps older records refused, and the loader rewrites a lost
 UEFI copy. Losing both (a TPM clear with U23 broken or by firmware, plus a UEFI
 NVRAM reset) lets the old `ENROLL` authorise a second genesis and revives that

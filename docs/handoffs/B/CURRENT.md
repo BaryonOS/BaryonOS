@@ -78,8 +78,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 - S6 step 4 (U25) is done locally: `run_guest(virtio_rng=True)` + `run_tpm.py --case loader-rng`; provisioning
   cases must use that device. U26 is designed: `LREC` layout in REL-05 section 6.2, trusted only with the written
-  Name; the section 6.3 versus 10.5 UEFI-copy wording is flagged under U28. Next on #524: the U13c record-staging
-  rule in the contract (separate step; mark it proposed and raise one OWNER: question if it changes a normative
-  section 10.5 sentence or adds a write surface), then the loader `LREC` codec and `HAUTH`
+  Name; the section 6.3 versus 10.5 UEFI-copy wording is flagged under U28. The U13c record-staging rule is
+  *proposed* (REL-05 section 10.5 "Record staging", host model `staged_record_replacement_converges`); OWNER
+  question open: adopt it in place of the halt-after-cut clause. Next on #524: the loader `LREC` codec and `HAUTH`
   provisioning (wipe, CRB buffer overwrite, PCR 13 extend last, all four banks), S3/U27, the section 7.9 halt,
   native S5 with N's joint tests. Resume from the newest HANDOFF comment on #524.

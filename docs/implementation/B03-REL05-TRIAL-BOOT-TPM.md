@@ -601,6 +601,31 @@ halts with authenticated recovery (option B as the fail-closed fallback).
   its serial. Not defended: rolling back both copies together with the TPM
   state and the disk (T7, section 10.4). Until U13c is implemented, C28 is
   open.
+- **Record staging** (*proposed* for U13c, awaiting the project owner's
+  decision; the rules above stay normative until then): the deliverer (the
+  host tool in the TEST profile) writes a new `ENROLL` or recovery record to
+  a second, staging ESP path and makes it durable before the next boot; it
+  never overwrites the current record first. The loader reads both paths
+  read-only, verifies each, and uses the newest record the rules above
+  accept; an older record next to it is refused and ignored, and two records
+  with one serial halt. After both copies of the accepted pair have advanced,
+  the deliverer promotes the staged record to the current path and removes
+  the staging copy. It observes acceptance in `LREC` (state ACCEPTED with the
+  staged serial and record digest, readable with an empty `authValue`; the
+  OS-side observer is open). Waiting keeps the old record as the boot record
+  when the staged one fails verification (another EK, bad signature), a path
+  the host model does not cover (it has no EK or signature). Every cut then
+  leaves a record that equals the accepted pair or is newer, so a replacement
+  no longer halts after a cut; the halt remains for a lost or deleted staged
+  record. The loader gains no ESP write (a FAT write before
+  `ExitBootServices` is not power-loss safe). Host model:
+  `staged_record_replacement_converges` (stray-extend, foreign and
+  foreign-without-lockout recovery, every cut and promotion state).
+  Approval would change: the replacement-order sentence and its halt-after-cut
+  clause above, the C28 row of section 11 ("cut replacement halts until the
+  new record is written"), and the write-order paragraph of
+  [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) (provisioning and
+  recovery).
 - **Authenticated recovery** (TPM replacement, motherboard replacement, TPM
   clear, NVRAM reset): a recovery record signed like `ENROLL` names the new EK
   and a floor `≥` every surviving copy (UEFI, compiled-in minimum). The loader
