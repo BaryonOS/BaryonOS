@@ -169,12 +169,19 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   named as an evidence limit in the A/B README. Host suite (40 chain + 4
   retained_digest), clippy and fmt green.
 
+- 16:40Z: hosted native-scale1 failed at `workspace-selected` on `44ec9722`:
+  a harness paint race (base never presented Material's focus-lost banner).
+  With U's approval, the gate fix `0797f42d` (wait for latest Material GEN,
+  exact match against new oracle `initial-focus-lost`; interim until #541)
+  was pushed with the review commits. Local `--workspace` scale 1/2, fix and
+  base: raw 33. U review of `0797f42d` requested.
+
 ## Next action
 
 1. When U reports #523 merged: in `r-dirty` merge `origin/main` once, re-measure
    `.text` (< 0x28000), rerun the host suite, then U's normal + recover
-   sequence (see 13:30Z update); record results in the PR; push once
-   (includes the three local commits); update the PR verification table.
+   sequence (see 13:30Z update); record results in the PR; push; update
+   the PR verification table.
 2. After #527 merges: update #526 from `main` once and push this handoff with
    it; merge #526 and #540 only under the recorded R delegation.
 3. Keep the `calculator-restored` timeout signal open.
