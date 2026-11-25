@@ -1279,73 +1279,109 @@ held per device scope in the broker and not per object or handle. The
 service's in-memory latch and N32 remain as additional layers. The trigger and
 the interface by which the service sets the latch are specified before
 implementation; the latch and its own native test are R8 preconditions (8.2).
-**Kernel write latch: specification (O13; S-20261125-2, proposed, not implemented, not reviewed).**
+**Kernel write latch: specification (O13; S-20261125-2, proposed, not implemented).**
 This paragraph fixes the trigger, the scope and the service interface that the
 decision above leaves to the specification. Nothing here exists in code at
-`8acf1dea` *[main]*.
+`8acf1dea` *[main]*. Revision after O13-SPEC-REVIEW-1 (an AI review, not a
+human audit; REQUEST_CHANGES with RQ1–RQ4 and OPT1–OPT5, all applied here, not
+re-reviewed).
 
 - *Destination scope.* The destination profile marks exactly one block object
   per boot as the destination object when it creates it (2.1); the broker
-  records that object's device and sector range (first sector, count) in a
-  per-lane latch table. That table is broker memory, filled at profile
-  creation, never filled by a user request, and cleared only by a new boot.
-  Without a destination profile the table is empty, so no existing volume,
-  archive or power fixture changes behaviour.
-- *State.* One bit per recorded range: open or latched. The bit only goes from
-  open to latched. No syscall, process exit, `detach`, reset, quarantine,
-  restart path, rebind or new grant clears it.
-- *Kernel trigger (L1).* The broker latches the range itself, without the
-  service's cooperation, when a WRITE or FLUSH whose sector (WRITE) or object
-  scope (FLUSH) intersects a recorded range ends without success: a device
-  error, the broker timeout that starts a reset, a result of `Unknown` -16, or
-  a reset that ends the request before its completion. The latch is set where
-  the broker records that outcome in the lane, not when the owner polls, so an
-  owner that never polls, exits or is killed cannot avoid it. A READ result,
-  successful or not, never latches (consistent with N37 (a)).
-- *Service trigger (L2).* The 2.7 trigger also includes a kernel -8 that
-  persists past the bounds of 2.7 (on submission beyond 2 × `RESET_TIMEOUT`,
-  on the completion poll beyond `POLL_BOUND`), which only the service observes. The service
-  therefore calls a new block syscall `0x44` (latch): `a[0]` a block handle,
-  `a[1]` to `a[5]` zero (otherwise -1). The handle needs `BLOCK_WRITE`
-  (otherwise the capability error of `check_block`); a process that may write
-  the range may give that right up, while a READ-only holder cannot use the
-  latch to deny backups. If the handle's scope intersects a recorded range, every
-  intersecting range is latched and the call returns 0; otherwise it returns
-  -5 and changes nothing. The call is idempotent and performs no device
-  access. The service calls it for every 2.7 trigger, L1 included, so that its
-  in-memory latch and the kernel latch never disagree. It does not call it for
-  an O17 digest mismatch alone (O17; *[decided]*, package 2).
+  records that object's device and absolute sector range (first sector,
+  count) in a latch table kept beside the per-device `Policy` in
+  `crates/virtio-core` (OPT2), so that its rules get host tests and mutants.
+  The table is add-only: a registration only adds an entry, never replaces or
+  removes one, and a registration beyond its fixed capacity (proposed: 4
+  entries) fails the profile closed at creation (OPT4). It is broker memory,
+  filled at profile creation, never by a user request, and cleared only by a
+  new boot. Without a destination profile the table is empty, so no existing
+  volume, archive or power fixture changes behaviour. The destination device is
+  driven only by lane 1 of `kernel/src/m2/m3/volume.rs`; the destination
+  profile asserts at build time that no other virtio-blk broker (`m6`, `m6b`,
+  `m6c`, `update`) is built with it (OPT5).
+- *State.* One bit per entry: open or latched. The bit only goes from open to
+  latched. No syscall, process exit, `detach`, reset, quarantine, restart path,
+  rebind or new grant clears it.
+- *Kernel trigger (L1).* The broker latches every entry that a WRITE's
+  translated sector, or a FLUSH's object scope, intersects when the per-device
+  `Policy` gives that request `Completion::Unknown` (OPT2): a completion
+  without success, the broker timeout that starts a reset, and the owner's exit
+  or kill while the request is published and uncompleted (`Policy::exit` via
+  `detach`). This is one hook in the `Policy`, not in the owner's poll, so an
+  owner that never polls, exits or is killed cannot avoid it. A READ outcome,
+  successful or not, never latches: a READ is never marked `Unknown`, and
+  completed but unflushed WRITEs are not ended by a reset (N33 (iii), N37 (a)).
+  L1 is a strict superset of the 2.7 trigger as the broker can observe it: it
+  also latches on a FORMAT write or flush failure, a mount or remount FLUSH
+  failure and an owner exit during a WRITE or FLUSH; each of those already
+  leads to a state without writes (2.6 failed-mount state, 2.7) (OPT1).
+- *Service trigger (L2).* Every 2.7 trigger that L1 cannot see, because no
+  request was admitted, is reported by the service (RQ1): a submission error
+  on a destination WRITE or FLUSH (offline -13 or -14 after a failed reset,
+  a `prepare_operation` error, any other device-side submission refusal) and a
+  kernel -8 past either bound of 2.7 (on submission beyond 2 ×
+  `RESET_TIMEOUT`, on the completion poll beyond `POLL_BOUND`). Caller-shape
+  errors (-1, -3, -11) are not 2.7 triggers and latch nothing. The service
+  calls a new block syscall `0x44` (latch): `a[0]` a block handle, `a[1]` to
+  `a[5]` zero (otherwise -1). It runs only the shape check,
+  `check_block(BLOCK_WRITE)` (otherwise that capability error) and the range
+  test; it ignores the lane's `offline`, `resetting`, `error`, quarantine and
+  `Policy` phase, because the service calls it exactly when the lane is stuck
+  (RQ2). Routing: under `native-volume`, `volume.rs` is the module `m5`
+  (`kernel/src/m2/m3.rs:227-230`); `0x44` is added to both number matches in
+  `kernel/src/m2/m3.rs:2318-2336` (the exclusion from `m4::syscall` and the
+  `m5::syscall` dispatch, today `0x40 | 0x41` and `0x42 | 0x43`) and handled
+  in `volume.rs` before `device_call`'s device checks, which today refuse it
+  with -2 (`volume.rs:1007`). A process that may write the range may give
+  that right up, while a READ-only holder cannot use the latch to deny backups.
+  If the handle's scope intersects an entry, every intersecting entry is
+  latched and the call returns 0; otherwise it returns -5 and changes nothing.
+  The call is idempotent and performs no device access. The service also calls
+  it after every L1 case it observes, so that its in-memory latch and the
+  kernel latch never disagree. It does not call it for an O17 digest mismatch
+  alone (O17; *[decided]*, package 2).
 - *Enforcement.* In `device_call`, a WRITE (0x42) whose translated sector lies
-  in a latched range returns `Access` -5 after the authority and scope checks
-  and before the per-device `Policy`, the input copy and any device access, so
+  in a latched entry returns `Access` -5 after the authority and scope checks
+  and before the input copy, the per-device `Policy` and any device access, so
   that no publication, completion or reset counter changes. READ (0x40), the
-  completion poll (0x41) and FLUSH (0x43) are not refused by the latch, as
-  the remount FLUSH and the recovery READs need them (package 2). WRITEs
-  outside every latched range, including every disk-0 WRITE, are unaffected.
+  completion poll (0x41) and FLUSH (0x43) are not refused by the latch, as the
+  remount FLUSH and the recovery READs need them (package 2). WRITEs outside
+  every latched entry, including every disk-0 WRITE, are unaffected. Under K5 a
+  device has at most one request in its `Policy`, so no second WRITE is
+  published when L1 fires. The service maps any -5 on a destination WRITE to
+  the safe path (fails closed); no new code is needed.
 - *Relation to the other layers.* The service's in-memory latch (2.7), the
-  once-per-boot grant rule (2.1) and N32 stay. A FORMAT write or flush failure
-  also sets L1; that is compatible with the stricter failed-mount state (2.6),
-  which allows no write either.
+  once-per-boot grant rule (2.1) and N32 stay.
 - *Native test (N38, new; R8 precondition).* A test-only kernel feature with a
-  scripted destination object on disk 1: (a) a WRITE answered `Ok`; (b) an
-  injected WRITE device error on disk 1, after which a WRITE on the same handle
-  returns -5 with the disk-1 WRITE publication count unchanged; (c) READ and
-  FLUSH on that handle are still admitted and complete; (d) after the holder
-  exits and the profile grants a new object on an intersecting range in the
-  same boot, its WRITE returns -5; (e) a disk-0 WRITE is admitted; (f) a
-  separate run: the L2 call on an unlatched range, then a WRITE returns -5;
-  a READ-only handle's L2 call is refused; (g) an injected FLUSH error and a
-  broker timeout each latch; a READ error does not. Kernel markers report the
-  latch state and counters; the host oracle checks them. Killing mutations:
-  no check before the `Policy`; a latch keyed on the object or handle instead
-  of the range (d); a latch cleared by `detach` or reset (d); a READ that
-  latches (g); FLUSH refused (c).
-- *Open for review.* Whether the barrier-1 variant of N37 (a) (the device's
-  own reset during the barrier-1 submission) ends that FLUSH without success at
-  the broker (then L1 latches there, and N37 (a) must say so) or only delays
-  its submission with -8 as in N26 (d), which never latches; the -5 code versus a distinct latch code for the service's reply
-  mapping; and the placement of the latch table in the `kernel-core` crate, so
-  that its open-to-latched rule gets host tests and mutants.
+  scripted destination object on disk 1; latch state and counters are reported
+  by kernel markers and checked by the host oracle. (a) a WRITE answered `Ok`;
+  (b) an injected WRITE device error, with the latch marker read before any
+  0x41 poll, after which a WRITE on the same handle returns -5 with the disk-1
+  WRITE publication count unchanged; (c) READ and FLUSH on that handle are
+  still admitted and complete; (d) a test-only feature, never built together
+  with N32, performs the re-grant the once-per-boot rule forbids: after the
+  holder exits, a new object on a partly overlapping range with a different
+  first sector is granted; its WRITE that translates into the latched range
+  returns -5 and its WRITE outside it is admitted (RQ4); (e) a disk-0 WRITE is
+  admitted; (f) a separate run: `0x44` on an unlatched entry, then a WRITE
+  returns -5; `0x44` from a READ-only handle is refused; `0x44` on a handle
+  whose scope intersects no entry returns -5 and latches nothing; `0x44` while
+  the lane is resetting or offline still latches (RQ2); (g) an injected FLUSH
+  error and a broker timeout each latch, again read before any poll; a READ
+  error does not; (h) the holder is killed while its WRITE is published and
+  uncompleted, and the latch is set (RQ3); (i) a latched WRITE with an invalid
+  input pointer returns -5, not -3. Killing mutations: no check before the
+  `Policy`; a check after the input copy (i); a latch keyed on the object or
+  handle instead of the range, or on the whole device (d); a latch cleared by
+  `detach` or reset (d); a latch set at the poll and not in the `Policy` (b,
+  g, h); a hook only at the completion-error sites (h); a READ that latches
+  (g); FLUSH refused (c); `0x44` refused while the lane is stuck (f); `0x44`
+  that always latches (f).
+- *Answers to the review questions.* The barrier-1 variant of N37 (a) does not
+  latch: a FLUSH submitted while the lane resets gets -8 and is never admitted,
+  as in N26 (d); if that reset fails, the later submission's -13 or -14 is an
+  L2 trigger. The reply code stays -5. The table lives in `virtio-core`.
 
 The latch ends only with the boot. Every destination runner
 must pass `-no-reboot` to QEMU, as `tools/run_volume.py:309` already does
