@@ -58,8 +58,10 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
 
 Five KVM runs passed; evidence in
 `docs/verification/r02-window-baseline-20261125/`. Dominant cost: 14–15
-full app-body repaints (~1785 SUR1 tiles each) per run, ≤0.87 s each on
-`-smp 1`; guest vCPU busy ~90% of wall time (no idle). The runner's 0.2 s
+full app-body repaints (~1785 SUR1 tiles each) per run; the matching phases were observed at 0.84–0.92 s
+(input to first matching screendump) on `-smp 1`. QEMU host CPU time is
+0.88–0.91 of wall time (host-process accounting; guest utilisation and idle
+behaviour were not measured). The runner's 0.2 s
 screendump retry quantises latency; exact timing needs per-attempt
 timestamps (local diagnostic patch only, not committed).
 

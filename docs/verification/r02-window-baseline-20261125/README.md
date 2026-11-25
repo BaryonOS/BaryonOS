@@ -21,9 +21,9 @@ evidence or a product-latency claim. No criterion or progress point changes.
 ## Results (five runs)
 
 - 5/5 passed, `raw_qemu_exit` 33; duration 26.85–27.85 s (median 26.93 s).
-- QEMU host CPU 24.3–24.9 s per run, 0.88–0.91 of wall time: the single
-  guest vCPU is busy for the whole session, including waits for input. No
-  idle state is reached in this profile.
+- QEMU host CPU 24.3–24.9 s per run, 0.88–0.91 of wall time. This is
+  host-process accounting for the whole QEMU process, not guest vCPU
+  utilisation; guest utilisation and idle behaviour were not measured.
 - `last_input_to_verified_app_image_s` clusters at about 0.05, 0.13, 0.22–0.29,
   0.43–0.46, 0.66, 0.84–0.92 and 1.0–1.15 s. The harness retries a
   mismatching screendump every 0.2 s (`run_window_session.py` `wait`), so
@@ -39,12 +39,16 @@ evidence or a product-latency claim. No criterion or progress point changes.
 
 - The dominant interactive cost in this profile is a full app-body repaint
   after most view changes: about 1785 tiles of 32×8 pixels, each sent as
-  BEGIN, five CHUNKs and COMMIT with one acknowledgement. With a ≈0.87 s
-  upper bound, that is ≤ ≈0.49 ms per tile on one vCPU. This ranks
+  BEGIN, five CHUNKs and COMMIT with one acknowledgement. The phases that
+  coincide with these repaints were observed at 0.84–0.92 s from last input
+  to the first matching screendump. That interval ends on an application-
+  state match, not on the repaint's last tile commit, so it does not bound
+  the per-tile cost; no per-tile figure is derived. The ranking of
   changed-region repaint in the client paint path (one tile per
   `paint_step`, restart at tile zero on a new view generation) above further
-  compositor batching, which already exists (8 messages per turn since
-  `380111b6`).
+  compositor batching (8 messages per turn since `380111b6`) rests on the
+  tile counts: a one-character change re-sends ≈1785 tiles, whereas batching
+  only changes how existing messages are drained.
 - The rendering section of `docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md`
   predates that batching and the retained-tile operation and is stale on
   those points.
