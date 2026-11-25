@@ -47,15 +47,24 @@ def event(trigger_id=1, kind="pull_request", head_repo=REPO, numbers=(7,), sha=H
 class FakeApi:
     """Answers pull request reads and paged run listings; records every POST."""
 
-    def __init__(self, runs, heads=None, post_error=None, total=None):
+    def __init__(self, runs, heads=None, post_error=None, total=None, later=()):
         self.runs, self.heads = runs, heads or {7: HEAD}
         self.post_error, self.total = post_error, total
+        self.later, self.sleeps = list(later), []  # run listings served after each sleep
         self.gets, self.posts = [], []
+
+    def sleep(self, seconds):
+        self.sleeps.append(seconds)
+        if self.later:
+            self.runs = self.later.pop(0)
 
     def get(self, path):
         self.gets.append(path)
         if path.startswith(f"/repos/{REPO}/pulls/"):
-            return {"head": {"sha": self.heads[int(path.rsplit("/", 1)[1])]}}
+            head = self.heads[int(path.rsplit("/", 1)[1])]
+            if isinstance(head, list):  # the head of each successive read; the last one stays
+                head = head.pop(0) if len(head) > 1 else head[0]
+            return {"head": {"sha": head}}
         url = urlsplit(path)
         assert url.path == f"/repos/{REPO}/actions/runs", path
         query = parse_qs(url.query)
@@ -74,7 +83,7 @@ class FakeApi:
 
 def decide(runs, payload=None, **kwargs):
     api = FakeApi(runs, **kwargs)
-    lines = recheck_module.recheck(payload or event(), REPO, WATCHED, api.get, api.post)
+    lines = recheck_module.recheck(payload or event(), REPO, WATCHED, api.get, api.post, api.sleep)
     return api, lines
 
 
@@ -150,11 +159,39 @@ class RecheckTests(TestCase):
                 self.assertIn("nothing to re-check", lines[0])
 
     def test_runs_of_non_gate_workflows_and_fork_heads_do_not_hold_the_recheck(self):
-        # They never start a re-check when they finish, so waiting for them would stall.
+        # They do not hold merge-hold; a non-gate run that ends later starts its own re-check.
         api, _ = decide([run(1, CI), run(2, WINDOWS, status="in_progress"),
                          run(5, LEAVES, status="queued", head_repo="fork/r"),
                          run(3, HOLD, conclusion="failure")])
         self.assertEqual(api.posts, [f"/repos/{REPO}/actions/runs/3/rerun-failed-jobs"])
+
+    def test_a_running_merge_hold_that_started_before_the_gate_finished_is_waited_for(self):
+        running = [run(1, CI), run(3, HOLD, status="in_progress")]
+        api, lines = decide(running, later=[running, [run(1, CI), run(3, HOLD, conclusion="failure")]])
+        self.assertEqual(api.sleeps, [recheck_module.POLL_SECONDS] * 2)
+        self.assertEqual(api.posts, [f"/repos/{REPO}/actions/runs/3/rerun-failed-jobs"])
+        self.assertIn("re-ran merge-hold run 3", lines[-1])
+        api, lines = decide(running, later=[[run(1, CI), run(3, HOLD)]])
+        self.assertEqual((len(api.sleeps), api.posts), (1, []))
+        self.assertIn("concluded success", lines[-1])
+
+    def test_the_wait_for_a_running_merge_hold_is_bounded(self):
+        api, lines = decide([run(1, CI), run(3, HOLD, status="in_progress")])
+        self.assertEqual(api.sleeps, [recheck_module.POLL_SECONDS] * recheck_module.WAIT_POLLS)
+        self.assertEqual(api.posts, [])
+        self.assertIn("still in_progress after a wait", lines[-1])
+        self.assertIn("gh run rerun 3 --failed", lines[-1])
+
+    def test_a_running_merge_hold_that_started_after_the_gate_finished_is_not_waited_for(self):
+        api, lines = decide([run(1, CI), run(3, HOLD, status="in_progress", started=AFTER)])
+        self.assertEqual((api.sleeps, api.posts), ([], []))
+        self.assertIn("started after this run finished", lines[-1])
+
+    def test_no_rerun_when_the_head_moves_before_the_request(self):
+        api, lines = decide([run(1, CI), run(3, HOLD, conclusion="failure")], heads={7: [HEAD, OTHER]})
+        self.assertEqual(api.posts, [])
+        self.assertIn("head moved to " + OTHER + " before the re-run", lines[-1])
+        self.assertEqual(sum(path == f"/repos/{REPO}/pulls/7" for path in api.gets), 2)
 
     def test_the_triggering_run_counts_as_finished_while_the_listing_lags(self):
         api, _ = decide([run(1, CI, status="in_progress"), run(3, HOLD, conclusion="failure")])

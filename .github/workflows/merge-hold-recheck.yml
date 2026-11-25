@@ -2,12 +2,15 @@
 # pull_request (policy.budgets.pull_request_wait_minutes = 0) and fails with
 # "Pending" while gates still run, instead of holding a runner while it polls.
 # When a gate workflow finishes for a same-repository pull request, this
-# workflow re-runs the newest failed or cancelled merge-hold run of that head
-# once no gate run is open any more; the re-run decides again from live data.
-# It never passes or fails a check itself. `workflows` lists the `name:` of
-# every workflow that owns an automatic core or rwa job in .github/ci-impact.toml,
-# Merge hold excluded (pinned by tests/test_ci_workflows.py). workflow_run
-# always runs this file and the script from the default branch.
+# workflow re-runs the newest failed, timed-out or cancelled merge-hold run of
+# that head once no gate run is open any more; the re-run decides again from
+# live data. It never passes or fails a check itself. `workflows` lists the
+# `name:` of every workflow that owns an automatic core or rwa job in
+# .github/ci-impact.toml and, as triggers only, of every other catalogue
+# workflow with a pull_request trigger, whose runs can also leave merge-hold
+# at Pending; Merge hold and this workflow are excluded (pinned by
+# tests/test_ci_workflows.py). workflow_run always runs this file and the
+# script from the default branch.
 name: Merge hold re-check
 
 on:
@@ -20,6 +23,7 @@ on:
       - CI
       - CodeQL Advanced
       - Component leaf quality
+      - Copilot hosted development environment
       - FR-I01 joint native system acceptance
       - K05 process management acceptance
       - M6e scalable volume acceptance
@@ -29,6 +33,7 @@ on:
       - Native display and input acceptance
       - Native HID input IPC (synthetic reports)
       - Native HW-INV inventory (QEMU)
+      - Native Materiaal probe acceptance
       - Native RANDOM and image foundation acceptance
       - Native SMP bring-up (K06 step 1)
       - Native window session and Windows QEMU bundle
@@ -36,7 +41,9 @@ on:
       - Network broker quality
       - Network TLS adapter quality
       - Resource pressure acceptance
+      - Security alert summary
       - Storage resilience acceptance
+      - Windows QEMU native Materiaal test bundle
     types: [completed]
 
 # The job block below replaces these for its token.

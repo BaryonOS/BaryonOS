@@ -1421,13 +1421,21 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         path = ".github/workflows/merge-hold-recheck.yml"
         workflow = self.workflows[path]
         # The trigger list is exactly the name of every gate workflow, so each gate run that
-        # the script waits for starts another re-check when it completes.
+        # the script waits for starts another re-check when it completes, plus every other
+        # catalogue workflow with a pull_request trigger: merge-hold counts their runs too, so
+        # one that ends after the last gate can leave it Pending (#494 B10).
+        others = {row["path"] for row in catalogue["workflow"] if "pull_request" in row["events"]}
+        triggers = (gates | others) - {".github/workflows/merge-hold.yml"}
+        self.assertIn(".github/workflows/windows-qemu-test-version.yml", triggers)
+        self.assertNotIn(path, triggers)
         self.assertEqual(list(workflow["on"]), ["workflow_run"])
         trigger = workflow["on"]["workflow_run"]
         self.assertEqual(set(trigger), {"workflows", "types"})
         self.assertEqual(trigger["types"], ["completed"])
-        self.assertEqual(sorted(trigger["workflows"]), sorted({self.workflows[gate]["name"] for gate in gates}))
-        self.assertEqual(len(trigger["workflows"]), len(gates))
+        self.assertEqual(sorted(trigger["workflows"]), sorted({self.workflows[item]["name"] for item in triggers}))
+        self.assertEqual(len(trigger["workflows"]), len(triggers))
+        self.assertNotIn(workflow["name"], trigger["workflows"])
+        self.assertNotIn(self.workflows[".github/workflows/merge-hold.yml"]["name"], trigger["workflows"])
         self.assertEqual(workflow["permissions"], {"contents": "read"})
         self.assertEqual(workflow["concurrency"], {
             "group": "merge-hold-recheck-${{ github.event.workflow_run.event }}-"
@@ -1439,6 +1447,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(job["if"], "github.event.workflow_run.event == 'pull_request' && "
                                     "github.event.workflow_run.head_repository.full_name == github.repository")
         self.assertEqual(job["timeout-minutes"], "5")
+        # The wait for a running merge-hold stays far below the job timeout.
+        self.assertLessEqual(recheck.WAIT_POLLS * recheck.POLL_SECONDS * 2, 5 * 60)
         self.assertEqual(job["permissions"],
                          {"actions": "write", "contents": "read", "pull-requests": "read"})
         for key in ("needs", "continue-on-error", "strategy", "defaults", "container", "services", "env"):
