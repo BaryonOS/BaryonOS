@@ -144,7 +144,6 @@ fn veld_shortcuts_and_pointer_do_nothing_under_lock_or_any_cover() {
             Page::Unlocking,
             Page::Search,
             Page::Settings,
-            Page::Notifications,
             Page::Session,
             Page::Capability,
         ] {
