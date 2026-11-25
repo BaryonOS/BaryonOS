@@ -1715,21 +1715,40 @@ Return the structured result.
                    f"{outcome} at evidence level {task.get('evidence_level')}; controller-run checks and an "
                    "independent read-only session decided. A verified pipeline task is an engineering checkpoint "
                    "and accepts no criterion; acceptance is recorded only by the lead with the required evidence.")
-        data["assessment"] = {"date": amsterdam.date().isoformat(), "source_commit": commit,
-                              "assessment_basis": "parent_commit", "branch": self.cfg.branch,
-                              "task": f"Roadmap pipeline {task['id']}: {task['title']}"[:200],
-                              "previous_score": score, "summary": summary.replace("|", "/")}
+        record = {"date": amsterdam.date().isoformat(), "source_commit": commit,
+                  "assessment_basis": "parent_commit", "branch": self.cfg.branch,
+                  "task": re.sub(r"[\r\n|<>]", " ", f"Roadmap pipeline {task['id']}: {task['title']}")[:200],
+                  "previous_score": score, "summary": summary.replace("|", "/")}
         if json.dumps(data["tracks"], sort_keys=True) != before:
             raise Stop("assessment update would change criteria; refusing")
-        atomic_write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
-        for mode in ("--write", "--check"):
-            # -I keeps the checkout's tools/ directory off sys.path: no worker module shadows stdlib.
-            done = subprocess.run([sys.executable, "-I", "-B", "tools/progress.py", mode], cwd=ROOT,
-                                  capture_output=True, text=True)
-            if done.returncode:
-                raise Stop(f"progress.py {mode} failed: {done.stdout[-400:]}{done.stderr[-400:]}")
-        views = ["docs/progress.json", "README.md", "docs/PROGRESS.md", "docs/assets/progress.svg"]
-        git("add", "--", *views)
+        # ADR-PROGRESS-ASSESSMENTS-20261125: an unchanged score is a new task file; shared files stay untouched.
+        folder = ROOT / "docs" / "progress" / "assessments"
+        folder.mkdir(parents=True, exist_ok=True)
+        slug = re.sub(r"[^a-z0-9]+", "-", f"roadmap-{task['id']}-{outcome}".lower()).strip("-")[:70]
+        for n in range(1, 100):
+            name = f"{record['date']}-{slug}{'' if n == 1 else f'-{n}'}.json"
+            try:
+                handle = open(folder / name, "x", encoding="utf-8")
+            except FileExistsError:
+                continue
+            written = False
+            try:
+                with handle:  # close flushes, so a full disk can fail here too
+                    handle.write(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
+                written = True
+            finally:
+                if not written:  # also on interrupt: no partial record stays behind
+                    (folder / name).unlink(missing_ok=True)
+            break
+        else:
+            raise Stop("no free assessment file name for this task today")
+        # -I keeps the checkout's tools/ directory off sys.path: no worker module shadows stdlib.
+        done = subprocess.run([sys.executable, "-I", "-B", "tools/progress.py", "--check"], cwd=ROOT,
+                              capture_output=True, text=True)
+        if done.returncode:
+            (folder / name).unlink(missing_ok=True)  # a rejected record must not linger untracked
+            raise Stop(f"progress.py --check failed: {done.stdout[-400:]}{done.stderr[-400:]}")
+        git("add", "--", str((folder / name).relative_to(ROOT)))
         if git("diff", "--cached", "--name-only").strip():
             git("commit", "--no-verify", "-q", "-m", f"progress: assess roadmap task {task['id']} ({score}/100 unchanged)\n\n"
                 f"Assessment of {commit}; no criterion changed.\n\n" + TRAILERS)
