@@ -10,6 +10,13 @@
 # It then checks every pull request in the queue commit and fails closed if
 # they cannot be identified or the 45-minute wait expires. A hold added after
 # that final read is not seen. See ADR-MERGE-HOLD-20261113.
+#
+# Phase 3 of #494 (ADR-CI-GATE-ENFORCEMENT-20261124): the decision runs the base
+# commit's tools/merge_hold.py and tools/ci_impact.py, never the pull request's
+# copies. On pull_request it recomputes the CI impact plan and requires every
+# applicable automatic gate to have passed on the pull request head; see
+# docs/CI-CONTRACT.md "Enforcement". This file may add environment variables,
+# but must keep every one an older base merge_hold.py reads.
 name: Merge hold
 
 on:
@@ -34,6 +41,7 @@ jobs:
     # below the planned 60-minute merge-queue check timeout.
     timeout-minutes: 50
     permissions:
+      actions: read
       checks: read
       contents: read
       issues: read
@@ -43,7 +51,43 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Fail while acceptance is pending for this head commit
+          # The selector needs the merge base of the base tip and the head.
+          fetch-depth: 0
+      - name: Load merge-hold and the selector from the base commit
+        id: base
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+        run: |
+          set -euo pipefail
+          tested="$(git rev-parse HEAD)"
+          if [ "$EVENT_NAME" = pull_request ]; then
+            # GitHub's merge commit: first parent is the base tip, second the head.
+            read -r _ base second extra <<< "$(git rev-list --parents -n 1 HEAD)"
+            if [ -n "${extra:-}" ] || [ "${second:-}" != "$HEAD_SHA" ]; then
+              echo "::error::The checked-out merge commit does not join the base tip and the pull request head."
+              exit 1
+            fi
+          else
+            base="$MERGE_GROUP_BASE_SHA"
+          fi
+          if ! [[ "$base" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::No usable base commit; failing closed."
+            exit 1
+          fi
+          dir="$RUNNER_TEMP/merge-hold-base"
+          mkdir -p "$dir"
+          git cat-file blob "$base:tools/merge_hold.py" > "$dir/merge_hold.py"
+          if git cat-file -e "$base:tools/ci_impact.py" 2> /dev/null; then
+            git cat-file blob "$base:tools/ci_impact.py" > "$dir/ci_impact.py"
+          fi
+          {
+            echo "base-sha=$base"
+            echo "tested-sha=$tested"
+          } >> "$GITHUB_OUTPUT"
+      - name: Fail while acceptance is pending or an applicable gate has not passed
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -51,7 +95,10 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ steps.base.outputs.base-sha }}
+          TESTED_SHA: ${{ steps.base.outputs.tested-sha }}
           MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
           MERGE_GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
           MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
-        run: python3 -B tools/merge_hold.py
+          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+        run: python3 -B -I "$RUNNER_TEMP/merge-hold-base/merge_hold.py"
