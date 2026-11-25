@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "source_commit": "6bb7c97f230ffe7bedbfc4fe442a6910b97e7b8a",
+  "source_commit": "9cc1b86f73e2d23dd37811e54571d7ad57c0c91a",
   "assessment_basis": "parent_commit",
   "branch": "claude/n03-n04-adr-20261125",
   "task": "Record ADR-N03-PROVIDER-20261125 and ADR-NET-ISSUER-20261125 (5B, M1 protected slot), N03-T2 host handshake against an OpenSSL peer, and the host-only N04 durable-store freshness model (#529)",
