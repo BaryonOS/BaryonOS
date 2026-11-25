@@ -1,0 +1,46 @@
+source_commit 5846e1fb3da539de8670fce00c12241a3b2f8eb8 kernel_feature native-window-session-probe
+run1 passed=True raw_qemu_exit=33 duration_s=26.85 qemu_host_cpu_s=24.29 cpu/duration=0.90
+run2 passed=True raw_qemu_exit=33 duration_s=26.93 qemu_host_cpu_s=24.62 cpu/duration=0.91
+run3 passed=True raw_qemu_exit=33 duration_s=27.26 qemu_host_cpu_s=24.86 cpu/duration=0.91
+run4 passed=True raw_qemu_exit=33 duration_s=27.85 qemu_host_cpu_s=24.55 cpu/duration=0.88
+run5 passed=True raw_qemu_exit=33 duration_s=26.85 qemu_host_cpu_s=24.41 cpu/duration=0.91
+
+phase  t_median_s  delta_median_s[min-max]  last_input_to_verified_app_image_s (run1..run5)
+boot                           2.45  2.45[2.40-2.50] -
+initial                        3.18  0.74[0.72-0.75] 0.05 0.05 0.05 0.05 0.05
+editor                         4.06  0.88[0.83-0.89] 0.88 0.88 0.88 0.83 0.85
+dirty                          4.57  0.52[0.47-0.59] 0.13 0.10 0.13 0.13 0.13
+read-tool                      5.01  0.44[0.44-0.46] 0.46 0.44 0.44 0.44 0.43
+read-tool-blocked              5.11  0.12[0.09-0.12] 0.05 0.05 0.05 0.05 0.03
+write-tool-restored            5.57  0.46[0.44-0.46] 0.43 0.44 0.46 0.46 0.46
+document-menu                  6.47  0.89[0.89-0.91] 0.86 0.86 0.87 0.85 0.86
+document-menu-next             7.13  0.66[0.66-0.87] 0.66 0.66 0.87 0.66 0.66
+document-menu-read             7.99  0.87[0.84-0.87] 0.87 0.86 0.86 0.84 0.86
+document-menu-blocked          8.11  0.11[0.10-0.14] 0.03 0.05 0.03 0.03 0.05
+document-menu-cancelled        8.17  0.07[0.05-0.07] 0.05 0.03 0.03 0.03 0.05
+document-menu-write            8.63  0.46[0.44-0.46] 0.46 0.43 0.44 0.46 0.46
+clipboard-copied               9.57  0.94[0.92-0.98] 0.88 0.89 0.89 0.91 0.89
+clipboard-rejected             9.91  0.34[0.32-0.34] 0.29 0.29 0.27 0.29 0.27
+clipboard-numeric             11.13  1.23[1.18-1.25] 1.03 1.05 1.03 1.00 1.05
+clipboard-pasted              11.40  0.29[0.27-0.30] 0.22 0.22 0.24 0.24 0.24
+clipboard-calculator-copied   11.87  0.46[0.41-0.48] 0.22 0.24 0.19 0.21 0.24
+clipboard-back                13.17  1.29[1.28-1.32] 1.10 1.15 1.13 1.13 1.13
+clipboard-empty               14.15  0.96[0.93-0.98] 0.87 0.89 0.87 0.87 0.89
+clipboard-reset               15.58  1.42[1.40-1.55] 0.86 0.86 0.89 0.84 0.84
+calculated                    16.27  0.69[0.67-0.72] -
+moved                         16.89  0.59[0.59-0.62] -
+recovered                     19.40  2.54[2.51-2.54] -
+rebound-editor                20.20  0.81[0.80-0.84] 0.06 0.06 0.06 0.07 0.06
+calculator-restored           20.91  0.67[0.65-1.64] -
+restored-editor               23.09  2.18[2.15-2.26] 0.87 0.87 0.87 0.87 0.87
+clipboard-recovered-empty     23.99  0.89[0.88-0.90] 0.87 0.89 0.89 0.87 0.89
+saved                         24.88  0.89[0.87-0.92] 0.89 0.89 0.89 0.87 0.92
+list                          25.76  0.87[0.87-0.88] 0.87 0.87 0.87 0.87 0.87
+reopened                      26.66  0.90[0.90-0.90] 0.85 0.87 0.85 0.87 0.85
+
+COMPOSITOR:COMMITS deltas between consecutive serial snapshots
+run1 snapshots=167 full_repaint_deltas(>=1500)=14 median=1786 mid(100-1499)=24 small(1-99)=90 zero=37
+run2 snapshots=164 full_repaint_deltas(>=1500)=15 median=1781 mid(100-1499)=23 small(1-99)=88 zero=36
+run3 snapshots=169 full_repaint_deltas(>=1500)=14 median=1786 mid(100-1499)=24 small(1-99)=93 zero=36
+run4 snapshots=171 full_repaint_deltas(>=1500)=14 median=1784 mid(100-1499)=19 small(1-99)=79 zero=57
+run5 snapshots=166 full_repaint_deltas(>=1500)=15 median=1780 mid(100-1499)=22 small(1-99)=91 zero=36
