@@ -149,7 +149,23 @@ store at `A` and a hostile slot rewrite can revive a stale authentic store at
 `A + 1` over an acknowledged revocation (M1; red host test
 `hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation`,
 ignored until fixed). A missing store with binding `0^32` can likewise be
-forged as genesis (L2). Both are open owner questions; 5A stays in force.
+forged as genesis (L2); agreed with B: a missing store is always denied and
+genesis happens only through authorised provisioning or recovery, and after a
+TPM replacement N04 rejects its store and re-anchors from genesis (C665).
+
+The project owner approved a generation-advancing reseal at every cold boot
+for M1 on 25 November 2026, conditional on, among others, preventing stale or
+leftover slot contents from reactivating revoked permissions. Host modelling
+before implementation found that the reseal does not meet that condition
+across several boots: crashes induced during a reseal leave sibling
+authentic stores at one generation, and a hostile slot write then selects a
+sibling without an acknowledged revocation (red tests
+`reseal_multi_boot_crashed_reseal_revives_over_rolled_forward_change` and
+`reseal_multi_boot_sibling_reseal_revives_over_acknowledged_change`). With an
+unauthenticated slot, the counter is the only anchor state an attacker cannot
+choose, so no binding rule separates two authentic stores at one generation.
+The reseal is therefore not implemented; M1 stays open for a renewed owner
+decision. 5A stays in force.
 
 **Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
 N04 stays open until its native evidence exists; the score is unchanged.

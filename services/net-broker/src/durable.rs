@@ -456,11 +456,12 @@ mod tests {
         assert_ne!(startup(&mut anchor, &x), Ok(Startup::Accept));
     }
 
-    /// M1 candidate (not yet a rule): after a cold Accept at S=A the policy
-    /// process first acknowledges a content-identical reseal Z at A+1, so the
-    /// first effective change lands at A+2. Not enforced by `startup` today.
+    /// M1 reseal candidate, single-boot cases only: after a cold Accept at
+    /// S=A the policy process acknowledges a content-identical reseal Z at A+1.
+    /// This does NOT bound a hostile slot write across several boots; see the
+    /// two ignored `reseal_multi_boot_*` tests below.
     #[test]
-    fn reseal_after_cold_accept_bounds_a_hostile_slot_write() {
+    fn reseal_single_boot_cases() {
         let x = state(6, [3; 32], D1); // stale, never acknowledged
         let z = state(6, [4; 32], D1); // reseal: content of S=A, no new change
         let y = state(7, D2, z.digest); // carries the acknowledged revocation
@@ -485,5 +486,39 @@ mod tests {
         let mut anchor = Fake::at(5, D1);
         assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
         assert_eq!(startup(&mut anchor, &x), Ok(Startup::RolledForward));
+    }
+
+    /// Boot 1 accepts S=A and writes reseal Z at A+1, then crashes before the
+    /// slot write. Boot 2 rolls X forward, so X's revocation is in force. T3
+    /// then rewrites the slot to D(Z) and presents Z.
+    #[test]
+    #[ignore = "M1 open: reseal after cold Accept is insufficient"]
+    fn reseal_multi_boot_crashed_reseal_revives_over_rolled_forward_change() {
+        let x = state(6, [3; 32], D1); // carries revocation R
+        let z = state(6, [4; 32], D1); // crashed reseal of S=A
+        let mut anchor = Fake::at(5, D1);
+        assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
+        assert_eq!(startup(&mut anchor, &x), Ok(Startup::RolledForward));
+        anchor.state.binding = z.digest;
+        assert_ne!(startup(&mut anchor, &z), Ok(Startup::Accept));
+    }
+
+    /// Reseal after every cold outcome. Boot 1 rolls Z forward and crashes in
+    /// its reseal Z3. Boot 2 accepts X under a forged slot and acknowledges
+    /// reseal X2 (R durable). T3 then forges D(Z3).
+    #[test]
+    #[ignore = "M1 open: reseal after every cold outcome is insufficient"]
+    fn reseal_multi_boot_sibling_reseal_revives_over_acknowledged_change() {
+        let x = state(6, [3; 32], D1); // carries revocation R
+        let z = state(6, [4; 32], D1);
+        let z3 = state(7, [5; 32], z.digest); // crashed reseal of Z
+        let x2 = state(7, [6; 32], x.digest); // acknowledged reseal of X
+        let mut anchor = Fake::at(5, D1);
+        assert_eq!(startup(&mut anchor, &z), Ok(Startup::RolledForward));
+        anchor.state.binding = x.digest;
+        assert_eq!(startup(&mut anchor, &x), Ok(Startup::Accept));
+        assert_eq!(acknowledge(&mut anchor, &x2), Ok(()));
+        anchor.state.binding = z3.digest;
+        assert_ne!(startup(&mut anchor, &z3), Ok(Startup::Accept));
     }
 }
