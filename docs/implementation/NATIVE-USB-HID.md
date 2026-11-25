@@ -279,7 +279,9 @@ checks keep their terminal codes (8, 14).
    (`USB:REFUSE:HUB`). A configuration without a boot keyboard or boot mouse
    interface is refused when `Session::new` returns `Binding(NotBoot)`
    (`USB:REFUSE:NOT_BOOT`, the QEMU tablet); any other binding error gives
-   `USB:REFUSE:BINDING`. Malformed descriptors (codes 10–13) stay terminal.
+   `USB:REFUSE:BINDING`. A device or configuration descriptor outside the
+   profile (codes 10–13, for example bMaxPacketSize0 = 64) is also refused
+   as `BINDING` in this profile; none of the four QEMU fixtures reaches it.
 2. **What a refused device receives.** No SET_CONFIGURATION, no interrupt
    endpoint context, no `Session` and no input path. Only the EP0 control
    context needed to read descriptors may exist. A refusal after Enable Slot
@@ -309,7 +311,11 @@ checks keep their terminal codes (8, 14).
 `refuse-hs-kbd` and `refuse-storage` produce the same transcript: both are
 refused on speed before any descriptor is read, so storage class refusal is
 not reachable in this profile. `Refusal::Binding` is not exercised natively.
-The recovered keyboard reuses output-context page 0 after Disable Slot. Hubs,
+The recovered keyboard reuses the refused device's output-context page; it is
+zeroed before Address Device. The refused generation-1 ticket is not replayed
+after recovery; stale-ticket refusal is covered by the `drivers/usb` hotplug
+host tests and the reattach profiles. The mouse is exercised only before
+recovery. Hubs,
 downstream devices, retries and physical hotplug remain unsupported.
 
 The harness sequence is: after `USB:REFUSE:READY`, x +7, y −3 and left down,

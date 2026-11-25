@@ -7,7 +7,7 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 |---|---|
 | cycle_id | `h02-t5-20261125` |
 | Location | local H session (took over from the cloud H session via #503; cloud HANDOFF on #507, comment 7151275971) |
-| Task | H02-T5 native refusal fixtures for out-of-profile USB devices (hub, tablet without boot interface, storage, high-speed); starts with a QEMU feasibility probe |
+| Task | H02-T5 native per-port refusal (hub, non-boot tablet, high-speed keyboard, storage) — implemented, native evidence at `1bb81100`, hosted gates pending |
 | Branch | `claude/h02-t5-usb-refusal-20261125` (base main `ad55e019`) |
 | PR | #515 (draft) |
 | Previous | #507 (H06-T8) merged as `78dc7b18`; ledger H06-T8 is `verified` in this branch |
@@ -34,18 +34,14 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 8. A bash gate helper that sets a global `name` clobbers the caller's variable: use `local` in step/mutant functions, or mutant runs silently target the wrong build directory.
 9. `evaluate_fixture` markers that end in `:` are value markers (prefix plus non-empty value); every other fixture marker must be the whole line.
 
+10. QEMU routes QMP input to a USB HID device only after the guest's first interrupt-IN poll; wait on MFINDEX before printing a READY marker. Reset Device on a disabled slot completes with code 11 and Slot ID 0.
+11. Any `kernel/` or `tools/` change, including the runner, changes the source fingerprint: rebuild before `run_usb_hid.py`. `NOS_QEMU_MACHINE` accepts only recorded machines (`pc-q35-8.2`), not `q35`.
+
 ## Next task
 
-Feasibility is recorded in
-[h02-usb-refusal-feasibility-20261125](../../verification/h02-usb-refusal-feasibility-20261125/README.md):
-hub/tablet refuse at `Session::new` (code 14), high-speed keyboard/storage at
-speed (code 8), and every refusal currently ends the controller run. Implement
-the exclusive `native-usb-hid-refusal` profile on #515: map the
-`boot_interface::Error` variant to a reason marker, refuse per port (Disable Slot
-and clear DCBAA after Address Device; nothing to undo before Enable Slot), then
-serve the mouse on port 2; one mutant per check; keep reports/readonly/reattach
-cases at raw 33; add the hosted `native-xhci.yml` rows in the same PR. After
-that, H05 virtio-blk re-initialisation after an S3 wake (needs a security
-review). H04 in-flight TX at a link-down edge touches `kernel/src/m2/m3/network.rs`
-and needs agreement with workstream N first. Physical H02–H06 work stays blocked
-on the owner decisions above; image-hash reproduction once B04 (#493) is merged.
+H02-T5 evidence: [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md).
+Remaining on #515: hosted `native-xhci` green on the final head, merge main,
+`progress.py --write`/`--check`, ready, `merge-hold` rerun, squash-merge with
+the expected head, `HANDOFF H` comment; flip H02-T5 to `verified` in the next
+PR. Then the next H item: H05 virtio-blk reinit after S3 wake (security review
+first); H04 needs agreement with N.
