@@ -14,7 +14,16 @@ class NativeTpmTranscriptTests(unittest.TestCase):
               "LOADER-TPM:PERMANENT:0000000000000400\nLOADER-TPM:PCR13:ZERO\n"
               "LOADER-TPM:PASS\nLOADER-TPM:RNG:ABSENT\n")
 
-    def transcript(self, case):
+    HAUTH = ("LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:{permanent:016x}\n{mode}\n"
+             "LOADER-HAUTH:BOUND\n{lockout}\nLOADER-HAUTH:PCR13:CLOSED\n"
+             "LOADER-HAUTH:READ:REFUSED\nLOADER-HAUTH:OWNER:REFUSED\n"
+             "LOADER-HAUTH:RESIDUE:NONE\nLOADER-HAUTH:PASS\n")
+
+    def transcript(self, case, boot=0):
+        if case == "loader-hauth":
+            mode, lockout = probe.HAUTH_MODE[boot]
+            hauth = self.HAUTH.format(permanent=0x405 if boot else 0x400, mode=mode, lockout=lockout)
+            return self.LOADER.replace("RNG:ABSENT", "RNG:PASS") + hauth + self.transcript("normal")
         if case == "loader-probe":
             return self.LOADER + self.transcript("normal")
         if case == "loader-rng":
@@ -62,6 +71,28 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             probe.evaluate(good, "normal")
 
+    def test_loader_hauth_pins_the_boot_mode_and_every_check(self):
+        for boot, permanent in ((0, 0x400), (1, 0x405)):
+            result = probe.evaluate(self.transcript("loader-hauth", boot), "loader-hauth", boot)
+            self.assertEqual((result["HAUTH_PERMANENT"], result["LOADER_RNG"]), (permanent, "PASS"))
+        good = self.transcript("loader-hauth")
+        for bad, boot in (
+            (good, 1),
+            (self.transcript("loader-hauth", 1), 0),
+            (good + "LOADER-HAUTH:MODE:EXISTING\n", 0),
+            (good.replace("LOADER-HAUTH:RESIDUE:NONE\n", ""), 0),
+            (good.replace("READ:REFUSED", "READ:ALLOWED"), 0),
+            (good.replace("LOADER-HAUTH:PCR13:CLOSED\n", ""), 0),
+            (good.replace("HAUTH:PERMANENT:0000000000000400", "HAUTH:PERMANENT:0000000000000401"), 0),
+            (good.replace("RNG:PASS", "RNG:ABSENT"), 0),
+            (good, 2),
+        ):
+            with self.subTest(bad=bad, boot=boot), self.assertRaises(ValueError):
+                probe.evaluate(bad, "loader-hauth", boot)
+        for case in ("loader-rng", "normal"):
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                probe.evaluate(good, case)
+
     def test_virtio_rng_is_a_boolean_opt_in_of_the_tpm_fixture_only(self):
         import run
         for kwargs in ({"virtio_rng": True}, {"virtio_rng": 1, "tpm_socket": "x"},
@@ -73,10 +104,11 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         import build
         with patch.object(build, "ensure_lockfile"), \
                 patch.object(build, "source_hash", return_value="s"):
-            for kernel in (None, "milestone-m2", "test-tpm-crb-absent"):
-                with self.subTest(kernel=kernel), \
-                        self.assertRaisesRegex(ValueError, "tpm-loader-probe-test"):
-                    build.build("tpm-loader-probe-test", kernel)
+            for loader in ("tpm-loader-probe-test", "tpm-hauth-provision-test"):
+                for kernel in (None, "milestone-m2", "test-tpm-crb-absent"):
+                    with self.subTest(loader=loader, kernel=kernel), \
+                            self.assertRaisesRegex(ValueError, loader):
+                        build.build(loader, kernel)
 
     def test_case_substitution_and_malformed_evidence_are_rejected(self):
         for case in ("normal", "absent"):
@@ -130,6 +162,14 @@ class NativeTpmBackendTests(unittest.TestCase):
                 child.terminate.assert_called_once_with()
                 child.wait.assert_called_once_with(timeout=5)
                 self.assertEqual(report["backend"]["exit_status"], 0)
+                # A second boot reuses exactly that state; nothing else is accepted.
+                with probe.backend(report, state.parent):
+                    command = start.call_args.args[0]
+                    self.assertEqual(command[command.index("--tpmstate") + 1], state_option)
+                for other in (root / "build/tpm/missing", root):
+                    with self.subTest(other=other), self.assertRaisesRegex(ValueError, "Reused TPM state"):
+                        with probe.backend(report, other):
+                            pass
 
 
 if __name__ == "__main__":

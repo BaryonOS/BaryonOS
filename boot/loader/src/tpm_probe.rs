@@ -7,7 +7,7 @@ use core::{ffi::c_void, ptr};
 use nieuw_os_tpm_crb::codec::{encode, Request, Response, MAX_COMMAND, MAX_RESPONSE};
 use r_efi::{efi, protocols::rng};
 
-const TCG2_GUID: efi::Guid = efi::Guid::from_fields(
+pub(super) const TCG2_GUID: efi::Guid = efi::Guid::from_fields(
     0x607f_766c,
     0x7455,
     0x42be,
@@ -17,23 +17,27 @@ const TCG2_GUID: efi::Guid = efi::Guid::from_fields(
 );
 const TPM_PT_PERMANENT: u32 = 0x200;
 
-type Submit = unsafe extern "efiapi" fn(*mut Tcg2, u32, *mut u8, u32, *mut u8) -> efi::Status;
+pub(super) type Submit =
+    unsafe extern "efiapi" fn(*mut Tcg2, u32, *mut u8, u32, *mut u8) -> efi::Status;
+/// `HashLogExtendEvent(This, Flags, DataToHash, DataToHashLen, EfiTcgEvent)`.
+pub(super) type Extend =
+    unsafe extern "efiapi" fn(*mut Tcg2, u64, u64, u64, *mut c_void) -> efi::Status;
 type Banks = unsafe extern "efiapi" fn(*mut Tcg2, *mut u32) -> efi::Status;
 
 /// `EFI_TCG2_PROTOCOL` (TCG EFI Protocol Specification for TPM 2.0). r-efi
-/// 7.2.0 has no binding (U19); only the two members called here are typed.
+/// 7.2.0 has no binding (U19); only the members called by the loader are typed.
 #[repr(C)]
-struct Tcg2 {
+pub(super) struct Tcg2 {
     get_capability: *const c_void,
     get_event_log: *const c_void,
-    hash_log_extend_event: *const c_void,
-    submit_command: Option<Submit>,
+    pub(super) hash_log_extend_event: Option<Extend>,
+    pub(super) submit_command: Option<Submit>,
     get_active_pcr_banks: Option<Banks>,
     set_active_pcr_banks: *const c_void,
     get_result_of_set_active_pcr_banks: *const c_void,
 }
 
-type Fail = (&'static [u8], u64);
+pub(super) type Fail = (&'static [u8], u64);
 
 pub fn probe(fw: &Firmware) {
     serial::init();
@@ -51,7 +55,7 @@ pub fn probe(fw: &Firmware) {
 }
 
 /// `Ok(None)` only for NOT_FOUND; any other failure or a bad pointer is an error.
-fn locate<T>(fw: &Firmware, guid: efi::Guid) -> Result<Option<*mut T>, Fail> {
+pub(super) fn locate<T>(fw: &Firmware, guid: efi::Guid) -> Result<Option<*mut T>, Fail> {
     let mut guid = guid;
     let mut raw: *mut c_void = ptr::null_mut();
     // SAFETY: Live BootServices before EBS; valid GUID and output slot. Firmware
@@ -116,10 +120,21 @@ fn tcg2(fw: &Firmware) -> Result<(), Fail> {
 fn command(protocol: *mut Tcg2, submit: Submit, request: Request) -> Result<Response, Fail> {
     let mut buffer = [0u8; MAX_COMMAND];
     let command = encode(request, &mut buffer).map_err(|_| (b"ENCODE" as &[u8], 0))?;
-    let bytes = command.bytes();
     let mut response = [0u8; MAX_RESPONSE];
+    let size = exchange(protocol, submit, command.bytes(), &mut response)?;
+    command.decode(&response[..size]).map_err(codec_fail)
+}
+
+/// Submit `bytes` through firmware `SubmitCommand`; returns the response size
+/// from its header, bounded by `response` (the codec checks it again).
+pub(super) fn exchange(
+    protocol: *mut Tcg2,
+    submit: Submit,
+    bytes: &[u8],
+    response: &mut [u8; MAX_RESPONSE],
+) -> Result<usize, Fail> {
     // SAFETY: Firmware TCG2 call before EBS. The input block is only read
-    // (`IN UINT8 *`); both lengths bound live local buffers.
+    // (`IN UINT8 *`); both lengths bound live caller buffers.
     let status = unsafe {
         submit(
             protocol,
@@ -132,15 +147,18 @@ fn command(protocol: *mut Tcg2, submit: Submit, request: Request) -> Result<Resp
     if status != efi::Status::SUCCESS {
         return Err((b"SUBMIT", status.as_usize() as u64));
     }
-    // The header size selects the response; the codec checks it again.
     let size = u32::from_be_bytes([response[2], response[3], response[4], response[5]]) as usize;
-    let body = response
-        .get(..size)
-        .ok_or((b"RESPONSE_SIZE" as &[u8], size as u64))?;
-    command.decode(body).map_err(|error| match error {
-        nieuw_os_tpm_crb::codec::Error::Tpm(rc) => (b"TPM_RC" as &[u8], u64::from(rc)),
-        _ => (b"DECODE" as &[u8], 0),
-    })
+    if size > MAX_RESPONSE {
+        return Err((b"RESPONSE_SIZE", size as u64));
+    }
+    Ok(size)
+}
+
+pub(super) fn codec_fail(error: nieuw_os_tpm_crb::codec::Error) -> Fail {
+    match error {
+        nieuw_os_tpm_crb::codec::Error::Tpm(rc) => (b"TPM_RC", u64::from(rc)),
+        _ => (b"DECODE", 0),
+    }
 }
 
 /// U25 observation: does firmware supply EFI_RNG_PROTOCOL in this profile?

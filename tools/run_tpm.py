@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Real kernel CRB MMIO over a disposable local swtpm; no keys or NV mutation."""
+"""Real kernel CRB MMIO over a disposable local swtpm. The loader-hauth case
+writes TEST hierarchy auth and NV (M1-HAUTH) into that disposable state only."""
 from __future__ import annotations
 
 import argparse
@@ -19,29 +20,54 @@ import run_ipc_wait
 from run import run_guest
 
 FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
-            "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb"}
+            "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb",
+            "loader-hauth": "native-tpm-crb"}
 # B03 REL-05 S6 step 1: firmware TCG2/RNG before EBS, then the normal kernel case.
-LOADER = {case: "tpm-loader-probe-test" for case in FEATURES if case.startswith("loader-")}
-# U25: the TEST profile has no firmware RNG; only `loader-rng` adds a virtio-rng device.
-LOADER_RNG = {"loader-probe": "ABSENT", "loader-rng": "PASS"}
+# loader-hauth (M1-HAUTH BOUND, TEST): the probe, then provisioning on boot 0 and
+# verification on boot 1 of the same swtpm state.
+LOADER = {"loader-probe": "tpm-loader-probe-test", "loader-rng": "tpm-loader-probe-test",
+          "loader-hauth": "tpm-hauth-provision-test"}
+BOOTS = {"loader-hauth": 2}
+# U25: the TEST profile has no firmware RNG; `loader-rng` and `loader-hauth` add a virtio-rng device.
+LOADER_RNG = {"loader-probe": "ABSENT", "loader-rng": "PASS", "loader-hauth": "PASS"}
 LOADER_MARKERS = ("LOADER-TPM:TCG2:PRESENT", "LOADER-TPM:PCR13:ZERO", "LOADER-TPM:PASS")
+HAUTH_MODE = (("LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:LOCKOUT:SET"),
+              ("LOADER-HAUTH:MODE:EXISTING", "LOADER-HAUTH:LOCKOUT:KEPT"))
+
+
+def hauth_markers(boot):
+    mode, lockout = HAUTH_MODE[boot]
+    return ("LOADER-HAUTH:BEGIN", mode, "LOADER-HAUTH:BOUND", lockout, "LOADER-HAUTH:PCR13:CLOSED",
+            "LOADER-HAUTH:READ:REFUSED", "LOADER-HAUTH:OWNER:REFUSED",
+            "LOADER-HAUTH:RESIDUE:NONE", "LOADER-HAUTH:PASS")
 COMMON = ("M2:PASS", "TPMCRB:BOUNDS:PASS", "TPMCRB:MAPPING:PASS",
           "IPCWAIT:MANIFEST:PASS", "IPCWAIT:REVOKED_FULL_QUEUE:PASS")
 
 
-def markers(case):
+def markers(case, boot=0):
     final = ("TPMCRB:ABSENT:PASS",) if case == "absent" else ("TPMCRB:RELEASED:PASS", "TPMCRB:PASS")
+    hauth = hauth_markers(boot) if case == "loader-hauth" else ()
     # run.is_success matches in serial order: the loader prints before EBS.
-    return (LOADER_MARKERS if case in LOADER else ()) + COMMON + final + run_ipc_wait.MARKERS[3:]
+    return ((LOADER_MARKERS if case in LOADER else ()) + hauth + COMMON + final
+            + run_ipc_wait.MARKERS[3:])
 
 
-def evaluate(stdout, case):
-    if case not in FEATURES:
+def evaluate(stdout, case, boot=0):
+    if case not in FEATURES or not 0 <= boot < BOOTS.get(case, 1):
         raise ValueError("Unknown native TPM case")
     result = run_ipc_wait.evaluate(stdout)
-    for marker in markers(case):
+    for marker in markers(case, boot):
         if stdout.splitlines().count(marker) != 1:
             raise ValueError(f"Expected exactly one {marker}")
+    if case == "loader-hauth":
+        if set(HAUTH_MODE[1 - boot]) & set(stdout.splitlines()):
+            raise ValueError("HAUTH boot mode does not match the swtpm state")
+        permanent = re.findall(r"^LOADER-HAUTH:PERMANENT:([0-9a-f]{16})$", stdout, re.M)
+        if len(permanent) != 1 or (int(permanent[0], 16) & 0x5) != (0 if boot == 0 else 0x5):
+            raise ValueError("Invalid HAUTH ownerAuth/lockoutAuth state")
+        result["HAUTH_PERMANENT"] = int(permanent[0], 16)
+    elif "LOADER-HAUTH:" in stdout:
+        raise ValueError("HAUTH loader output outside the loader-hauth case")
     if case in LOADER:
         result.update(loader_observations(stdout))
         if result["LOADER_RNG"] != LOADER_RNG[case]:
@@ -83,7 +109,8 @@ def loader_observations(stdout):
 
 
 @contextmanager
-def backend(report):
+def backend(report, directory=None):
+    """A swtpm on a fresh private state, or on `directory` from an earlier boot."""
     prefix = LOCAL / "swtpm-native"
     env = environment()
     binary = prefix / "usr/bin/swtpm"
@@ -100,10 +127,12 @@ def backend(report):
     )
     if not BUILD.resolve().is_relative_to(ROOT.resolve()):
         raise ValueError("TPM state must be generated inside the checkout")
-    directory = BUILD / "tpm" / uuid.uuid4().hex[:10]
-    directory.mkdir(parents=True)
-    state = directory / "state"
-    state.mkdir(mode=0o700)
+    if directory is None:
+        directory = BUILD / "tpm" / uuid.uuid4().hex[:10]
+        directory.mkdir(parents=True)
+        (directory / "state").mkdir(mode=0o700)
+    elif not (directory / "state").is_dir() or not directory.resolve().is_relative_to(BUILD.resolve()):
+        raise ValueError("Reused TPM state must be an existing state under the build directory")
     control = directory / "ctrl.sock"
     relative = directory.relative_to(ROOT).as_posix()
     # Each child owns a new private state directory; do not require the optional
@@ -118,7 +147,7 @@ def backend(report):
         "version": subprocess.check_output([str(binary), "--version"], env=env, text=True).strip(),
         "directory": str(directory), "log": str(directory / "backend.log"),
     }
-    with (directory / "backend.log").open("wb") as stream:
+    with (directory / "backend.log").open("ab") as stream:
         process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT)
         try:
             deadline = time.monotonic() + 5
@@ -150,7 +179,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; no product keys or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
@@ -159,24 +188,32 @@ def run(case):
                 or manifest["source_sha256"] != frozen or source_hash() != frozen):
             raise ValueError("TPM build source/profile changed")
 
-        def guest(control=None):
+        def guest(control=None, boot=0):
+            label = f"tpm-{case}" if boot == 0 else f"tpm-{case}-boot{boot}"
             report["guest"] = run_guest(
-                f"tpm-{case}", required_markers=markers(case), tpm_socket=control,
+                label, required_markers=markers(case, boot), tpm_socket=control,
                 forbidden_markers=("TPMCRB:FAIL:", "IPCWAIT:FAIL:", "PANIC", "M3:FAIL:",
-                                   "LOADER-TPM:FAIL:"),
+                                   "LOADER-TPM:FAIL:", "LOADER-HAUTH:FAIL:"),
                 expected_kernel_sha256=manifest["kernel"]["sha256"],
                 expected_loader_sha256=manifest["loader"]["sha256"],
-                virtio_rng=case == "loader-rng",
+                virtio_rng=case in ("loader-rng", "loader-hauth"),
             )
             if not report["guest"]["passed"]:
                 raise ValueError("Native TPM guest failed; inspect retained serial/stderr")
-            report["observed"] = evaluate(report["guest"]["stdout"], case)
+            report["observed"] = evaluate(report["guest"]["stdout"], case, boot)
 
-        if case != "absent":
+        if case == "absent":
+            guest()
+        elif case in BOOTS:
+            directory, report["boots"] = None, []
+            for boot in range(BOOTS[case]):
+                with backend(report, directory) as control:
+                    guest(control, boot)
+                directory = control.parent
+                report["boots"].append({key: report.pop(key) for key in ("backend", "guest", "observed")})
+        else:
             with backend(report) as control:
                 guest(control)
-        else:
-            guest()
         if source_hash() != frozen:
             raise ValueError("Source changed during native TPM run")
         report["passed"] = True
