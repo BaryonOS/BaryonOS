@@ -1407,7 +1407,9 @@ AI reviews, not a human audit.
   input pointer returns -5, not -3; (j) with the lane offline after an
   injected failed reset, a destination WRITE is refused and latches, the
   holder is killed before any `0x44`, and under the test-only re-grant of (d)
-  a WRITE into the range returns -5 (L1b). Killing mutations: no check before the
+  a WRITE into the range returns -5 (L1b); (k) during a reset started by an
+  injected READ timeout, a destination WRITE gets -8 and nothing latches,
+  and after the reset the same WRITE is admitted. Killing mutations: no check before the
   `Policy`; a check after the input copy (i); a latch keyed on the object or
   handle instead of the range, or on the whole device (d); a latch cleared by
   `detach` or reset (d); a latch set at the poll and not in the `Policy` (b,
@@ -1416,7 +1418,7 @@ AI reviews, not a human audit.
   malformed-completion reset (g); a READ that latches
   (g); FLUSH refused (c); `0x44` refused while the lane is stuck (f); `0x44`
   that always latches (f); a submission refusal that latches nothing (j); a
-  -8 during a reset that latches (b, c).
+  -8 during a reset that latches (k).
 - *Answers to the review questions.* The barrier-1 variant of N37 (a) does not
   latch: a FLUSH submitted while the lane resets gets -8 and is never admitted,
   as in N26 (d); if that reset fails, the later submission's -13 or -14 is an
