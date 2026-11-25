@@ -1042,7 +1042,11 @@ impl Engine<'_> {
         // xHCI §4.3.3: the refused device's slot and EP0 contexts must not
         // survive into the next Address Device.
         // `output` is an IOVA; clear the physical frame behind it.
-        let page = self.io.iter().position(|&io| io == output).ok_or(bad(63))?;
+        let page = self
+            .io
+            .iter()
+            .position(|&io| io == output)
+            .ok_or_else(|| bad(63))?;
         clear(self.pages[page]);
         let (mut keyboard, _) = self.attach(ports, 0, 1, output, report, None)?;
         if keyboard.session.binding().protocol != Protocol::Keyboard
