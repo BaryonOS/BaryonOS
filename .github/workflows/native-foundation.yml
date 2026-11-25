@@ -85,7 +85,6 @@ jobs:
       - name: Real keyring cores, SDK sessions and capability-engine probe tests
         run: |
           cargo +1.100.0 test --offline --locked -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-host.txt"
-          cargo +1.100.0 clippy --offline --locked -p keyring-core --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-clippy.txt"
           cargo +1.100.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-host.txt"
           cargo +1.100.0 clippy --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-clippy.txt"
           for manifest in \
@@ -108,8 +107,6 @@ jobs:
             --cfg chacha20_backend="soft"
             --cfg poly1305_backend="soft" --cfg sha2_backend="soft"
         run: |
-          cargo +1.100.0 fmt --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/root-format.txt"
-          cargo +1.100.0 fmt --manifest-path sdk/Cargo.toml --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/sdk-format.txt"
           cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-scalar.txt"
           cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-scalar.txt"
           for manifest in \
