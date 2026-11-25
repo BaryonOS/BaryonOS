@@ -74,7 +74,7 @@ v1 is refused on every later boot.
 | T4 kernel compromise of the *trial* boot | Arbitrary CPL0 code in the candidate while the window is open. | Out of scope | The candidate is authenticated signed code; it can confirm itself. Same limit as any measured-boot confirmation. |
 | T5 boot-path attacker | Boots a foreign EFI application (no Secure Boot) or modifies the loader. | Out of scope until B04 | Reaches the loader phase (PCR at reset value) and can write every loader-only index, raise the floor (brick) or reset UEFI variables. Needs the authenticated loader chain of B04 (ADR-B03-B04-TARGET D5). |
 | T6 TPM cleared / replaced / faulty | Owner or lockout clear, a different TPM, swtpm state deleted, command failures. | Yes (O9) | Detected as anchor loss or fault (section 10); floor kept from UEFI NV; no trials, no floor raise. |
-| T7 combined T1 + T6 + reset of `OVMF_VARS` | Every persistent anchor wiped together. | Not defended | Both floors return to 0; an older signed release still present on disk can boot. Mitigation is a compiled-in minimum version in the authenticated loader plus B04 (section 10.4). **This is why a TPM counter alone is not full rollback protection.** |
+| T7 combined T1 + T6 + reset of `OVMF_VARS` | Every persistent anchor wiped together. | Not defended | Both floors return to 0; the `DEGRADED` loader then halts (no slot at floor 0, section 10.2), but an attacker who also re-provisions with the TEST tool (10.3) can mark an older signed release still present on disk as known-good. Mitigation is a compiled-in minimum version in the authenticated loader plus B04 (section 10.4). **This is why a TPM counter alone is not full rollback protection.** |
 | T8 power loss | Cut between any two persistent writes, or during a TPM command. | Yes | Every cut point has a defined successor state (section 7). |
 
 The host running QEMU/swtpm and its administrator are trusted in the TEST
@@ -345,7 +345,26 @@ counts or exhausts. NV_Write atomicity for one command is assumed *[U4]*.
   current `native-update` profile has no user-data volume, so that part of
   C3/C4 is not testable yet.
 - I7 Every loss or inconsistency of TPM state leads to `DEGRADED`, never to a
-  lower floor or a trial.
+  lower floor or a trial; a `DEGRADED` handover boots exactly the version
+  equal to the pre-boot UEFI floor, otherwise the loader halts.
+
+### 7.7 Model decisions fixed by S1 (normative)
+
+The S1 model (`crates/update-core/src/trial.rs`) resolves points this
+specification left open; implementations follow it:
+
+- Fail closed as `ANCHOR_LOST`: a `TRIAL` or `FLOOR` generation above the
+  `GEN` counter, a `PENDING` record with zero attempts, and a `FLOOR`
+  revision at `u64::MAX`.
+- A trial candidate with two slots at the same version but different
+  digests is ambiguous: no candidate (versions are never reused, 6.4).
+- Additional markers: `BOOT:MODE:KNOWN_GOOD`, `BOOT:MODE:TRIAL` and
+  `BOOT:CONFIRM:REJECTED:<MALFORMED|VERDICT|GENERATION|BINDING|STALE>`
+  (`STALE`: valid binding, but the trial version is no longer above the
+  floor).
+- The decision function emits no `DOWNGRADE` marker: a slot below the floor is
+  simply not eligible. `BOOT:SLOT:<s>:REJECTED:DOWNGRADE` (C14, C15) remains
+  the existing slot verifier's marker, outside S1.
 
 ## 8. Authorization boundaries and BootInfo
 
@@ -438,9 +457,15 @@ known-good fallback. Installation resumes after finalization.
 | TCG2 present, any NV/read error, but the `CLOSED` extend succeeds | `DEGRADED` boot. |
 | TCG2 present and the extend fails | Controlled halt `BOOT:FAIL:TPM_EXTEND` (no kernel runs). Recovery: power cycle; persistent failure needs TPM service or the TEST re-provisioning of 10.3. Booting degraded instead is rejected: it would hand over with PCR 13 at its reset value (see the state machine). |
 
-In `DEGRADED`: effective floor = UEFI floor (never lowered). Boot the verified
-slot with `version == floor`; if absent, the lowest verified slot ≥ floor (most
-conservative). No trial, no attempt write, no floor write of any kind. BootInfo reports the
+In `DEGRADED`: effective floor = UEFI floor (never lowered). Boot only the
+verified slot with `version == floor`, the last confirmed version (equal
+versions follow the header hint; versions are never reused, 6.4). If no such
+slot exists, halt with `BOOT:FAIL:NO_VALID_SLOT`. A slot above the UEFI floor
+was never confirmed and may be a rejected or abandoned trial; the TPM content
+that would say so is untrusted in this mode, so booting it as known-good would
+bypass the health check (security review finding, 25 November 2026). An
+absent UEFI variable reads as floor 0 and therefore halts too: no
+`DEGRADED` boot without a provisioned floor (recovery 10.3). No trial, no attempt write, no floor write of any kind. BootInfo reports the
 TPM state; the kernel then does not claim the CRB; the update service defers
 installation. Markers `BOOT:TPM:<ABSENT|FAULT|ANCHOR_LOST|ANCHOR_BEHIND>` and
 `BOOT:MODE:DEGRADED`. Updates stall until recovery: availability is traded for
@@ -491,13 +516,14 @@ named marker (TEST hook markers emitted before each write in a test feature).
 | C13 | alternation | host alternates v2 and v3 candidates | `BOOT:TRIAL:ABANDONED:2`; v2 never trialled again |
 | C14 | disk replay | replay a full pre-update disk image after C2 | v1 `REJECTED:DOWNGRADE`, floor 2 from TPM and UEFI |
 | C15 | downgrade | old signed v1 in inbox and slot after C2 | `UPDATE:REJECTED:DOWNGRADE`, `BOOT:SLOT:A:REJECTED:DOWNGRADE` |
-| C16 | TPM absent | no swtpm device (OVMF finds no TPM) | `BOOT:TPM:ABSENT`, `BOOT:MODE:DEGRADED`, known-good, floor unchanged |
+| C16 | TPM absent | provisioned v1 (UEFI floor 1), then no swtpm device (OVMF finds no TPM) | `BOOT:TPM:ABSENT`, `BOOT:MODE:DEGRADED`, v1 boots, floor unchanged |
+| C16b | TPM absent, known-good slot lost | as C3 (v2 rejected), then slot A corrupt and no swtpm | `BOOT:MODE:DEGRADED`, `BOOT:FAIL:NO_VALID_SLOT`; v2 never boots |
 | C17a | TPM fault | swtpm returns errors on NV reads, extend works (test hook) | `BOOT:TPM:FAULT`, `BOOT:MODE:DEGRADED`; no floor write |
 | C17b | TPM fault | swtpm killed before the extend | `BOOT:FAIL:TPM_EXTEND`, no kernel markers; floors unchanged on the next healthy boot |
 | C3/C4 add | user data | hash of all non-slot disk regions before and after | byte-identical (not testable in the current profile, I8) |
 | C18 | TPM cleared | fresh swtpm state after C2, `OVMF_VARS` kept | `BOOT:TPM:ANCHOR_LOST`, `BOOT:FLOOR:2` (UEFI), degraded |
 | C19 | TPM rolled back | swtpm state snapshot from before C2 restored | `BOOT:TPM:ANCHOR_BEHIND`, floor 2 kept |
-| C20 | combined T7 | fresh swtpm + fresh `OVMF_VARS` + v1 on disk | documents the limit: v1 boots unless the compiled-in minimum (S9) forbids it |
+| C20 | combined T7 | fresh swtpm + fresh `OVMF_VARS` + v1 on disk | UEFI floor reads 0: `BOOT:TPM:ANCHOR_LOST`, `BOOT:FAIL:NO_VALID_SLOT` (denial, not rollback); recovery only through 10.3, which can be abused by whoever runs it (limit) |
 | C21 | index squatting | indices predefined with weaker policy | `BOOT:TPM:ANCHOR_LOST` |
 | C22 | dirty PCR | PCR 13 pre-extended (test firmware hook or EFI shell) | `BOOT:TPM:FAULT:PCR_DIRTY` |
 
@@ -516,7 +542,7 @@ named marker (TEST hook markers emitted before each write in a test feature).
   provisioned floor instead of a floor raised by the interrupted boot; stages
   whose higher slot is corrupt (`bad-*`, `key-*`) stay known-good boots.
   Exact lists are fixed in S10 against real transcripts, not here.
-- `tools/characterize_update_floor.py` (PR #514, not on `main`): with the
+- `tools/characterize_update_floor.py` (PR #514, merged as `c61a1fe0`): with the
   trial profile, boot 1 must no longer raise the floor and boot 4 must boot v1;
   the runner must then **fail** (hazard not observed). S10 adds the inverse
   acceptance (C3/C4) as the regression test and records the characterization's

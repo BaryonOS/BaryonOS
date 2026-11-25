@@ -225,6 +225,8 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
             // proves UEFI >= FLOOR in every reachable state (F1 before F2).
             let visible = if degraded { pre.uefi } else { post_eff };
             assert!(h.version >= visible, "I6 below floor: {}", ctx());
+            // I7: DEGRADED hands over only the confirmed version (spec 10.2).
+            assert!(!degraded || h.version == pre.uefi, "I7 version: {}", ctx());
             match h.mode {
                 Mode::Trial(b) => {
                     assert_eq!(h.extend, Some(Phase::Open), "{}", ctx());
@@ -1003,9 +1005,12 @@ fn tpm_missing_faulty_cleared_replaced_or_rolled_back() {
     m.disk[0] = None;
     m.store.public_ok = false;
     let (plan, b) = m.boot_with(Dev::Ready, Kernel::Crash);
-    // Spec 10.2: lowest verified slot above the floor, never as a trial.
+    // Spec 10.2: no slot at the UEFI floor, so halt rather than boot the
+    // rejected v2 as known-good.
     assert!(
-        has(&b, "BOOT:MODE:DEGRADED") && has(&b, "BOOT:SLOT:B:VERSION:2"),
+        has(&b, "BOOT:MODE:DEGRADED")
+            && has(&b, "BOOT:FAIL:NO_VALID_SLOT")
+            && !b.iter().any(|x| x.starts_with("BOOT:SLOT:")),
         "{b:?}"
     );
     assert!(trial_binding(&plan).is_none() && plan.writes.is_empty());

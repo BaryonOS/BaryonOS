@@ -619,9 +619,11 @@ fn degraded(obs: &Observation, mut plan: Plan, class: TpmClass) -> Plan {
     plan.markers.push(Marker::Floor(floor));
     let extend = (class != TpmClass::Absent).then_some(Phase::Closed);
     let hint = u8::from(obs.hint == 1);
-    // Exact floor first; else the lowest verified slot above it.
-    let chosen = pick(&obs.slots, |s| s.version == floor, hint, true, false)
-        .or_else(|| pick(&obs.slots, |s| s.version > floor, hint, true, false));
+    // Only the confirmed version: a slot above the UEFI floor was never
+    // confirmed and may be a rejected trial, which the untrusted TPM content
+    // cannot rule out. Equal versions follow the hint (versions are never
+    // reused, section 6.4; I5 keeps a valid known-good slot bootable).
+    let chosen = pick(&obs.slots, |s| s.version == floor, hint, true, false);
     match chosen {
         Some((slot, view)) => handover(
             &mut plan,
