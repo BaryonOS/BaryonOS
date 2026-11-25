@@ -1728,17 +1728,18 @@ Return the structured result.
         for n in range(1, 100):
             name = f"{record['date']}-{slug}{'' if n == 1 else f'-{n}'}.json"
             try:
-                with open(folder / name, "x", encoding="utf-8") as handle:
-                    written = False
-                    try:
-                        handle.write(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
-                        written = True
-                    finally:
-                        if not written:  # also on interrupt: no partial record stays behind
-                            (folder / name).unlink(missing_ok=True)
-                break
+                handle = open(folder / name, "x", encoding="utf-8")
             except FileExistsError:
                 continue
+            written = False
+            try:
+                with handle:  # close flushes, so a full disk can fail here too
+                    handle.write(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
+                written = True
+            finally:
+                if not written:  # also on interrupt: no partial record stays behind
+                    (folder / name).unlink(missing_ok=True)
+            break
         else:
             raise Stop("no free assessment file name for this task today")
         # -I keeps the checkout's tools/ directory off sys.path: no worker module shadows stdlib.

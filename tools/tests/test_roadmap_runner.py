@@ -866,6 +866,35 @@ class Session(unittest.TestCase):
         self.assertEqual(len(names), 2)
         self.assertTrue(any(name.endswith("-verified-2.json") for name in names))
 
+    def test_a_failing_close_removes_the_partial_file(self):
+        real_open = open
+
+        class FullDisk:
+            def __init__(self, path, *args, **kwargs):
+                self.handle = real_open(path, *args, **kwargs)
+
+            def __enter__(self):
+                return self
+
+            def write(self, _text):
+                return 0
+
+            def __exit__(self, *exc):
+                self.handle.close()
+                raise OSError(28, "No space left on device")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs").mkdir()
+            (root / "docs" / "progress.json").write_text(json.dumps({"tracks": []}))
+            with unittest.mock.patch.object(rr, "ROOT", root), \
+                    unittest.mock.patch("builtins.open", FullDisk), \
+                    unittest.mock.patch.object(rr, "git", return_value=""):
+                with self.assertRaises(OSError):
+                    rr.Controller(rr.Config(), root / "state").record_assessment(dict(task("A"), title="t"),
+                                                                               "a" * 40, "verified")
+            self.assertEqual(list((root / "docs" / "progress" / "assessments").iterdir()), [])
+
     def test_a_rejected_assessment_file_is_removed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

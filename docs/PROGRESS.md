@@ -23,7 +23,8 @@ The machine-readable source of truth is [progress.json](progress.json), plus the
 A task that leaves the score unchanged records its assessment as a new file in
 [progress/assessments/](progress/assessments/) (`<YYYY-MM-DD>-<slug>.json`, same
 fields as the `assessment` object), so parallel pull requests do not edit the same
-lines. A score change updates the `assessment` object and the generated views.
+lines. A score change updates the `assessment` object and the generated views; any
+other register change, such as a `delivery_review` row, still regenerates the views.
 The check applies the same rules to both (ADR-PROGRESS-ASSESSMENTS-20261125).
 
 ## Reading the three views
