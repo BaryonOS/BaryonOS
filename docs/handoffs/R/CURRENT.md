@@ -63,8 +63,24 @@ full app-body repaints (~1785 SUR1 tiles each) per run, ≤0.87 s each on
 screendump retry quantises latency; exact timing needs per-attempt
 timestamps (local diagnostic patch only, not committed).
 
+## Writer agreement with U (25 Nov 2026)
+
+R is the single writer for changed-region repaint in the Materiaal client
+paint path, in its own PR. Write set: `sdk/examples/materiaal/src/*` and new
+R-owned test files under `sdk/examples/materiaal/tests/`. Until #523 merges,
+do not touch `sdk/examples/materiaal/tests/chain.rs`,
+`ui/native/src/controller.rs` or `docs/handoffs/UI-U/*`; after #523 lands,
+merge `main` once before pushing. U acceptance: (1) full repaint remains the
+fallback on layout/size/theme change, focus/selection-ring change and the
+read-only/error banner (U03 refusal stays visible); (2) negative test with a
+mutation control: one changed region, all other tiles byte-identical, the
+changed tile correct; (3) materiaal host suite, clippy, fmt green; native
+materiaal-probe normal and recover with raw exit 33 (readonly phase still
+ERRORS 1, SAVE_ACKS 0); (4) A/B on the same host in a new verification
+directory. Request U review (UI/a11y); U does not merge. R updates
+`docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md`.
+
 ## Next action
 
-Agree one writer with U for changed-region repaint in the client paint path
-(Materiaal `paint_step`), then A/B the same baseline (interleaved builds,
-same host) before and after the fix.
+Implement on a separate branch from `origin/main`, then A/B the same
+baseline before and after.
