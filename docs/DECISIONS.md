@@ -128,7 +128,7 @@ why four new specialists were chosen rather than another split.
 
 **Security invariant:**
 
-- No authority is widened beyond `ADR-MERGE-DELEGATION-20261123` as amended by D2.
+- Apart from the expansions in items 2 and 8, no authority is widened beyond `ADR-MERGE-DELEGATION-20261123` as amended by D2.
 - Protected-file review, `ADR-MERGE-HOLD-20261113`, required checks and branch
   protection are unchanged.
 - The PR guard has no commit, push, merge, label or review authority.
