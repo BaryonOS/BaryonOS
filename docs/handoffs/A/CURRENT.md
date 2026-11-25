@@ -115,6 +115,26 @@ notice is a fixture; no full A03 acceptance.
   T2c-3: owner chose A (reply-endpoint closure), 25 Nov; PIDs are monotonic,
   `crates/kernel-core/src/user.rs:147`, so no PID-reuse risk for A.
 - Native runs: NOS_BUILD_DIR must lie inside the checkout (default `build/`).
+- 25 Nov ~20:10Z: main is 9dcbcc69 (#547). Trial merge of 16e0dfa2 with it in a
+  throwaway worktree (removed): clean; main's non-doc delta is CI tooling only
+  (`tools/ci_impact.py`, `tools/merge_hold.py`), so kernel/build inputs are
+  unchanged. Host checks on the trial merge: `test_ci_workflows.py` 65 OK,
+  `progress.py --check` 0 (43/100), broker tests 10/10, clippy 0, fmt 0.
+  `ci_impact.py plan` selects core 10 + rwa 35 (task-grant via ci.yml), shadow only.
+- 25 Nov ~20:15Z: **T2c-3 contract pin done locally**: branch
+  `claude/a03-t2c3-exit-pin-20261125` @7c734f1c off 9dcbcc69, worktree
+  `~/projects/BaryonOS-worktrees/a-track-t2c3pin`, NOT pushed, no PR. One test in
+  `crates/capability-core/src/tests.rs`
+  (`a03_owned_reply_endpoint_closes_no_later_than_owner_exit`): owner exit makes
+  the broker's reply SEND fail atomically with Revoked and drops the queued
+  message; another client is unaffected; RECV is never delegable or transferable
+  (`lib.rs` `subset`, Access). A mutant skipping exit cleanup fails it. Crate tests,
+  clippy and fmt pass. PR guard checked all open PRs: no capability-core overlap.
+  Submit through the lane after #535 (or fold into the T2c-1 PR if the guard
+  prefers fewer PRs).
+- The T2c-3 option-A decision is recorded only in this handoff (215cadac); a fresh
+  resume prompt still described it as pending. Confirm it with the project owner
+  before any T2c-3 kernel work.
 
 ## Next action
 
