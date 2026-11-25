@@ -1,6 +1,10 @@
 use baryon_ai_reference_forward::{
-    attention, kv_cache_bytes, rope, Error, KvCache, MAX_KV_BYTES, MAX_MACS,
+    attention, kv_cache_bytes, rope, Budget, Cancel, Error, KvCache, NoCancel, MAX_KV_BYTES,
 };
+
+fn nb() -> Budget<'static> {
+    Budget::new(u64::MAX, &NoCancel)
+}
 
 fn close(a: &[f32], b: &[f32]) -> bool {
     a.len() == b.len() && a.iter().zip(b).all(|(x, y)| (x - y).abs() < 1e-5)
@@ -86,14 +90,14 @@ fn attention_matches_hand_computed_softmax() {
     cache.append(&[1., 0.], &[10., 0.]).unwrap();
     let mut out = [0.; 2];
     // A single token receives all weight.
-    attention(&[3., 3.], 1, &cache, &mut [0.; 3], &mut out).unwrap();
+    attention(&[3., 3.], 1, &cache, &mut [0.; 3], &mut out, &mut nb()).unwrap();
     assert!(close(&out, &[10., 0.]));
     cache.append(&[0., 1.], &[0., 20.]).unwrap();
     // Equal scores give the mean of the values.
-    attention(&[1., 1.], 1, &cache, &mut [0.; 4], &mut out).unwrap();
+    attention(&[1., 1.], 1, &cache, &mut [0.; 4], &mut out, &mut nb()).unwrap();
     assert!(close(&out, &[5., 10.]));
     // Scores 2/sqrt(2) and 0: weights e^s / (e^s + 1).
-    attention(&[2., 0.], 1, &cache, &mut [0.; 4], &mut out).unwrap();
+    attention(&[2., 0.], 1, &cache, &mut [0.; 4], &mut out, &mut nb()).unwrap();
     let w = 1.0 / (1.0 + (-(2f32 / 2f32.sqrt())).exp());
     assert!(close(&out, &[10. * w, 20. * (1. - w)]));
 }
@@ -104,10 +108,18 @@ fn grouped_query_heads_share_their_kv_head() {
     let mut cache = KvCache::new(2, 1, &mut k, &mut v).unwrap();
     cache.append(&[1., 1.], &[3., 7.]).unwrap();
     let mut out = [0.; 4];
-    attention(&[1., 1., 1., 1.], 4, &cache, &mut [0.; 5], &mut out).unwrap();
+    attention(
+        &[1., 1., 1., 1.],
+        4,
+        &cache,
+        &mut [0.; 5],
+        &mut out,
+        &mut nb(),
+    )
+    .unwrap();
     assert_eq!(out, [3., 3., 7., 7.]);
     assert_eq!(
-        attention(&[1.; 3], 3, &cache, &mut [0.; 4], &mut [0.; 3]),
+        attention(&[1.; 3], 3, &cache, &mut [0.; 4], &mut [0.; 3], &mut nb()),
         Err(Error::Shape)
     );
 }
@@ -118,41 +130,77 @@ fn attention_refuses_empty_cache_bad_inputs_and_excess_work() {
     let mut cache = KvCache::new(1, 2, &mut k, &mut v).unwrap();
     let mut out = [7.; 2];
     assert_eq!(
-        attention(&[1., 1.], 1, &cache, &mut [0.; 2], &mut out),
+        attention(&[1., 1.], 1, &cache, &mut [0.; 2], &mut out, &mut nb()),
         Err(Error::Shape)
     );
     cache.append(&[1., 1.], &[1., 1.]).unwrap();
     assert_eq!(
-        attention(&[1., 1.], 1, &cache, &mut [0.; 2], &mut out),
+        attention(&[1., 1.], 1, &cache, &mut [0.; 2], &mut out, &mut nb()),
         Err(Error::Shape)
     );
     assert_eq!(
-        attention(&[f32::NAN, 1.], 1, &cache, &mut [0.; 3], &mut out),
+        attention(
+            &[f32::NAN, 1.],
+            1,
+            &cache,
+            &mut [0.; 3],
+            &mut out,
+            &mut nb()
+        ),
         Err(Error::NonFinite)
     );
     assert_eq!(
-        attention(&[f32::MAX, f32::MAX], 1, &cache, &mut [0.; 3], &mut out),
+        attention(
+            &[f32::MAX, f32::MAX],
+            1,
+            &cache,
+            &mut [0.; 3],
+            &mut out,
+            &mut nb()
+        ),
         Err(Error::NonFinite)
     );
     assert_eq!(out, [7.; 2]);
 
-    let width = 1024;
-    let tokens = MAX_MACS / (2 * width) + 1;
-    let (mut k, mut v) = (vec![0.; width * tokens], vec![0.; width * tokens]);
-    let mut cache = KvCache::new(1, width, &mut k, &mut v).unwrap();
-    for _ in 0..tokens {
-        cache.append(&vec![0.; width], &vec![0.; width]).unwrap();
-    }
-    let mut out = vec![7.; width];
+    // One head of width 2 over 2 tokens costs 2 × 2 × 2 = 8 MACs.
+    let (mut k, mut v) = ([0.; 4], [0.; 4]);
+    let mut cache = KvCache::new(1, 2, &mut k, &mut v).unwrap();
+    cache.append(&[1., 0.], &[1., 0.]).unwrap();
+    cache.append(&[0., 1.], &[0., 1.]).unwrap();
+    let mut out = [7.; 2];
+    let mut budget = Budget::new(7, &NoCancel);
     assert_eq!(
-        attention(
-            &vec![0.; width],
-            1,
-            &cache,
-            &mut vec![0.; tokens + width],
-            &mut out
-        ),
+        attention(&[1., 1.], 1, &cache, &mut [0.; 4], &mut out, &mut budget),
         Err(Error::WorkLimit)
     );
-    assert!(out.iter().all(|&x| x == 7.));
+    assert_eq!((out, budget.remaining()), ([7.; 2], 7));
+    let mut budget = Budget::new(8, &NoCancel);
+    attention(&[1., 1.], 1, &cache, &mut [0.; 4], &mut out, &mut budget).unwrap();
+    assert_eq!(budget.remaining(), 0);
+}
+
+#[test]
+fn attention_observes_cancellation_before_work() {
+    struct Cancelled;
+    impl Cancel for Cancelled {
+        fn cancelled(&self) -> bool {
+            true
+        }
+    }
+    let (mut k, mut v) = ([0.; 2], [0.; 2]);
+    let mut cache = KvCache::new(1, 2, &mut k, &mut v).unwrap();
+    cache.append(&[1., 0.], &[1., 0.]).unwrap();
+    let mut out = [7.; 2];
+    assert_eq!(
+        attention(
+            &[1., 1.],
+            1,
+            &cache,
+            &mut [0.; 3],
+            &mut out,
+            &mut Budget::new(100, &Cancelled)
+        ),
+        Err(Error::Cancelled)
+    );
+    assert_eq!(out, [7.; 2]);
 }

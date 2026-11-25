@@ -2,6 +2,9 @@
 #![forbid(unsafe_code)]
 //! Host numerical reference only; no model loader, permissions or native inference.
 
+mod decoder;
+pub use decoder::{Bf16, DecoderLayer, LayerConfig};
+
 pub const MAX_MACS: usize = 1_048_576;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -11,6 +14,51 @@ pub enum Error {
     NonFinite,
     /// The fixed context or KV ceiling is exhausted; nothing was truncated.
     ContextLimit,
+    /// The caller's cancellation signal was observed; no output was published.
+    Cancelled,
+}
+
+/// Cooperative cancellation, polled between rows, heads and layers.
+pub trait Cancel {
+    fn cancelled(&self) -> bool;
+}
+
+/// Never cancels; for tests and callers without a cancellation source.
+pub struct NoCancel;
+
+impl Cancel for NoCancel {
+    fn cancelled(&self) -> bool {
+        false
+    }
+}
+
+/// Per-request multiply/accumulate budget. Work is charged before it is done,
+/// so an exhausted budget stops the request without partial output.
+pub struct Budget<'c> {
+    remaining: u64,
+    cancel: &'c dyn Cancel,
+}
+
+impl<'c> Budget<'c> {
+    pub fn new(macs: u64, cancel: &'c dyn Cancel) -> Self {
+        Self {
+            remaining: macs,
+            cancel,
+        }
+    }
+
+    pub fn remaining(&self) -> u64 {
+        self.remaining
+    }
+
+    /// Check cancellation, then reserve `macs` of work.
+    pub fn charge(&mut self, macs: u64) -> Result<(), Error> {
+        if self.cancel.cancelled() {
+            return Err(Error::Cancelled);
+        }
+        self.remaining = self.remaining.checked_sub(macs).ok_or(Error::WorkLimit)?;
+        Ok(())
+    }
 }
 
 /// Borrowed row-major weights and one bias per output row.
@@ -335,6 +383,11 @@ impl<'a> KvCache<'a> {
         self.len == 0
     }
 
+    /// Restore an earlier length, used to roll back a failed layer step.
+    fn truncate(&mut self, len: usize) {
+        self.len = self.len.min(len);
+    }
+
     /// Append one token's keys and values (`kv_heads × head_dim` each).
     pub fn append(&mut self, key: &[f32], value: &[f32]) -> Result<(), Error> {
         let row = self.row();
@@ -359,12 +412,14 @@ impl<'a> KvCache<'a> {
 /// (the caller appends the current token first). `query` holds `heads × head_dim`
 /// values and `heads` must be a multiple of the cache's KV heads. Scratch holds
 /// `cache.len() + heads × head_dim` values; output is committed only on success.
+/// The whole step (two passes per head and token) is charged to `budget` first.
 pub fn attention(
     query: &[f32],
     heads: usize,
     cache: &KvCache<'_>,
     scratch: &mut [f32],
     output: &mut [f32],
+    budget: &mut Budget<'_>,
 ) -> Result<(), Error> {
     let dim = cache.head_dim;
     let width = heads.checked_mul(dim).ok_or(Error::Shape)?;
@@ -380,18 +435,15 @@ pub fn attention(
     if tokens == 0 {
         return Err(Error::Shape);
     }
-    // Scores and weighted sum: two multiply/accumulate passes per head and token.
-    if width
-        .checked_mul(tokens)
-        .and_then(|n| n.checked_mul(2))
-        .ok_or(Error::WorkLimit)?
-        > MAX_MACS
-    {
-        return Err(Error::WorkLimit);
-    }
     if query.iter().any(|x| !x.is_finite()) {
         return Err(Error::NonFinite);
     }
+    // Scores and weighted sum: two multiply/accumulate passes per head and token.
+    let work = (width as u64)
+        .checked_mul(tokens as u64)
+        .and_then(|n| n.checked_mul(2))
+        .ok_or(Error::WorkLimit)?;
+    budget.charge(work)?;
     let group = heads / cache.kv_heads;
     let row = cache.row();
     let scale = 1.0 / libm::sqrtf(dim as f32);
