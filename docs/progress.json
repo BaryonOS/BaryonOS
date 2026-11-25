@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "78dc7b18a4ce2a7b3bbf0180b757a776ded745ec",
-    "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/brave-feynman-jbiz6x",
-    "task": "S09 owner decisions O1-O13 recorded; R3 reverse differential (host); K5 per-device broker state (step 1)",
+    "source_commit": "ad55e019ccdcff44f947a51b45f3caf0fd7df54b",
+    "assessment_basis": "parent_commit",
+    "branch": "claude/b05-virtio-caps-20261123",
+    "task": "B05-T6 oracle-checked bounded enumeration of the virtio PCI capability walk (with B05-T5 from #511)",
     "previous_score": 43,
-    "summary": "43/100, unchanged: the project owner decided O1-O13 for S09 on 24 November 2026 in two packages and confirmed O14-O18, and the S09 destination specification records them (K4/K5 approved with per-device broker state; ADR-S09-DUALDISK B3/B5 amended for the R5 test profile; deterministic destination ID in the test profile only; a separate destination device; owner binding per backup registration with its design still open; a kernel write latch required before R8; only VERIFY may be remembered on the plaintext v1 route; append-only v1 with product retention as a separate extension; a separate destination acceptance gate). The R3 reverse differential now exists on the host: 182 oracle-crafted images mounted by the R2 core agree with the oracle's verdicts (services/destination/tests/reverse_differential.rs, tests/test_volume_destination_disk.py ReverseDifferential); it is not yet a hosted gate. K5 step 1 gives the volume broker per-device request state; after an independent AI security review and its fix, the native volume gate (32/32) and the H05 power gate (12/12) passed locally on 9b30c556. A design decision and host evidence are not native acceptance: no destination stage, native K5 fixture (dual-disk concurrent admission, disk-1 timeout-to-reset fence), kernel latch, owner-binding design or human audit exists yet, so S09 stays open. Source commit is main 78dc7b18 merged into the branch."
+    "summary": "43/100 unchanged. B05-T5 (#511) and B05-T6 add host-only bounded invariant enumerations for the ring-3 user ABI (kernel-core user.rs) and the virtio PCI capability walk (virtio-core), each with mutation controls; this extends the partial 'selected invariants checked by machine' requirement. B05 stays open: no external human examination exists and AI review is not that audit; evidence: docs/security-review/B05-T5-USER-ABI-INVARIANTS.md, docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md."
   },
   "tracks": [
     {
@@ -1730,14 +1730,18 @@
             "verification": [
               "host"
             ],
-            "observation": "Capability enumeration covers19607 nonempty prefixes of7 actions through depth5 with revoke-weakened mutant red; ELF and policy-envelope bounded parser checks and mutation controls added.",
+            "observation": "Capability enumeration covers19607 nonempty prefixes of7 actions through depth5 with revoke-weakened mutant red; ELF and policy-envelope bounded parser checks and mutation controls added; ring-3 user ABI (copy planning, user ELF parse, return frames; B05-T5) and virtio PCI capability walk (B05-T6) bounded enumerations with exact-edge mutation controls added.",
             "remaining": "Bounded tests are not unbounded/formal proofs; external review must determine which additional invariants require stronger verification.",
             "evidence": [
               "crates/capability-core/tests/exhaustive_revocation.rs",
               "docs/roadmap-pipeline/receipts/B05-T2.json",
               "docs/security-review/B05-T4-INVARIANTS.md",
               "crates/elf-loader-core/tests/bounded_parser_invariants.rs",
-              "crates/update-core/tests/bounded_policy_envelope_invariants.rs"
+              "crates/update-core/tests/bounded_policy_envelope_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/bd31a78ba30f28e7d668df1e56bb9b5a276a2d82/crates/kernel-core/tests/bounded_user_abi_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/bd31a78ba30f28e7d668df1e56bb9b5a276a2d82/docs/security-review/B05-T5-USER-ABI-INVARIANTS.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/633a0679926fdeb99837cf799a428950763d9723/crates/virtio-core/tests/bounded_capability_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/633a0679926fdeb99837cf799a428950763d9723/docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md"
             ]
           }
         ]
