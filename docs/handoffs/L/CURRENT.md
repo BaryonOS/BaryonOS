@@ -11,12 +11,17 @@ issues and pull requests. Newer ADRs and live evidence take precedence over it.
   evidence); future hybrid/physical QPU research, which never blocks the
   consumer release. Post-quantum cryptography belongs to B with N.
 - Mandate (project owner, 25 November 2026): ADR-MERGE-DELEGATION-20261123 is
-  extended to L; operational coordination by "BaryonOS - PR Bewaker". Merge only
-  after that extension is durably recorded and all merge conditions hold.
+  extended to L; operational coordination by "BaryonOS - PR Bewaker". The
+  extension is recorded on main (ADR-SPECIALIST-TEAM-20261125, #527). Merge
+  with `--match-head-commit` once all merge conditions hold, following the
+  PR guard's merge-lane protocol (first-green-first, one lane holder catches up,
+  drafts do not catch up, temporary CI-PR priority).
 - Owner decision, 25 November 2026: the L01 proposal is approved for the first
   experiment (summarize/clarify tasks, Qwen2.5-0.5B-Instruct pin, Candle route,
-  2 GiB VM). Open: the numeric profile (SSE in the AI process). Missing CI
-  coverage is coordinated with specialist CI.
+  2 GiB VM). SSE2 in the native ring-3 AI process is approved (same day) under
+  the existing eager FXSAVE64 context; no AVX/FMA, no kernel FP, SMP and
+  sleep/wake only after their own verification. CI coverage is coordinated with
+  specialist CI.
 
 ## Current cycle
 
@@ -45,8 +50,13 @@ issues and pull requests. Newer ADRs and live evidence take precedence over it.
    `~/projects/BaryonOS-worktrees/l01-native-ai-job`. `native-ai-job` passes natively
    (QEMU TCG, one CPU, raw exit 33, exact host-oracle bits, slot reuse, canary,
    context wipe). The MXCSR mutation was caught.
-   Waiting on Specialist CI for the dependabot entry for
-   `/experiments/ai/native-job` (`test_ci_workflows` fails without it) and a native CI job.
+   Warden review fixed (allowlist gate, source-tree binding, per-run preemption);
+   CI lead commits added the dependabot entry, the native job and clippy (head
+   0c4c3a83, D2 GO, D3 file present). Merge order: #525 first (head 9c0d4c56,
+   waiting for GitHub to recover from the 25 November Actions outage to rerun
+   coverage uploads), then retarget #538 to main and catch up once it holds the
+   lane. If A's #531 lands first, keep both sides' lines in kernel/Cargo.toml,
+   tools/build.py and m3.rs and rerun native-ai-job.
    Next: a verified artifact-mapping design for full Qwen, which is blocked by
    USER_QUOTA (8 MiB per process); the tokenizer (item 1); LP-05 network denial.
 4. L02: no reopen without a concrete technical trigger.
