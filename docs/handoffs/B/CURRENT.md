@@ -28,7 +28,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: local "BaryonOS - Specialist B" (25 Nov, resumed from the PR #524 HANDOFF comment).
+- Session: local "BaryonOS - Specialist B [d5840a]" (25 Nov ~19:15Z, resumed from #524 HANDOFF 7171449464;
+  registered with the PR guard).
 - cycle: B03-REL05 trial boot with a TPM anchor, M1-HAUTH under owner decision option 1 (TEST profile,
   QEMU/swtpm only; ADR-B03-REL05-TPM-20261125, C665 identity binding).
 - branch: claude/b03-rel05-tpm-20261125, worktree ~/projects/BaryonOS-worktrees/b03-rel05-tpm.
@@ -48,15 +49,19 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   (`tpm-hauth-provision-test`, `run_tpm.py --case loader-hauth`: provision, then verify on a second boot of the same swtpm
   state; PCR 13 `CLOSED` through `HashLogExtendEvent`, SHA-256 bank = `P_CLOSED`; policy read and empty-ownerAuth refused;
   no secret residue in the CRB buffer; `docs/verification/b03-rel05-hauth-bound-20261125/`, local commits 8f45c07e, 1a46fa21), DA lockout counter `0x20E` unchanged around the refused owner command, native halt case `loader-hauth-no-rng`
-  (CLOSED extend, then `RNG_ABSENT`, raw 35, no kernel; `docs/verification/b03-rel05-hauth-halt-20261125/`, local commit 89d00679).
-- NOT RUN: pre-seeded native negative HAUTH/LREC cases (squat, unbound, foreign ownerAuth, power cut), a halt after
-  `HAUTH`/`LREC` were written, a DA-counter sensitivity check, PCR 13 read-back of the
+  (CLOSED extend, then `RNG_ABSENT`, raw 35, no kernel; `docs/verification/b03-rel05-hauth-halt-20261125/`, local commit 89d00679),
+  pre-seeded cases via `tools/tpm_seed.py` (platform `HAUTH` squat `0x149`, foreign ownerAuth `0x18B`, unbound `LREC`
+  after a provisioning boot, power-cut leftovers repaired; `docs/verification/b03-rel05-hauth-seeded-20261125/`,
+  local commits 4e2eda89, e1c749a3).
+- NOT RUN: a provisioning-path halt after an NV write (fault injection), a cut between the ownerAuth and lockoutAuth
+  changes, an owner-created squat as a separate case, a DA-counter sensitivity check, PCR 13 read-back of the
   SHA-1/384/512 banks, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
   the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
 - Licensing register: `boot/loader/src/tpm_probe.rs` and `tpm_hauth.rs` are not listed in `MPL-2.0-FILES.txt` (no
   test enforces it); the register is an owner/lead decision, so it is reported, not changed.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
-  staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; U25 on the hosted OVMF image and real firmware.
+  staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; the TEST loader does not check
+  ownerAuth against `HAUTH[..32]` (a foreign owner planting a well-formed `HAUTH`/`LREC` would bind); U25 on the hosted OVMF image and real firmware.
 
 ## Merge procedure lesson (25 Nov)
 
@@ -94,13 +99,15 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Done locally: 89d00679 halt path + DA counter (`loader-hauth-no-rng`), fbe0e81c evidence, then this handoff update.
   At source 1438acd9: six native cases pass (`loader-hauth` repeated, identical); `tools/tests` 1179 OK; `compileall`;
   loader build, fmt, clippy (only the known `main_default.rs:818` errors).
-- Next on #524, in order: (a) pre-seeded native negative cases (squatted `HAUTH`, unbound `LREC`, foreign ownerAuth;
-  reuse the swtpm driving of `docs/verification/b03-rel05-hauth-probe-20261125/probe.py` for a pre-seeding step), (b) S3/U27 and the section 7.9 halt, (c) native S5 with N's joint
+- Done locally: 4e2eda89 pre-seeded cases (`tools/tpm_seed.py`, four `run_tpm.py` cases, halts keyed per (case, boot)),
+  e1c749a3 evidence. At source a9bd4cef: ten native cases pass; the six existing cases keep their stdout hashes, so the
+  1438acd9 loader evidence carries over; `tools/tests` 1181 OK (15 skipped); `test_tpm` 10 OK; `compileall`.
+- Next on #524, in order: (b) S3/U27 and the section 7.9 halt, (c) native S5 with N's joint
   tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
   body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the six
-  `run_tpm.py` cases on the merged head, or state in the PR body that the loader evidence is bound to 1438acd9; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
+  `run_tpm.py` cases (six + four seeded) on the merged head, or state in the PR body that the loader evidence is bound to a9bd4cef; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
 
-Lane: owner correction ~18:05Z. CI keeps priority until every CI batch is resolved, and the main freeze holds after #544.
+Lane: owner correction ~18:05Z; origin/main 9dcbcc69 (#547) at 19:15Z, #524 BEHIND by 6. CI keeps priority until every CI batch is resolved, and the main freeze holds after #544.
 #524 (draft, BEHIND main) does not catch up or push until the PR guard grants the lane. Infra reruns on 5e126571
 (runs 45649628744, 45649628788, 45649628817) all succeeded; merge-hold stays red only because the branch is BEHIND.
