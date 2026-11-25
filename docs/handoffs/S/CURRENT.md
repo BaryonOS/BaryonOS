@@ -81,8 +81,9 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 ## Next executable task
 
 1. O13 implementation, step 1: the add-only latch table beside `Policy` in
-   `crates/virtio-core` (open-to-latched only; WRITE intersection; FLUSH
-   latches the whole device; `Unknown` hook in `complete`, `start_reset` and
+   `crates/virtio-core` (open-to-latched only; WRITE intersection; a FLUSH
+   with an `Unknown` completion or a device-side refused submission latches
+   the whole device, full trigger list in S09 2.7; `Unknown` hook in `complete`, `start_reset` and
    `exit`), with host tests and the killing mutations of N38.
 2. O13 step 2: `volume.rs` enforcement before the input copy, syscall `0x44`
    routed only under `native-volume`, and the native N38 stage (new stage and

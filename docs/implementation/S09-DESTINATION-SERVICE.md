@@ -1348,16 +1348,24 @@ fix). All are AI reviews, not a human audit.
   errors, no latch. The -8 that the broker's own lane checks return
   (`resetting`, `error` held, `Policy` phase not `Ready`) is the normal,
   transient answer of 2.7 and does not latch.
-- *Service trigger (L2).* The service reports the only 2.7 trigger that the
+- *Service trigger (L2).* The service reports the 2.7 triggers that the
   kernel cannot see: a kernel -8 past either bound of 2.7 (on submission
-  beyond 2 × `RESET_TIMEOUT`, on the completion poll beyond `POLL_BOUND`).
+  beyond 2 × `RESET_TIMEOUT`, on the completion poll beyond `POLL_BOUND`),
+  and a completion poll that returns -1 on its own WRITE or FLUSH, which 2.5
+  answers as `Unknown` -16 and so starts the safe path (CodeRabbit review
+  6054452266 on PR #521). The broker cannot latch on that -1 itself: it
+  answers -1 for a ticket that is already consumed or was never its own,
+  without knowing which request the caller meant.
   With the K5 broker that state is unreachable: a reset ends within
   `RESET_TIMEOUT` or quarantines the lane (then offline, L1b), and a
   published request ends at `TIMEOUT` as `Unknown` (L1). L2 therefore covers
   only a broker that breaks property 4 of 2.7. If the service dies in that
   state before calling L2, the entry stays open; that residual is accepted
   because it needs a broker defect plus a same-boot re-grant, which the
-  once-per-boot rule (2.1, N32) excludes for the shipped profile. Caller-shape
+  once-per-boot rule (2.1, N32) excludes for the shipped profile. The same
+  residual, under the same condition, holds for the -1 poll: under the poll
+  rule of 2.7 it shows a service defect (2.5), and if the service then dies
+  before calling L2, the entry stays open. Caller-shape
   errors (-1, -3, -11) are not 2.7 triggers and latch nothing. The service
   calls a new block syscall `0x44` (latch): `a[0]` a block handle, `a[1]` to
   `a[5]` zero (otherwise -1). It runs only the shape check,
@@ -1408,7 +1416,9 @@ fix). All are AI reviews, not a human audit.
   unlatched entry, then a WRITE
   returns -5; `0x44` from a READ-only handle is refused; `0x44` on a handle
   whose scope intersects no entry, or only part of one, returns -5 and latches
-  nothing; `0x44` while
+  nothing; over entries [0, 10) and [10, 20), `0x44` on a handle covering
+  [0, 15) returns 0, latches [0, 10), leaves [10, 20) open, and a WRITE into
+  [10, 20) is admitted (CodeRabbit, mixed overlap); `0x44` while
   the lane is resetting or offline still latches (RQ2); (g) an injected FLUSH
   error latches every entry of disk 1 although the flush carries no sector; a
   broker timeout and a malformed completion of a WRITE each latch, again read
@@ -1421,7 +1431,12 @@ fix). All are AI reviews, not a human audit.
   test-only re-grant of (d) a WRITE into the range returns -5 (L1b; review 4,
   RQ1); separately, an injected `prepare_operation` failure on a WRITE (the
   existing `bad_descriptor` path) latches, and an L1b FLUSH refusal latches
-  every disk-1 entry (review 4, OPT2); (k) during a reset started by an
+  every disk-1 entry (review 4, OPT2); (l) a WRITE answered `Ok` is polled and consumed, and a
+  second poll of the same ticket returns -1 with the latch still open (the
+  broker does not latch on -1); the test then issues `0x44` as the service's
+  2.5 mapping requires, the latch reads latched, and a WRITE through a
+  handle granted under the test-only re-grant of (d) returns -5 (the service
+  mapping itself is tested on the host, R2); (k) during a reset started by an
   injected READ timeout, a destination WRITE gets -8 and nothing latches;
   after the reset the holder polls the READ's -13 (`lane.error` is held until
   that 0x41 poll, `volume.rs:1066`), and then the same WRITE is admitted
@@ -1433,7 +1448,9 @@ fix). All are AI reviews, not a human audit.
   `sector()` (g); a hook in `complete` and `timeout` only, missing the
   malformed-completion reset (g); a READ that latches
   (g); FLUSH refused (c); `0x44` refused while the lane is stuck (f); `0x44`
-  that always latches (f); a submission refusal that latches nothing (j); a
+  that always latches (f); `0x44` that returns -5 for a mixed overlap, or
+  latches the partly overlapped entry (f); a broker that latches on a -1
+  poll (l); a submission refusal that latches nothing (j); a
   `prepare_operation` failure that latches nothing (j); an L1b FLUSH that
   latches only sector 0 (j); a
   -8 during a reset that latches (k).
