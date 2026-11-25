@@ -70,10 +70,15 @@ What the markers show:
 - **LOST_BLOCK:** init's post-wake 0x40 result as a magnitude. -6 means the request
   reached the authority check; -24 means the lane is quarantined.
 - **Success case only:**
-  - `SUSPEND_BLK_STALE_TICKET=1`: a pre-sleep ticket peek and an old-epoch publish
-    were both refused.
+  - `SUSPEND_BLK_STALE_TICKET=1`: an old-epoch publish was refused. The pre-sleep
+    ticket peek also returns -1, but only because nothing is pending, so it is not
+    evidence; the real evidence is the old-epoch publish check plus TICKET_FLOOR.
   - `SUSPEND_BLK_QUARANTINED=0`.
 - **Every injected case:** `SUSPEND_BLK_QUARANTINED=1`.
+- **BUSY injection:** it forces the refusal and bypasses the quiescence predicate, so
+  the predicate itself is source-only evidence.
+- **Harness "global latch" mutant:** it only proves its own text substitution; the
+  kill comes from the exact-line latch pin.
 - **Accounted re-init accesses:** every one is counted (ACCOUNTED_VOLUME), and
   `IO_AFTER_WAKE` stays 0 over the keyring and volume accounted totals.
 
@@ -102,7 +107,8 @@ implemented but was not provoked natively.
     (`test_blk_reinit_is_accounted_latched_and_keeps_the_policy`, fresh-Policy mutant).
   - Pinned by the host test `policy_epoch_ticket_floor_survives_the_reinit_reset` in
     `drivers/virtio-blk`.
-  - Checked natively: TICKET_FLOOR and STALE_TICKET.
+  - Checked natively: TICKET_FLOOR and the old-epoch publish refusal (STALE_TICKET;
+    the peek part is tautological, see above).
 - **Latch carryover against #522:** the test is pending until H merges main after #522.
 - **Published, uncompleted WRITE at SUSPEND:** a device lost in this state is already
   refused by the existing SUSPEND storage gate, so no path was added.
@@ -120,5 +126,11 @@ implemented but was not provoked natively.
 - No real device fault was produced, such as a BAR, capacity or identity change.
   The injections are kernel-side labels.
 - There is no IOMMU, so DMA isolation is not claimable.
+- Re-init is one-shot: its state is never reset. It is safe only because SUSPEND is
+  granted once per boot; a multi-cycle S3 slice must reset it on each wake.
+- After quarantine, a process without block authority can tell the lane state apart
+  (-24 vs -6). Accepted under owner decision Q4; awareness only.
+- A failed `rediscover` may leave memory decode enabled (no MMIO is issued), and the
+  canary sector stays in a kernel DMA page. Both are kernel-only; logic unchanged.
 - The ring-3 re-grant, remount and key-erasure gate belong to slices 2-4 and are not
   implemented.

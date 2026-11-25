@@ -1959,6 +1959,9 @@ const _: () = assert!(CANARY_SECTOR < FIRST_SECTOR);
 /// Stages: 0 quiescence + rediscover + reset, 1 acknowledgement + ownership +
 /// initialize + negotiated-state and epoch checks + self-test READ,
 /// 2 self-test answer, then done or quarantined (both terminal).
+// One-shot: never reset after BLK_DONE/BLK_QUARANTINED. Safe only because
+// SUSPEND is granted once per boot; a multi-cycle S3 slice must reset this
+// state on each wake.
 #[cfg(feature = "test-system-s3-blk-reinit")]
 struct BlkReinit {
     stage: u8,
@@ -2060,6 +2063,9 @@ fn pic_masks() -> [u8; 2] {
 /// quarantined (`reset_completed(false)`), never replaced; no retry, no
 /// re-init, no acknowledgement is claimed. `lane.offline` is left as is: it
 /// feeds the S5 durability gate, and the data was durable before SUSPEND.
+// SAFETY: blk_state() and runtime() are re-taken here rather than passed in:
+// one CPU, IF=0, and every caller has ended its own borrows before this call,
+// so no other `&'static mut` to BLK_REINIT or the runtime is live.
 #[cfg(feature = "test-system-s3-blk-reinit")]
 fn blk_reinit_quarantine(reason: &[u8]) {
     let validated = blk_state().bars.is_some();

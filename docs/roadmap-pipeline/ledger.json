@@ -2841,7 +2841,7 @@
         "python3 -B tools/build.py --kernel-feature native-acpi-s3 && python3 -B tools/run_sleep.py --case cycles"
       ],
       "evidence_level": "Local native QEMU/TCG only (QEMU 10.2.1, pc-q35-8.2, BARS=RESTORED): success path and four labelled kernel-side injections (busy, identity, capacity, no-reset-ack) reach the real quarantine path; 22-stage local POWER gate passes. Hosted native-power not yet run.",
-      "non_claimable": "No ring-3 block re-grant, remount or key-erasure SUSPEND gate (slices 2-4). The canary READ is kernel-driven and discarded. Injections are kernel-side labels, not device faults; BARS=KEPT, real BAR/capacity changes, IOMMU/DMA isolation and physical S3 are unmeasured. The latch-carryover check against #522 is pending until H merges main after #522.",
+      "non_claimable": "No ring-3 block re-grant, remount or key-erasure SUSPEND gate (slices 2-4). The canary READ is kernel-driven and discarded. Injections are kernel-side labels, not device faults; BARS=KEPT, real BAR/capacity changes, IOMMU/DMA isolation and physical S3 are unmeasured. The latch-carryover check against #522 is pending until H merges main after #522. The native stale-ticket peek is tautological (nothing pending); the evidence is the old-epoch publish refusal plus the ticket-floor check. Re-init is one-shot and safe only because SUSPEND is granted once per boot; any multi-cycle S3 slice must reset this state on each wake.",
       "next": "Hosted native-power gate on the PR head, then independent review; slice 2 (H05-T5d) follows.",
       "blocker": null
     },
