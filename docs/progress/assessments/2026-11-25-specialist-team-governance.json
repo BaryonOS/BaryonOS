@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "3b9a94c52bb4d3ada5a9c6499817560b71d0e4d0",
+  "assessment_basis": "parent_commit",
+  "branch": "docs/specialist-team-governance-20261125",
+  "task": "Record ADR-SPECIALIST-TEAM-20261125: specialists A/P/L/R, naming, handoffs and context rotation (#494)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Governance and documentation only: new ADR, AGENTS.md naming line and CI/PR-watcher resume pointers; no criterion, evidence or native result changes."
+}
