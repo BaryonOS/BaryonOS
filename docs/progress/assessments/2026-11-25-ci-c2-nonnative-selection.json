@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "source_commit": "aa6d1c70a1bf86af45bc9f0143dec6700cc5d3a5",
+  "source_commit": "c04ea98d04f941f000a65d78b6ee83e998fbe732",
   "assessment_basis": "parent_commit",
   "branch": "ci/c2-nonnative-selection-20261125",
   "task": "CI phase 5 C2 and C3 (#494): @nonnative pull_request filter on the 13 native workflows with a main push backstop (inert plus core_only paths), validate rules for the macro and its overlap with always_full, execution-closure guard for core_only paths, advisory candidate catalogue planned by the ci-impact-shadow job, catalogue revision 12",
