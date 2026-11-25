@@ -107,6 +107,23 @@ class FixtureTest(unittest.TestCase):
         self.assertEqual(self.failed("M2:FAULT:KERNEL_UD:PASS\nM2:FAIL_X\n".replace("M2:FAIL_X", "OTHER"), "m2-fault"),
                          {"fixture_markers_in_order", "protocol_failure_recognised"})
 
+    def test_full_line_markers_need_an_exact_line(self):
+        # A longer line that merely starts with a full-line marker must not satisfy it.
+        for good, bad in (("M2:PASS\n", "M2:PASSED\n"), ("HWINV:BEGIN\n", "HWINV:BEGIN_X\n"),
+                          ("HWINV:FAIL:FIXTURE\n", "HWINV:FAIL:FIXTURE2\n")):
+            log = "M2:PASS\nM1:PASS\nHWINV:BEGIN\nHWINV:FAIL:FIXTURE\n".replace(good, bad, 1)
+            self.assertIn("fixture_markers_in_order", self.failed(log, "hwinv-fail"), bad)
+        self.assertIn("fixture_markers_in_order",
+                      self.failed(self.PANIC.replace("BOOTINFO:OK\n", "BOOTINFO:OK_X\n"), "panic"))
+        self.assertIn("fixture_markers_in_order",
+                      self.failed("BdsDxe: loading\nM1:FAIL:KERNEL_OPEN_X\n", "missing-kernel"))
+
+    def test_value_markers_need_a_value(self):
+        self.assertIn("fixture_markers_in_order",
+                      self.failed(self.PANIC.replace("M2:PANIC_LINE:0000000310\n", "M2:PANIC_LINE:\n"), "panic"))
+        self.assertTrue(run_hw_inventory.marker_matches("M2:PANIC_LINE:0000000310", "M2:PANIC_LINE:"))
+        self.assertFalse(run_hw_inventory.marker_matches(" M2:PASS", "M2:PASS"))
+
 
 class SerialTimeoutFixtureTest(unittest.TestCase):
     """H06-T7: the timed-out write leaves a truncated block that the protocol rejects."""
