@@ -493,7 +493,8 @@ def runs_open(token, repo, pull, head_sha, plan):
                 if run.get("path") in workflows and run_matches(run, repo, pull, head_sha)]
         newest = {}
         for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
-            if run["path"] not in newest or run_order(run) > run_order(newest[run["path"]]):
+            order = run_order(run)  # every counted run must be orderable, the first one too
+            if run["path"] not in newest or order > run_order(newest[run["path"]]):
                 newest[run["path"]] = run
     except (OSError, ValueError, TypeError) as error:
         # A run without a start or creation time also lands here: the wait goes on and the
