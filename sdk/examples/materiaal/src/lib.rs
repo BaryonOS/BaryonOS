@@ -567,6 +567,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 // covers such a run with RETAIN instead of omitting it.
                 let unchanged = self.damage_valid
                     && self.next_tile != last
+                    && (!self.retained_enabled || self.surface.retained_base().is_some())
                     && self
                         .damage
                         .as_deref()
