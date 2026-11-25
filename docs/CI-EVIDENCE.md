@@ -161,10 +161,12 @@ artifact attestations for that digest (read through the REST API on
 November 25, 2026; not verified in CI). The checksum detects asset
 substitution; it is not an audit of the cargo-llvm-cov source or build.
 
-The host build cache also holds `target/llvm-cov-target`. cargo-llvm-cov
-cleans the artifacts that could affect coverage results before each run, and
-only a push to `main` saves the cache, so a restored entry can shorten the
-build but cannot change a test verdict or a coverage report.
+The host build cache also holds `target/llvm-cov-target`. By default,
+cargo-llvm-cov cleans the artifacts that could affect coverage results before
+each run, and only a push to `main` saves the cache. A restored entry is
+therefore expected to shorten the build without changing a test verdict or a
+coverage report. This expectation rests on the documented cargo-llvm-cov clean
+step; the build-time gain has not yet been measured on a warm CI run.
 
 ## Validation and rollback
 
