@@ -2,8 +2,8 @@
 //! Golden bytes follow TPM 2.0 Part 3 command layouts; they prove encoding
 //! and decoding only. Acceptance by swtpm is step S5.
 use nieuw_os_tpm_crb::codec::{
-    self, Auth, Error, NvDefinition, NvIndex, Password, PolicySession, Request, Response,
-    MAX_COMMAND,
+    self, Auth, Error, Hierarchy, NvDefinition, NvIndex, Password, PolicySession, Request,
+    Response, MAX_COMMAND,
 };
 
 // The real S2 constants, compiled from update-core's source: the cross-check
@@ -532,7 +532,7 @@ fn nv_write_response_trailer_must_match_the_session_kind() {
 fn nv_read_ordinary_returns_exact_bytes() {
     let req = || Request::NvRead {
         index: NvIndex::new(0x0100_B302).unwrap(),
-        auth: none(),
+        auth: Auth::Password(none()),
         size: 64,
         offset: 0,
     };
@@ -560,7 +560,7 @@ fn nv_read_ordinary_returns_exact_bytes() {
         assert_eq!(
             enc_err(Request::NvRead {
                 index: index(0x0100_B302),
-                auth: none(),
+                auth: Auth::Password(none()),
                 size,
                 offset: 0
             }),
@@ -759,7 +759,7 @@ fn every_new_command_fits_the_128_byte_bound_at_its_maximum() {
         (
             Request::NvRead {
                 index: index(0x0100_0000),
-                auth: pw,
+                auth: Auth::Password(pw),
                 size: 64,
                 offset: 0,
             },
@@ -795,6 +795,38 @@ fn every_new_command_fits_the_128_byte_bound_at_its_maximum() {
             31,
         ),
         (Request::FlushContext { session: session() }, 14),
+        (
+            Request::NvRead {
+                index: index(0x0100_0000),
+                auth: Auth::Policy(session()),
+                size: 64,
+                offset: 0,
+            },
+            35,
+        ),
+        (
+            Request::NvExtend {
+                index: index(0x0100_0000),
+                auth: pw,
+                data: &[0; 32],
+            },
+            97,
+        ),
+        (
+            Request::NvUndefineSpace {
+                index: index(0x0100_0000),
+                owner_auth: pw,
+            },
+            63,
+        ),
+        (
+            Request::HierarchyChangeAuth {
+                hierarchy: Hierarchy::Lockout,
+                auth: pw,
+                new_auth: pw,
+            },
+            93,
+        ),
     ];
     for (request, len) in max {
         assert_eq!(enc(request).len(), len);
@@ -813,4 +845,96 @@ fn every_new_command_fits_the_128_byte_bound_at_its_maximum() {
         Some(Error::Length)
     );
     assert!(short.iter().all(|&b| b == 0xa5));
+}
+
+// M1-HAUTH codecs. Golden bytes are the commands swtpm 0.10.1 accepted in
+// docs/verification/b03-rel05-hauth-probe-20261125/transcript-hauth.txt;
+// the secret there is redacted, so the hierarchy rows use 0x11 x 32.
+const SECRET: [u8; 32] = [0x11; 32];
+
+#[test]
+fn nv_extend_golden_bytes() {
+    let data: [u8; 32] = hex("6e7f88a89613f0b7a52acbb8ac0c8ea8f7662c0908c82f5468754a318f70a703")
+        .try_into()
+        .unwrap();
+    let req = || Request::NvExtend {
+        index: index(0x0100_B310),
+        auth: none(),
+        data: &data,
+    };
+    assert_eq!(enc(req()), hex("800200000041000001360100b3100100b3100000000940000009000000000000206e7f88a89613f0b7a52acbb8ac0c8ea8f7662c0908c82f5468754a318f70a703"));
+    let mut out = [0u8; MAX_COMMAND];
+    assert!(codec::encode(req(), &mut out).unwrap().is_nv_mutation());
+    let good = rsp_s(&[], &PW_TAIL);
+    assert_eq!(decode(req(), &good), Ok(Response::Empty));
+    truncations_fail(req, &good);
+}
+
+#[test]
+fn nv_undefine_space_golden_bytes() {
+    let empty = || Request::NvUndefineSpace {
+        index: index(0x0100_B310),
+        owner_auth: none(),
+    };
+    assert_eq!(
+        enc(empty()),
+        hex("80020000001f00000122400000010100b31000000009400000090000000000")
+    );
+    let with = Request::NvUndefineSpace {
+        index: index(0x0100_B310),
+        owner_auth: Password::new(&SECRET).unwrap(),
+    };
+    let mut want = hex("80020000003f00000122400000010100b31000000029400000090000000020");
+    want.extend_from_slice(&SECRET);
+    assert_eq!(enc(with), want);
+    let good = rsp_s(&[], &PW_TAIL);
+    assert_eq!(decode(empty(), &good), Ok(Response::Empty));
+    truncations_fail(empty, &good);
+}
+
+#[test]
+fn hierarchy_change_auth_golden_bytes_owner_and_lockout_only() {
+    for (h, handle) in [
+        (Hierarchy::Owner, "40000001"),
+        (Hierarchy::Lockout, "4000000a"),
+    ] {
+        let req = || Request::HierarchyChangeAuth {
+            hierarchy: h,
+            auth: none(),
+            new_auth: Password::new(&SECRET).unwrap(),
+        };
+        let mut want = hex(&format!(
+            "80020000003d00000129{handle}000000094000000900000000000020"
+        ));
+        want.extend_from_slice(&SECRET);
+        assert_eq!(enc(req()), want);
+        let good = rsp_s(&[], &PW_TAIL);
+        assert_eq!(decode(req(), &good), Ok(Response::Empty));
+        truncations_fail(req, &good);
+    }
+}
+
+#[test]
+fn nv_read_policy_session_golden_bytes_and_policy_tail() {
+    let req = || Request::NvRead {
+        index: index(0x0100_B304),
+        auth: Auth::Policy(session()),
+        size: 64,
+        offset: 0,
+    };
+    assert_eq!(
+        enc(req()),
+        hex("8002000000230000014e0100b3040100b3040000000903000000000000000000400000")
+    );
+    let data = [0x5au8; 64];
+    let mut params = vec![0, 64];
+    params.extend_from_slice(&data);
+    let good = rsp_s(&params, &policy_tail());
+    let Ok(Response::Data { len, bytes }) = decode(req(), &good) else {
+        panic!("decode");
+    };
+    assert_eq!((len, &bytes[..]), (64, &data[..]));
+    // A password trailer on a policy-authorised read is a protocol error.
+    assert!(decode(req(), &rsp_s(&params, &PW_TAIL)).is_err());
+    truncations_fail(req, &good);
 }

@@ -16,6 +16,7 @@ const ALG_SHA256: u16 = 0x000b;
 const ALG_NULL: u16 = 0x0010;
 const RH_NULL: u32 = 0x4000_0007;
 const RH_OWNER: u32 = 0x4000_0001;
+const RH_LOCKOUT: u32 = 0x4000_000a;
 const SE_POLICY: u8 = 0x01;
 const NT_ORDINARY: u32 = 0;
 const NT_COUNTER: u32 = 1;
@@ -107,6 +108,13 @@ pub struct NvDefinition<'a> {
     pub auth_policy: Option<&'a [u8; DIGEST]>,
     pub size: u16,
 }
+/// Hierarchies whose authValue `HierarchyChangeAuth` may set. Endorsement and
+/// platform are deliberately absent (REL-05 M1-HAUTH: owner and lockout only).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Hierarchy {
+    Owner,
+    Lockout,
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u16)]
 pub enum Startup {
@@ -168,10 +176,11 @@ pub enum Request<'a> {
         data: &'a [u8],
         offset: u16,
     },
-    /// `NV_Read` of 1..=64 bytes with `authHandle` = the index (AUTHREAD).
+    /// `NV_Read` of 1..=64 bytes with `authHandle` = the index: AUTHREAD
+    /// password, or a policy session for POLICYREAD indices such as `HAUTH`.
     NvRead {
         index: NvIndex,
-        auth: Password<'a>,
+        auth: Auth<'a>,
         size: u16,
         offset: u16,
     },
@@ -183,6 +192,26 @@ pub enum Request<'a> {
         pcr: u8,
         auth: Password<'a>,
         digest: &'a [u8; DIGEST],
+    },
+    /// `NV_Extend` of one SHA-256 digest with `authHandle` = the index
+    /// (AUTHWRITE password): the anchor chain step `H(old ‖ data)`.
+    NvExtend {
+        index: NvIndex,
+        auth: Password<'a>,
+        data: &'a [u8; DIGEST],
+    },
+    /// Owner-authorized `NV_UndefineSpace` (authorised anchor recovery).
+    NvUndefineSpace {
+        index: NvIndex,
+        owner_auth: Password<'a>,
+    },
+    /// `HierarchyChangeAuth`: `auth` is the hierarchy's current authValue,
+    /// `new_auth` its replacement. Both are written into the command buffer in
+    /// clear; the caller wipes that buffer after submission.
+    HierarchyChangeAuth {
+        hierarchy: Hierarchy,
+        auth: Password<'a>,
+        new_auth: Password<'a>,
     },
     /// `NV_ReadPublic` decoded into type, attributes, size and `authPolicy`.
     NvReadPublicArea {
@@ -227,8 +256,9 @@ impl Command<'_> {
     pub fn bytes(&self) -> &[u8] {
         self.bytes
     }
-    /// True only for DefineCounter/Increment; false does not mean a command
-    /// has no other TPM state or authorization side effects. Never replay
+    /// True for NV define/undefine/write/increment/extend and hierarchy-auth
+    /// changes; false does not mean a command has no other TPM state or
+    /// authorization side effects. Never replay
     /// automatically after an Unknown result.
     pub const fn is_nv_mutation(&self) -> bool {
         self.mutating
@@ -401,13 +431,34 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
                 return Err(Error::Input);
             }
             (
-                35 + auth.0.len(),
+                22 + auth.len(),
                 0x14e,
-                Tail::Password,
+                auth.tail(),
                 Expectation::Data { size: *size },
                 false,
             )
         }
+        Request::NvExtend { auth, .. } => (
+            65 + auth.0.len(),
+            0x136,
+            Tail::Password,
+            Expectation::SessionEmpty,
+            true,
+        ),
+        Request::NvUndefineSpace { owner_auth, .. } => (
+            31 + owner_auth.0.len(),
+            0x122,
+            Tail::Password,
+            Expectation::SessionEmpty,
+            true,
+        ),
+        Request::HierarchyChangeAuth { auth, new_auth, .. } => (
+            29 + auth.0.len() + new_auth.0.len(),
+            0x129,
+            Tail::Password,
+            Expectation::SessionEmpty,
+            true,
+        ),
         Request::PcrRead { pcr } => {
             check_pcr(*pcr)?;
             (20, 0x17e, Tail::None, Expectation::Pcr { pcr: *pcr }, false)
@@ -527,9 +578,32 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
         } => {
             w.u32(index.0);
             w.u32(index.0);
-            w.auth(auth);
+            w.authorize(auth);
             w.u16(size);
             w.u16(offset);
+        }
+        Request::NvExtend { index, auth, data } => {
+            w.u32(index.0);
+            w.u32(index.0);
+            w.auth(auth);
+            w.tpm2b(data);
+        }
+        Request::NvUndefineSpace { index, owner_auth } => {
+            w.u32(RH_OWNER);
+            w.u32(index.0);
+            w.auth(owner_auth);
+        }
+        Request::HierarchyChangeAuth {
+            hierarchy,
+            auth,
+            new_auth,
+        } => {
+            w.u32(match hierarchy {
+                Hierarchy::Owner => RH_OWNER,
+                Hierarchy::Lockout => RH_LOCKOUT,
+            });
+            w.auth(auth);
+            w.tpm2b(new_auth.0);
         }
         Request::PcrRead { pcr } => w.selection(pcr),
         Request::PcrExtend { pcr, auth, digest } => {

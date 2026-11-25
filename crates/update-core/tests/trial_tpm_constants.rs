@@ -77,6 +77,9 @@ fn policy_digests() {
         assert_ne!(p, policy(P_OPEN, TPM_CC_NV_INCREMENT));
     }
     assert_ne!(POLICY_CONFIRM_WRITE, policy(PCR_ZERO, TPM_CC_NV_WRITE));
+    assert_eq!(POLICY_LOADER_READ, policy(PCR_ZERO, TPM_CC_NV_READ));
+    assert_ne!(POLICY_LOADER_READ, policy(P_OPEN, TPM_CC_NV_READ));
+    assert_ne!(POLICY_LOADER_READ, policy(P_CLOSED, TPM_CC_NV_READ));
     assert_ne!(POLICY_CONFIRM_WRITE, policy(P_CLOSED, TPM_CC_NV_WRITE));
 }
 
@@ -98,6 +101,12 @@ fn attributes_match_spec_6_1() {
     assert_eq!(ATTR_UPDATE_ORDINARY, 0x0204_1008);
     assert_eq!(ATTR_UPDATE_COUNTER, 0x0204_0018);
     assert_eq!(ATTR_ANCHOR_CHAIN, 0x0204_0044);
+    // HAUTH: owner-written, policy-read only (no AUTHREAD, no OWNERREAD, no
+    // POLICY_DELETE), ordinary, 64 bytes; swtpm accepted 0x02081002.
+    assert_eq!(ATTR_HAUTH, 0x0208_1002);
+    assert_eq!(ATTR_HAUTH & (TPMA_NV_AUTHREAD | (1 << 17) | (1 << 10)), 0);
+    assert_eq!(ATTR_HAUTH & (0xf << 4), 0);
+    assert_eq!(NV_HAUTH.size, 64);
 }
 
 #[test]
@@ -152,7 +161,9 @@ fn anchor_handles() {
         NV_CONFIRM.handle,
         NV_FLOOR.handle,
         NV_GEN.handle,
+        NV_HAUTH.handle,
     ];
+    assert_eq!(NV_HAUTH.handle, 0x0100_B304);
     for d in 0..ANCHOR_DOMAINS {
         let h = anchor_domain(d).unwrap().handle;
         assert!((0x0100_B300..=0x0100_B31F).contains(&h));

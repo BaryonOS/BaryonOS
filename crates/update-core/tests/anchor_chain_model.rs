@@ -1,8 +1,10 @@
 //! M1 protected-slot HOST MODEL (B, PR #524): the cold-freshness extend chain
 //! against N's attack sequences in `services/net-broker/src/durable.rs`
 //! (N branch `claude/n03-n04-adr-20261125` @ `fad2a39a`). This is not evidence
-//! of TPM behaviour: `Tpm` below encodes the unverified items U21–U24 of
-//! COLD-FRESHNESS-ANCHOR.md, which S5 must prove on swtpm. 5A stays in force.
+//! of TPM behaviour: `Tpm` below encodes U21–U24 of COLD-FRESHNESS-ANCHOR.md
+//! (U21 and the hierarchy-auth rules observed on swtpm 0.10.1 in
+//! docs/verification/b03-rel05-hauth-probe-20261125; native S5 still open).
+//! 5A stays in force.
 //!
 //! Mapping to N's tests: there is no `Pending` (one extend is the only anchor
 //! write), and N's `Rollback`/`Fork`/`Ahead` collapse into one `Stale`
@@ -23,25 +25,106 @@ enum TpmError {
     Uninitialized,
     Auth,
     Exists,
+    Policy,
 }
 
-/// Model TPM: the anchor extend indices and the authorisation that guards
-/// undefining them. `None` = defined but never extended.
+/// Model TPM: the anchor extend indices, the hierarchy authorisations that
+/// guard undefining them, `HAUTH`, PCR 13 and one loader-only record (`mark`,
+/// standing for the policy-written REL-05 records of section 6.1: writable
+/// only at PCR 13 = 0³²). `None` = defined but never extended.
 struct Tpm {
     nv: BTreeMap<u32, Option<Digest>>,
     owner_auth: Vec<u8>,
+    lockout_auth: Vec<u8>,
     /// `None`: OVMF set a random platformAuth the OS never learns (U8, U23).
     platform_auth: Option<Vec<u8>>,
+    /// PCR 13 still all-zero: the loader phase of this boot.
+    pcr13_zero: bool,
+    hauth: Option<[u8; 64]>,
+    hauth_writes_with_owner_set: u32,
+    mark: Option<Digest>,
 }
 
 impl Tpm {
-    /// TEST profile today: empty ownerAuth.
+    /// Fresh TPM: empty hierarchy authValues, loader phase.
     fn new() -> Self {
         Tpm {
             nv: BTreeMap::new(),
             owner_auth: vec![],
+            lockout_auth: vec![],
             platform_auth: None,
+            pcr13_zero: true,
+            hauth: None,
+            hauth_writes_with_owner_set: 0,
+            mark: None,
         }
+    }
+    fn reboot(&mut self) {
+        self.pcr13_zero = true;
+    }
+    /// Loader extends PCR 13 before handover: the kernel phase begins.
+    fn close(&mut self) {
+        self.pcr13_zero = false;
+    }
+    fn write_hauth(&mut self, owner: &[u8], v: [u8; 64]) -> Result<(), TpmError> {
+        if owner != self.owner_auth {
+            return Err(TpmError::Auth);
+        }
+        if !self.owner_auth.is_empty() {
+            self.hauth_writes_with_owner_set += 1;
+        }
+        self.hauth = Some(v);
+        Ok(())
+    }
+    fn undefine_hauth(&mut self, owner: &[u8]) -> Result<(), TpmError> {
+        if owner != self.owner_auth {
+            return Err(TpmError::Auth);
+        }
+        self.hauth.take().map(|_| ()).ok_or(TpmError::Handle)
+    }
+    /// `PolicyPCR(13 = 0³²) + CC_NV_Read` (H2 on swtpm).
+    fn read_hauth(&self) -> Result<[u8; 64], TpmError> {
+        if !self.pcr13_zero {
+            return Err(TpmError::Policy);
+        }
+        self.hauth.ok_or(TpmError::Handle)
+    }
+    fn change_auth(&mut self, lockout: bool, old: &[u8], new: &[u8]) -> Result<(), TpmError> {
+        let slot = if lockout {
+            &mut self.lockout_auth
+        } else {
+            &mut self.owner_auth
+        };
+        if old != slot.as_slice() {
+            return Err(TpmError::Auth);
+        }
+        *slot = new.to_vec();
+        Ok(())
+    }
+    /// `TPM2_Clear` by lockout or platform: owner NV, `HAUTH`, the loader
+    /// records and both authValues are gone (probe U24: platform clear).
+    fn clear(&mut self, platform: bool, auth: &[u8]) -> Result<(), TpmError> {
+        let ok = if platform {
+            self.platform_auth.as_deref() == Some(auth)
+        } else {
+            auth == self.lockout_auth
+        };
+        if !ok {
+            return Err(TpmError::Auth);
+        }
+        let platform_auth = self.platform_auth.take();
+        let pcr13_zero = self.pcr13_zero;
+        *self = Tpm::new();
+        self.platform_auth = platform_auth;
+        self.pcr13_zero = pcr13_zero;
+        Ok(())
+    }
+    fn write_mark(&mut self, v: Digest) -> Result<(), TpmError> {
+        if !self.pcr13_zero {
+            return Err(TpmError::Policy);
+        }
+        self.mark = Some(v);
+        Ok(())
     }
     fn define(&mut self, auth: &[u8], h: u32) -> Result<(), TpmError> {
         if auth != self.owner_auth {
@@ -457,7 +540,8 @@ fn after_m1_sequence() -> Anchor {
     a
 }
 
-/// RESIDUAL in today's TEST profile (empty ownerAuth): T3 revives X.
+/// Retained M1 regression: the pre-HAUTH TEST profile (empty ownerAuth)
+/// lets a runtime attacker revive X.
 #[test]
 fn undefine_redefine_replay_revives_with_empty_owner_auth() {
     let mut a = after_m1_sequence();
@@ -467,21 +551,295 @@ fn undefine_redefine_replay_revives_with_empty_owner_auth() {
     );
 }
 
-/// Proposed mitigation (OWNER decision pending): ownerAuth set by the loader
-/// to a PCR 13 = 0³²-sealed secret. Rests on U8/U23/U24 as well.
+// ---- M1-HAUTH (owner decision, ADR-B03-REL05-TPM-20261125 amendment) ----
+
+/// Boot record as the loader sees it after the accepted-serial check (U13c,
+/// open): `fresh` = this record's nonce has never been anchored, so it may
+/// authorise one genesis.
+#[derive(Clone, Copy)]
+struct Record {
+    instance: Digest,
+    fresh: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Halt {
+    /// TPM cleared, replaced or never provisioned and no fresh record (C665).
+    NeedsRecovery,
+    /// ownerAuth set but `HAUTH` unreadable, or an authorisation failed.
+    Corrupt,
+}
+
+/// Loader provisioning steps; `cut` stops after that many TPM writes.
+const LOADER_STEPS: u32 = 7;
+
+/// TEST-profile loader, re-run from the start after any cut. Order: remove
+/// leftovers, `HAUTH`, ownerAuth, lockoutAuth, anchor genesis, mark, close.
+/// Secrets come from loader entropy (`rng`), never from the record. The
+/// provisioning state is read from the permanent flags (ownerAuthSet,
+/// lockoutAuthSet), never by trying an authorisation.
+fn loader(tpm: &mut Tpm, rec: Record, rng: &mut u8, cut: u32) -> Result<bool, Halt> {
+    tpm.reboot();
+    let mut writes = 0;
+    let mut step = |tpm: &mut Tpm| -> bool {
+        writes += 1;
+        if writes > cut {
+            tpm.reboot(); // power loss: nothing after this write
+            return false;
+        }
+        true
+    };
+    let c = |r: Result<(), TpmError>| r.map_err(|_| Halt::Corrupt);
+    if tpm.owner_auth.is_empty() {
+        if !rec.fresh {
+            return Err(Halt::NeedsRecovery);
+        }
+        // Leftovers of a cut or of a runtime attacker after a clear.
+        let _ = tpm.undefine_owner(&[], handle());
+        let _ = tpm.undefine_hauth(&[]);
+        *rng = rng.wrapping_add(1);
+        let secret = [*rng; 64];
+        c(tpm.write_hauth(&[], secret))?;
+        if !step(tpm) {
+            return Ok(false);
+        }
+        c(tpm.change_auth(false, &[], &secret[..32]))?;
+        if !step(tpm) {
+            return Ok(false);
+        }
+    }
+    let secret = tpm.read_hauth().map_err(|_| Halt::Corrupt)?;
+    let (owner, lockout) = secret.split_at(32);
+    if tpm.owner_auth != owner {
+        return Err(Halt::Corrupt);
+    }
+    if tpm.lockout_auth.is_empty() {
+        c(tpm.change_auth(true, &[], lockout))?;
+        if !step(tpm) {
+            return Ok(false);
+        }
+    }
+    if tpm.mark != Some(rec.instance) {
+        if !rec.fresh {
+            return Err(Halt::NeedsRecovery);
+        }
+        let _ = tpm.undefine_owner(owner, handle());
+        if !step(tpm) {
+            return Ok(false);
+        }
+        c(tpm.define(owner, handle()))?;
+        if !step(tpm) {
+            return Ok(false);
+        }
+        c(tpm.nv_extend(handle(), &genesis_event(DOM, &rec.instance)))?;
+        if !step(tpm) {
+            return Ok(false);
+        }
+        c(tpm.write_mark(rec.instance))?;
+        if !step(tpm) {
+            return Ok(false);
+        }
+    }
+    tpm.close(); // secret zeroised before the PCR 13 extend
+    Ok(true)
+}
+
+fn boot(tpm: Tpm, rec: Record, rng: &mut u8) -> Result<Anchor, Halt> {
+    let mut tpm = tpm;
+    assert!(loader(&mut tpm, rec, rng, u32::MAX)?);
+    Ok(Anchor {
+        tpm,
+        instance: rec.instance,
+        budget: 16,
+        lose_next_response: false,
+    })
+}
+
+const ENROLL: Record = Record {
+    instance: I0,
+    fresh: true,
+};
+const SAME: Record = Record {
+    instance: I0,
+    fresh: false,
+};
+const RECOVERY: Record = Record {
+    instance: I1,
+    fresh: true,
+};
+
+/// Enrolled machine after the M1 sequence: A, then Y acknowledged; X is the
+/// stale sibling of Y that the attacker wants back.
+fn provisioned() -> (Anchor, Store, Store, u8) {
+    let mut rng = 0;
+    let mut a = boot(Tpm::new(), ENROLL, &mut rng).unwrap();
+    let s_a = first(I0, 1);
+    assert_eq!(acknowledge(&mut a, &s_a), Ok(()));
+    let x = s_a.child(3);
+    let y = s_a.child(2);
+    assert_eq!(acknowledge(&mut a, &y), Ok(()));
+    (a, x, y, rng)
+}
+
+/// Next boot with an honest loader and N's startup rule on store `s`.
+fn honest_reboot(a: Anchor, rec: Record, rng: &mut u8, s: &Store) -> Result<Startup, Denied> {
+    match boot(a.tpm, rec, rng) {
+        Ok(mut a) => startup(&mut a, s),
+        Err(Halt::NeedsRecovery) => Err(Denied::Foreign),
+        Err(h) => panic!("{h:?}"),
+    }
+}
+
+/// Runtime attacker (kernel phase): every hierarchy path it can try.
+fn runtime_attack(tpm: &mut Tpm, x: &Store) {
+    assert!(!tpm.pcr13_zero);
+    assert_eq!(tpm.read_hauth(), Err(TpmError::Policy));
+    for guess in [&[][..], &[0x5a; 32][..]] {
+        assert_eq!(tpm.undefine_owner(guess, handle()), Err(TpmError::Auth));
+        assert_eq!(tpm.undefine_hauth(guess), Err(TpmError::Auth));
+        assert_eq!(tpm.clear(false, guess), Err(TpmError::Auth));
+        assert_eq!(tpm.write_mark(x.prev), Err(TpmError::Policy));
+    }
+    assert_eq!(tpm.clear(true, &[]), Err(TpmError::Auth), "U23");
+}
+
+/// The targeted M1 revival is refused once HAUTH protects the hierarchies:
+/// at runtime and on the next honest boot.
 #[test]
-fn undefine_redefine_replay_refused_with_protected_owner_auth() {
-    let mut a = after_m1_sequence();
-    a.tpm.owner_auth = vec![0x5a; 32];
+fn undefine_redefine_replay_refused_with_hauth_provisioning() {
+    let (mut a, x, y, mut rng) = provisioned();
+    runtime_attack(&mut a.tpm, &x);
     assert_eq!(undefine_redefine_replay(&mut a, false), Err(Denied::Stale));
     assert_eq!(undefine_redefine_replay(&mut a, true), Err(Denied::Stale));
-    // An OS-usable platformAuth could delete the index: denial, not revival.
-    let mut a = after_m1_sequence();
-    a.tpm.owner_auth = vec![0x5a; 32];
+    let mut a = boot(a.tpm, SAME, &mut rng).unwrap();
+    assert_eq!(startup(&mut a, &x), Err(Denied::Stale));
+    assert_eq!(startup(&mut a, &y), Ok(Startup::Accept));
+    assert_eq!(a.tpm.hauth_writes_with_owner_set, 0);
+}
+
+#[test]
+fn hauth_readable_only_in_the_loader_phase() {
+    let (mut a, ..) = provisioned();
+    assert_eq!(a.tpm.read_hauth(), Err(TpmError::Policy));
+    a.tpm.reboot();
+    let s = a.tpm.read_hauth().unwrap();
+    assert_eq!(&s[..32], a.tpm.owner_auth.as_slice());
+    assert_eq!(&s[32..], a.tpm.lockout_auth.as_slice());
+    assert_ne!(&s[..32], &I0[..], "not derived from the record");
+}
+
+/// Every power cut during first provisioning converges on the next boot,
+/// and `HAUTH` is never rewritten once ownerAuth is set.
+#[test]
+fn every_provisioning_cut_converges() {
+    for cut in 0..LOADER_STEPS {
+        let mut rng = 0;
+        let mut tpm = Tpm::new();
+        assert_eq!(
+            loader(&mut tpm, ENROLL, &mut rng, cut),
+            Ok(false),
+            "cut {cut}"
+        );
+        // Kernel never ran; the next boot repeats with the same record.
+        let mut a = boot(tpm, ENROLL, &mut rng).unwrap();
+        assert_eq!(a.read(), Ok(genesis_chain(DOM, &I0)), "cut {cut}");
+        assert_eq!(a.tpm.hauth_writes_with_owner_set, 0, "cut {cut}");
+        assert!(!a.tpm.owner_auth.is_empty() && !a.tpm.lockout_auth.is_empty());
+        let s = first(I0, 1);
+        assert_eq!(startup(&mut a, &s), Ok(Startup::RolledForward));
+    }
+}
+
+/// Clear needs lockoutAuth (or a platformAuth the OS lacks, U23). After any
+/// clear the next boot halts until a fresh recovery record; the old stores
+/// stay Foreign, so a clear is denial, never revival.
+#[test]
+fn tpm_clear_is_denial_until_authorised_recovery() {
+    // Lockout clear by someone holding the secret (loader-phase code).
+    let (mut a, x, y, mut rng) = provisioned();
+    a.tpm.reboot();
+    let lockout = a.tpm.read_hauth().unwrap()[32..].to_vec();
+    a.tpm.close();
+    a.tpm.clear(false, &lockout).unwrap();
+    assert_eq!(honest_reboot(a, SAME, &mut rng, &x), Err(Denied::Foreign));
+    // OS-usable platformAuth (U23 broken): clear, then the attacker rebuilds
+    // the old chain and even provisions its own HAUTH and hierarchy auth.
+    let (mut a, x, _, mut rng) = provisioned();
     a.tpm.platform_auth = Some(vec![]);
+    a.tpm.clear(true, &[]).unwrap();
+    let s_a = first(I0, 1);
+    a.tpm.define(&[], handle()).unwrap();
+    a.tpm.nv_extend(handle(), &genesis_event(DOM, &I0)).unwrap();
+    a.tpm
+        .nv_extend(handle(), &extend_event(DOM, &s_a.digest))
+        .unwrap();
+    a.tpm.write_hauth(&[], [0x77; 64]).unwrap();
+    a.tpm.change_auth(false, &[], &[0x77; 32]).unwrap();
+    a.tpm.change_auth(true, &[], &[0x77; 32]).unwrap();
+    assert_eq!(a.tpm.write_mark(I0), Err(TpmError::Policy));
+    // Honest loader: ownerAuth set, HAUTH consistent, but no loader mark.
+    assert_eq!(honest_reboot(a, SAME, &mut rng, &x), Err(Denied::Foreign));
+    // Authorised recovery: fresh instance; old stores stay Foreign.
+    let (mut a, x, y2, mut rng) = provisioned();
+    a.tpm.reboot();
+    let lockout = a.tpm.read_hauth().unwrap()[32..].to_vec();
+    a.tpm.clear(false, &lockout).unwrap();
+    let mut a = boot(a.tpm, RECOVERY, &mut rng).unwrap();
+    for old in [x, y, y2] {
+        assert_eq!(startup(&mut a, &old), Err(Denied::Foreign));
+    }
+    assert_eq!(startup(&mut a, &first(I1, 7)), Ok(Startup::RolledForward));
+}
+
+/// Authorised same-TPM recovery keeps the hierarchy secret and needs a fresh
+/// record; replaying an old record halts.
+#[test]
+fn authorised_recovery_needs_a_fresh_record() {
+    let (mut a, x, y, mut rng) = provisioned();
+    a.tpm.nv_extend(handle(), &[0xee; 32]).unwrap(); // stray extend
+    assert_eq!(startup(&mut a, &y), Err(Denied::Stale));
+    let owner = a.tpm.owner_auth.clone();
+    let mut a = boot(a.tpm, RECOVERY, &mut rng).unwrap();
+    assert_eq!(a.tpm.owner_auth, owner, "no new secret on recovery");
+    assert_eq!(a.tpm.hauth_writes_with_owner_set, 0);
+    for old in [x, y] {
+        assert_eq!(startup(&mut a, &old), Err(Denied::Foreign));
+    }
+    // Back to the old record (not fresh): halt, never a second I0 genesis.
+    assert_eq!(boot(a.tpm, SAME, &mut rng).err(), Some(Halt::NeedsRecovery));
+}
+
+/// Replaced or foreign TPM with the old record: halt until recovery.
+#[test]
+fn replaced_tpm_halts_with_the_old_record() {
+    let (_, x, _, mut rng) = provisioned();
     assert_eq!(
-        undefine_redefine_replay(&mut a, true),
-        Err(Denied::Anchor(AnchorError::Unavailable))
+        boot(Tpm::new(), SAME, &mut rng).err(),
+        Some(Halt::NeedsRecovery)
+    );
+    let mut a = boot(Tpm::new(), RECOVERY, &mut rng).unwrap();
+    assert_eq!(startup(&mut a, &x), Err(Denied::Foreign));
+}
+
+/// RESIDUAL until B04: code that runs at PCR 13 = 0³² (a replaced loader on
+/// the ESP, a BootNext to another OS, a foreign OS on the same machine) reads
+/// HAUTH and revives X one reboot later. PCR 13 phase separation does not
+/// authenticate the boot path.
+#[test]
+fn reboot_path_attacker_at_pcr13_zero_still_revives() {
+    let (mut a, x, _, mut rng) = provisioned();
+    a.tpm.reboot(); // attacker-controlled loader-phase code
+    let owner = a.tpm.read_hauth().unwrap()[..32].to_vec();
+    let s_a = first(I0, 1);
+    a.tpm.undefine_owner(&owner, handle()).unwrap();
+    a.tpm.define(&owner, handle()).unwrap();
+    a.tpm.nv_extend(handle(), &genesis_event(DOM, &I0)).unwrap();
+    a.tpm
+        .nv_extend(handle(), &extend_event(DOM, &s_a.digest))
+        .unwrap();
+    assert_eq!(
+        honest_reboot(a, SAME, &mut rng, &x),
+        Ok(Startup::RolledForward)
     );
 }
 

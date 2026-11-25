@@ -38,12 +38,14 @@ pub const P_CLOSED: [u8; 32] =
 pub const TPM_ALG_SHA256: u16 = 0x000B;
 pub const TPM_CC_NV_INCREMENT: u32 = 0x0000_0134;
 pub const TPM_CC_NV_WRITE: u32 = 0x0000_0137;
+pub const TPM_CC_NV_READ: u32 = 0x0000_014E;
 pub const TPM_CC_POLICY_COMMAND_CODE: u32 = 0x0000_016C;
 pub const TPM_CC_POLICY_PCR: u32 = 0x0000_017F;
 /// `TPML_PCR_SELECTION` {count 1, SHA-256, sizeofSelect 3, PCR 13}.
 pub const PCR_SELECTION_PHASE: [u8; 10] = [0, 0, 0, 1, 0x00, 0x0B, 3, 0x00, 0x20, 0x00];
 
 // TPMA_NV bits (Part 2, 13.4).
+pub const TPMA_NV_OWNERWRITE: u32 = 1 << 1;
 pub const TPMA_NV_AUTHWRITE: u32 = 1 << 2;
 pub const TPMA_NV_POLICYWRITE: u32 = 1 << 3;
 pub const TPM_NT_COUNTER: u32 = 1 << 4;
@@ -51,6 +53,7 @@ pub const TPM_NT_COUNTER: u32 = 1 << 4;
 pub const TPM_NT_EXTEND: u32 = 4 << 4;
 pub const TPMA_NV_WRITEALL: u32 = 1 << 12;
 pub const TPMA_NV_AUTHREAD: u32 = 1 << 18;
+pub const TPMA_NV_POLICYREAD: u32 = 1 << 19;
 pub const TPMA_NV_NO_DA: u32 = 1 << 25;
 /// Set by the TPM after the first write; masked out before comparison.
 pub const TPMA_NV_WRITTEN: u32 = 1 << 29;
@@ -67,6 +70,12 @@ pub const ATTR_UPDATE_COUNTER: u32 =
 pub const ATTR_ANCHOR_CHAIN: u32 =
     TPM_NT_EXTEND | TPMA_NV_AUTHWRITE | TPMA_NV_AUTHREAD | TPMA_NV_NO_DA;
 
+/// Hierarchy-auth store `HAUTH` (M1-HAUTH): written with owner authority,
+/// read only through `POLICY_LOADER_READ`. Owner-index undefine needs the
+/// ownerAuth it holds.
+pub const ATTR_HAUTH: u32 =
+    TPMA_NV_OWNERWRITE | TPMA_NV_POLICYREAD | TPMA_NV_WRITEALL | TPMA_NV_NO_DA;
+
 /// `PolicyPCR(13 = 0³²) + PolicyCommandCode(NV_Write)`; shared by `TRIAL` and
 /// `FLOOR` (both loader-only, so sharing grants no other writer).
 pub const POLICY_LOADER_WRITE: [u8; 32] =
@@ -77,6 +86,11 @@ pub const POLICY_CONFIRM_WRITE: [u8; 32] =
 /// `PolicyPCR(13 = 0³²) + PolicyCommandCode(NV_Increment)` for `GEN`.
 pub const POLICY_LOADER_INCREMENT: [u8; 32] =
     h("e4f2860805e292f3712a85c063722fb7ad6f475889cef9c59667aba424db1bd1");
+
+/// `PolicyPCR(13 = 0³²) + PolicyCommandCode(NV_Read)` for `HAUTH`: readable
+/// in the loader phase only (swtpm: docs/verification/b03-rel05-hauth-probe-20261125).
+pub const POLICY_LOADER_READ: [u8; 32] =
+    h("339de5436134b5c65b80a51f1efae32ed9d89f664bf5e132551e35c7ad82ae82");
 
 /// Expected NV public area (`TPMS_NV_PUBLIC`, `nameAlg` SHA-256).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -151,6 +165,15 @@ pub const NV_GEN: NvSpec = NvSpec {
     attributes: ATTR_UPDATE_COUNTER,
     auth_policy: Some(POLICY_LOADER_INCREMENT),
     size: 8,
+};
+
+/// `ownerAuth ‖ lockoutAuth`, 32 bytes each, from approved entropy (TEST
+/// profile only; ADR-B03-REL05-TPM-20261125 amendment M1-HAUTH).
+pub const NV_HAUTH: NvSpec = NvSpec {
+    handle: 0x0100_B304,
+    attributes: ATTR_HAUTH,
+    auth_policy: Some(POLICY_LOADER_READ),
+    size: 64,
 };
 
 /// Anchor domains 0..=7 (domain 0 = `AnchorDomain::Network`, the only one the
