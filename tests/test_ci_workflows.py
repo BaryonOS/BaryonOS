@@ -1012,6 +1012,9 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertIn("${{ github.sha }}", restore["with"]["key"])
         self.assertLess(max(index for index, step in enumerate(steps) if "run" in step
                             and "cargo" in step["run"]), steps.index(save))
+        # #494 B1: a later merge must not cancel main's push run, or the save never happens.
+        self.assertEqual(self.workflows[".github/workflows/ci.yml"]["concurrency"]["cancel-in-progress"],
+                         "${{ github.event_name == 'pull_request' }}")
 
     def test_cache_action_matches_documented_provenance(self):
         """Every cache use must match its reviewed pin, version and policy source."""
