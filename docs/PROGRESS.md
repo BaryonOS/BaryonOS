@@ -18,7 +18,7 @@ Evidence levels remain separate. Host tests and prototypes can support a design 
 
 A criterion is either **Accepted** or **Open**. Partial implementation does not receive partial points. A regression can return an accepted criterion to Open.
 
-The machine-readable source of truth is [progress.json](progress.json). `tools/progress.py --check` validates the score, evidence references, and generated README/rubric/SVG views; it does not determine whether the evidence itself is technically sufficient.
+The machine-readable source of truth is [progress.json](progress.json), plus the unchanged-score task files in [progress/assessments/](progress/assessments/). `tools/progress.py --check` validates the score, evidence references, and generated README/rubric/SVG views; it does not determine whether the evidence itself is technically sufficient.
 
 A task that leaves the score unchanged records its assessment as a new file in
 [progress/assessments/](progress/assessments/) (`<YYYY-MM-DD>-<slug>.json`, same

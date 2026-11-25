@@ -1717,7 +1717,7 @@ Return the structured result.
                    "and accepts no criterion; acceptance is recorded only by the lead with the required evidence.")
         record = {"date": amsterdam.date().isoformat(), "source_commit": commit,
                   "assessment_basis": "parent_commit", "branch": self.cfg.branch,
-                  "task": f"Roadmap pipeline {task['id']}: {task['title']}"[:200],
+                  "task": re.sub(r"[\r\n|<>]", " ", f"Roadmap pipeline {task['id']}: {task['title']}")[:200],
                   "previous_score": score, "summary": summary.replace("|", "/")}
         if json.dumps(data["tracks"], sort_keys=True) != before:
             raise Stop("assessment update would change criteria; refusing")
@@ -1729,7 +1729,11 @@ Return the structured result.
             name = f"{record['date']}-{slug}{'' if n == 1 else f'-{n}'}.json"
             try:
                 with open(folder / name, "x", encoding="utf-8") as handle:
-                    handle.write(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
+                    try:
+                        handle.write(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
+                    except BaseException:
+                        (folder / name).unlink(missing_ok=True)
+                        raise
                 break
             except FileExistsError:
                 continue
@@ -1739,6 +1743,7 @@ Return the structured result.
         done = subprocess.run([sys.executable, "-I", "-B", "tools/progress.py", "--check"], cwd=ROOT,
                               capture_output=True, text=True)
         if done.returncode:
+            (folder / name).unlink(missing_ok=True)  # a rejected record must not linger untracked
             raise Stop(f"progress.py --check failed: {done.stdout[-400:]}{done.stderr[-400:]}")
         git("add", "--", str((folder / name).relative_to(ROOT)))
         if git("diff", "--cached", "--name-only").strip():
