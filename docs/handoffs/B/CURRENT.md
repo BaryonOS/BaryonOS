@@ -28,8 +28,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: local "BaryonOS - Specialist B [2a403f]" (25 Nov, checkpoint ~20:00Z; resumed from #524 CHECKPOINT 7172322273
-  and this file; registered with the PR guard [a1de4b]; [d5840a] retired).
+- Session: local "BaryonOS - Specialist B [3d498e]" (25 Nov, resumed ~20:15Z from this file at b4aa7304 and #524
+  CHECKPOINT 7173038286; registered with the PR guard [a1de4b], acknowledged; [2a403f] retired).
 - cycle: B03-REL05 trial boot with a TPM anchor, M1-HAUTH under owner decision option 1 (TEST profile,
   QEMU/swtpm only; ADR-B03-REL05-TPM-20261125, C665 identity binding).
 - branch: claude/b03-rel05-tpm-20261125, worktree ~/projects/BaryonOS-worktrees/b03-rel05-tpm.
@@ -56,9 +56,12 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   under the empty ownerAuth (removed, boots identical to `loader-hauth`) and DA-counter sensitivity (seeded `0x20E` = 1,
   loader `DA:1:1`, all other provisioned boots 0; `docs/verification/b03-rel05-hauth-da-squat-20261125/`, local commit 06b7528a),
   PCR 13 read-back of every active bank (SHA-1/256/384/512 equal `H(0^n || H(CLOSED))` on OVMF 2025.11;
-  thirteen native cases at source 16ff8409; `docs/verification/b03-rel05-pcr13-banks-20261125/`, local commit 2c9fdec9).
-- NOT RUN: a provisioning-path halt after an NV write (fault injection), a cut between the ownerAuth and lockoutAuth
-  changes, the TCG event log for PCR 13, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
+  thirteen native cases at source 16ff8409; `docs/verification/b03-rel05-pcr13-banks-20261125/`, local commit 2c9fdec9),
+  the seeded cut between the ownerAuth and lockoutAuth changes (`loader-hauth-lockout-cut`: `MODE:EXISTING`, `BOUND`,
+  `LOCKOUT:SET` at PERMANENT `0x401`, only lockoutAuthSet changes, boot 1 identical to `loader-hauth`; fourteen native
+  cases at source 6817b4e7; `docs/verification/b03-rel05-hauth-lockout-cut-20261125/`, local commit 94acc222).
+- NOT RUN: a provisioning-path halt after an NV write (fault injection; the seeded cut points are after the LREC
+  define and between the ownerAuth and lockoutAuth changes only), the TCG event log for PCR 13, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
   the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
 - Licensing register: `boot/loader/src/tpm_probe.rs`, `tpm_hauth.rs` and `tools/tpm_seed.py` are not listed in
   `MPL-2.0-FILES.txt` (no test enforces it); the register is an owner/lead decision, so it is reported, not changed.
@@ -123,18 +126,25 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   and hashes: `docs/verification/b03-rel05-pcr13-banks-20261125/` (thirteen cases pass at source 16ff8409; provisioned
   boots now `7a4c0d5c…`/`08a3f833…`, da-counted `14145a63…`, all halt/probe/kernel-only hashes unchanged; loader
   `da716d06…`, kernel `c6cef6ab…`; tpm-crb 1.100.0 test/clippy/fmt/scalar, `tools/tests` 1181 OK, `progress.py --check` 43/100).
-- Next on #524, decision-free (the seeded/DA/PCR-bank items are done; CHECKPOINT 7173038286): a seeded cut between the
-  ownerAuth and lockoutAuth changes (ownerAuth set, lockoutAuth unset, `HAUTH`/`LREC` written). The seed needs a host
-  `HAUTH` secret and a `LoaderRecord` encoder in `tools/tpm_seed.py`; expected loader path is `MODE:EXISTING`, `BOUND`,
-  `LOCKOUT:SET`. Then, only after the owner
+- Done locally: 94acc222 `loader-hauth-lockout-cut` (seed `lockout-cut`: host TEST `HAUTH` secret, BOUND `LREC` through
+  the PCR 13 = 0 write policy with the `trial.rs` encoding pinned in `test_tpm`, ownerAuth = `HAUTH[:32]`, lockoutAuth
+  empty; runner `REPAIRED` table and an after-boot check that only lockoutAuthSet changed), then the evidence/handoff
+  commit. Fourteen native cases at source 6817b4e7; results in the new evidence directory.
+- Next on #524, decision-free: the remaining seeded cut points of the provisioning sequence (HAUTH defined but
+  unwritten; HAUTH written before the LREC define; LREC written before the ownerAuth change), each expected to repair
+  through `MODE:PROVISION` like `loader-hauth-cut`. Then, only after the owner
   answers (both are in the "reported to the owner, not accepted" list): (b) S3/U27 and the section 7.9 halt; (c) native
   S5 with N's joint tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
-  body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the thirteen
-  `run_tpm.py` cases (six + seven seeded) on the merged head, or state in the PR body that the loader evidence is bound to 16ff8409; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
+  body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the fourteen
+  `run_tpm.py` cases (six + eight seeded) on the merged head, or state in the PR body that the loader evidence is bound to 6817b4e7; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
 
-Lane: owner correction ~18:05Z; origin/main 840c8f32 (#548, CI B9 merge-hold re-check) at 19:58Z, #524 BEHIND by 7 (no overlap with
-the TPM files); no lane grant yet (B [2a403f] registered with the PR guard). #548 changes merge-hold to decide at once and
-re-check after the gates finish, so the 25 Nov merge-hold lesson below may be outdated; re-read it before the lane merge. CI keeps priority until every CI batch is resolved, and the main freeze holds after #544.
+Lane: the owner lifted the main freeze at 20:19Z (main 0fe66b51, #524 BEHIND by 8, no TPM-file overlap). Lane order from the
+PR guard: #515 (H) -> #539 -> #533 -> #543 -> #535 -> #525 / #523 / #540 / #524 / #538; one lane holder at a time, no
+catch-up outside the lane; the PR guard announces the grant explicitly. The repository moved to GitHub Enterprise Cloud
+(hosted job limit 60 -> 500, being verified by CI): report runner, required-check, permission, billing or hosted swtpm
+anomalies to the PR guard; merge as soon as the lane is held and the applicable gates and reviews are done.
+Earlier: owner correction ~18:05Z; #548 at 19:58Z. #548 changes merge-hold to decide at once and
+re-check after the gates finish, so the 25 Nov merge-hold lesson below may be outdated; re-read it before the lane merge. CI keeps priority until every CI batch is resolved; the main freeze ended at 20:19Z.
 #524 (draft, BEHIND main) does not catch up or push until the PR guard grants the lane. Infra reruns on 5e126571
 (runs 45649628744, 45649628788, 45649628817) all succeeded; merge-hold stays red only because the branch is BEHIND.
