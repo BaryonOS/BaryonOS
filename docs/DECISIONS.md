@@ -82,6 +82,51 @@ B02, B03/B04 and N04 stay separate; N04 re-anchors from genesis after
 recovery (agreed with workstream N). Native tests C23–C30 are required before
 acceptance. Specification section 10.5; TEST profile only.
 
+**Amendment M1-HAUTH, 25 November 2026 (project-owner decision, option 1,
+PR #524):** relayed by the PR guard session at about 11:58Z and confirmed by
+the project owner in the B session. Quoted decision:
+
+> I explicitly approve option 1: changing ownerAuth and lockoutAuth within
+> the isolated TEST/QEMU/swtpm profile to address the M1
+> undefine/redefine/replay vulnerability. This is a strictly bounded
+> extension of the previously approved TPM trust architecture. The following
+> requirements are binding: Preserve the per-domain TPM_NT_EXTEND hash-chain
+> architecture and logical separation between B02, B03/B04 and N04. Protect
+> TPM hierarchy authorization against unauthorized runtime access. Generate
+> appropriate authorization secrets using approved entropy. Never hardcode,
+> log or expose them to ordinary services. Preserve authorized loader-phase
+> recovery, including undefine and re-genesis with a fresh, authenticated
+> anchor instance. Ensure that recovery cannot revive previously revoked
+> grants or silently lower anti-rollback protection. Verify that the
+> PCR13-based loader-phase policy provides the intended protection. Do not
+> treat PCR phase separation alone as proof of trusted boot, TPM identity or
+> protection against a compromised kernel. Preserve the previously approved
+> U13 TPM identity binding. Test unauthorized undefine/redefine/replay, TPM
+> clear, TPM replacement, foreign boot environments, interrupted
+> provisioning and authorized recovery. Retain the existing failing M1
+> regression cases and demonstrate that the revised implementation prevents
+> the targeted revival scenario. Coordinate P1–P3 with N and finalize the
+> shared anchor contract. Keep N04 operating under 5A until the complete 5B
+> integration passes native security acceptance. Explicitly document
+> remaining threat-model limitations. Do not accept the demonstrated revival
+> vulnerability as a residual risk merely to complete the implementation.
+> This authorization applies exclusively to disposable TEST/QEMU/swtpm
+> environments. It does not authorize modification of physical TPMs,
+> production credentials or host security settings.
+
+Mechanism: a loader-generated secret (`EFI_RNG_PROTOCOL`, U25) is stored in
+the policy-read NV index `HAUTH` (`0x0100B304`, readable only under
+`PolicyPCR(13 = 0³²) + CC_NV_Read`) and set as `ownerAuth ‖ lockoutAuth` by
+`HierarchyChangeAuth`; `endorsementAuth` and platformAuth are not changed.
+Evidence so far: swtpm 0.10.1 feasibility probe
+(`docs/verification/b03-rel05-hauth-probe-20261125/`) and host model; the
+native loader path and S5 are open. Limitation, reported to the project
+owner and not accepted as a residual by B: code that runs at PCR 13 = 0³²
+(boot path before B04, foreign OS) can read `HAUTH` and revive an older
+store one reboot later; the revival is refused at run time within a boot,
+not across a hostile boot path. 5A stays in force. Contract:
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
+
 **Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
 extension, kernel profile and health service; the characterization of PR #514
 must fail under the trial profile. Issue #41, B03 and REL-05 remain open;

@@ -524,7 +524,8 @@ O8.
 ### 10.3 Recovery
 
 TEST only: a host provisioning tool (new, `tools/`) defines the indices on a
-disposable swtpm with empty owner auth and writes `FLOOR.floor = max(UEFI
+disposable swtpm with empty owner auth (before the loader has set ownerAuth;
+M1-HAUTH, [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md)) and writes `FLOOR.floor = max(UEFI
 floor, version of the image to be marked known-good)`, `TRIAL = IDLE`. It
 never sets a value below the UEFI floor. A production procedure (owner/lockout
 auth custody, physical presence, EK binding) is **not** specified and needs an
@@ -734,7 +735,7 @@ named marker (TEST hook markers emitted before each write in a test feature).
   (owner decision open).
 - U21 That the first `NV_Extend` of a freshly defined `TPM_NT_EXTEND` index
   starts from the all-zero value, and that reading it before any extend fails
-  (cold-freshness anchor genesis).
+  (cold-freshness anchor genesis). *Observed on swtpm 0.10.1, not native S5.*
 - U22 That one `NV_Extend` is atomic across power loss on swtpm (either the
   old or the new chain value survives, never a third value).
 - U23 That the OS can never use platformAuth after OVMF randomises it (U8
@@ -742,6 +743,15 @@ named marker (TEST hook markers emitted before each write in a test feature).
 - U24 Whether platform authorisation can undefine an owner-created index
   (`NV_UndefineSpace`, Part 3 31.4) and whether `TPM2_Clear` with the TEST
   profile's empty lockoutAuth is reachable by a compromised kernel.
+  *Observed on swtpm 0.10.1 without firmware (not native S5):* with an empty
+  platformAuth, platform `NV_UndefineSpace` of an owner index and platform
+  `TPM2_Clear` both succeed; with lockoutAuth set, `TPM2_Clear(lockout)` with
+  empty auth fails (`docs/verification/b03-rel05-hauth-probe-20261125/`).
+  U23 is therefore load-bearing for M1-HAUTH.
+- U25 That OVMF under the QEMU configuration of this profile provides
+  `EFI_RNG_PROTOCOL` (UEFI 2.10, section 37.5) with its default algorithm in
+  the loader phase. It is the entropy source of the M1-HAUTH secrets; when it
+  is absent, provisioning halts (no fallback, no derivation from records).
 
 ### Feasibility probe results (25 November 2026, swtpm 0.10.1)
 
