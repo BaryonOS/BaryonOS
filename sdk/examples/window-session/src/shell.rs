@@ -933,6 +933,34 @@ mod visual_interaction_tests {
         assert_eq!(press(&mut shell, PhysicalKey::Enter), Command::Activate(0));
     }
     #[test]
+    fn header_zones_open_search_and_session_only() {
+        // The band and clock between them belong to the Veld Alt+N panel
+        // (Scene::desktop_control_at); the shell consumes a stray press there.
+        for (w, h, sc) in [(800, 500, 1), (1280, 720, 1), (1920, 1080, 2)] {
+            for (x, page, changed) in [
+                (179 * sc, Page::Search, true),
+                (180 * sc, Page::Desktop, false),
+                (299 * sc, Page::Desktop, false),
+                (w - 100 * sc, Page::Desktop, false),
+                (w - 60 * sc + 1, Page::Session, true),
+                (w - 1, Page::Session, true),
+            ] {
+                let mut shell = Shell::new(false);
+                let effect = shell.mouse((x, 20 * sc), true, true, w, h, sc);
+                assert_eq!(
+                    (
+                        effect.consumed,
+                        effect.changed,
+                        effect.command,
+                        shell.page()
+                    ),
+                    (true, changed, Command::None, page),
+                    "x={x} at {w}x{h}@{sc}"
+                );
+            }
+        }
+    }
+    #[test]
     fn repeat_moves_focus_but_never_activates() {
         let repeat = |s: &mut Shell, key| {
             s.key(
