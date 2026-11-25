@@ -24,7 +24,8 @@ import tpm_seed
 
 # Pre-seeded M1-HAUTH cases: (boot before which tools/tpm_seed.py prepares the state, seed).
 SEED = {"loader-hauth-squat": (0, "squat"), "loader-hauth-foreign-owner": (0, "foreign-owner"),
-        "loader-hauth-unbound": (1, "unbound"), "loader-hauth-cut": (0, "cut")}
+        "loader-hauth-owner-squat": (0, "owner-squat"), "loader-hauth-unbound": (1, "unbound"),
+        "loader-hauth-cut": (0, "cut")}
 FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
             "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb",
             "loader-hauth": "native-tpm-crb", "loader-hauth-no-rng": "native-tpm-crb",
@@ -46,6 +47,8 @@ HALT = {("loader-hauth-no-rng", 0): (0, (PROVISION, CLOSED, "LOADER-HAUTH:FAIL:R
         ("loader-hauth-squat", 0): (0, (PROVISION, CLOSED, "LOADER-HAUTH:FAIL:TPM_RC:0000000000000149")),
         # Foreign ownerAuth, nothing provisioned: NV_ReadPublic(HAUTH) is TPM_RC_HANDLE on handle 1.
         ("loader-hauth-foreign-owner", 0): (1, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:TPM_RC:000000000000018b")),
+        # Owner squat kept by a foreign ownerAuth: the HAUTH Name check refuses it.
+        ("loader-hauth-owner-squat", 0): (1, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:PUBLIC:000000000100b304")),
         ("loader-hauth-unbound", 1): (5, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:UNBOUND:0000000000000000"))}
 HALT_EXIT = 35  # loader serial::exit(0x11), as tools/test.py pins for M1:FAIL
 # U25: the TEST profile has no firmware RNG; `loader-rng` and the HAUTH cases add a virtio-rng device.
@@ -241,7 +244,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, flipped LREC binding after a provisioning boot, power-cut leftovers) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign ownerAuth, flipped LREC binding after a provisioning boot, power-cut leftovers) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))

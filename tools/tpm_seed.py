@@ -116,6 +116,12 @@ def foreign_owner(tpm):
     tpm.ok("HierarchyChangeAuth", struct.pack(">I", RH_OWNER), password(), b2(os.urandom(32)))
 
 
+def owner_squat(tpm):
+    """Probe S1 squat: an owner AUTHREAD | AUTHWRITE HAUTH, then a foreign ownerAuth that keeps it."""
+    tpm.define(RH_OWNER, HAUTH, AUTHWRITE | AUTHREAD | NO_DA)
+    foreign_owner(tpm)
+
+
 def unbound(tpm):
     """After a real provisioning boot: one flipped binding byte of a well-formed LREC."""
     record = bytearray(tpm.lrec())
@@ -131,7 +137,8 @@ def cut(tpm):
     tpm.define(RH_OWNER, LREC, ATTR_LREC, POLICY_WRITE)
 
 
-SEEDS = {"squat": squat, "foreign-owner": foreign_owner, "unbound": unbound, "cut": cut}
+SEEDS = {"squat": squat, "foreign-owner": foreign_owner, "owner-squat": owner_squat,
+         "unbound": unbound, "cut": cut}
 
 
 def observe(tpm):

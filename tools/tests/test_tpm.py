@@ -139,7 +139,7 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         for case, boot in (("loader-hauth-unbound", 0), ("loader-hauth-cut", 0), ("loader-hauth-cut", 1)):
             result = probe.evaluate(self.transcript(case, boot), case, boot)
             self.assertEqual(result["HAUTH_PERMANENT"] & 0x5, 5 if boot else 0)
-        for case in ("loader-hauth-squat", "loader-hauth-foreign-owner"):
+        for case in ("loader-hauth-squat", "loader-hauth-foreign-owner", "loader-hauth-owner-squat"):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 probe.evaluate(self.transcript(case), case, 1)
         failures = {steps[-1] for _, steps in probe.HALT.values()}
@@ -271,17 +271,20 @@ class TpmSeedTests(unittest.TestCase):
         self.assertEqual([at for at in range(64) if before[at] != after[at]], [48])
         self.assertEqual(tpm_seed.snapshot(*self.tool, self.directory), flipped)
         fresh = self.directory / "fresh"
-        for name, permanent, hauth in (("foreign-owner", 1, {"rc": 0x18B}),
-                                       ("squat", 0, None)):
+        squat = tpm_seed.AUTHWRITE | tpm_seed.AUTHREAD | tpm_seed.NO_DA
+        for name, permanent, attributes in (("foreign-owner", 1, None),
+                                            ("squat", 0, squat | tpm_seed.PLATFORMCREATE),
+                                            ("owner-squat", 1, squat)):
             with self.subTest(name=name):
                 shutil.rmtree(fresh, ignore_errors=True)
                 (fresh / "state").mkdir(parents=True)
                 state = tpm_seed.seed(*self.tool, fresh, name)
                 self.assertEqual((state["permanent"] & 0x5, state["lrec"]), (permanent, {"rc": 0x18B}))
-                if hauth:
-                    self.assertEqual(state["hauth"], hauth)
+                self.assertEqual(state["hauth"].get("attributes"), attributes)
+                if attributes is None:
+                    self.assertEqual(state["hauth"], {"rc": 0x18B})
                 else:
-                    self.assertTrue(state["hauth"]["attributes"] & tpm_seed.PLATFORMCREATE)
+                    self.assertNotIn(state["hauth"]["name"], self.names.values())
 
 
 if __name__ == "__main__":
