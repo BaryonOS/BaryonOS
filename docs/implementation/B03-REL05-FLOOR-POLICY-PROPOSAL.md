@@ -16,7 +16,8 @@ every later boot.
 
 Evidence: [B03-F1 characterization](../verification/b03-floor-crash-20261123/README.md)
 (QEMU 10.2.1 at `a91d5ade`; repeated on 25 November 2026 with QEMU 8.2.2 on
-main-merged source). Audit finding REL-05 in
+main-merged source; that re-run's raw files are not committed, so it is a
+supporting observation, not verifiable evidence). Audit finding REL-05 in
 `docs/audits/subagents/08-release-supply-chain.md` asks (translated from Dutch) for "an explicit policy
 for trial boot / health confirmation or authorised recovery above the floor,
 with a negative native test and data preservation; do not silently disable
@@ -35,7 +36,7 @@ previous version, not unlimited downgrade.
 
 ## Options
 
-| | A. Trial boot with deferred floor (recommended) | B. Signed recovery permit above the floor | C. Keep ADR-049, accept the risk |
+| | A. Trial boot with deferred floor | B. Signed recovery permit above the floor | C. Keep ADR-049, accept the risk |
 | --- | --- | --- | --- |
 | Idea | The loader records a *pending* version instead of raising the floor. The floor rises on a later boot, after the kernel has confirmed health for that version. Bounded boot attempts; then fall back to the other slot. | A separately signed manifest type allows one boot of a version below the floor. | Document REL-05 as an accepted risk. |
 | Recovers a crashing release | Yes, automatically, to the previous slot. | Only after an operator obtains a signed permit. | No. |
@@ -58,9 +59,16 @@ previous version, not unlimited downgrade.
 - If the counter exceeds a bound (proposal: 3) without "healthy V", the loader
   marks that slot failed for this pending cycle and selects the other slot.
   The floor is untouched, so the previous version is still permitted.
-- A forged "healthy V" (disk attacker) can only raise the floor early, which is
-  today's behaviour, never lower it. Withholding confirmation keeps the old
-  floor, so only versions ≥ the old floor remain startable (invariant 4).
+- Design analysis (unverified): a forged "healthy V" (disk attacker) can only
+  raise the floor early, which is today's behaviour. Withholding confirmation
+  keeps the old floor, so only versions ≥ the old floor remain startable
+  (invariant 4).
+- Known window: after the kernel writes "healthy V" to the unsigned store but
+  before the next boot raises the floor, a disk attacker can delete the record.
+  The attempt bound then returns to the previous slot, which violates
+  invariant 3 for that window (invariant 4 still holds). An implementation must
+  close or explicitly accept this window, for example by raising the floor in
+  the same boot through an authenticated health call.
 
 ### Tests the implementation would need (native, QEMU)
 
@@ -72,9 +80,10 @@ repetition of B03-F1 turned into a passing regression test.
 
 ## Decision requested from the project owner
 
-1. Choose A, B or C (B recommends itself only if automatic recovery is not
-   wanted).
+1. Choose A, B or C. The B workstream's preference is A, because it is the only
+   option with automatic recovery; B fits only if automatic recovery is not
+   wanted.
 2. If A: confirm the attempt bound and the health point that may confirm a
    version.
 
-Until a decision exists, B makes no change to the loader's floor semantics.
+Until a decision exists, the B workstream makes no change to the loader's floor semantics.

@@ -112,6 +112,8 @@ The characterization was repeated without changes to the tool on branch head
 `4aeacbc5` (origin/main `bd31a78b` merged in), in a different environment from
 the run above. Raw files stay in the ignored build directory and are not
 committed; the committed evidence above remains bound to its own source.
+This re-run cannot be verified from the repository and is a supporting
+observation only; it is not acceptance evidence.
 
 | Item | Value |
 | --- | --- |

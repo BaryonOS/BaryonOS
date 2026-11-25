@@ -25,6 +25,7 @@ import argparse
 from datetime import datetime, timezone
 import shutil
 import subprocess
+import sys
 import time
 import uuid
 from common import BUILD, ROOT, TARGET, environment, firmware, save_json, sha256, source_hash
@@ -205,9 +206,12 @@ def main() -> int:
             summary["rollback_store_equals_control"] = same
             summary["observed"] = same and source_hash() == frozen
     finally:
-        from build import build
-        build()  # restore the normal artifacts, as tools/test.py does
         save_json(OUT / "summary.json", summary)
+        from build import build
+        try:
+            build()  # restore the normal artifacts, as tools/test.py does
+        except Exception as exc:  # keep the original error and the saved summary visible
+            print(f"warning: restoring normal artifacts failed: {exc}", file=sys.stderr)
     print(f"REL-05 hazard observed={summary['observed']} boots={len(summary['boots'])} {OUT / 'summary.json'}")
     return 0 if summary["observed"] else 1
 
