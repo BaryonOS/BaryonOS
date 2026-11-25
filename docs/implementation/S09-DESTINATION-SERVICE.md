@@ -1279,8 +1279,188 @@ held per device scope in the broker and not per object or handle. The
 service's in-memory latch and N32 remain as additional layers. The trigger and
 the interface by which the service sets the latch are specified before
 implementation; the latch and its own native test are R8 preconditions (8.2).
+**Kernel write latch: specification (O13; S-20261125-2, proposed, not implemented).**
+This paragraph fixes the trigger, the scope and the service interface that the
+decision above leaves to the specification. Nothing here exists in code at
+`8acf1dea` *[main]*. Revised after O13-SPEC-REVIEW-1 (REQUEST_CHANGES, RQ1–RQ4 and
+OPT1–OPT5) and O13-SPEC-REVIEW-2 (REQUEST_CHANGES on that revision, RQ1 and
+OPT1–OPT7; confirmed by O13-SPEC-VERIFY-3), then for a CodeRabbit finding
+(L1b) and O13-SPEC-REVIEW-4 on L1b (REQUEST_CHANGES, RQ1–RQ3 and OPT1–OPT2;
+applied here and confirmed by O13-SPEC-VERIFY-5 after one citation
+fix). All are AI reviews, not a human audit.
+
+- *Destination scope.* The destination profile marks exactly one block object
+  per boot as the destination object when it creates it (2.1); the broker
+  records that object's device and absolute sector range (first sector,
+  count) in a latch table kept beside the per-device `Policy` in
+  `crates/virtio-core` (OPT2), so that its rules get host tests and mutants.
+  The table is add-only: a registration only adds an entry, never replaces or
+  removes one, and a registration beyond its fixed capacity (proposed: 4
+  entries) fails the profile closed at creation (OPT4). It is broker memory,
+  filled at profile creation, never by a user request, and cleared only by a
+  new boot. Without a destination profile the table is empty, so no existing
+  volume, archive or power fixture changes behaviour. The destination device is
+  driven only by lane 1 of `kernel/src/m2/m3/volume.rs`; the destination
+  profile asserts at build time that no other virtio-blk broker (`m6`, `m6b`,
+  `m6c`, `update`) and no legacy volume broker (`native-smp-legacy`, which
+  builds `kernel/src/m2_legacy/m3/volume.rs` without a latch) is built with it
+  (OPT5; review 2, OPT3).
+- *State.* One bit per entry: open or latched. The bit only goes from open to
+  latched. No syscall, process exit, `detach`, reset, quarantine, restart path,
+  rebind or new grant clears it.
+- *Kernel trigger (L1).* When the per-device `Policy` gives a WRITE or
+  FLUSH `Completion::Unknown` (OPT2), the broker latches: for a WRITE, every
+  entry that its translated sector intersects; for a FLUSH, every entry of that
+  `Policy`'s device, because a flush acts on the whole device and
+  `Operation::Flush` carries no sector (`Operation::sector()` returns 0 for it,
+  `crates/virtio-core/src/lib.rs:62`, and sector 0 is a real disk-1 sector; review
+  2, RQ1). The `Unknown` cases are a completion without success
+  (`lib.rs:724-725`), the broker timeout that starts a reset (`timeout` →
+  `start_reset`, `lib.rs:766-781`), a malformed completion, after which the
+  broker resets the device and `start_reset` sets `Unknown` (review 2, OPT1),
+  and the owner's exit or kill while the request is published and uncompleted
+  (`Policy::exit` via `detach`, `lib.rs:788-794`). This is one hook in the `Policy`, not in the owner's poll, so an
+  owner that never polls, exits or is killed cannot avoid it. A READ outcome,
+  successful or not, never latches: a READ is never marked `Unknown` (each of
+  the three sites that set `Unknown` checks `is_mutating`). Completed but
+  unflushed WRITEs hold no record in the `Policy`, so a later reset cannot
+  latch on them; their loss in a cache-dropping reset (N26 (d), N33 (iii),
+  N37 (a)) is caught by the step-3 readback of 2.7, not by the latch (review 2,
+  OPT5).
+  L1 is a strict superset of the 2.7 trigger as the broker can observe it: it
+  also latches on a FORMAT write or flush failure, a mount or remount FLUSH
+  failure and an owner exit during a WRITE or FLUSH; each of those already
+  leads to a state without writes (2.6 failed-mount state, 2.7) (OPT1).
+- *Kernel trigger at refusal (L1b).* A WRITE or FLUSH that passed the
+  authority, scope and input-copy checks and that the broker then refuses for
+  a device-side reason latches at the refusal site in `device_call`, with the
+  same entry rule as L1 (WRITE: intersecting entries; FLUSH: every entry of
+  the device). The kernel produces these refusals itself, so the latch does
+  not depend on the service surviving to report them (CodeRabbit review
+  6054272902 on PR #521). Per refusal site (O13-SPEC-REVIEW-4, OPT1):
+  the lane is offline (-13, or -14 after a failed reset or a failed `discover`
+  or initialisation at boot, `volume.rs:597`, `:626`, `:647`): latch;
+  `policy.prepare` `Exhausted` (-14, ticket counter overflow) and the missing
+  device (`.ok_or(-14)`, unreachable because a lane without a device is
+  offline): latch, fail closed; `prepare_operation` fails for any reason,
+  `Busy` (-8) included (`drivers/virtio-blk/src/lib.rs:380-390`): latch;
+  `policy.prepare` `Range` (-1) and an `input_bytes` error (-3): caller-shape
+  errors, no latch. The -8 that the broker's own lane checks return
+  (`resetting`, `error` held, `Policy` phase not `Ready`) is the normal,
+  transient answer of 2.7 and does not latch.
+- *Service trigger (L2).* The service reports the 2.7 triggers that the
+  kernel cannot see: a kernel -8 past either bound of 2.7 (on submission
+  beyond 2 × `RESET_TIMEOUT`, on the completion poll beyond `POLL_BOUND`),
+  and a completion poll that returns -1 on its own WRITE or FLUSH, which 2.5
+  answers as `Unknown` -16 and so starts the safe path (CodeRabbit review
+  6054452266 on PR #521). The broker cannot latch on that -1 itself: it
+  answers -1 for a ticket that is already consumed or was never its own,
+  without knowing which request the caller meant.
+  With the K5 broker that state is unreachable: a reset ends within
+  `RESET_TIMEOUT` or quarantines the lane (then offline, L1b), and a
+  published request ends at `TIMEOUT` as `Unknown` (L1). L2 therefore covers
+  only a broker that breaks property 4 of 2.7. If the service dies in that
+  state before calling L2, the entry stays open; that residual is accepted
+  because it needs a broker defect plus a same-boot re-grant, which the
+  once-per-boot rule (2.1, N32) excludes for the shipped profile. The same
+  residual, under the same condition, holds for the -1 poll: under the poll
+  rule of 2.7 it shows a service defect (2.5), and if the service then dies
+  before calling L2, the entry stays open. Caller-shape
+  errors (-1, -3, -11) are not 2.7 triggers and latch nothing. The service
+  calls a new block syscall `0x44` (latch): `a[0]` a block handle, `a[1]` to
+  `a[5]` zero (otherwise -1). It runs only the shape check,
+  `check_block(BLOCK_WRITE)` (otherwise that capability error) and the range
+  test; it ignores the lane's `offline`, `resetting`, `error`, quarantine and
+  `Policy` phase, because the service calls it exactly when the lane is stuck
+  (RQ2). Routing: under `native-volume`, `volume.rs` is the module `m5`
+  (`kernel/src/m2/m3.rs:227-230`); `0x44` is added to both number matches in
+  `kernel/src/m2/m3.rs:2318-2336` (the exclusion from `m4::syscall` and the
+  `m5::syscall` dispatch, today `0x40 | 0x41` and `0x42 | 0x43`), gated on `native-volume`
+  so that `m6`, `m6b` and `m6c`, which share those matches under
+  `milestone-m5`, never see it (review 2, OPT2), and handled
+  in `volume.rs` before `device_call`'s device checks, which today refuse it
+  with -2 (`volume.rs:1007`). A process that may write the range may give
+  that right up, while a READ-only holder cannot use the latch to deny backups.
+  If the handle's scope contains one or more whole entries, those entries
+  are latched and the call returns 0; a handle whose scope only partly
+  overlaps an entry, or overlaps none, gets -5 and changes nothing, so a
+  holder cannot deny writes to sectors it has no right to (review 2, OPT4).
+  The call is idempotent and performs no device access. The service also calls
+  it after every L1 case it observes, so that its in-memory latch and the
+  kernel latch never disagree. It does not call it for an O17 digest mismatch
+  alone (O17; *[decided]*, package 2).
+- *Enforcement.* In `device_call`, a WRITE (0x42) whose translated sector lies
+  in a latched entry returns `Access` -5 after the authority and scope checks
+  and before the input copy, the per-device `Policy` and any device access, so
+  that no publication, completion or reset counter changes. READ (0x40), the
+  completion poll (0x41) and FLUSH (0x43) are not refused by the latch, as the
+  remount FLUSH and the recovery READs need them (package 2). WRITEs outside
+  every latched entry, including every disk-0 WRITE, are unaffected. Under K5 a
+  device has at most one request in its `Policy`, so no second WRITE is
+  published when L1 fires. The service maps any -5 on a destination WRITE to
+  the safe path (fails closed); no new code is needed.
+- *Relation to the other layers.* The service's in-memory latch (2.7), the
+  once-per-boot grant rule (2.1) and N32 stay.
+- *Native test (N38, new; R8 precondition).* A test-only kernel feature with a
+  scripted destination object on disk 1; latch state and counters are reported
+  by kernel markers and checked by the host oracle. (a) a WRITE answered `Ok`;
+  (b) an injected WRITE device error, with the latch marker read before any
+  0x41 poll, after which a WRITE on the same handle returns -5 with the disk-1
+  WRITE publication count unchanged; (c) READ and FLUSH on that handle are
+  still admitted and complete; (d) a test-only feature, never built together
+  with N32, performs the re-grant the once-per-boot rule forbids: after the
+  holder exits, a new object on a partly overlapping range with a different
+  first sector is granted; its WRITE that translates into the latched range
+  returns -5 and its WRITE outside it is admitted (RQ4); (e) a disk-0 WRITE is
+  admitted; (f) a separate run: `0x44` on a handle whose scope wholly contains an
+  unlatched entry, then a WRITE
+  returns -5; `0x44` from a READ-only handle is refused; `0x44` on a handle
+  whose scope intersects no entry, or only part of one, returns -5 and latches
+  nothing; over entries [0, 10) and [10, 20), `0x44` on a handle covering
+  [0, 15) returns 0, latches [0, 10), leaves [10, 20) open, and a WRITE into
+  [10, 20) is admitted (CodeRabbit, mixed overlap); `0x44` while
+  the lane is resetting or offline still latches (RQ2); (g) an injected FLUSH
+  error latches every entry of disk 1 although the flush carries no sector; a
+  broker timeout and a malformed completion of a WRITE each latch, again read
+  before any poll; a READ error does not; (h) the holder is killed while its WRITE is published and
+  uncompleted, and the latch is set (RQ3); (i) a latched WRITE with an invalid
+  input pointer returns -5, not -3; (j) a reset started by an injected
+  READ timeout fails (injected), so the lane goes offline; the latch marker
+  reads open; a destination WRITE then returns exactly -13 or -14 and the
+  marker reads latched; the holder is killed before any `0x44`, and under the
+  test-only re-grant of (d) a WRITE into the range returns -5 (L1b; review 4,
+  RQ1); separately, an injected `prepare_operation` failure on a WRITE (the
+  existing `bad_descriptor` path) latches, and an L1b FLUSH refusal latches
+  every disk-1 entry (review 4, OPT2); (l) a WRITE answered `Ok` is polled and consumed, and a
+  second poll of the same ticket returns -1 with the latch still open (the
+  broker does not latch on -1); the test then issues `0x44` as the service's
+  2.5 mapping requires, the latch reads latched, and a WRITE through a
+  handle granted under the test-only re-grant of (d) returns -5 (the service
+  mapping itself is tested on the host, R2); (k) during a reset started by an
+  injected READ timeout, a destination WRITE gets -8 and nothing latches;
+  after the reset the holder polls the READ's -13 (`lane.error` is held until
+  that 0x41 poll, `volume.rs:1066`), and then the same WRITE is admitted
+  (review 4, RQ2). Killing mutations: no check before the
+  `Policy`; a check after the input copy (i); a latch keyed on the object or
+  handle instead of the range, or on the whole device (d); a latch cleared by
+  `detach` or reset (d); a latch set at the poll and not in the `Policy` (b,
+  g, h); a hook only at the completion-error sites (h); a FLUSH latch tested on
+  `sector()` (g); a hook in `complete` and `timeout` only, missing the
+  malformed-completion reset (g); a READ that latches
+  (g); FLUSH refused (c); `0x44` refused while the lane is stuck (f); `0x44`
+  that always latches (f); `0x44` that returns -5 for a mixed overlap, or
+  latches the partly overlapped entry (f); a broker that latches on a -1
+  poll (l); a submission refusal that latches nothing (j); a
+  `prepare_operation` failure that latches nothing (j); an L1b FLUSH that
+  latches only sector 0 (j); a
+  -8 during a reset that latches (k).
+- *Answers to the review questions.* The barrier-1 variant of N37 (a) does not
+  latch: a FLUSH submitted while the lane resets gets -8 and is never admitted,
+  as in N26 (d); if that reset fails, the later submission's -13 or -14 latches
+  under L1b (review 4, RQ3). The reply code stays -5. The table lives in `virtio-core`.
+
 The latch ends only with the boot. Every destination runner
-must pass `-no-reboot` to QEMU, as `tools/run_volume.py:309` already does
+must pass `-no-reboot` to QEMU, as `tools/run_volume.py:374` already does
 *[main]*, so that each guest reboot ends the QEMU process and every boot in the
 gates is a new QEMU process; warm reboot of a product, which a guest cannot
 distinguish from a cold boot, stays open under O9.
@@ -1752,7 +1932,7 @@ harness: the source volume image as today, and a destination image attached as
 the second virtio-blk device at `00:06.0` *[main]*. No host disk, no physical
 device, and no image survives between gate runs except as recorded evidence.
 Every destination runner passes `-no-reboot` to QEMU (2.7), as
-`tools/run_volume.py:309` does *[main]*, so a guest reboot ends the QEMU
+`tools/run_volume.py:374` does *[main]*, so a guest reboot ends the QEMU
 process and each boot is a new process.
 
 **PCI slot and entropy conflict (R5 precondition).** Every runner that
@@ -2293,7 +2473,7 @@ Each step is one reviewable draft PR; none activates a production boundary.
 |---|---|---|
 | R1 | This specification; independent security review of it | review findings recorded and resolved in this file (reviews 1–3 and the revision-3 ledger: section 9). **Status (revision 3):** review 3 approved revision 2; review 4 (SPEC-REVIEW-4) returned REQUEST_CHANGES on revision 3; review 5 (SPEC-REVIEW-5) found its findings resolved and returned REQUEST_CHANGES with two required findings, answered in this text (section 9) and not re-reviewed. **Status (revision 4):** owner items O14, O15 and O16 decided on 23 November 2026; O4 (b), O4 (c) and O11–O13 open; O17 and O18 proposed in revision 4 and open; review 6 (SPEC-REVIEW-6) approved revision 4 (P1–P13, section 9) with no required finding and confirmed RQ5-1 and RQ5-2 (P13); its nine optional findings were applied by the lead and checked by one read-only verifier, whose two wording corrections were applied and not re-reviewed. **Status (revision 5):** owner items O17 and O18 decided on 23 November 2026 (O14–O18 decided; O4 (a)–(c) and O11–O13 open; the other items of 8.1 remain open as stated there); review 6 approved revision 4; the owner-decision commit `a769bc65`, which relabelled the O17 and O18 markers, and the review-6 corrections of revision 4 were covered by reviews 7 and 8, which returned REQUEST_CHANGES on other findings, and first approved by review 9; review 7 (SPEC-REVIEW-7) returned REQUEST_CHANGES on revision 5 (Q1–Q13, section 9), and the lead applied its nine findings; review 8 (SPEC-REVIEW-8) returned REQUEST_CHANGES on the result with four required and six optional findings, which the lead applied (RQ8-2 is a commit action; section 9, "Review 8"); review 9 (SPEC-REVIEW-9) approved revision 5 (with those fixes), `a769bc65` and the review-6 corrections, with no required finding and nine optional findings (OPT9-1–OPT9-9), which the lead dispositioned in a separate fix pass (section 9, "Review 9"); review 10 (SPEC-REVIEW-10) returned REQUEST_CHANGES on that pass with two required and eight optional findings (RQ10-1, RQ10-2, OPT10-1–OPT10-8), which the lead applied in a further fix pass (section 9, "Review 10"), to be checked by review 11 (SPEC-REVIEW-11), which approved it with no required finding; its nine optional findings are deferred to the next revision |
 | R2 | Host crate for the service core: catalog codec, mount rule, state machine, wire codec, write path; simulated disk with cache loss | host tests for N3–N15, N17 and N21–N31 (simulated disk with late completion for N24, broker stub for N26; N5 and N6 with the capability-core `Engine`), each with a killing mutation; flush-order and cache-loss acceptance for N11, N12 and N25 is established here, not natively; Clippy, fmt, `cargo test --locked` per the CI workflow commands. Revision 3 adds: N33–N36; the reset-dependent rows under both reset models (section 6); a simulated disk that meets the K5 broker contract (2.7). **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited). Open against this revision: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; at `37b7bd0c` the revision-3 rows and the code changes they imply (section 9) were not yet made. Revision 4 adds: Clippy with `-D warnings` on the library as built without any test-only feature, for `x86_64-unknown-none`, run by the hosted gate (a lead-owned workflow change), because that is the build a native profile links and so far it is only type-checked (P10); and a host test of the simulated disk alone, under both reset models, for each property of the broker contract of 2.7, including for property 3 that a result already returned is not returned by a further poll, also for a request ended by a reset (P12); N37 (a) and (b) (P1; O17 (a) decided on 23 November 2026). **Status (revision 4):** the revision-3 rows and the O14 and O16 changes are implemented on draft PR #413 (`4f1edb9c`, `e52cb865`), unmerged, host only, AI-reviewed, not human-audited. Still open: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; the CODE-DELTA of section 9 (revision 4); the two items above. Revision 5 adds: for properties 4 and 5 of the broker contract, an opt-in deadline mode of the simulated disk (a request past its deadline answered -16 if mutating and -13 otherwise by the model itself, then the reset) and quarantine and offline held as device state until a simulated reboot, each with a host test under both reset models, without relaxing the contract or this check (2.7; Q4); a stray-poll counter in the simulated disk, asserted zero in every service-driven host test (2.7 poll rule; Q6); N37 (d) (Q9); optionally, the N35 sub-case that pins the checked step-4 copy (Q5). **Status (revision 5):** at `f993a1a3` *[PR #413]* (unmerged, host only, AI-reviewed in CODE-REVIEW-O17-O18, not human-audited) the R2 core implements O17 (a) in the running form and O18; N26 (d) asserts that no catalog sector is written in the cache-dropped model; N33 (iii) and N37 (a), (b) are negative tests under both reset models; N37 (d) pins that only APPENDs answered `Ok` are hashed (corrected after review 7, OPT7-3); N35 (e) asserts the failed-mount state; one host test per broker-contract property exists (`p12_1`–`p12_5`), and the claim that the simulated disk meets the contract is partial for properties 4 and 5. The code review reports 76 tests passing with Rust 1.100.0 (all suites also pass with 1.90.0), Clippy and fmt, a check for `x86_64-unknown-none`, and 14 of 16 mutants killed, with M8 surviving as equivalent and M7 as equivalent in every build without `test-hooks`. These gates and mutants ran on the uncommitted diff over `8f387ea1`; the lead then applied the review's OPT-1, OPT-2 and OPT-4 as comment-only edits (the review's provenance note; `service.rs` at `f993a1a3` differs from the reviewed hash) before committing `f993a1a3`, and no review or gate run covers those edits. Nothing was re-run for this revision; the test count was checked here only by counting test attributes. The P10 lint of the non-test build ran locally with exit 0 (Rust 1.90.0) and is still not a hosted gate. Still open: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; the P10 hosted gate; the revision-5 items above; for property 3, a device-state snapshot before and after each further poll, because `p12_3_answered_exactly_once` checks "changes nothing" only on the caller's buffer after the further read poll (review 7, RQ7-2); the open rows of the CODE-DELTA (revision 5) **Status (24 November 2026, read at main `9dfff70c`, task S-20261124-6):** the revision-5 items are implemented on `main`: the property-4 deadline mode and property-5 quarantine and offline state of `SimDisk` (`p12_4_deadline_answers_and_resets`, `p12_4_deadline_decided_by_ready_time`, `p12_5_quarantine_and_offline_until_reboot`); the stray-poll counter with its tripwire (`stray_poll_tripwire`, `q6_extra_poll_after_result_is_counted`); the device-state snapshot before and after each further poll (`further_poll` in `tests/sim_contract.rs`, RQ7-2); the optional U+009F and U+00A0 label cases (`tests/catalog.rs`); the optional N35 sub-case that pins the checked step-4 copy (`n35_sealed_resolution_uses_checked_copy`); the production archive verifier for N7 and N10 (`tests/real_verifier.rs`, PR #505). `sim_contract` (16 tests) and `broker` (11 tests) pass locally with Rust 1.100.0. Still open: N33 (ii) (optional; no zero-byte variant found), the hosted P10 lint (local run exit 0; coordinator request C3), N24 (b) as recorded, not a pass; the CODE-DELTA (revision 5) table below is the historical record at `f993a1a3` |
-| R3 | `tools/destination_disk.py` independent oracle | Python unit tests: parses valid copies, refuses each invalid rule; a test-only encoder for crafted images (N14's second destination ID, N4, N30), whose output the oracle's own parser accepts or refuses as intended. Revision 3 adds: the oracle decisions of section 7 (scope, image read errors, extents); the record rules of 2.6 (N34); a cross-check of images written by the R2 core, run by a hosted gate (a lead-owned workflow change); and a reverse differential, in which the oracle's crafted invalid images are mounted by the R2 core and the two verdicts compared; both are required before R5. **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited); at `37b7bd0c` the cross-check had run only locally (7 images, agreement) and was skipped in hosted CI, and the reverse differential did not exist. Revision 4 states the limit of both comparisons: mount state, header and records, not the refusing rule (section 7, "Cross-check limit"; P11). **Status (revision 4):** at `e52cb865` *[PR #413]* the cross-check agrees on 30 images, locally only; it is still not run in hosted CI; the reverse differential still does not exist. **Status (revision 5):** at `f993a1a3` the oracle is unchanged by the O17 (a)/O18 round (the content check and the remount rule are protocol rules, not image rules); CODE-REVIEW-O17-O18 reports the cross-check agreeing on 30 images, run locally only *[PR #413]*; there is still no hosted cross-check and no reverse differential **Status (24 November 2026, task S-20261124-6):** the reverse differential exists, host only: `ReverseDifferential` in `tests/test_volume_destination_disk.py` builds 182 crafted images (each single-rule invalid copy of 2.6, N4 and N34 twice, and beside a valid copy in each slot order; the blank, reserved-sector, N8, N14, N25 and N30 mount cases) and, with `DEST_REVERSE_OUT` set, writes each with the oracle's verdict; `services/destination/tests/reverse_differential.rs` (`DEST_REVERSE_IN`) cold-boots the R2 core on every image and requires the same state, header and records (section 7, "Cross-check limit"). Locally all 182 agree and the 30-image forward cross-check agrees; a changed oracle verdict and a core mutation that drops the header-padding rule are both detected. Neither direction runs in a hosted gate yet: that is a lead-owned workflow change and stays an R5 precondition |
+| R3 | `tools/destination_disk.py` independent oracle | Python unit tests: parses valid copies, refuses each invalid rule; a test-only encoder for crafted images (N14's second destination ID, N4, N30), whose output the oracle's own parser accepts or refuses as intended. Revision 3 adds: the oracle decisions of section 7 (scope, image read errors, extents); the record rules of 2.6 (N34); a cross-check of images written by the R2 core, run by a hosted gate (a lead-owned workflow change); and a reverse differential, in which the oracle's crafted invalid images are mounted by the R2 core and the two verdicts compared; both are required before R5. **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited); at `37b7bd0c` the cross-check had run only locally (7 images, agreement) and was skipped in hosted CI, and the reverse differential did not exist. Revision 4 states the limit of both comparisons: mount state, header and records, not the refusing rule (section 7, "Cross-check limit"; P11). **Status (revision 4):** at `e52cb865` *[PR #413]* the cross-check agrees on 30 images, locally only; it is still not run in hosted CI; the reverse differential still does not exist. **Status (revision 5):** at `f993a1a3` the oracle is unchanged by the O17 (a)/O18 round (the content check and the remount rule are protocol rules, not image rules); CODE-REVIEW-O17-O18 reports the cross-check agreeing on 30 images, run locally only *[PR #413]*; there is still no hosted cross-check and no reverse differential **Status (24 November 2026, task S-20261124-6):** the reverse differential exists, host only: `ReverseDifferential` in `tests/test_volume_destination_disk.py` builds 185 crafted images (each single-rule invalid copy of 2.6, N4 and N34 twice, and beside a valid copy in each slot order; the blank, reserved-sector, N8, N14, N25 and N30 mount cases) and, with `DEST_REVERSE_OUT` set, writes each with the oracle's verdict; `services/destination/tests/reverse_differential.rs` (`DEST_REVERSE_IN`) cold-boots the R2 core on every image and requires the same state, header and records (section 7, "Cross-check limit"). Locally all 182 agree (185 after the 25 November 2026 fixture fixes, which add a real formatted-count-below-scope case and require a verdict for every image) and the 30-image forward cross-check agrees; a changed oracle verdict and a core mutation that drops the header-padding rule are both detected. Neither direction runs in a hosted gate yet: that is a lead-owned workflow change and stays an R5 precondition |
 | R4 | Volume service read-only and create-only endpoint bindings (separate spec) | N19, N20 host tests; existing volume and archive host tests unchanged |
 | R5 | Preconditions: O4 (a) approves K5 as per-device broker state (K4 is not needed for R5); the owner amends ADR-S09-DUALDISK-20261119 B3 and B5 (O4 (b)); O4 (c) is decided and its option is in place (section 7); the test profile enables `monotonic-clock` for the -8 bound (2.7; feature combination unchecked); (revision 3) the service links `volume_core::archive::verify` (2.3, "Archive verifier"); test hooks such as N29's exist only behind a test-only build feature that no native or product profile enables; the R3 reverse differential exists and the R3 cross-check runs in a hosted gate (review 4 OP-7); the per-device broker meets the broker contract of 2.7, including the K5 delta of property 3: a further poll after a read ended by a reset returns -1 (4.3 K5; review 9, OPT9-3; review 10, RQ10-2). Content: per-device broker state, destination service binary in a test-only profile on disk 1 that follows the once-per-boot grant rule (2.1), and a scripted test-only dialog driver for the control lane that sends FORMAT and BIND and transfers lane SEND to the portal (4.3) | native stages `dest-format`, `dest-export`, `dest-export-2`, `dest-restore` and `dest-grant-once`, each lane bound by BIND with the destination ID that INFO reports after `dest-format`; N1, N2, N16, N18 counted and rights-probed (the driver's handles, including its control-reply RECV, as the dialog's in 5.1); N27 natively with `DEST:HANDLES=`; N32 natively with `DEST:GRANT:*`; at run time each lane handle transferred to the portal is SEND only (`check_endpoint`); every runner with `-no-reboot`; `dest-restore` is test-only and does not wait for R4; the per-device broker admits no disk-1 request between a disk-1 timeout and the acknowledged reset (2.7 completion fence), and a disk-1 submission is admitted while a disk-0 request is in flight, both shown by native timeout fixtures **Status (24 November 2026):** O4 (a)–(c) decided by the owner (section 8.1); the production archive verifier is linked on the host (PR #505); still open: the hosted run of the R3 cross-check and reverse differential (both exist on the host, PR #509), native K5 timeout fixtures, the `monotonic-clock` test profile and every native destination stage. **K5 step 1 (24 November 2026, PR #509, `04b06de2`):** per-device `Policy`, error, reset flag and deadline, completion buffer and publication time in the volume broker, and the property-3 further-poll rule; independent AI security review K5-REVIEW-1 returned REQUEST_CHANGES with one required finding (S3 quiescence with an absent lane), fixed in `04b06de2`; a later CodeRabbit finding (property 3 after a failed reset) fixed in `1a3924de`; with `1a3924de` the native volume gate passed 32 of 32 stages and the H05 power gate 12 of 12 stages (S3, S3 re-initialisation and held completion included), run locally. Not yet shown natively: a disk-1 request admitted while disk 0 is in flight, and no disk-1 request admitted between a disk-1 timeout and the acknowledged reset; these need a new stage and a pin change by the CI owner (C4, C5) |
 | R6 | UNBIND, revocation and rebinding through the scripted test-only dialog driver of R5 | QEMU levels of N3, N5, N6, N7, N8, N10, N14, N15, N17 and N22 with stages `dest-revoke`, `dest-foreign`, `dest-full`, `dest-replay`, `dest-corrupt`, `dest-scope`, `dest-sender` and `dest-nonarchive`; crash stages `dest-cut-append`, `dest-cut-seal`, `dest-cut-mirror` and `dest-after-cut` (N11, N12) at QEMU level as process kills without cache loss, with the kernel-counted flush count and order asserted at each cut marker (section 7) |

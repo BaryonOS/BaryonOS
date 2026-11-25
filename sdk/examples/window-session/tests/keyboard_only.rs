@@ -3,9 +3,10 @@
 //!
 //! Scope: every control `Shell::controls()` exposes on every shell page, at
 //! 1280x720 scale 1 and 1920x1080 scale 2. Each page is reached by keys from
-//! `Shell::new`, except `Page::Notifications` (no key route; see the ignored
-//! defect test) and `Page::Capability` (a preview page with no route at all),
-//! which are entered with `Shell::open`.
+//! `Shell::new`, except `Page::Capability` (a preview page with no route at
+//! all), which is entered with `Shell::open`. Notifications are not a shell
+//! page: the Veld Alt+N panel is the one notification centre (owner decision
+//! of 25 November 2026), tested at the end of this file.
 //!
 //! Order rule: Tab/Shift+Tab follow reading order
 //! (docs/implementation/QUIET-SESSION-SPEC.md, "Accessibility and visual
@@ -30,7 +31,8 @@
 //! the Veld notification panel in notifications.rs.
 use nieuw_os_graphics::{Canvas, Rect};
 use nieuw_os_window_session::{
-    scene::{Damage, Scene, WindowState},
+    clipboard::Notice,
+    scene::{Damage, Scene, WindowState, MAX_PIXELS},
     shell::{Command, Page, Shell},
 };
 use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey};
@@ -47,10 +49,9 @@ enum Start {
     Search,
     Settings,
     Session,
-    Notifications,
     Capability,
 }
-const STARTS: [Start; 9] = [
+const STARTS: [Start; 8] = [
     Start::Lock,
     Start::Users,
     Start::AuthGuest,
@@ -58,7 +59,6 @@ const STARTS: [Start; 9] = [
     Start::Search,
     Start::Settings,
     Start::Session,
-    Start::Notifications,
     Start::Capability,
 ];
 
@@ -101,7 +101,7 @@ fn keys(s: &mut Shell, d: Display, sequence: &[PhysicalKey]) {
     }
 }
 
-/// Reach `start` with keys only, except the two pages without a key route.
+/// Reach `start` with keys only, except the preview page without a route.
 fn reach(start: Start, d: Display) -> Shell {
     use PhysicalKey::*;
     let (mut s, sequence): (_, &[PhysicalKey]) = match start {
@@ -112,13 +112,11 @@ fn reach(start: Start, d: Display) -> Shell {
         Start::Search => (Shell::new(false), &[F3]),
         Start::Settings => (Shell::new(false), &[F3, I, N, S, Enter]),
         Start::Session => (Shell::new(false), &[Menu]),
-        Start::Notifications | Start::Capability => (Shell::new(false), &[]),
+        Start::Capability => (Shell::new(false), &[]),
     };
     keys(&mut s, d, sequence);
-    match start {
-        Start::Notifications => s.open(Page::Notifications),
-        Start::Capability => s.open(Page::Capability),
-        _ => {}
+    if start == Start::Capability {
+        s.open(Page::Capability);
     }
     let expected = match start {
         Start::Lock => Page::Lock,
@@ -127,7 +125,6 @@ fn reach(start: Start, d: Display) -> Shell {
         Start::Search => Page::Search,
         Start::Settings => Page::Settings,
         Start::Session => Page::Session,
-        Start::Notifications => Page::Notifications,
         Start::Capability => Page::Capability,
     };
     assert_eq!(s.page(), expected, "{start:?} route at {d:?}");
@@ -294,9 +291,8 @@ fn enter_and_space_activate_each_control_like_a_pointer_click() {
                     let enter = by_key(start, d, k, PhysicalKey::Enter, 0);
                     assert_eq!(enter, click, "Enter {start:?} control {k} at {d:?}");
                 }
-                // Search cells: Space types (field) or is the ignored defect
-                // space_on_a_focused_search_result_activates_it.
-                if start != Start::Search {
+                // The search field types Space; its contract is tested below.
+                if !is_search_field(start, k) {
                     let space = by_key(start, d, k, PhysicalKey::Space, 0);
                     assert_eq!(space, click, "Space {start:?} control {k} at {d:?}");
                 }
@@ -327,11 +323,16 @@ fn held_enter_or_space_activates_exactly_once() {
             let n = controls(&reach(start, d), d).len();
             for k in 0..n {
                 for key in [PhysicalKey::Enter, PhysicalKey::Space] {
-                    if start == Start::Search && key == PhysicalKey::Space {
-                        continue; // Space is text input on Search (see above).
+                    let held = by_key(start, d, k, key, 3);
+                    if is_search_field(start, k) && key == PhysicalKey::Space {
+                        // The field is text input: a held Space keeps typing.
+                        if held.query != "    " {
+                            failures
+                                .push(format!("held Space in field at {d:?}: {:?}", held.query));
+                        }
+                        continue;
                     }
                     let once = by_key(start, d, k, key, 0);
-                    let held = by_key(start, d, k, key, 3);
                     if once != held {
                         failures.push(format!(
                             "{key:?} {start:?} control {k} at {d:?}: {:?} -> {:?}",
@@ -343,30 +344,6 @@ fn held_enter_or_space_activates_exactly_once() {
         }
     }
     assert!(failures.is_empty(), "{failures:#?}");
-}
-
-#[test]
-#[ignore = "U04 defect: ds-1.1 Enter/Space parity — Shell::key excludes Space on Page::Search (shell.rs:485 at a91d5ade), so Space on a Tab-focused result types into the query instead of activating it"]
-fn space_on_a_focused_search_result_activates_it() {
-    for d in DISPLAYS {
-        let n = controls(&reach(Start::Search, d), d).len();
-        for k in 1..n {
-            let click = by_pointer(Start::Search, d, k);
-            let space = by_key(Start::Search, d, k, PhysicalKey::Space, 0);
-            assert_eq!(space, click, "Space on result {k} at {d:?}");
-        }
-    }
-}
-
-#[test]
-#[ignore = "U04 defect: FR-U05 keyboard-only — Page::Notifications opens only by header click (Shell::mouse, shell.rs:528-537 at a91d5ade); the Desktop key branch (shell.rs:435) and search results offer no route (Alt+N opens the separate Scene panel)"]
-fn notifications_page_is_reachable_by_keyboard_from_the_desktop() {
-    use PhysicalKey::*;
-    for d in DISPLAYS {
-        let mut s = Shell::new(false);
-        keys(&mut s, d, &[F3, M, E, L, D, I, N, G, E, N, Enter]);
-        assert_eq!(s.page(), Page::Notifications, "at {d:?}");
-    }
 }
 
 fn alt(scene: &mut Scene, damage: &mut Damage, key: PhysicalKey) {
@@ -424,5 +401,178 @@ fn scene_minimise_and_window_menu_buttons_match_their_shortcuts() {
         alt(&mut keyboard, &mut damage, PhysicalKey::Space);
         assert!(pointer.window_menu_is_open());
         assert_eq!(state(&keyboard), state(&pointer), "menu at {w}x{h}");
+    }
+}
+
+fn scene_key(
+    scene: &mut Scene,
+    damage: &mut Damage,
+    key: PhysicalKey,
+    shift: bool,
+    repeats: usize,
+) {
+    let mut send = |action| {
+        let event = KeyboardEvent {
+            key,
+            action,
+            modifiers: KeyboardModifiers {
+                left_shift: shift,
+                ..Default::default()
+            },
+        };
+        assert!(
+            scene.palette_key(event, damage).unwrap(),
+            "{key:?} {action:?}"
+        );
+    };
+    send(KeyAction::Press);
+    for _ in 0..repeats {
+        send(KeyAction::Repeat);
+    }
+    send(KeyAction::Release);
+}
+
+/// Panel state plus a hash of the full composited frame, which carries the
+/// panel focus ring. The pointer is first parked on the same header pixel so
+/// the drawn cursor does not tell pointer and keyboard runs apart.
+fn panel(scene: &mut Scene) -> (bool, bool, usize, [Option<WindowState>; 2], u64) {
+    let mut damage = Damage::new(scene.width, scene.height).unwrap();
+    scene
+        .mouse_with_damage(2, 2, false, false, &mut damage)
+        .unwrap();
+    let mut backing = vec![0xabcdef; MAX_PIXELS];
+    backing[..scene.windows[1].offset].fill(0xc0ffee);
+    let mut pixels = vec![0; (scene.width * scene.height) as usize];
+    scene
+        .render_reference(
+            Rect::new(0, 0, scene.width, scene.height),
+            &mut pixels,
+            &backing,
+        )
+        .unwrap();
+    let hash = pixels.iter().fold(0xcbf2_9ce4_8422_2325, |hash, p| {
+        (hash ^ u64::from(*p)).wrapping_mul(0x100_0000_01b3)
+    });
+    (
+        scene.notifications_are_open(),
+        scene.notification_is_present(),
+        scene.focused,
+        [scene.window_state(0), scene.window_state(1)],
+        hash,
+    )
+}
+
+fn desktop((w, h, sc): Display, notice: bool) -> Scene {
+    let mut scene = Scene::new(w, h, sc, [1, 2]).unwrap();
+    scene.select(1).unwrap();
+    if notice {
+        assert!(scene.set_clipboard_notice(Notice::Copied));
+    }
+    scene
+}
+
+#[test]
+fn notifications_panel_opens_alike_by_alt_n_status_band_and_clock() {
+    for d in DISPLAYS {
+        let mut damage = Damage::new(d.0, d.1).unwrap();
+        for notice in [false, true] {
+            let mut keyboard = desktop(d, notice);
+            alt(&mut keyboard, &mut damage, PhysicalKey::N);
+            assert!(keyboard.notifications_are_open(), "Alt+N at {d:?}");
+            for target in [Scene::clipboard_notice_bounds, Scene::clock_bounds] {
+                let mut pointer = desktop(d, notice);
+                let bounds = target(&pointer);
+                let (x, y) = ((bounds.x + 2) as u32, (bounds.y + 2) as u32);
+                assert!(
+                    pointer.veld_owns_pointer(x, y),
+                    "shell must not take {bounds:?}"
+                );
+                scene_click(&mut pointer, &mut damage, bounds);
+                assert_eq!(
+                    panel(&mut pointer),
+                    panel(&mut keyboard),
+                    "{bounds:?} at {d:?}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn notifications_panel_has_wrapping_tab_order_and_enter_space_pointer_parity() {
+    use PhysicalKey::*;
+    for d in DISPLAYS {
+        let mut damage = Damage::new(d.0, d.1).unwrap();
+        let open = |damage: &mut Damage| {
+            let mut scene = desktop(d, true);
+            alt(&mut scene, damage, N);
+            scene
+        };
+        // Initial focus is Verwijderen; Tab and Shift+Tab move to Sluiten and wrap.
+        let initial = panel(&mut open(&mut damage));
+        let mut once = open(&mut damage);
+        scene_key(&mut once, &mut damage, Tab, false, 0);
+        assert_ne!(panel(&mut once), initial, "Tab moves focus at {d:?}");
+        let mut back = open(&mut damage);
+        scene_key(&mut back, &mut damage, Tab, true, 0);
+        assert_eq!(panel(&mut back), panel(&mut once), "Shift+Tab at {d:?}");
+        scene_key(&mut once, &mut damage, Tab, false, 0);
+        assert_eq!(panel(&mut once), initial, "Tab wraps at {d:?}");
+        // Each control: Enter and Space equal a click on its public rect.
+        for (tabs, rect) in [
+            (0, Scene::notification_dismiss_button as fn(&Scene) -> Rect),
+            (1, Scene::notification_close_button),
+        ] {
+            let mut pointer = open(&mut damage);
+            let bounds = rect(&pointer);
+            scene_click(&mut pointer, &mut damage, bounds);
+            for key in [Enter, Space] {
+                let mut keyboard = open(&mut damage);
+                for _ in 0..tabs {
+                    scene_key(&mut keyboard, &mut damage, Tab, false, 0);
+                }
+                scene_key(&mut keyboard, &mut damage, key, false, 0);
+                assert_eq!(
+                    panel(&mut keyboard),
+                    panel(&mut pointer),
+                    "{key:?} on control {tabs} at {d:?}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn notifications_panel_escape_held_keys_and_delete_keep_state_coherent() {
+    use PhysicalKey::*;
+    for d in DISPLAYS {
+        let mut damage = Damage::new(d.0, d.1).unwrap();
+        // Escape closes and leaves the windows and their focus as they were.
+        let before = panel(&mut desktop(d, true));
+        let mut scene = desktop(d, true);
+        alt(&mut scene, &mut damage, N);
+        scene_key(&mut scene, &mut damage, Escape, false, 0);
+        let after = panel(&mut scene);
+        assert_eq!(
+            (after.0, after.2, after.3),
+            (false, before.2, before.3),
+            "Escape at {d:?}"
+        );
+        // A held Enter on Verwijderen dismisses once and does not close the panel.
+        for key in [Enter, Space] {
+            let mut scene = desktop(d, true);
+            alt(&mut scene, &mut damage, N);
+            scene_key(&mut scene, &mut damage, key, false, 3);
+            assert!(
+                scene.notifications_are_open() && !scene.notification_is_present(),
+                "held {key:?} at {d:?}"
+            );
+        }
+        // Delete on an empty panel cannot hide a notice that arrives later.
+        let mut scene = desktop(d, false);
+        alt(&mut scene, &mut damage, N);
+        scene_key(&mut scene, &mut damage, Delete, false, 0);
+        assert!(scene.set_clipboard_notice(Notice::Copied));
+        assert!(scene.notification_is_present(), "late notice at {d:?}");
     }
 }

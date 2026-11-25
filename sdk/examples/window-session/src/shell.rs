@@ -21,7 +21,6 @@ pub enum Page {
     Desktop,
     Search,
     Settings,
-    Notifications,
     Session,
     Capability,
 }
@@ -211,7 +210,7 @@ impl Shell {
             Page::Users => 344,
             Page::Auth if self.flow.selected_account() == Some(Account::VmGuest) => 320,
             Page::Auth | Page::Settings => 368,
-            Page::Notifications | Page::Unlocking => 320,
+            Page::Unlocking => 320,
             Page::Session => 400,
             Page::Capability => 432,
             Page::Search => 448,
@@ -293,7 +292,6 @@ impl Shell {
                 );
                 add(3, 296, "Terug naar werkruimte", Icon::ChevronLeft, 0);
             }
-            Page::Notifications => add(0, 232, "Terug naar werkruimte", Icon::ChevronLeft, 0),
             Page::Session => {
                 add(0, 96, "Scherm afschermen · VM-preview", Icon::Lock, 4);
                 add(1, 152, "Gebruiker wisselen", Icon::User, 1);
@@ -460,11 +458,9 @@ impl Shell {
                 }
                 // Apps may never deliver a complete frame; Escape must cancel.
                 Page::Unlocking => self.lock(),
-                Page::Search
-                | Page::Settings
-                | Page::Session
-                | Page::Notifications
-                | Page::Capability => self.open(Page::Desktop),
+                Page::Search | Page::Settings | Page::Session | Page::Capability => {
+                    self.open(Page::Desktop)
+                }
                 _ => {}
             }
             return Effect::take(true, Command::None);
@@ -482,7 +478,8 @@ impl Shell {
             return Effect::take(true, Command::None);
         }
         if key.key == PhysicalKey::Enter
-            || key.key == PhysicalKey::Space && self.page != Page::Search
+            // Space types into the query field (slot 0) but activates a focused result.
+            || key.key == PhysicalKey::Space && (self.page != Page::Search || self.focus != 0)
         {
             // ds-1.1 B8: one activation per physical press. An auto-repeated
             // Enter/Space is consumed so a held key cannot walk Lock -> Users
@@ -534,13 +531,15 @@ impl Shell {
         let (x, y) = position;
         if self.page == Page::Desktop {
             if y < 44 * scale && down {
-                self.open(if x < 180 * scale {
-                    Page::Search
-                } else if x > width - 160 * scale {
-                    Page::Session
+                // The status band and clock open the Veld Alt+N panel
+                // (Scene::desktop_control_at); there is no second notification page.
+                if x < 180 * scale {
+                    self.open(Page::Search);
+                } else if x > width - 60 * scale {
+                    self.open(Page::Session);
                 } else {
-                    Page::Notifications
-                });
+                    return Effect::take(false, Command::None);
+                }
                 return Effect::take(true, Command::None);
             }
             let bar_y = height.saturating_sub(64 * scale);
@@ -717,7 +716,6 @@ impl Shell {
                 Page::Unlocking => "Werkruimte openen",
                 Page::Search => "Zoeken en starten",
                 Page::Settings => "Snelle instellingen",
-                Page::Notifications => "Meldingen",
                 Page::Session => "Sessie",
                 Page::Capability => "Toegang tot materiaal",
                 _ => "Nieuw OS",
@@ -732,7 +730,6 @@ impl Shell {
                 Page::Unlocking => "De lokale testwerkruimte wordt zichtbaar.",
                 Page::Search => "Apps, materiaal, instellingen en acties",
                 Page::Settings => "Lokale bediening, zonder leveranciersaccount.",
-                Page::Notifications => "Geen nieuwe meldingen.",
                 Page::Session => "Openbare VM-testsessie",
                 Page::Capability => "Systeemoppervlak · aanvraagvoorbeeld, geen grant",
                 _ => "",
@@ -934,6 +931,34 @@ mod visual_interaction_tests {
         );
         assert_eq!(shell.focus, 0);
         assert_eq!(press(&mut shell, PhysicalKey::Enter), Command::Activate(0));
+    }
+    #[test]
+    fn header_zones_open_search_and_session_only() {
+        // The band and clock between them belong to the Veld Alt+N panel
+        // (Scene::desktop_control_at); the shell consumes a stray press there.
+        for (w, h, sc) in [(800, 500, 1), (1280, 720, 1), (1920, 1080, 2)] {
+            for (x, page, changed) in [
+                (179 * sc, Page::Search, true),
+                (180 * sc, Page::Desktop, false),
+                (299 * sc, Page::Desktop, false),
+                (w - 100 * sc, Page::Desktop, false),
+                (w - 60 * sc + 1, Page::Session, true),
+                (w - 1, Page::Session, true),
+            ] {
+                let mut shell = Shell::new(false);
+                let effect = shell.mouse((x, 20 * sc), true, true, w, h, sc);
+                assert_eq!(
+                    (
+                        effect.consumed,
+                        effect.changed,
+                        effect.command,
+                        shell.page()
+                    ),
+                    (true, changed, Command::None, page),
+                    "x={x} at {w}x{h}@{sc}"
+                );
+            }
+        }
     }
     #[test]
     fn repeat_moves_focus_but_never_activates() {
