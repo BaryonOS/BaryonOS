@@ -80,14 +80,18 @@ acceptance.
   ~17:00Z) apply: CI optimization PRs (#542) get the lane first; no catch-up
   pushes outside the lane; infrastructure failures get `gh run rerun --failed`
   only.
-- #531 at 4a6f8ca2 is fully green on main a571d87c (rollup SUCCESS 16:36Z,
-  after infra reruns of the #421 flake, coverage uploads and merge-hold). CI D2
-  carries over to exactly this head. Lane order: CI PRs (#542, then CI's next)
-  first, then #531. Wait for the PR guard's explicit lane hand-over, do one
-  catch-up merge of main (a new head needs CI's delta confirmation and green
-  checks), then squash with `--match-head-commit` at that head.
-- #535 (draft) stays stacked; it catches up and retargets to main in one push
-  after #531 lands.
+- #531 MERGED 25 Nov ~17:25Z as aa6d1c70 (squash at 1b0efa25, CI D2 GO,
+  all gates green on first attempt).
+- #535 (draft) is based on main. Its add/add conflicts after the #531 squash are
+  resolved LOCALLY (merge commit 8b50895b plus this handoff; main's A files equal
+  #531's, so T2b's versions win). Validated locally: broker tests 10/10, clippy,
+  fmt, progress --check, native task-grant normal/denied and native-sdk-app
+  normal accepted. NOT pushed: the PR guard holds it under CI-first until #535 is
+  named lane holder (queue after #515, #539, #533, #543). Owner correction
+  ~18:05Z: CI keeps priority until all CI batches are resolved, so the main
+  freeze continues after #544; the lane comes only via the safety valve (a
+  genuinely blocked CI PR) or the CI end criterion. Then merge current
+  main once more, re-validate, push once, ask CI for the ci.yml delta, merge.
 
 ## Next action
 
