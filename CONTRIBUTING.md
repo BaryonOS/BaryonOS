@@ -71,7 +71,7 @@ Coverage output is written under `build/coverage-raw/`, which is already ignored
 - Resolve review threads before finalising the pull request.
 - Describe the goal, scope, security invariant, commands actually run, evidence boundary, risks, and rollback.
 - Bind evidence to the exact source revision; an old green run is not evidence for a new head.
-- The 0–100% progress score increases only when an existing criterion is fully and demonstrably accepted. It may decrease when a previously accepted criterion returns to Open because of a regression, missing evidence, or an earlier claim that proved too broad. Assessment fields are updated after every task, even if the score is unchanged.
+- The 0–100% progress score increases only when an existing criterion is fully and demonstrably accepted. It may decrease when a previously accepted criterion returns to Open because of a regression, missing evidence, or an earlier claim that proved too broad. An assessment is recorded after every task, even if the score is unchanged; an unchanged score goes into a new file under `docs/progress/assessments/` (ADR-PROGRESS-ASSESSMENTS-20261125).
 
 ### Holding a pull request for native acceptance
 
