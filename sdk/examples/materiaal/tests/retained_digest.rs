@@ -10,7 +10,7 @@ use nieuw_os_document_session::{
 use nieuw_os_input_client::{Binding, Session as Input};
 use nieuw_os_input_core::wire::{self as input_wire, Request as InputRequest};
 use nieuw_os_materiaal::{
-    controller::Controller,
+    controller::{Controller, Status as ViewStatus, View},
     render::{Frame, SemanticId, SemanticNode, MAX_SEMANTIC_NODES},
     Scale, Viewport,
 };
@@ -19,7 +19,15 @@ use nieuw_os_sdk_runtime::{
     Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, Received, SendEndpoint,
 };
 use nieuw_os_surface_protocol::{self as surface, client::Session as Surface, Geometry, Rectangle};
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    rc::Rc,
+};
+
+thread_local! {
+    /// Makes the next input receive fail, as a lost input service would.
+    static INPUT_FAILS: Cell<bool> = const { Cell::new(false) };
+}
 use volume_core::{self as volume, service::Service, table::Table, Disk, Status, SECTOR};
 const APP: u64 = 1;
 const VOL: u64 = 2;
@@ -148,6 +156,9 @@ impl Transport for EmptyInput {
         Ok(())
     }
     fn receive(&mut self, _: ReceiveEndpoint) -> Result<Received, RuntimeError> {
+        if INPUT_FAILS.get() {
+            return Err(RuntimeError::Kernel(-5));
+        }
         let bytes = self.0.take().ok_or(RuntimeError::Kernel(-1))?;
         let mut message = Message::new();
         message.sender_pid = POLICY;
@@ -326,7 +337,11 @@ fn at(x: u32, y: u32) -> usize {
 /// Every tile equals a fresh render of the current view; nothing outside the
 /// assigned surface was written. `skip` excludes one deliberately mutated pixel.
 fn assert_exact(app: &TestApp<'_>, host: &SurfaceHost, skip: Option<usize>) {
-    let frame = Frame::new(app.controller().view());
+    assert_view_exact(app.controller().view(), host, skip);
+}
+
+fn assert_view_exact(view: View<'_>, host: &SurfaceHost, skip: Option<usize>) {
+    let frame = Frame::new(view);
     let g = geometry();
     let mut pixels = [0; 256];
     for tile in 0..g.tiles() {
@@ -467,4 +482,67 @@ fn layout_change_and_superseded_partial_stay_exact() {
         finish_paint(&mut app);
     }
     assert_exact(&app, &host.borrow(), None);
+}
+
+#[test]
+fn input_lost_banner_sends_exactly_the_changed_tiles() {
+    let host = surface_host();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut cache = [0; DAMAGE_TILES];
+    let buffers = Buffers {
+        draft: &mut d,
+        original: &mut o,
+        staging: &mut s,
+    };
+    let mut app = editor(&host, buffers, &mut cache);
+    let shown = host.borrow().framebuffer.clone();
+    let before = app.surface_counts();
+
+    INPUT_FAILS.set(true);
+    assert!(app.step().is_err(), "a lost input service must surface");
+    INPUT_FAILS.set(false);
+    assert!(app.input_failed());
+    let g = generation(&app);
+    app.set_semantic_value(SemanticId::Document, g, "x")
+        .unwrap();
+    finish_paint(&mut app);
+
+    // The screen shows the edit together with the input-lost banner.
+    let mut view = app.controller().view();
+    view.status = ViewStatus::InputLost;
+    view.can_save = false;
+    assert_view_exact(view, &host.borrow(), None);
+    let mut plain = app.controller().view();
+    plain.can_save = false;
+    let banner = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        assert_view_exact(plain, &host.borrow(), None)
+    }));
+    assert!(
+        banner.is_err(),
+        "the banner must differ from the plain view"
+    );
+
+    // Exactly the tiles whose pixels changed are sent (plus the last tile,
+    // which always commits); every other tile is RETAINed.
+    let geometry = geometry();
+    let now = &host.borrow().framebuffer;
+    let mut expected = 0;
+    for tile in 0..geometry.tiles() {
+        let r = geometry.rectangle(tile).unwrap();
+        let changed = (0..u32::from(r.height)).any(|row| {
+            (0..u32::from(r.width)).any(|col| {
+                let index = at(r.x + col, r.y + row);
+                shown[index] != now[index]
+            })
+        });
+        if changed || tile == geometry.tiles() - 1 {
+            expected += 1;
+        }
+    }
+    let after = app.surface_counts();
+    let committed = after.committed_tiles - before.committed_tiles;
+    let retained = after.retained_tiles - before.retained_tiles;
+    assert_eq!(committed + retained, geometry.tiles());
+    assert_eq!(committed, expected, "only changed tiles may be sent");
+    assert!(committed < geometry.tiles() / 2, "sent {committed}");
 }
