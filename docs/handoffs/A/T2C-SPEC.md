@@ -74,6 +74,12 @@ CI job addition is a `.github` change for the CI owner.
 
 ## Owner decision for T2c-3 (exit notification)
 
+**Decided by the project owner, 25 Nov 2026: option A (reply-endpoint
+closure).** Before implementation: confirm the exact `ipc_wait`/send error on a
+closed endpoint and that fault and kill exits reach the same endpoint-closing
+cleanup as a normal exit; pin "an owned endpoint closes no later than its
+owner's exit" with a capability-core test.
+
 No process-exit wait interest or kernel-to-user event queue exists today
 (`wait.rs:62` accepts SEND/RECV only); exits flow through `retire_authority`
 (`m3.rs:1705,2788-2807`) -> `m4::process_exit` -> `Engine::exit`, which closes

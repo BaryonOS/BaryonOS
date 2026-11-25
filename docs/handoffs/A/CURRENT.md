@@ -112,7 +112,7 @@ notice is a fixture; no full A03 acceptance.
   holders' grants on that object (fail closed; Stale + failed/not-newer re-STAT
   now tested). Submit as its own PR after #535 merges (retarget to main).
 - T2c-2 inputs: S read-only interface + seeded-read image 6206b8c8 (T2C-SPEC.md).
-  T2c-3 waits for the owner's A/B/C choice (A recommended; PIDs are monotonic,
+  T2c-3: owner chose A (reply-endpoint closure), 25 Nov ( PIDs are monotonic,
   `crates/kernel-core/src/user.rs:147`, so no PID-reuse risk for A).
 - Native runs: NOS_BUILD_DIR must lie inside the checkout (default `build/`).
 
