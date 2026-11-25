@@ -1360,6 +1360,76 @@ fn readonly_cannot_create() {
     assert_eq!(a.evidence().save_acks, 0);
     a.stop_clean().unwrap();
 }
+/// NATIVE-MATERIAAL-PROBE recover: Ctrl+S on a read-only reopened document is
+/// refused visibly (one error, a new frame, no BEGIN, no COMMIT ACK).
+fn readonly_ctrl_s_is_refused_visibly() {
+    let w = Host::new();
+    {
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut a = app(
+            &w,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        new_text(&w, &mut a);
+        keys(&w, &mut a, &[0x1d, 0x1f, 0x9f, 0x9d]);
+        for _ in 0..3 {
+            a.step().unwrap();
+        }
+        assert_eq!(a.evidence().save_acks, 1);
+    }
+    let h = Host::new();
+    {
+        let mut host = h.borrow_mut();
+        host.disk.sectors = w.borrow().disk.sectors.clone();
+        let mut table = Table::EMPTY;
+        volume::table::recover(&mut host.disk, &mut table).unwrap();
+        host.volume = Service::new(DOC_EPOCH, table, false);
+    }
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = configured_app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+        Scale::Percent100,
+        EditMode::ReadOnly,
+    );
+    // Read-only Tab order of the probe: three Tabs reach Object(0), Enter opens.
+    keys(
+        &h,
+        &mut a,
+        &[0x0f, 0x8f, 0x0f, 0x8f, 0x0f, 0x8f, 0x1c, 0x9c],
+    );
+    finish_paint(&mut a);
+    assert_eq!(a.controller().view().screen, Screen::Editor);
+    assert_eq!(a.controller().view().contents, Some("hi"));
+    let (frames, requests) = (a.evidence().frames, h.borrow().requests.len());
+    assert_eq!(a.evidence().errors, 0);
+    keys(&h, &mut a, &[0x1d, 0x1f, 0x9f, 0x9d]);
+    finish_paint(&mut a);
+    assert_eq!(a.evidence().errors, 1);
+    assert!(a.evidence().frames > frames);
+    assert_eq!(a.evidence().save_acks, 0);
+    assert!(!h.borrow().requests[requests..]
+        .iter()
+        .any(|r| r.operation == volume::wire::BEGIN));
+    assert_semantic_node(
+        &a,
+        Role::Status,
+        "Alleen lezen: wijzigen is niet toegestaan.",
+        None,
+        false,
+        true,
+        false,
+    );
+    a.stop_clean().unwrap();
+}
 fn small_buffer_limit() {
     let h = Host::new();
     let (mut d, mut o, mut s) = ([0; 1], [0; 1], [0; 1]);
@@ -1513,6 +1583,10 @@ scenario!(
 scenario!(
     readonly_ui_never_publishes_create_or_save,
     readonly_cannot_create
+);
+scenario!(
+    readonly_reopened_ctrl_s_refuses_visibly,
+    readonly_ctrl_s_is_refused_visibly
 );
 scenario!(
     bounded_draft_rejects_large_edit_without_destroying_old_bytes,
