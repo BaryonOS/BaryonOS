@@ -3,7 +3,7 @@
 //! Host numerical reference only; no model loader, permissions or native inference.
 
 mod decoder;
-pub use decoder::{Bf16, DecoderLayer, LayerConfig};
+pub use decoder::{Bf16, DecoderLayer, LayerConfig, Model};
 
 pub const MAX_MACS: usize = 1_048_576;
 

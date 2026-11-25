@@ -268,3 +268,64 @@ impl DecoderLayer<'_> {
         Ok(())
     }
 }
+
+/// A full Qwen2-style causal model: token embedding, decoder layers, final
+/// RMSNorm and an output head tied to the embedding.
+pub struct Model<'a, 'l> {
+    pub embedding: Bf16<'a>,
+    pub layers: &'l [DecoderLayer<'a>],
+    pub norm: Bf16<'a>,
+}
+
+impl Model<'_, '_> {
+    /// Run token `id` at `position` through every layer, leaving the final
+    /// hidden state (before the final norm) in `hidden`. Each layer has its own
+    /// cache in `caches`. On any error every cache is rolled back to its length
+    /// before the call and `hidden` holds unspecified intermediate values.
+    pub fn step(
+        &self,
+        id: u32,
+        position: u32,
+        caches: &mut [KvCache<'_>],
+        hidden: &mut [f32],
+        scratch: &mut [f32],
+        budget: &mut Budget<'_>,
+    ) -> Result<(), Error> {
+        let id = id as usize;
+        if caches.len() != self.layers.len()
+            || self.layers.is_empty()
+            || id >= self.embedding.rows
+            || hidden.len() != self.embedding.columns
+            || caches.iter().any(|c| c.len() != caches[0].len())
+        {
+            return Err(Error::Shape);
+        }
+        let before = caches[0].len();
+        let base = id * self.embedding.columns;
+        for (i, value) in hidden.iter_mut().enumerate() {
+            *value = bf16(self.embedding.bytes, base + i);
+        }
+        for (layer, cache) in self.layers.iter().zip(caches.iter_mut()) {
+            if let Err(error) = layer.forward(hidden, position, cache, scratch, budget) {
+                for cache in caches.iter_mut() {
+                    cache.truncate(before);
+                }
+                return Err(error);
+            }
+        }
+        Ok(())
+    }
+
+    /// Final norm and tied output head: `logits = embedding × norm(hidden)`.
+    pub fn logits(
+        &self,
+        hidden: &[f32],
+        epsilon: f32,
+        normed: &mut [f32],
+        logits: &mut [f32],
+        budget: &mut Budget<'_>,
+    ) -> Result<(), Error> {
+        rms_norm(hidden, &self.norm, epsilon, normed, budget)?;
+        self.embedding.matvec(normed, None, logits, budget)
+    }
+}

@@ -97,3 +97,18 @@ qsim job. One token costs roughly 360 million multiply/accumulates (about 500
 million when generating, with the tied 151,936 × 896 head), so soft-float native
 inference is expected to be far too slow; enabling SSE for the AI process is a
 new CPU-feature decision. This is an estimate, not a measurement.
+
+## Full model and Candle oracle (L01-T6)
+
+`Model` runs a token through the embedding, every `DecoderLayer` and the final
+norm with the tied output head; a failure in any layer rolls back every cache.
+`tests/qwen_oracle.rs` loads the real pinned model through
+`open_pinned_model` (length and SHA-256 verified), parses it with the repository
+`model-format` parser, reads tensor data through the verified artifact and
+compares with the Candle fixture: the top-10 final logits for the first prompt
+match within 1e-2 and two greedy steps give the same tokens. Run it with
+`NOS_QWEN_DIR=<model dir> cargo +1.100.0 test --release --locked --test qwen_oracle`
+(2.8 s, 1.9 GB peak RSS on the development host); without the variable it is
+skipped and proves nothing. Reversing the RoPE rotation makes it fail.
+This is host evidence of numerical agreement only; native execution, the
+tokenizer and task quality remain open.
