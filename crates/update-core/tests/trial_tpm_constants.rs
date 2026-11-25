@@ -176,6 +176,15 @@ fn nv_names_frozen() {
         name(&written),
         "000b282efe987c36f93dc5464cfc70b668f196f74e7bcf62ace9c1a3757ef81f7a60"
     );
+    // The loader's literals equal the recomputed Names.
+    let hex = |n: &[u8; 34]| n.iter().map(|b| format!("{b:02x}")).collect::<String>();
+    assert_eq!(hex(&NAME_HAUTH), name(&NV_HAUTH));
+    let hauth_written = NvSpec {
+        attributes: NV_HAUTH.attributes | TPMA_NV_WRITTEN,
+        ..NV_HAUTH
+    };
+    assert_eq!(hex(&NAME_HAUTH_WRITTEN), name(&hauth_written));
+    assert_eq!(hex(&NAME_LREC_WRITTEN), name(&written));
 }
 
 #[test]

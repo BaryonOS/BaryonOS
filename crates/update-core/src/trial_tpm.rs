@@ -186,6 +186,32 @@ pub const NV_LREC: NvSpec = NvSpec {
     size: 64,
 };
 
+/// Frozen NV Names (`nameAlg ‖ SHA-256(TPMS_NV_PUBLIC)`) that the loader
+/// compares with `NV_ReadPublic`; `tests/trial_tpm_constants.rs` recomputes
+/// them. `HAUTH` before its write, `HAUTH` and `LREC` after (WRITTEN set).
+pub const NAME_HAUTH: [u8; 34] = name(h(
+    "8bc449e1e502ccff31629cdf815c711e7ef01c335d2a45695e402373a21fd496",
+));
+pub const NAME_HAUTH_WRITTEN: [u8; 34] = name(h(
+    "bd7dcf06efd2bc90ae362d1a85da21c406bc9b64944632c26e2f6f513f739ce2",
+));
+pub const NAME_LREC_WRITTEN: [u8; 34] = name(h(
+    "282efe987c36f93dc5464cfc70b668f196f74e7bcf62ace9c1a3757ef81f7a60",
+));
+
+const fn name(digest: [u8; 32]) -> [u8; 34] {
+    let mut out = [0u8; 34];
+    let alg = TPM_ALG_SHA256.to_be_bytes();
+    out[0] = alg[0];
+    out[1] = alg[1];
+    let mut i = 0;
+    while i < 32 {
+        out[2 + i] = digest[i];
+        i += 1;
+    }
+    out
+}
+
 /// Anchor domains 0..=7 (domain 0 = `AnchorDomain::Network`, the only one the
 /// kernel exposes in this step).
 pub const ANCHOR_DOMAINS: u8 = 8;

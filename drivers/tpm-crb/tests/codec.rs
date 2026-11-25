@@ -1053,3 +1053,62 @@ fn nv_write_owner_matches_the_swtpm_transcript_and_is_bounded() {
         );
     }
 }
+
+/// M1-HAUTH BOUND provisioning in loader order at the real sizes: `HAUTH`
+/// is written while ownerAuth is still empty (a 32-byte ownerAuth would
+/// exceed `MAX_COMMAND`, pinned above), then ownerAuth and lockoutAuth.
+#[test]
+fn hauth_bound_provisioning_frames_fit() {
+    let secret = [0x5au8; MAX_NV_DATA];
+    let hauth = index(trial_tpm::NV_HAUTH.handle);
+    let lrec = index(trial_tpm::NV_LREC.handle);
+    let define = |spec: &'static trial_tpm::NvSpec| Request::NvDefineSpace {
+        owner_auth: none(),
+        public: NvDefinition {
+            index: index(spec.handle),
+            attributes: spec.attributes,
+            auth_policy: spec.auth_policy.as_ref(),
+            size: spec.size,
+        },
+    };
+    let frames = [
+        enc(Request::NvUndefineSpace {
+            index: hauth,
+            owner_auth: none(),
+        })
+        .len(),
+        enc(define(&trial_tpm::NV_HAUTH)).len(),
+        enc(Request::NvWriteOwner {
+            index: hauth,
+            owner_auth: none(),
+            data: &secret,
+        })
+        .len(),
+        enc(define(&trial_tpm::NV_LREC)).len(),
+        enc(Request::NvWrite {
+            index: lrec,
+            auth: Auth::Policy(session()),
+            data: &secret,
+            offset: 0,
+        })
+        .len(),
+        enc(Request::HierarchyChangeAuth {
+            hierarchy: Hierarchy::Owner,
+            auth: none(),
+            new_auth: Password::new(&secret[..32]).unwrap(),
+        })
+        .len(),
+        enc(Request::NvReadSecret {
+            index: hauth,
+            session: session(),
+        })
+        .len(),
+        enc(Request::HierarchyChangeAuth {
+            hierarchy: Hierarchy::Lockout,
+            auth: none(),
+            new_auth: Password::new(&secret[32..]).unwrap(),
+        })
+        .len(),
+    ];
+    assert_eq!(frames, [31, 77, 99, 77, 99, 61, 35, 61]);
+}
