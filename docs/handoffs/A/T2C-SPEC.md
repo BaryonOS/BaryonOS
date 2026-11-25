@@ -111,3 +111,13 @@ one domain; no WRITE/EXPORT; bytes already read cannot be revoked.
   empty. Fixture use: grant object 0, leave object 1 ungranted.
 - Runner assertions: image sha256 unchanged after the run; `volume_disk.analyse()`
   objects 0/1 unchanged. S reports commit and exact sums when green.
+- Seed ready (S, 25 Nov ~18:55Z): local commit 6206b8c8 on
+  `claude/s09-volume-seed-read-20261125` (worktree `BaryonOS-worktrees/s-seed`,
+  base c04ea98d, not pushed; lands after #539/N38). `volume_disk.create_image(path,
+  "seeded-read")`; fresh image sha256
+  `204ae9cd6e9dea28dceedc8e6a97923d5595b6de06dbe3211ec243d11ed54420`; object 0
+  fnv64 0x06a40a9cece84c71, object 1 fnv64 0x5716e11ae1dca304; analyse() domain
+  digests [3816305023448471146, 10252960164691450465]. S evidence is host-only
+  (volume-core `tests/seeded_read.rs`, `tests/test_volume_seeded_read.py`);
+  native is A's T2c-2 stage. Stack T2c-2 locally on 6206b8c8 (cherry-pick) until
+  it is on main.
