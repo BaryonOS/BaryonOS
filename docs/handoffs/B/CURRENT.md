@@ -28,20 +28,22 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: local again (25 Nov, hand-back through #503); the cloud B session stopped and no longer writes.
-- cycle_id: b03-f1-floor-crash-20261125 (previous b05-t6-virtio-caps-20261125 closed: #512 merged as ea38dcc6, tree-equal to head b0966d7a).
-- task: B03-F1 native characterization of REL-05 (anti-rollback floor raised before kernel health); not a fix.
-- branch: claude/b03-floor-crash-20261123
-- PR: see the HANDOFF comment for the number and expected head
-- state: RESUME_REQUIRED until the PR is squash-merged and verified on main.
-- result: `tools/characterize_update_floor.py` + 9 host tests; evidence `docs/verification/b03-floor-crash-20261123/`.
-  Re-run on main-merged source 25 Nov (QEMU 8.2.2, pc-q35-8.2): hazard observed, all four boots as expected.
+- Session: local "BaryonOS - Specialist B" (25 Nov, resumed from the PR #524 HANDOFF comment).
+- cycle: B03-REL05 trial boot with a TPM anchor, M1-HAUTH under owner decision option 1 (TEST profile,
+  QEMU/swtpm only; ADR-B03-REL05-TPM-20261125, C665 identity binding).
+- branch: claude/b03-rel05-tpm-20261125, worktree ~/projects/BaryonOS-worktrees/b03-rel05-tpm.
+- PR: #524 (draft). Live head, checks and evidence: the newest HANDOFF/CHECKPOINT comment on #524.
+- Merge order: #518, then N's N03/N04 ADR PR, then #524 (after merging `main`). #524 changes
+  `docs/DECISIONS.md`, so it needs the project owner's review under D2 (ADR-PROGRESS-ASSESSMENTS-20261125).
+- B03-F1 (#514) is merged; its REL-05 characterization is the input to this cycle.
 
 ## Evidence / NOT RUN
 
-- Evidence: the README above (original run at a91d5ade + re-run section). Host tests 9/9 OK.
-- NOT RUN: physical hardware; human audit. B03 stays accepted on main; REL-05 is an open design hazard that needs an
-  owner policy decision (trial boot / health confirmation) before any loader change.
+- Evidence: host model `crates/update-core/tests/anchor_chain_model.rs`, `drivers/tpm-crb` codec and transport
+  tests, swtpm probes under `docs/verification/b03-rel05-*-20261125/`, native `tools/run_tpm.py` normal/absent.
+- NOT RUN: loader TPM path, native S5 provisioning and joint N04 tests, physical hardware, human audit.
+- Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
+  staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt.
 
 ## Merge procedure lesson (25 Nov)
 
@@ -59,8 +61,7 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Queued B work (no PR yet)
 
-- REL-05 fix (floor raised before kernel health) needs an owner policy decision (trial boot / health
-  confirmation); B drafts a proposal, no silent change to anti-rollback semantics.
+- After #524: B02-T3 cold rollback anchor consumers and B04 production custody (both need owner decisions).
 
 ## Lessons
 
@@ -70,6 +71,6 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- Finish the B03-F1 PR (gates, merge-hold re-run, expected-head squash merge, verify on main, post
-  `HANDOFF B b03-f1-floor-crash-20261125`). REL-05 policy proposal: `docs/implementation/B03-REL05-FLOOR-POLICY-PROPOSAL.md`
-  (owner decision A/B/C pending; no loader change before it).
+- REL-05 loader TPM slice on #524: TCG2 SubmitCommand path, `HAUTH` provisioning with the squatting checks,
+  U26 loader record, U25 entropy, buffer wipe before the PCR 13 extend, S3/U27 and the section 7.9 halt;
+  then native S5 with N's joint tests. Resume from the newest HANDOFF comment on #524.
