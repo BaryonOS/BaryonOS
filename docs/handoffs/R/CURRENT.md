@@ -104,23 +104,32 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   (summary in `r/ab2/summary.txt`). No QEMU CPU figure in these reports.
 - Materiaal probe normal: raw 33 on the fix.
 
-## Open items (block the U acceptance claim)
+## Update 25 Nov 2026, 13:30Z
 
-1. `document-menu-cancelled`: A ≈0.03 s (5/5), B 0.44–0.66 s in 4/5 runs.
-   Materiaal `GEN` is unchanged around this phase on both sides; the cause
-   (legitimate intermediate frame vs. wrong pixels presented) is not yet
-   established. Next: per-phase compositor commit/retain counters from the
-   serial logs, then the first mismatching screendump of one B run.
-2. Materiaal recover probe fails identically on base `3b9a94c5` and the fix
-   (raw 35, `MATERIAAL:FAIL:TIMEOUT` after the snapshot, KEYS 0), using the
-   contract invocation with a normal parent in the same build directory.
-   Not yet compared with the passing invocations in
-   `docs/verification/native-test-version/gui-recover-evidence.json`. Ask U
-   whether normal-only is acceptable if it stays failing.
+- Fix head `a155749c` (local): superseded-frame fallback narrowed to
+  `stale_below` (tiles a superseded partial frame may have blitted); new test
+  `input_lost_banner_sends_exactly_the_changed_tiles` (exact changed-tile
+  count, banner on screen); both new tests fail on base `lib.rs`.
+- U accepted retain-by-exact-digest in place of the full-repaint criterion,
+  with conditions (digest over full tile bytes; invalidation after partial or
+  superseded frames, failed present, resize/scale; banner test) — answered.
+- Recover: fails on `main` until #523 (C7, #449). After #523 lands, merge
+  `main` once and run U's sequence: build `native-system-materiaal-probe`,
+  `run_materiaal_probe.py --case normal --qmp-transport pipe --timeout 240`,
+  then build `test-system-materiaal-recover` and `--case recover --parent
+  <normal run dir>`. Normal-only is not acceptable for merge; draft with
+  recover Not run is fine.
+- `document-menu-cancelled` (A ≈0.03 s, B ≈0.5 s at `5cd55d1c`): the phase
+  injects Shift+F10 then Esc. A never finishes the menu frame before Esc
+  supersedes it; B presents the menu and then fell back to a full repaint.
+  Must appear as a finding in the PR. Rerun on `a155749c` in
+  `~/projects/BaryonOS-scratch/r/ab3/`.
+- Side finding (pre-existing on `main`, U's code path): input loss on an idle
+  view triggers no repaint, so the InputLost banner appears only on the next
+  view change.
 
 ## Next action
 
-Resolve open item 1, compare item 2 with the recorded passing invocation,
-then write evidence to a new `docs/verification/` directory, update
-`VM-HARDWARE-AND-PERFORMANCE.md`, push and open the draft PR (merge `main`
-once after #523; re-measure `.text`, rerun host suite and normal probe).
+Read `r/ab3`, write evidence to `docs/verification/r02-materiaal-repaint-ab-20261125/`
+on the fix branch, update `VM-HARDWARE-AND-PERFORMANCE.md`, push and open the
+draft PR (recover Not run), send its head to the PR guard, request U review.
