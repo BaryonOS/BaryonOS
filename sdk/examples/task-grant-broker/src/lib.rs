@@ -471,6 +471,10 @@ mod tests {
         volume: Volume,
         ops: Vec<u16>,
         fault: Option<Status>,
+        /// 1-based call number answered with a Stale reply.
+        stale_at: Option<usize>,
+        /// 1-based call number failed with a transport error.
+        fail_at: Option<usize>,
     }
 
     impl Transport for Recorder {
@@ -484,6 +488,13 @@ mod tests {
                 assert_eq!(header.name_length, 0);
             }
             self.ops.push(header.operation);
+            let call = Some(self.ops.len());
+            if call == self.fail_at {
+                return Err(Status::Io);
+            }
+            if call == self.stale_at {
+                return Ok(wire::error_reply(&header, VOLUME_EPOCH, Status::Stale, 0));
+            }
             match self.fault {
                 Some(Status::NotFound) => Ok(wire::error_reply(
                     &header,
@@ -532,6 +543,8 @@ mod tests {
             volume,
             ops: Vec::new(),
             fault: None,
+            stale_at: None,
+            fail_at: None,
         };
         let broker = Broker::new(recorder, VOLUME_EPOCH);
         assert_eq!(ops(&broker), [wire::STAT, wire::STAT]);
@@ -970,5 +983,53 @@ mod tests {
             broker.handle(HELPER, request(OP_READ, OBJECT_ONE, OWNER)).0,
             STATUS_DENIED
         );
+    }
+
+    /// A Stale READ (call 3) whose re-STAT (call 4) fails or is not newer
+    /// must revoke every grant on the object yet keep its registration.
+    fn stale_without_newer_revision_revokes(fail_restat: bool) {
+        let mut broker = granted();
+        broker
+            .trusted_grant(HELPER, OBJECT_ONE, REVISION, RIGHT_READ, DURATION_SESSION)
+            .unwrap();
+        broker.volume.transport.stale_at = Some(3);
+        broker.volume.transport.fail_at = fail_restat.then_some(4);
+        assert_eq!(
+            read(&mut broker, OWNER, OBJECT_ONE),
+            (STATUS_DENIED, vec![])
+        );
+        assert_eq!(
+            ops(&broker),
+            [wire::STAT, wire::STAT, wire::READ, wire::STAT]
+        );
+        assert_eq!(
+            (broker.live_grants(OWNER), broker.live_grants(HELPER)),
+            (0, 0)
+        );
+        for sender in [OWNER, HELPER] {
+            assert_eq!(
+                read(&mut broker, sender, OBJECT_ONE),
+                (STATUS_DENIED, vec![])
+            );
+        }
+        assert_eq!(ops(&broker).len(), 4);
+        // Registration stays at the volume's current revision.
+        broker
+            .trusted_grant(OWNER, OBJECT_ONE, REVISION, RIGHT_READ, DURATION_SESSION)
+            .unwrap();
+        assert_eq!(
+            read(&mut broker, OWNER, OBJECT_ONE),
+            (STATUS_OK, CONTENT.to_vec())
+        );
+    }
+
+    #[test]
+    fn stale_then_failed_restat_revokes_and_keeps_registration() {
+        stale_without_newer_revision_revokes(true);
+    }
+
+    #[test]
+    fn stale_then_not_newer_restat_revokes_and_keeps_registration() {
+        stale_without_newer_revision_revokes(false);
     }
 }
