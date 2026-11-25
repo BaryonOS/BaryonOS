@@ -1,7 +1,7 @@
 # Workstream A handoff (Applications, SDK, Installation and Ecosystem)
 
-Owner session: BaryonOS - Specialist A (session ref `f2d7d9`, resumed 2026-11-25 ~18:15Z;
-the earlier `local_163a86f0` session is retired).
+Owner session: BaryonOS - Specialist A (session ref `be8f7a`, resumed 2026-11-25 ~19:55Z;
+the earlier `f2d7d9` and `local_163a86f0` sessions are retired).
 Coordination: BaryonOS - PR Bewaker. Merge mandate: recorded on main in
 ADR-SPECIALIST-TEAM-20261125 clause 2 (#527, 9cc1b86f), which extends
 ADR-MERGE-DELEGATION-20261123 to A; squash with --match-head-commit after the
