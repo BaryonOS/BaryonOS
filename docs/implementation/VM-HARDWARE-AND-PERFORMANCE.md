@@ -33,8 +33,9 @@ The code also shows an expensive rendering path:
   against the receiver's retained base frame without resending their bytes.
 - `sdk/examples/materiaal/src/lib.rs::paint_step`: one tile transaction per
   call (`step_interactive` makes up to four calls); a changed view
-  generation restarts at tile zero. In retained mode, tiles whose rendered bytes match the digest of what the surface shows
-  are confirmed with RETAIN instead of being re-sent (branch
+  generation restarts at tile zero. In retained mode, tiles whose rendered
+  bytes match the digest of what the surface shows are confirmed with RETAIN
+  instead of being re-sent (branch
   `claude/r02-dirty-repaint-20261125`; local KVM A/B in
   `docs/verification/r02-materiaal-repaint-ab-20261125/`).
 - `kernel/src/framebuffer.rs::write_pixels`: validated scalar volatile stores
