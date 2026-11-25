@@ -155,8 +155,23 @@ directory. Request U review (UI/a11y); U does not merge. R updates
 - #526 is green at `b59c1294`; update it from `main` once, after #527, then
   merge. Do not push #526 before then (each push restarts its CI).
 
+## Update 25 Nov 2026, 15:00Z
+
+- Draft PR #540 (`claude/r02-dirty-repaint-20261125`), pushed head
+  `44ec9722`: metadata verified by the PR guard (M11, enhancement, Refs #530,
+  Project In Progress/UI/Feature). U review posted (issuecomment-7163393499):
+  no UI blocker; merge condition remains recover after #523.
+- Local commit `ddd7de58` (not pushed) addresses U's non-blocking points:
+  reset `blitted`/`stale` in `rebind_presentation`; FNV-1a collision limit
+  named as an evidence limit in the A/B README. Host suite (40 chain + 4
+  retained_digest), clippy and fmt green.
+
 ## Next action
 
-Read `r/ab3`, write evidence to `docs/verification/r02-materiaal-repaint-ab-20261125/`
-on the fix branch, update `VM-HARDWARE-AND-PERFORMANCE.md`, push and open the
-draft PR (recover Not run), send its head to the PR guard, request U review.
+1. When U reports #523 merged: in `r-dirty` merge `origin/main` once, re-measure
+   `.text` (< 0x28000), rerun the host suite, then U's normal + recover
+   sequence (see 13:30Z update); record results in the PR; push once
+   (includes `ddd7de58`); update the PR verification table.
+2. After #527 merges: update #526 from `main` once and push this handoff with
+   it; merge #526 and #540 only under the recorded R delegation.
+3. Keep the `calculator-restored` timeout signal open.
