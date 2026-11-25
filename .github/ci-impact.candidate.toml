@@ -11,6 +11,10 @@
 # Validate this file with `python3 -B tools/ci_impact.py validate
 # .github/ci-impact.candidate.toml`; the validate and coverage commands in the
 # copied header below check the enforced catalogue.
+# Candidate increment: none
+# While the line above says none, a host-quality test requires everything after this
+# header to be a verbatim copy of .github/ci-impact.toml. An intentional increment
+# replaces none with its name and #494 reference in the same pull request.
 #
 # CI impact catalogue (schema 1). Contract: docs/CI-CONTRACT.md.
 #

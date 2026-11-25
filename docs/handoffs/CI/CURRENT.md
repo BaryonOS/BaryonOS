@@ -70,10 +70,11 @@ this file.
    gates run. Do not push a fix; the re-check re-runs it. If it is still
    failed once every gate has finished (the re-check can miss a merge-hold
    that was still running), re-run it by hand: `gh run rerun <run id> --failed`.
-5. Until a candidate increment changes it, `.github/ci-impact.candidate.toml`
-   is its own header plus a data-identical copy of the catalogue. Every
-   catalogue change (revision bump included) is copied into it in the same
-   pull request.
+5. While its header says `# Candidate increment: none`,
+   `.github/ci-impact.candidate.toml` is its own header plus a verbatim copy of
+   the catalogue, and a host-quality test enforces that. Every catalogue change,
+   including a revision bump, is copied into it in the same pull request. An
+   intentional increment replaces `none` with its name and #494 reference.
 
 ## Resume procedure
 

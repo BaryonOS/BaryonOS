@@ -588,6 +588,9 @@ jobs:
           catalogue: .github/ci-impact.candidate.toml
           out: build/ci-impact/plan-candidate.json
       - name: Report catalogue coverage (shadow, never a gate)
+        # Depends on the enforced plan only: a failed advisory candidate step still fails the job,
+        # but does not skip this report.
+        if: ${{ !cancelled() && steps.select.outcome == 'success' }}
         run: |
           set -euo pipefail
           python3 -B -I tools/ci_impact.py coverage --repo "$GITHUB_WORKSPACE" > build/ci-impact/coverage.json

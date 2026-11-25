@@ -697,6 +697,8 @@ def validate(catalogue):
         # or merge-hold could not tell a legitimate skip from a missing gate.
         by_id = {job["id"]: job for job in jobs
                  if isinstance(job, dict) and isinstance(job.get("id"), str) and job["id"] in graph}
+        pull_spec = trigger.get("pull_request")
+        nonnative = isinstance(pull_spec, dict) and pull_spec.get("paths_ignore") == NONNATIVE
         for job_id, job in by_id.items():
             if cycles or job.get("class") not in SELECTABLE:
                 continue
@@ -704,6 +706,11 @@ def validate(catalogue):
                 if event in wf_events and job_runs(by_id, job_id, event) is None:
                     add(f"{stem(path)}#{job_id}: condition-undecidable on {event}: "
                         f"{job.get('condition')!r} or a needs prerequisite")
+            # A gate that @nonnative may skip on pull_request must run on push: that is its backstop.
+            if nonnative and job_runs(by_id, job_id, "pull_request") is not False \
+                    and job_runs(by_id, job_id, "push") is not True:
+                add(f"{stem(path)}#{job_id}: {NONNATIVE} needs every gate that runs on pull_request "
+                    "to run on push to main too (the backstop)")
         # A selected gate whose prerequisite is never selected would be skipped by GitHub.
         classes = {job["id"]: job.get("class") for job in jobs
                    if isinstance(job, dict) and isinstance(job.get("id"), str) and job["id"] in graph}

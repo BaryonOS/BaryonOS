@@ -843,6 +843,44 @@ class GateTests(TestCase):
                 self.assertIn(fragment, out)
                 self.assertIn("gh run rerun 123 --failed", out)
 
+    def test_an_unknown_filter_result_keeps_the_gate_expected_and_names_the_cause(self):
+        # #494 K10: an undefined filter result stays fail-closed; only the message says why and what helps.
+        from ci_impact import FILTER_FILE_LIMIT
+        self.assertEqual(merge_hold.FILTER_FILE_LIMIT, FILTER_FILE_LIMIT)
+        cases = (({"changes": {"count": 301}},
+                  "its path-filter result is undefined above 300 changed files (this change has 301; "
+                  "GitHub evaluates only the first 300), so GitHub may never start it. It stays expected "
+                  "(fail-closed, docs/CI-CONTRACT.md K10); if GitHub skipped it, only a smaller pull request "
+                  "or a new head clears it"),
+                 ({"changes": {"count": 0}, "mode": "full",
+                   "fallback": {"code": "shallow-history", "detail": [], "reasons": ["shallow-history"]}},
+                  "its path-filter result is unknown: the changed-file list is incomplete (fallback "
+                  "shallow-history), so GitHub may never start it. It stays expected (fail-closed, "
+                  "docs/CI-CONTRACT.md K10); if GitHub skipped it, only a re-run with a usable diff or "
+                  "a new head clears it"),
+                 ({}, "its path-filter result is unknown for a change without changed files, so GitHub "
+                      "may never start it"))
+        for over, note in cases:
+            plan = plan_fixture(**over)
+            plan["selected"][2]["blocked_by_filter"] = None  # leaves: no run below
+            self.assertIn(plan["selected"][2], merge_hold.expected_gates(plan))
+            with self.subTest(plan=over):
+                passed, out, _ = self.decide(plan=plan, runs_=[wf_run(1, CI)])
+                self.assertFalse(passed, out)
+                self.assertIn(f"::error::Pending: quality (viewer): no {LEAVES} run for {HEAD} yet; {note}", out)
+                self.assertIn("::error::Exception: a gate with an unknown path-filter result may never start, "
+                              "so waiting for it does not help; its Pending line names the remedy.", out)
+        # A known filter result keeps the plain line, and a started run is judged as usual.
+        passed, out, _ = self.decide(runs_=[wf_run(1, CI)])
+        self.assertFalse(passed, out)
+        self.assertIn(f"no {LEAVES} run for {HEAD} yet\n", out + "\n")
+        self.assertNotIn("Exception:", out)
+        plan = plan_fixture()
+        plan["selected"][2]["blocked_by_filter"] = None
+        passed, out, _ = self.decide(plan=plan)
+        self.assertTrue(passed, out)
+        self.assertNotIn("path-filter result", out)
+
     def test_expected_job_outcomes_other_than_success_block(self):
         for conclusion in ("failure", "cancelled", "timed_out", "skipped", "action_required", "neutral", None):
             with self.subTest(conclusion=conclusion):

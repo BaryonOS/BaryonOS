@@ -412,12 +412,23 @@ problem rather than a clone depth. The pinned Python, with the host
 dependencies (`host-dependencies: 'true'`, which provides PyYAML for
 `coverage`), comes from `./.github/actions/setup-python`. The steps are:
 
-1. `./.github/actions/select-ci` writes `build/ci-impact/plan.json`.
+1. `./.github/actions/select-ci` (step id `select`) writes
+   `build/ci-impact/plan.json`. Its step summary opens with the heading "Plan
+   from the enforced catalogue `.github/ci-impact.toml`", and its "Selector
+   source" line names the same catalogue.
 2. The same action, with `catalogue: .github/ci-impact.candidate.toml` and
    `out: build/ci-impact/plan-candidate.json`, plans the base commit's copy of
-   the advisory candidate catalogue (#494, phase 5 C3). The candidate starts
+   the advisory candidate catalogue (#494, phase 5 C3). Its summary opens with
+   "Plan from the advisory candidate catalogue `<catalogue>`", and its "Selector
+   source" line states that nothing consumes the plan. The candidate starts
    as a copy of the enforced catalogue and later carries candidate selection
    data, which is activated only on counterexample-free shadow evidence.
+   Its header declares the increment state in one line, `# Candidate
+   increment: none`. While that line says `none`, a host-quality test requires
+   the candidate to be its comment header plus a verbatim copy of
+   `.github/ci-impact.toml`, so every catalogue change, revision bumps
+   included, is copied in the same pull request. An intentional increment
+   replaces `none` with its name and #494 reference.
    No selection or enforcement step reads it: merge-hold, the select jobs and
    the `validate` and `coverage` steps of host-quality ignore it. A host-quality
    unit test does validate the checked-out copy, so an invalid candidate fails
@@ -426,7 +437,10 @@ dependencies (`host-dependencies: 'true'`, which provides PyYAML for
    (`bootstrap-no-base-catalogue`).
 3. A report-only step runs `coverage` from the checkout and writes
    `build/ci-impact/coverage.json`, plus its status and at most 50 problems
-   in the step summary. It never asserts the status.
+   in the step summary. It never asserts the status. Its condition,
+   `${{ !cancelled() && steps.select.outcome == 'success' }}`, depends on the
+   enforced plan only. A failed candidate step still fails the job but does not
+   skip the report; a failed `select` step skips it as before.
 4. `./.github/actions/preserve-evidence` preserves the three files as
    `ci-impact-plan` (compact upload `ci-impact-plan-reports`, three-day
    retention, docs/CI-EVIDENCE.md), with `if: ${{ always() }}`,
@@ -522,7 +536,12 @@ jobs) are never trusted; merge-hold's own recomputation is the reference.
 itself whose `blocked_by_filter` is not `true`. In full mode that is every
 automatic `core` and `rwa` gate whose workflow applies. `blocked_by_filter =
 null` (filter result unknown, more than 300 changed files) keeps the gate
-expected: fail closed. A path filter may hide only metadata: a row with
+expected: fail closed. When such a gate has no run, its Pending line states
+the cause and the remedy: the filter result is undefined above 300 changed
+files (a smaller pull request or a new head clears it), or the changed-file
+list is incomplete after a fallback, which the line names (a re-run with a
+usable diff or a new head clears it). A closing line states that waiting
+does not help (K10). A path filter may hide only metadata: a row with
 `blocked_by_filter = true` and a non-empty `filter_hidden_inputs` is a
 failure ("its path filter hides registered input(s)"), never "not
 applicable" (#494, phase 5 C1). The rule makes `"@nonnative"` self-protecting:
@@ -740,7 +759,11 @@ merge-hold does not wait for them. Without a usable diff or classification,
 merge-hold instead keeps those gates Pending or fails them as possibly hidden
 inputs ("Expected set", K10). Their `push` trigger stays `"@metadata"`, so
 the merged commit runs them on `main`; a failure there reopens the rule, and a
-run cancelled by a newer push to `main` is no evidence either way.
+run cancelled by a newer push to `main` is no evidence either way. `validate`
+keeps that backstop: it rejects `"@nonnative"` on a workflow whose push trigger
+on `main` is missing or not `"@metadata"`, and a `core` or `rwa` job that runs
+on `pull_request` but not on `push`, by its own condition or a `needs`
+prerequisite.
 `native-hid-input` and `native-xhci` (which execute `plugins/**` through
 `tools/tokenguard.py`), the PR-only `resource-pressure`, `storage-resilience`
 and `volume-acceptance`, and the advisory `windows-qemu-test-version` keep

@@ -112,6 +112,9 @@ UNUSABLE_FALLBACKS = ("unknown-event", "invalid-sha", "fetch-failed", "merge-ref
 BLOCKING_CONCLUSIONS = ("failure", "cancelled", "timed_out", "startup_failure", "action_required", "stale")
 SELECTOR_TIMEOUT = 600
 MAX_WAIT_SECONDS = 45 * 60
+# As tools/ci_impact.py FILTER_FILE_LIMIT: GitHub evaluates a path filter on the first 300 files only.
+FILTER_FILE_LIMIT = 300
+NEVER_STARTS = "so GitHub may never start it"
 PLAN_ID = re.compile(r"sha256:[0-9a-f]{64}")
 EXPRESSION = re.compile(r"\$\{\{.*?\}\}")
 
@@ -419,6 +422,24 @@ def hidden_input_rows(plan):
             and row.get("blocked_by_filter") is True and row.get("filter_hidden_inputs")]
 
 
+def unknown_filter_note(plan):
+    """Why a gate with an unknown path-filter result may never start; it stays expected (K10)."""
+    count = (plan.get("changes") or {}).get("count", 0)
+    code = (plan.get("fallback") or {}).get("code")
+    if count > FILTER_FILE_LIMIT:
+        cause = (f"undefined above {FILTER_FILE_LIMIT} changed files (this change has {count}; "
+                 f"GitHub evaluates only the first {FILTER_FILE_LIMIT})")
+        remedy = "a smaller pull request or a new head"
+    elif code:
+        cause = f"unknown: the changed-file list is incomplete (fallback {code})"
+        remedy = "a re-run with a usable diff or a new head"
+    else:
+        cause = "unknown for a change without changed files"
+        remedy = "a new head"
+    return (f"its path-filter result is {cause}, {NEVER_STARTS}. It stays expected (fail-closed, "
+            f"docs/CI-CONTRACT.md K10); if GitHub skipped it, only {remedy} clears it")
+
+
 def hidden_listing(paths, limit=5):
     # Paths come from the pull request: ASCII-escape them so no control character reaches the log,
     # and escape % because the runner decodes %0A in ::error:: data (the step summary shows %25).
@@ -557,7 +578,9 @@ def gate_report(token, repo, pull, head_sha, plan):
         wanted = [row for row in expected if row["workflow"] == workflow]
         run = newest.get(workflow)
         if run is None:
-            pending += [f"{row['check_name']}: no {workflow} run for {head_sha} yet" for row in wanted]
+            pending += [f"{row['check_name']}: no {workflow} run for {head_sha} yet"
+                        + (f"; {unknown_filter_note(plan)}" if row.get("blocked_by_filter", False) is None else "")
+                        for row in wanted]
             continue
         where = f"run {run['id']} attempt {run.get('run_attempt')}"
         running = run.get("status") != "completed"
@@ -663,6 +686,9 @@ def pull_request_gates(token, repo, number, head_sha):
                      "finish; a failure with only Pending lines needs no fix. If it is not re-run, "
                      "re-run it once the gates have finished "
                      f"(gh run rerun {run} --failed).")
+        if any(NEVER_STARTS in line for line in pending):
+            lines.append(f"{prefix}Exception: a gate with an unknown path-filter result may never start, "
+                         "so waiting for it does not help; its Pending line names the remedy.")
     lines += ["Passed: " + line for line in passed] + ["Not a pass: " + line for line in skipped]
     return (not failed and not pending) or not enforce, lines
 

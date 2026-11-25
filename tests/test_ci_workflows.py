@@ -2178,6 +2178,33 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
 
 SHADOW_SELECTOR = ROOT / "tools/ci_impact.py"
 SELECT_ACTION = ".github/actions/select-ci/action.yml"
+CANDIDATE_INCREMENT = "# Candidate increment:"
+
+
+def candidate_drift(candidate, catalogue):
+    """Why the candidate breaks its declared increment state (#494 C3), or None.
+
+    Its leading comment block declares `# Candidate increment: <none or a name>` once.
+    With none, the candidate is that comment header plus a verbatim copy of the catalogue.
+    """
+    leading = []
+    for line in candidate.splitlines():
+        if not line.startswith("#"):
+            break
+        leading.append(line)
+    declared = [line[len(CANDIDATE_INCREMENT):].strip() for line in leading
+                if line.startswith(CANDIDATE_INCREMENT)]
+    if len(declared) != 1 or not declared[0]:
+        return f"the header must declare '{CANDIDATE_INCREMENT} <none or a name>' exactly once"
+    if declared[0] != "none":
+        return None  # a declared increment; validate still checks its data
+    header = candidate[:len(candidate) - len(catalogue)]
+    if not candidate.endswith(catalogue) or not header.endswith("\n") \
+            or any(not line.startswith("#") for line in header.splitlines()):
+        return "with no declared increment the candidate must be its header plus a verbatim catalogue copy"
+    return None
+
+
 SHADOW_CATALOGUE = """\
 schema_version = 1
 revision = 1
@@ -2254,6 +2281,10 @@ class CiImpactShadowTests(unittest.TestCase):
                                              "catalogue": ".github/ci-impact.candidate.toml",
                                              "out": "build/ci-impact/plan-candidate.json"})
         self.assertNotIn("id", candidate)
+        self.assertEqual(select["id"], "select")
+        for key in ("if", "continue-on-error"):  # a failed candidate step stays a failed job
+            self.assertNotIn(key, candidate)
+            self.assertNotIn(key, select)
         preserve, = [step for step in steps if step.get("uses") == "./.github/actions/preserve-evidence"]
         self.assertEqual(preserve["if"], "${{ always() }}")
         self.assertEqual(preserve["with"], {
@@ -2267,6 +2298,9 @@ class CiImpactShadowTests(unittest.TestCase):
         self.assertNotIn("${{", coverage["run"])
         self.assertNotIn("--strict", coverage["run"])
         self.assertNotIn("continue-on-error", coverage)
+        # It depends on the enforced plan only: a failed advisory candidate step does not skip it.
+        self.assertEqual(coverage["if"], "${{ !cancelled() && steps.select.outcome == 'success' }}")
+        self.assertLess(steps.index(candidate), steps.index(coverage))
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
 
     def test_only_the_shadow_job_reads_the_candidate_catalogue(self):
@@ -2289,6 +2323,31 @@ class CiImpactShadowTests(unittest.TestCase):
             ["python3", "-B", "-I", str(SHADOW_SELECTOR), "validate", str(ROOT / ".github/ci-impact.candidate.toml")],
             capture_output=True, text=True, check=False).returncode, 0)
         self.assertEqual(candidate["schema_version"], 1)
+
+    def test_the_candidate_copies_the_catalogue_until_an_increment_is_declared(self):
+        """#494 C3: the candidate never drifts silently; an intentional increment is declared in its header."""
+        catalogue = (ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8")
+        candidate = (ROOT / ".github/ci-impact.candidate.toml").read_text(encoding="utf-8")
+        self.assertIsNone(candidate_drift(candidate, catalogue))
+        # The rule itself, on a synthetic candidate around the real catalogue.
+        marker = CANDIDATE_INCREMENT + " none\n"
+        copy = "# CI impact CANDIDATE catalogue (fixture)\n" + marker + "#\n" + catalogue
+        self.assertIsNone(candidate_drift(copy, catalogue))
+        drifted = copy.replace("\nrevision = ", "\nrevision = 1", 1)
+        self.assertNotEqual(tomllib.loads(drifted), tomllib.loads(catalogue))
+        cases = {"candidate data drift": (drifted, catalogue),
+                 "catalogue change not copied": (copy, catalogue.replace("\nrevision = ", "\nrevision = 1", 1)),
+                 "data in the header": (copy.replace(marker, marker + "revision = 1\n", 1), catalogue),
+                 "comment drift in the copy": (copy + "# extra\n", catalogue),
+                 "no declaration": (copy.replace(marker, "", 1), catalogue),
+                 "empty declaration": (copy.replace(marker, CANDIDATE_INCREMENT + "\n", 1), catalogue),
+                 "two declarations": (copy.replace(marker, marker + marker, 1), catalogue)}
+        for label, (text, base) in cases.items():
+            with self.subTest(case=label):
+                self.assertIsNotNone(candidate_drift(text, base))
+        # A declared increment may differ from the catalogue (validate still checks its data).
+        increment = drifted.replace(marker, CANDIDATE_INCREMENT + " C4 example (#494)\n", 1)
+        self.assertIsNone(candidate_drift(increment, catalogue))
 
     def test_host_quality_fails_on_an_invalid_or_drifted_catalogue(self):
         """Phase 3 (#494): merge-hold enforces plans, so catalogue drift must fail a required gate."""
@@ -2427,6 +2486,13 @@ class CiImpactShadowTests(unittest.TestCase):
                                             "tested": tested})
             self.assertEqual(outputs["plan-id"], plan["plan_id"])
             self.assertEqual(plan["ref"], "")  # no base-ref: the phase-2 command line
+            # The summary names the catalogue, so the enforced plan is never mistaken for the candidate.
+            summary = (repo.parent / "pull-request" / "summary.md").read_text(encoding="utf-8")
+            self.assertTrue(summary.startswith("\n# Plan from the enforced catalogue `.github/ci-impact.toml`\n"),
+                            summary)
+            self.assertIn("\nSelector source for the enforced catalogue `.github/ci-impact.toml`: `base`. "
+                          "merge-hold recomputes and enforces its own plan.\n", summary)
+            self.assertNotIn("candidate", summary)
 
             # Phase 4: the target branch reaches the base selector as --base-ref.
             result, outputs = self.run_action(repo, {
@@ -2487,11 +2553,19 @@ class CiImpactShadowTests(unittest.TestCase):
             plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
             self.assertEqual((outputs["mode"], plan["fallback"]), ("select", None))
             self.assertEqual(plan["catalogue"]["path"], ".github/ci-impact.candidate.toml")
+            summary = (repo.parent / "candidate" / "summary.md").read_text(encoding="utf-8")
+            self.assertTrue(summary.startswith("\n# Plan from the advisory candidate catalogue "
+                                               "`.github/ci-impact.candidate.toml`\n"), summary)
+            self.assertIn("\nSelector source for the advisory candidate catalogue "
+                          "`.github/ci-impact.candidate.toml`: `base`. Advisory: nothing consumes this plan.\n",
+                          summary)
+            self.assertNotIn("enforce", summary)
             for index, (key, value) in enumerate((("OUT", "../plan.json"), ("OUT", "build/ci-impact/sub/plan.json"),
                                                   ("CATALOGUE", "--catalogue=x.toml"),
                                                   ("CATALOGUE", "tools/x.toml"))):
                 result, _ = self.run_action(repo, {**candidate_env, key: value}, f"reject-{index}")
                 self.assertEqual(result.returncode, 2, (key, value))
+                self.assertEqual((repo.parent / f"reject-{index}" / "summary.md").read_text(encoding="utf-8"), "")
 
             # A malformed base is rejected before it reaches git; the plan widens.
             result, outputs = self.run_action(repo, {
