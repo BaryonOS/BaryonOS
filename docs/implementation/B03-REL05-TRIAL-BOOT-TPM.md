@@ -205,9 +205,11 @@ revision, read-back) is chosen to be compatible.
 `LREC` (64 B, M1-HAUTH loader record, U26): magic `NOSLRC01` (8) · state
 (1: 0 BOUND, 1 ACCEPTED) · reserved 0 (3) · accepted serial (4, `u32`) · accepted
 record digest (32 = SHA-256 of the signed `ENROLL` or recovery record,
-section 10.5; zero in BOUND) · `HAUTH` binding (16 = first 16 bytes of
+section 10.5) · `HAUTH` binding (16 = first 16 bytes of
 SHA-256 over the 64 `HAUTH` bytes; *[design choice]*). BOUND is written
-right after `HAUTH`; ACCEPTED is the TPM copy of the accepted pair (U13c).
+right after `HAUTH` with zero serial and digest; ACCEPTED is the TPM copy of
+the accepted pair (U13c). Codec: `update_core::trial::LoaderRecord` (strict
+decode) and `hauth_binding`.
 The 4-byte field fixes the `ENROLL` and recovery serial at `u32` (section
 10.5), as in the host model; an 8-byte serial would not fit 64 B.
 See [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) for the trust rule.
@@ -800,8 +802,9 @@ named marker (TEST hook markers emitted before each write in a test feature).
   `0x0100B305` (sections 6.1 and 6.2), template of `TRIAL`/`FLOOR`; Names
   frozen and observed on swtpm 0.10.1
   ([b03-rel05-lrec-probe-20261125](../verification/b03-rel05-lrec-probe-20261125/README.md));
-  trust rule in [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md). Still
-  open: the loader code and native S5 tests, power-loss atomicity (U22).
+  trust rule in [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md); codec
+  `LoaderRecord` in `update-core`. Still open: the loader TPM I/O and native
+  S5 tests, power-loss atomicity (U22).
 
 ### Feasibility probe results (25 November 2026, swtpm 0.10.1)
 

@@ -80,6 +80,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   cases must use that device. U26 is designed: `LREC` layout in REL-05 section 6.2, trusted only with the written
   Name; the section 6.3 versus 10.5 UEFI-copy wording is flagged under U28. The U13c record-staging rule is
   *proposed* (REL-05 section 10.5 "Record staging", host model `staged_record_replacement_converges`); OWNER
-  question open: adopt it in place of the halt-after-cut clause. Next on #524: the loader `LREC` codec and `HAUTH`
+  question open: adopt it in place of the halt-after-cut clause. The `LREC` codec is in `update-core`
+  (`trial::LoaderRecord`, `hauth_binding`; N confirmed no conflict with the N04 issuer). Next on #524: loader
+  `LREC`/`HAUTH` TPM I/O and `HAUTH`
   provisioning (wipe, CRB buffer overwrite, PCR 13 extend last, all four banks), S3/U27, the section 7.9 halt,
   native S5 with N's joint tests. Resume from the newest HANDOFF comment on #524.

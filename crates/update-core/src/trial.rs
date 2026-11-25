@@ -21,6 +21,9 @@ pub const RECORD_LEN: usize = 64;
 pub const TRIAL_MAGIC: [u8; 8] = *b"NOSTRL01";
 pub const CONFIRM_MAGIC: [u8; 8] = *b"NOSCNF01";
 pub const FLOOR_MAGIC: [u8; 8] = *b"NOSFLR01";
+pub const LREC_MAGIC: [u8; 8] = *b"NOSLRC01";
+/// `LREC` keeps the first 16 bytes of `SHA-256(HAUTH)` (section 6.2).
+pub const LREC_BINDING_LEN: usize = 16;
 pub const CONFIRM_FORMAT: u8 = 1;
 /// "PASS", the only verdict that confirms.
 pub const VERDICT_PASS: u32 = 0x5041_5353;
@@ -203,6 +206,65 @@ impl FloorRecord {
             last_digest: b[32..].try_into().unwrap(),
         })
     }
+}
+
+/// Accepted pair of U13c: serial and SHA-256 of the signed `ENROLL` or
+/// recovery record (section 10.5).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct AcceptedPair {
+    pub serial: u32,
+    pub digest: [u8; 32],
+}
+
+/// `LREC` (section 6.2, U26): binds `HAUTH`; `None` is BOUND, `Some` is
+/// ACCEPTED with the TPM copy of the accepted pair. The caller trusts it only
+/// with the written Name (COLD-FRESHNESS-ANCHOR.md); a written record that
+/// fails [`LoaderRecord::decode`] halts as corrupt.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct LoaderRecord {
+    pub accepted: Option<AcceptedPair>,
+    pub binding: [u8; LREC_BINDING_LEN],
+}
+
+impl LoaderRecord {
+    pub fn encode(&self) -> [u8; RECORD_LEN] {
+        let mut b = [0u8; RECORD_LEN];
+        b[..8].copy_from_slice(&LREC_MAGIC);
+        if let Some(p) = self.accepted {
+            b[8] = 1;
+            b[12..16].copy_from_slice(&p.serial.to_le_bytes());
+            b[16..48].copy_from_slice(&p.digest);
+        }
+        b[48..].copy_from_slice(&self.binding);
+        b
+    }
+
+    /// Strict decode: magic, state 0 or 1, zero reserved bytes, and a BOUND
+    /// record with zero serial and digest; anything else is `None`.
+    pub fn decode(b: &[u8; RECORD_LEN]) -> Option<Self> {
+        if b[..8] != LREC_MAGIC || b[9..12] != [0; 3] {
+            return None;
+        }
+        let accepted = match b[8] {
+            0 if b[12..48].iter().all(|&x| x == 0) => None,
+            1 => Some(AcceptedPair {
+                serial: u32_at(b, 12),
+                digest: b[16..48].try_into().unwrap(),
+            }),
+            _ => return None,
+        };
+        Some(Self {
+            accepted,
+            binding: b[48..].try_into().unwrap(),
+        })
+    }
+}
+
+/// `LREC` binding of the 64 `HAUTH` bytes. The SHA-256 working state on the
+/// stack then holds the secret, so the loader must wipe it with the rest of
+/// its memory before the PCR 13 extend (COLD-FRESHNESS-ANCHOR.md, hygiene).
+pub fn hauth_binding(hauth: &[u8; 64]) -> [u8; LREC_BINDING_LEN] {
+    sha256(hauth)[..LREC_BINDING_LEN].try_into().unwrap()
 }
 
 /// What the loader read from the TPM during `INIT` (section 7.1 step 1).
@@ -951,6 +1013,43 @@ mod tests {
         assert_eq!(FloorRecord::decode(&[0; RECORD_LEN]), None);
         assert_eq!(TrialRecord::decode(&[0; RECORD_LEN]), None);
         assert_eq!(ConfirmRecord::decode(&[0; RECORD_LEN]), None);
+    }
+
+    #[test]
+    fn loader_record_layout_is_frozen_and_strict() {
+        let bound = LoaderRecord {
+            accepted: None,
+            binding: hauth_binding(&[7; 64]),
+        };
+        let pair = AcceptedPair {
+            serial: 0x0102_0304,
+            digest: [0xaa; 32],
+        };
+        let accepted = LoaderRecord {
+            accepted: Some(pair),
+            ..bound
+        };
+        assert_eq!(bound.binding, sha256(&[7; 64])[..16]);
+        let b = accepted.encode();
+        assert_eq!(&b[..8], b"NOSLRC01");
+        assert_eq!(b[8..16], [1, 0, 0, 0, 4, 3, 2, 1]);
+        assert_eq!(b[16..48], [0xaa; 32]);
+        assert_eq!(b[48..], bound.binding);
+        for r in [bound, accepted] {
+            assert_eq!(LoaderRecord::decode(&r.encode()), Some(r));
+        }
+        // Bad magic, state, reserved bytes, and a BOUND record naming a pair.
+        for (at, value) in [(0, b'X'), (8, 2), (9, 1), (11, 1)] {
+            let mut bad = b;
+            bad[at] = value;
+            assert_eq!(LoaderRecord::decode(&bad), None, "byte {at}");
+        }
+        for at in [12, 47] {
+            let mut bad = bound.encode();
+            bad[at] = 1;
+            assert_eq!(LoaderRecord::decode(&bad), None, "BOUND byte {at}");
+        }
+        assert_eq!(LoaderRecord::decode(&[0; RECORD_LEN]), None);
     }
 
     #[test]
