@@ -42,7 +42,9 @@
 //! `TestVerifier` is a stand-in for `volume_core::archive::verify` over a
 //! simplified archive layout (64-byte header with the v1 magic, payload,
 //! 16-byte trailer with end magic and FNV-64); it is not the v1 format.
+//! [`AnyVerifier::Real`] swaps in the production adapter.
 use destination_core::{
+    archive_verifier::VolumeVerifier,
     catalog::{self, Catalog, Record},
     device::{Broker, Request, RESET_TIMEOUT, TIMEOUT},
     fnv64, get64,
@@ -630,6 +632,23 @@ impl Verifier for TestVerifier {
     }
 }
 
+/// The verifier of a test harness: the stand-in by default, or the
+/// production `volume_core::archive::verify` adapter (spec 2.3) for the rows
+/// that need real v1 archives (`tests/real_verifier.rs`).
+pub enum AnyVerifier {
+    Stand(TestVerifier),
+    Real(Box<VolumeVerifier>),
+}
+
+impl Verifier for AnyVerifier {
+    fn verify(&mut self, source: &mut dyn Source) -> Result<Summary, Status> {
+        match self {
+            Self::Stand(verifier) => verifier.verify(source),
+            Self::Real(verifier) => verifier.verify(source),
+        }
+    }
+}
+
 pub struct TestEntropy(pub [u8; ID]);
 
 impl Entropy for TestEntropy {
@@ -671,7 +690,7 @@ pub fn req(operation: u16) -> Header {
 pub struct H {
     pub disk: SimDisk,
     pub svc: Service,
-    pub verifier: TestVerifier,
+    pub verifier: AnyVerifier,
     pub entropy: TestEntropy,
     pub next_id: [u64; 4],
     pub generation: [u64; 4],
@@ -684,7 +703,7 @@ impl H {
         Self {
             disk,
             svc,
-            verifier: TestVerifier,
+            verifier: AnyVerifier::Stand(TestVerifier),
             entropy: TestEntropy(TEST_ID),
             next_id: [0; 4],
             generation: [0; 4],

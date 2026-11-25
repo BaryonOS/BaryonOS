@@ -27,20 +27,18 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Current cycle
 
-- cycle_id: `N-20261124-slirp-nx`
-- task: N02-T6 negative slice — NXDOMAIN from the real resolver in the
-  libslirp profile (the reserved name `missing.invalid`)
-- branch: `claude/n02-slirp-negative-dns-20261124`
+- cycle_id: `N-20261124-nxdomain-nosoa`
+- task: N02-T6 host regression — the network service never caches an
+  NXDOMAIN without an authority SOA (lesson 4)
+- branch: `claude/fervent-mccarthy-wykkfa`
 - pull request, tested source SHA, hosted runs: recorded in the pull request
   description, not in this file
-- evidence: `tools/run_network_dhcp.py --case slirp`; CI job
-  `net-broker-quality.yml#native-network-slirp` (unchanged job, extended case)
-- result: app A gets `NotFound` in-guest; the kernel pins two UDP queries and
-  one more rejected request; the runner requires exactly one rcode-3 response
-  without addresses, bound to the query's ID, port and name, on the wire. The
-  answer comes from the host-configured resolver (systemd-resolved stub on
-  the runner) reached through libslirp, not necessarily from upstream.
-- previous cycle `N-20261124-slirp` merged as `b5cb839f` (#485).
+- evidence: `services/network-service/tests/dns_resolve.rs`
+  `nxdomain_without_soa_is_not_found_and_never_cached` replays the stub's
+  33-byte reply (NSCOUNT 0); the caller gets `NotFound` and the next Resolve
+  sends a fresh query. A mutant that invents a lifetime for a missing SOA
+  fails only this test. Host evidence only.
+- previous cycle `N-20261124-slirp-nx` merged as `734820d6` (#502).
 
 ## Blockers
 
@@ -69,6 +67,5 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 ## Next executable task
 
 After the merge: once the owner decides the N03 or N04 ADR, the first slice
-of that decision; otherwise a host-side N02 negative-cache regression for an
-NXDOMAIN without SOA (lesson 4), or the owner question on a
-harness boundary for a real-resolver timeout case.
+of that decision; otherwise the owner question on a harness boundary for a
+real-resolver timeout, truncation or stale-response case.
