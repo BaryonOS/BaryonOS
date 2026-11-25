@@ -130,10 +130,13 @@ recommendations become decisions as listed here.
      restarts, replay, interrupted writes, TPM failure and domain isolation.
   Agreed ordering with B: commit-then-advance. A grant, subgrant, revocation or
   durable denial is acknowledged only after the anchor advance succeeds. With
-  store generation S and anchor generation A at startup: S == A is accepted;
+  store generation S and anchor generation A at startup: S == A is accepted
+  only when the digest of the authenticated store state (grants and tombstones)
+  equals the binding stored with the anchor generation, which rejects a
+  same-generation fork after a crash between commit and advance;
   S == A + 1 rolls forward (the entry at S must authenticate and was never
   acknowledged); S < A and S > A + 1 are rejected fail-closed. The advance is a
-  monotonic compare-and-swap from A to A + 1. Reserve-first was rejected because
+  monotonic compare-and-swap from A to A + 1 that also stores the new binding. Reserve-first was rejected because
   every ordinary crash would leave the store looking rolled back.
 
 **Open:** proposal questions 6 (whether N04 acceptance requires durable
