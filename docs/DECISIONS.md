@@ -12,7 +12,10 @@ decision to the PR guard session at about 11:25Z. The owner then confirmed the
 wording for recording in the CI specialist session at about 11:45Z ("Yes,
 confirmed"). The CI checkpoint is #494, comment 7161215540. Item 8 was decided
 separately at about 12:35Z and given to the PR guard. The owner's formal review
-of this pull request is the confirmation that D2 requires.
+of this pull request is the confirmation that D2 requires. During the review of
+#527 (CI session, about 13:30Z), the owner added that the context thresholds in
+item 5 apply only to the executing specialists and that the PR guard rotates
+only at the owner's explicit request.
 
 **Problem:** six workstream sessions handled their own pull requests under
 `ADR-MERGE-DELEGATION-20261123`: S09, U, N, UI/UX design, B and H. Applications,
@@ -116,6 +119,12 @@ session's context must rotate were only in issue comments.
 **Test evidence:** `progress.py --check`, `check_english_docs.py` and
 `tools.tests.test_agent_governance` pass. They check the documents only; they
 do not prove that sessions follow the rules.
+
+**Review trigger:** reassess this decision when any of the following occurs:
+- a delegated specialist merges a change that the rules above would block;
+- a CLEAR_READY handoff fails to resume its subtask;
+- the PR guard needs write authority to do its job;
+- issue creation produces duplicates or backlog without implementation.
 
 **Rollback:** a new project-owner decision.
 
