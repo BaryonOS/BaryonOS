@@ -438,4 +438,21 @@ mod tests {
             Err(Denied::Rollback)
         );
     }
+
+    /// Review finding M1 (B, #524): a stale authentic store X at A+1 left by a
+    /// crash before W1, plus a replayed S=A and a hostile slot write (T3),
+    /// must not displace the acknowledged Y at A+1.
+    #[test]
+    #[ignore = "M1 open: red until an owner-approved fix lands"]
+    fn hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation() {
+        let x = state(6, [3; 32], D1); // committed to disk, crash before W1
+        let mut anchor = Fake::at(5, D1);
+        // Disk attacker replays S=A; accepted under rule (c).
+        assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
+        // Y carries an acknowledged revocation.
+        assert_eq!(acknowledge(&mut anchor, &state(6, D2, D1)), Ok(()));
+        // T3 rewrites the slot binding and puts X back on disk.
+        anchor.state.binding = x.digest;
+        assert_ne!(startup(&mut anchor, &x), Ok(Startup::Accept));
+    }
 }
