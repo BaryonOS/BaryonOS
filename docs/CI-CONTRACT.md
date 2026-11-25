@@ -500,7 +500,13 @@ applicable" (#494, phase 5 C1). A row whose hidden hits are all metadata
 (`policy.inert`) stays "Not a pass … (path filter)"; that is a documented
 limit, for example a compiled vendored `README.md`. Central (`always_full`)
 paths are never hits, so a full plan still does not expect a gate whose own
-filter excludes the central path. The two allowlist workflows without a push
+filter excludes the central path. When a fallback stops the plan before
+classification (for example `cargo-patch-unresolved`), no hits exist: every
+changed non-metadata path then counts as a possibly hidden input, central and
+unregistered paths included, so a blocked row fails unless only metadata
+changed. A pull request that introduces such a Cargo construct therefore needs
+the gate to run or the construct to be modelled; a transient read failure
+clears on a re-run. The two allowlist workflows without a push
 backstop (`storage-resilience`, `volume-acceptance`) keep their `paths` list,
 because the 2026-11-08 verification reads it; central paths outside that list and
 new top-level paths therefore still do not start them. Closing that needs a push
