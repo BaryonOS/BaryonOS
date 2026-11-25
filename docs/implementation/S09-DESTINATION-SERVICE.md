@@ -1286,7 +1286,8 @@ decision above leaves to the specification. Nothing here exists in code at
 OPT1–OPT5) and O13-SPEC-REVIEW-2 (REQUEST_CHANGES on that revision, RQ1 and
 OPT1–OPT7; confirmed by O13-SPEC-VERIFY-3), then for a CodeRabbit finding
 (L1b) and O13-SPEC-REVIEW-4 on L1b (REQUEST_CHANGES, RQ1–RQ3 and OPT1–OPT2;
-applied here and not re-reviewed). All are AI reviews, not a human audit.
+applied here and confirmed by O13-SPEC-VERIFY-5 after one citation
+fix). All are AI reviews, not a human audit.
 
 - *Destination scope.* The destination profile marks exactly one block object
   per boot as the destination object when it creates it (2.1); the broker
@@ -1423,7 +1424,7 @@ applied here and not re-reviewed). All are AI reviews, not a human audit.
   every disk-1 entry (review 4, OPT2); (k) during a reset started by an
   injected READ timeout, a destination WRITE gets -8 and nothing latches;
   after the reset the holder polls the READ's -13 (`lane.error` is held until
-  that 0x41 poll, `volume.rs:1081`), and then the same WRITE is admitted
+  that 0x41 poll, `volume.rs:1066`), and then the same WRITE is admitted
   (review 4, RQ2). Killing mutations: no check before the
   `Policy`; a check after the input copy (i); a latch keyed on the object or
   handle instead of the range, or on the whole device (d); a latch cleared by
