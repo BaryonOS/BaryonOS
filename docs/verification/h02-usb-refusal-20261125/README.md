@@ -15,10 +15,10 @@ The feasibility probe that preceded it is in
 
 ## Source identity
 
-- Source commit: `1bb81100034ae40a0f39760978e519cb93a179ed` on
+- Source commit: `f8662109870713f29051f9439216fc145c3f21cf` on
   `claude/h02-t5-usb-refusal-20261125` (PR #515).
 - Executed source fingerprint (all eight USB cases):
-  `67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011`.
+  `b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed`.
   `docs/` is outside this fingerprint. `kernel/` and `tools/` had no
   uncommitted changes during the runs.
 - Toolchain: rustc 1.100.0 (0ef1bc386 2026-11-09).
@@ -26,7 +26,7 @@ The feasibility probe that preceded it is in
   The four refusal cases also passed with the default machine. Hosted CI
   (QEMU 8.2.2) runs them through `native-xhci.yml`; that result is recorded
   on the PR, not here.
-- Isolated environment: `NOS_BUILD_DIR=build/h02t5/final/<profile>`,
+- Isolated environment: `NOS_BUILD_DIR=build/h02t5/final3/<profile>`,
   separate `CARGO_TARGET_DIR`; one QEMU guest at a time.
 - Compact per-case reports: [native-report.json](native-report.json).
 
@@ -50,7 +50,9 @@ Refusal reasons observed: hub `HUB` and tablet `NOT_BOOT`, both after
 ## Mutation controls
 
 Each mutant was built in a disposable `git archive` copy outside the
-repository and run against its target case. Every mutant failed.
+repository and run against its target case. Every mutant failed. The mutants ran at
+`1bb81100`; the later source changes touch only the recovery clear and the
+code-63 diagnostic, which no mutant edits.
 
 | Mutant | Case | Result |
 |---|---|---|
@@ -84,7 +86,11 @@ authority defect. Its findings and their handling:
   controller and stopped port-2 service. Fixed: in this profile they are
   refused per port as `BINDING`. No QEMU fixture reaches this path.
 - The recovered keyboard reused the refused device's output context without
-  zeroing it. Fixed.
+  zeroing it. Fixed in `1bb81100`, but that fix passed the context IOVA to a
+  helper that maps a physical address, so it zeroed an unrelated physical page
+  and left the context uncleared (CodeRabbit, r4691923569). Fixed in
+  `235bbccd`/`f8662109`: the IOVA is resolved to its pinned frame. Results
+  recorded before `f8662109` are superseded.
 - Storage and the high-speed keyboard give the same transcript. Documented;
   the runner argument test now checks all four device definitions. The class
   of the attached device is not queried from QEMU.

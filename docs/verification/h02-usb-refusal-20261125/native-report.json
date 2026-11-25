@@ -1,13 +1,13 @@
 {
-  "source_commit": "1bb81100034ae40a0f39760978e519cb93a179ed",
+  "source_commit": "f8662109870713f29051f9439216fc145c3f21cf",
   "qemu_machine": "pc-q35-8.2",
   "qemu": "10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)",
   "cases": {
     "readonly": {
       "passed": true,
-      "source_sha256": "67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011",
+      "source_sha256": "b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed",
       "source_fingerprint_version": 3,
-      "manifest_sha256": "335c17403d83f9e5284a9b74160ffa9cc23b247e21d5a14ebc231fd495ba1f80",
+      "manifest_sha256": "ade9c831bae4a93612ce195f9af2880de1e03d0eaf0a515b1ceb126ef28f1a61",
       "observed": {
         "markers": [
           "USB:BEGIN",
@@ -31,9 +31,9 @@
     },
     "reattach-mouse": {
       "passed": true,
-      "source_sha256": "67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011",
+      "source_sha256": "b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed",
       "source_fingerprint_version": 3,
-      "manifest_sha256": "0d1931eb7ab837d1487eeba257c968a13ede4aefbbbee6fc9697c4ff789bf21d",
+      "manifest_sha256": "3588a6c4759dc47e5dd0806b5a21c99dc529aa1c8e5ac8dc15b3ffaa659570ed",
       "observed": {
         "markers": [
           "USB:BEGIN",
@@ -79,9 +79,9 @@
     },
     "reattach": {
       "passed": true,
-      "source_sha256": "67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011",
+      "source_sha256": "b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed",
       "source_fingerprint_version": 3,
-      "manifest_sha256": "1a48eb5b07231ea89f32ed0651ffeb72bdb2c42cd2c600b5af8ebfe1fc27318e",
+      "manifest_sha256": "6f08102d1bb1c2d26500f98d5bd4d4531a2c9e1692a5f286055390e8c5079d95",
       "observed": {
         "markers": [
           "USB:BEGIN",
@@ -126,9 +126,9 @@
     },
     "refuse-hs-kbd": {
       "passed": true,
-      "source_sha256": "67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011",
+      "source_sha256": "b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed",
       "source_fingerprint_version": 3,
-      "manifest_sha256": "7a18de3c30f3a54100ef185f98a3a86e1b04a8dee2d8465544a035e096874c00",
+      "manifest_sha256": "6da4931844e682781dd6aea294003682b8c5de8a528a69b98111f43bd412585d",
       "observed": {
         "markers": [
           "USB:BEGIN",
@@ -162,9 +162,9 @@
     },
     "refuse-hub": {
       "passed": true,
-      "source_sha256": "67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011",
+      "source_sha256": "b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed",
       "source_fingerprint_version": 3,
-      "manifest_sha256": "7a18de3c30f3a54100ef185f98a3a86e1b04a8dee2d8465544a035e096874c00",
+      "manifest_sha256": "6da4931844e682781dd6aea294003682b8c5de8a528a69b98111f43bd412585d",
       "observed": {
         "markers": [
           "USB:BEGIN",
@@ -199,9 +199,9 @@
     },
     "refuse-storage": {
       "passed": true,
-      "source_sha256": "67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011",
+      "source_sha256": "b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed",
       "source_fingerprint_version": 3,
-      "manifest_sha256": "7a18de3c30f3a54100ef185f98a3a86e1b04a8dee2d8465544a035e096874c00",
+      "manifest_sha256": "6da4931844e682781dd6aea294003682b8c5de8a528a69b98111f43bd412585d",
       "observed": {
         "markers": [
           "USB:BEGIN",
@@ -235,9 +235,9 @@
     },
     "refuse-tablet": {
       "passed": true,
-      "source_sha256": "67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011",
+      "source_sha256": "b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed",
       "source_fingerprint_version": 3,
-      "manifest_sha256": "7a18de3c30f3a54100ef185f98a3a86e1b04a8dee2d8465544a035e096874c00",
+      "manifest_sha256": "6da4931844e682781dd6aea294003682b8c5de8a528a69b98111f43bd412585d",
       "observed": {
         "markers": [
           "USB:BEGIN",
@@ -272,9 +272,9 @@
     },
     "reports": {
       "passed": true,
-      "source_sha256": "67f95ddf1f2152e40a09b7968bbb9abc00d1d86d9f4eadc9f50f507fc391d011",
+      "source_sha256": "b802712a57b96a53aa9b440850ee4f67a864a0fd2a88479e18211e39009ad8ed",
       "source_fingerprint_version": 3,
-      "manifest_sha256": "4538cc62435b5da4b3670beb785f3fffcd7561e1e75ef837717caa8bb030e872",
+      "manifest_sha256": "8ec4c6f6253f8713b81f990010394e040084d697f8418c38156c18a472425c08",
       "observed": {
         "markers": [
           "USB:BEGIN",
