@@ -51,11 +51,43 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   handoff commits stay local and go out in the single catch-up push when the
   PR guard grants #533 the lane.
 
+## Local stacked cycle: P02-T3 slice 1 (not pushed)
+
+- branch `claude/p02-t3-nasp-head-20261125`, worktree
+  `~/projects/BaryonOS-worktrees/p02-t3-head`, stacked on this branch because
+  it touches the same probe files. Local only under the CI-first freeze; it
+  becomes its own PR after #533 lands (merge main in, never rebase).
+- row reconciliation (25 Nov ~18:30Z, origin/main de242a3f): P01-T2 waits on
+  the owner's context-mapping disposition; P01-T3 waits on P01-T2, B02-T1/T3
+  and N03-T3 (all blocked); P03-T2 waits on the owner's authority model
+  (P03-T1). P02-T3 is the only P row without an owner or cross-track gate.
+- proposed spec for the lead (ledger P02-T3 is skeletal):
+  - goal: slice 1 adds NASP opcode 15 Head, delegating to the existing
+    `Service::head`; slice 2 adds a native guest stage that edits offline,
+    survives a NAS cold restart and reconciles via Head; slice 3 (guest
+    checkpoint persistence) needs a guest storage grant and is an OWNER
+    question before any code.
+  - invariant: Head is read-only, session-scoped and caller-bound by the
+    kernel-supplied sender; staging is invisible; no new capability and no
+    core, snapshot, volume or checkpoint format change.
+  - write set (slice 1): `services/nas/native-probe/src/lib.rs`,
+    `services/nas/native-probe/tests/ipc.rs`,
+    `services/nas/native-probe/CONTRACT.md`.
+  - acceptance: probe `cargo test`, `clippy -D warnings` and `fmt --check`
+    (1.90.0); native `clippy --features native --bins` (1.100.0); probe and
+    NAS Python unittests; the unchanged four-stage native gate.
+  - local result (b5d1221f): probe host tests 8+2+3 pass, clippy/fmt pass,
+    native clippy pass, Python unittests OK, native gate 4/4 raw 33
+    (normal, recover, interrupt, repair; source 72b890a4…).
+  - evidence limit: host dispatch tests plus a native regression run; slice 1
+    makes no native Head call and no offline reconcile in QEMU.
+
 ## Next
 
 1. Wait for the PR guard's lane signal for #533. Then merge main into the
-   branch, re-run the native gate (`python3 -B -u tools/test_nas.py` with
-   separate NOS_BUILD_DIR/NOS_TARGET_DIR), and make one push. Rerun only infra
-   failures, then squash with `--match-head-commit <new head>`.
-2. Reconcile P01–P03 open rows (P03-T1 waits on the owner's authority-model
-   decision) and pick the next native subtask.
+   branch, re-run the native gate (`python3 -B -u tools/test_nas.py`; its
+   NOS_BUILD_DIR must lie inside the checkout, e.g. `build/<name>`, or
+   `private_path` refuses it), and make one push. Rerun only infra failures,
+   then squash with `--match-head-commit <new head>`.
+2. Locally: P02-T3 slice 2 (native offline edit, NAS cold restart, reconcile
+   via Head) on the stacked branch.
