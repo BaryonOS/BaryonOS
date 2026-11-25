@@ -446,7 +446,7 @@ fn run() -> ! {
     support::put(400, 1);
     loop {
         bridge.observe_link();
-        let tick = now();
+        let mut tick = now();
         bridge.step(&mut service, tick);
         bump(408);
         if dhcp {
@@ -547,6 +547,11 @@ fn run() -> ! {
                         if message.tag() != wire::TAG {
                             continue;
                         }
+                        // Sampled after the receive: the loop-top tick may
+                        // predate the app's send, which would start an OpenTcp
+                        // deadline before the app's own clock reading. Later
+                        // uses in this iteration see the newer, monotonic tick.
+                        tick = now();
                         pending[slot] = service
                             .handle(
                                 slot,
