@@ -16,12 +16,14 @@ dependency is documented below.
 
 Run locked tests, Clippy, fmt and release library build with Rust1.100. A successful
 no_std library build does not prove floating-point linkage, context saving, native
-execution or numerical quality on the project's OS. A real tensor graph, approved engine/model route and native acceptance remain open.
+execution or numerical quality on the project's OS. The approved engine/model route and
+the full model graph are described below (L01-T5/T6); native execution, the tokenizer
+and task-quality acceptance remain open.
 CI coverage must be added with integration; the existing shared workflow is owned
 by pending CI PR391 and is deliberately not changed by this independent leaf.
 
-RMS normalization and SwiGLU are additional numerical building blocks; no full
-model graph is implemented. RMS rejects overflowing square accumulation explicitly.
+RMS normalization and SwiGLU are additional numerical building blocks; the full
+model graph is described under L01-T6. RMS rejects overflowing square accumulation explicitly.
 SwiGLU evaluates sigmoid with a sign-dependent expression to avoid exp overflow.
 Both commit output only on success and bound caller scratch/work.
 
@@ -49,9 +51,10 @@ arithmetic against the proposed 128 MiB ceiling (`MAX_KV_BYTES`), before any
 allocation. That ceiling is a proposal value, not an approved or measured budget.
 
 Tests compare against hand-computed rotations and softmax weights. Host tests and
-an `x86_64-unknown-none` release library build are the only evidence. The layout
-has not been checked against the pinned checkpoint's configuration, which remains
-unread; no model, tokenizer, attention bias or multi-layer graph is wired here.
+an `x86_64-unknown-none` release library build were the evidence for this step.
+(Historical: at this step the pinned configuration was still unread. It has since
+been inspected (L01-T5), and the multi-layer graph with attention biases is wired
+and compared with the real model (L01-T6). The tokenizer is not implemented.)
 
 ## Decoder layer, work budget and pinned configuration (L01-T5)
 
