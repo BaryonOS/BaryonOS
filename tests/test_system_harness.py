@@ -731,9 +731,11 @@ class PostWakeLatchStructure(unittest.TestCase):
     # submission syscalls, owner teardown): latched and counted.
     REACHABLE = {"keyring.rs": {"call", "advance", "quarantine_pending"},
                  "volume.rs": {"device_call", "reset", "advance_lane"}}
-    LATCH = {"keyring.rs": "device_lost()", "volume.rs": "system::resumed()"}
-    # The validated re-init path (test-system-s3-reinit only): accounted.
-    REINIT = {"keyring.rs": {"reinit_poll", "reinit_fail"}, "volume.rs": set()}
+    LATCH = {"keyring.rs": "device_lost()", "volume.rs": "device_lost()"}
+    # The validated re-init paths (test-system-s3-reinit, and for volume.rs
+    # test-system-s3-blk-reinit, H05-T5c): accounted.
+    REINIT = {"keyring.rs": {"reinit_poll", "reinit_fail"},
+              "volume.rs": {"blk_reinit_poll", "blk_reinit_quarantine"}}
     # Boot-time setup, and standalone-profile fixtures whose `poll` is compiled
     # only without native-system (checked below).
     OTHER = {"keyring.rs": {"prepare", "restart_fixture", "finish"},
@@ -783,10 +785,22 @@ class PostWakeLatchStructure(unittest.TestCase):
         self.assertIn('#[cfg(feature = "test-system-s3")]\n    let lost = super::system::resumed() && !reinitialised();',
                       lost)
         lines = (KERNEL / "m3/volume.rs").read_text().splitlines()
-        latches = [index for index, line in enumerate(lines) if "if super::system::resumed()" in line]
+        latches = [index for index, line in enumerate(lines) if "if device_lost()" in line]
         self.assertEqual(len(latches), 3)
         for index in latches:
             self.assertEqual(lines[index - 1].strip(), '#[cfg(feature = "test-system-s3")]')
+        # H05-T5c: no raw wake flag latches a volume path any more; the volume
+        # latch opens only after the validated blk re-init, never globally.
+        self.assertEqual([line for line in lines if "system::resumed()" in line.split("//")[0]],
+                         ["    super::system::resumed() && !blk_reinitialised()"])
+        bodies = functions(KERNEL / "m3/volume.rs")
+        start = bodies["device_lost"][0][0]
+        self.assertEqual(lines[start - 2].strip(), '#[cfg(feature = "test-system-s3")]')
+        text = "\n".join(lines)
+        self.assertIn('#[cfg(all(feature = "test-system-s3", not(feature = "test-system-s3-blk-reinit")))]\n'
+                      'fn blk_reinitialised() -> bool {\n    false\n}', text)
+        self.assertIn('#[cfg(feature = "test-system-s3-blk-reinit")]\nfn blk_reinitialised() -> bool {\n'
+                      '    blk_state().stage == BLK_DONE\n}', text)
 
     def test_each_latch_returns_before_any_device_statement(self):
         """The guarded statement itself, not only the latch text: each latch
@@ -814,10 +828,10 @@ class PostWakeLatchStructure(unittest.TestCase):
         self.assertEqual(following(quarantine, "let r = runtime();")[0], "let touch = !device_lost();")
         self.assertEqual(following(quarantine, bind)[:3], ["device_access();", "device.begin_reset();", "}"])
         self.assertEqual([line.split("//")[0].strip() for _, line in quarantine if "r.device" in line], [bind])
-        self.assertEqual(following(volume["reset"], "if super::system::resumed() {")[:2],
+        self.assertEqual(following(volume["reset"], "if device_lost() {")[:2],
                          ["super::system::device_access_suppressed();", "return;"])
-        self.assertEqual(following(volume["advance_lane"], "if super::system::resumed() {")[0], "return;")
-        self.assertEqual(following(volume["device_call"], "if super::system::resumed() {")[0], "return Err(-14);")
+        self.assertEqual(following(volume["advance_lane"], "if device_lost() {")[0], "return;")
+        self.assertEqual(following(volume["device_call"], "if device_lost() {")[0], "return Err(-14);")
         # Re-init: no MMIO before `rediscover` validated the BARs.
         fail = keyring["reinit_fail"]
         bind = "if let Some(device) = r.device.as_mut().filter(|_| validated) {"
@@ -846,6 +860,91 @@ class PostWakeLatchStructure(unittest.TestCase):
         poll = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["poll"])
         self.assertIn("if resumed() {\n        let handle = suspend_state().key_entropy;\n"
                       "        keyring::reinit_poll(", poll)
+
+    @staticmethod
+    def check_blk_reinit(volume: str, system: str) -> None:
+        """H05-T5c structural contract of the volume re-init (raises on a
+        violation): accounted device calls, reached only after the wake and
+        the rng re-init, no MMIO before `rediscover`, the same Policy object."""
+        path = Path("volume.rs")
+        bodies = {}
+        lines = volume.splitlines()
+        for index, line in enumerate(lines):
+            match = FUNCTION.match(line)
+            if match and match.group(1) not in bodies:
+                depth, started, body = 0, False, []
+                for number in range(index, len(lines)):
+                    code = lines[number].split("//")[0]
+                    depth += code.count("{") - code.count("}")
+                    started = started or "{" in code
+                    body.append((number + 1, lines[number]))
+                    if started and depth == 0:
+                        break
+                bodies[match.group(1)] = body
+        for fn in ("blk_reinit_poll", "blk_reinit_quarantine"):
+            body = bodies[fn]
+            if lines[body[0][0] - 2].strip() != '#[cfg(feature = "test-system-s3-blk-reinit")]':
+                raise AssertionError(f"{fn} is not test-system-s3-blk-reinit only")
+            previous = body[0][0]
+            for number, line in device_calls(body):
+                window = [text.strip() for at, text in body if previous <= at < number]
+                if "blk_reinit_access();" not in window[-8:]:
+                    raise AssertionError(f"unaccounted device call in {fn}: {line.strip()}")
+                previous = number
+        callers = {fn for fn, body in bodies.items() if fn != "blk_reinit_quarantine"
+                   and any("blk_reinit_quarantine(" in line for _, line in body)}
+        if callers != {"blk_reinit_poll"}:
+            raise AssertionError(f"quarantine reached from {callers}")
+        quarantine = [line.split("//")[0].strip() for _, line in bodies["blk_reinit_quarantine"]]
+        if quarantine[1] != "let validated = blk_state().bars.is_some();" or \
+                "if let Some(device) = lane.device.as_mut().filter(|_| validated) {" not in quarantine:
+            raise AssertionError("quarantine may touch the device before rediscover validated it")
+        poll = [line.split("//")[0].strip() for _, line in bodies["blk_reinit_poll"]]
+        if poll.index("let Ok(bars) = virtio_blk_driver::rediscover(&saved) else {") > \
+                next(i for i, line in enumerate(poll) if "begin_reset()" in line):
+            raise AssertionError("reset before rediscover")
+        block = volume[volume.index("// H05-T5c slice 1"):]
+        if "Policy::new" in block or re.search(r"\.policy\s*=[^=]", block):
+            raise AssertionError("re-init replaces the lane Policy")
+        for term in ("lane.policy.start_reset()", "lane.policy.reset_completed(true)",
+                     "lane.policy.reset_completed(false)"):
+            if term not in block:
+                raise AssertionError(f"missing {term}")
+        callers = [line for line in system.splitlines() if "blk_reinit_poll(" in line]
+        guard = ('    #[cfg(feature = "test-system-s3-blk-reinit")]\n'
+                 '    if resumed() && keyring::reinit_done() && !m5::blk_reinit_settled() {\n'
+                 '        m5::blk_reinit_poll(s);\n    }\n')
+        if callers != ["        m5::blk_reinit_poll(s);"] or guard not in system:
+            raise AssertionError("blk re-init reachable outside the validated wake")
+
+    def test_blk_reinit_is_accounted_latched_and_keeps_the_policy(self):
+        volume = (KERNEL / "m3/volume.rs").read_text()
+        system = (KERNEL / "m3/system.rs").read_text()
+        self.check_blk_reinit(volume, system)
+        guard = "if resumed() && keyring::reinit_done() && !m5::blk_reinit_settled() {"
+        mutants = {
+            # The re-init runs without a validated wake (unlatched re-init).
+            "unlatched re-init": (volume, system.replace(guard, "if !m5::blk_reinit_settled() {")),
+            "before the rng re-init": (volume, system.replace(guard, "if resumed() && !m5::blk_reinit_settled() {")),
+            "uncounted device call": (volume.replace(
+                "            blk_reinit_access();\n            if device.submit(", "            if device.submit("), system),
+            "quarantine MMIO before rediscover": (volume.replace(
+                "lane.device.as_mut().filter(|_| validated)", "lane.device.as_mut()"), system),
+            "fresh Policy": (volume.replace(
+                "        if lane.policy.start_reset().is_err() {",
+                "        lane.policy = Policy::new();\n        if lane.policy.start_reset().is_err() {"), system),
+            "global latch": (volume.replace("super::system::resumed() && !blk_reinitialised()",
+                                            "super::system::resumed()"), system),
+        }
+        for name, (v, s) in mutants.items():
+            with self.subTest(mutant=name):
+                self.assertTrue(v != volume or s != system, name)
+                if name == "global latch":
+                    # Caught by the exact device_lost body pin above.
+                    self.assertNotIn("super::system::resumed() && !blk_reinitialised()", v)
+                    continue
+                with self.assertRaises(AssertionError):
+                    self.check_blk_reinit(v, s)
 
     def test_standalone_broker_fixtures_never_run_in_native_system(self):
         m3 = (KERNEL / "m3.rs").read_text()
