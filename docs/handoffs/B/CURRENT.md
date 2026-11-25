@@ -44,9 +44,13 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   loader-probe (S6 step 1: firmware TCG2 works through the loader's own binding; `EFI_RNG_PROTOCOL` absent on the
   current TEST QEMU line), loader-rng (S6 step 4: present with an opt-in TEST virtio-rng device on OVMF 2025.11;
   `docs/verification/b03-rel05-loader-rng-20261125/`), U26 loader record `LREC` (`0x0100B305`, `NV_LREC` with
-  frozen Names, swtpm probe `docs/verification/b03-rel05-lrec-probe-20261125/`).
-- NOT RUN: `HAUTH` provisioning, loader code that reads or writes `LREC`, U22 write atomicity, native S5 and joint N04 tests, hosted CI for the loader-probe
-  and loader-rng cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
+  frozen Names, swtpm probe `docs/verification/b03-rel05-lrec-probe-20261125/`), TEST loader M1-HAUTH BOUND provisioning
+  (`tpm-hauth-provision-test`, `run_tpm.py --case loader-hauth`: provision, then verify on a second boot of the same swtpm
+  state; PCR 13 `CLOSED` through `HashLogExtendEvent`, SHA-256 bank = `P_CLOSED`; policy read and empty-ownerAuth refused;
+  no secret residue in the CRB buffer; `docs/verification/b03-rel05-hauth-bound-20261125/`, local commits 8f45c07e, 1a46fa21).
+- NOT RUN: native negative HAUTH/LREC cases (squat, unbound, foreign ownerAuth, power cut), PCR 13 read-back of the
+  SHA-1/384/512 banks, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
+  the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
   staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; U25 on the hosted OVMF image and real firmware.
 
@@ -76,33 +80,14 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- S6 step 4 (U25) is done locally: `run_guest(virtio_rng=True)` + `run_tpm.py --case loader-rng`; provisioning
-  cases must use that device. U26 is designed: `LREC` layout in REL-05 section 6.2, trusted only with the written
-  Name; the section 6.3 versus 10.5 UEFI-copy wording is flagged under U28. The U13c record-staging rule is
-  *proposed* (REL-05 section 10.5 "Record staging", host model `staged_record_replacement_converges`); OWNER
-  question open: adopt it in place of the halt-after-cut clause. The `LREC` codec is in `update-core`
-  (`trial::LoaderRecord`, `hauth_binding`; N confirmed no conflict with the N04 issuer). Next on #524: loader
-  `LREC`/`HAUTH` TPM I/O and `HAUTH`
-  provisioning (wipe, CRB buffer overwrite, PCR 13 extend last, all four banks), S3/U27, the section 7.9 halt,
-  native S5 with N's joint tests. Resume from the newest HANDOFF comment on #524.
-
-## Next slice spec (written 25 Nov ~18:15Z, not started)
-
-M1-HAUTH BOUND provisioning in the loader (TEST, QEMU/swtpm), without S3b (EK, `ENROLL` verification) and U28:
-1. Check the tpm-crb codec covers every command of the host model `loader()` block up to BOUND, within 128 bytes:
-   undefine (tolerate TPM_RC_HANDLE only), define and owner-write `HAUTH` (entropy from `EFI_RNG_PROTOCOL`,
-   `virtio_rng=True`), define `LREC` and policy-write it BOUND (`LoaderRecord`, `hauth_binding`), owner and lockout
-   `HierarchyChangeAuth`, read back with the Name and binding check. Fill any gap as its own codec commit first
-   (set `CARGO_TARGET_DIR`; `drivers/tpm-crb/target/` is untracked).
-2. PCR 13 extend in every active bank (codec is SHA-256 only; four banks under OVMF; one bank per command):
-   settle the mechanism from U2/U5 first.
-3. New TEST loader feature plus a new `run_tpm.py` case; kernel unchanged. The four existing cases keep their guest
-   stdout hashes. Update the `run_tpm.py` docstring and scope string ("no keys or NV mutation" no longer holds).
-4. In the loader, after the extend: the policy `HAUTH` read and an empty-auth owner command are refused. Markers
-   carry results only, never secret bytes.
-5. Sub-step 2: two boots on one swtpm state; the second reads `HAUTH` and matches `LREC`.
-Stop before genesis, ACCEPTED and the UEFI copy. NOT RUN: the SHA-256 working-state wipe of `hauth_binding`
-(no claim that the secret is wiped from loader memory).
+- Done locally (25 Nov, not pushed): M1-HAUTH BOUND provisioning slice (spec steps 1-5). Commits 8f45c07e (frozen Names,
+  frame sizes), 1a46fa21 (loader, runner, tests), then the evidence/docs commit. Observed: undefine of a missing index =
+  `0x28B`; refused owner command = `0x9A2` (`BAD_AUTH`, not DA-counted); policy read after the extend = `0x99D`.
+- Next on #524, in order: (a) native negative cases for the loader halt paths (squatted `HAUTH`, unbound `LREC`, foreign
+  ownerAuth; a swtpm pre-seeding step in `run_tpm.py`), (b) S3/U27 and the section 7.9 halt, (c) native S5 with N's joint
+  tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
+- When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
+  body and post a HANDOFF comment; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
 
 Lane: owner correction ~18:05Z. CI keeps priority until every CI batch is resolved, and the main freeze holds after #544.
 #524 (draft, BEHIND main) does not catch up or push until the PR guard grants the lane. Infra reruns on 5e126571

@@ -845,3 +845,26 @@ without the device. An exploratory `-cpu qemu64,+rdrand` run also gave
 `PASS` but was not kept. The contract source stays `EFI_RNG_PROTOCOL`. Still
 open for U25: the hosted OVMF 2024.02 image and a profile in which the kernel
 keyring uses the same device after the loader.
+
+### Loader M1-HAUTH BOUND provisioning results (25 November 2026)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-hauth-bound-20261125](../verification/b03-rel05-hauth-bound-20261125/README.md).
+The new loader feature `tpm-hauth-provision-test` runs the read-only probe and
+then the host model's `loader()` block up to BOUND through firmware TCG2
+`SubmitCommand` and the tpm-crb codec. On a fresh swtpm it undefines leftovers
+(only `TPM_RC_HANDLE` on handle 2, `0x28B`, is tolerated), defines `HAUTH` and
+checks the frozen unwritten Name, owner-writes 64 bytes from
+`EFI_RNG_PROTOCOL`, defines `LREC` and policy-writes it BOUND with
+`hauth_binding`, and sets ownerAuth. On every boot it checks the written
+`HAUTH` and `LREC` Names, reads `HAUTH` under `PolicyPCR(13 = 0³²)`, verifies
+the binding and sets lockoutAuth when unset. It then extends PCR 13 with
+`CLOSED` through `HashLogExtendEvent` (`EV_IPL`) on every path that reached
+the TPM and stops on any failure. After the extend the SHA-256 bank equals
+`P_CLOSED`, the policy read of `HAUTH` is refused with `TPM_RC_POLICY_FAIL`,
+an empty-ownerAuth owner undefine is refused with `TPM_RC_BAD_AUTH`, and
+neither 32-byte half of the secret remains in the CRB buffer. A second boot
+on the same swtpm state takes the read-and-verify path only. This settles U2
+for the SHA-256 bank of PCR 13 (the other three banks were not read back) and
+M1-HAUTH steps up to BOUND in this TEST profile only: first provisioning is
+unauthorised because S3b, genesis, ACCEPTED and the UEFI copy are not built.
