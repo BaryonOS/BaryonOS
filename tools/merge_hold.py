@@ -491,13 +491,14 @@ def runs_open(token, repo, pull, head_sha, plan):
     try:
         runs = [run for run in fetch_listing(token, url, "workflow_runs")
                 if run.get("path") in workflows and run_matches(run, repo, pull, head_sha)]
+        newest = {}
+        for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
+            if run["path"] not in newest or run_order(run) > run_order(newest[run["path"]]):
+                newest[run["path"]] = run
     except (OSError, ValueError, TypeError) as error:
+        # An unorderable run also lands here: the wait goes on and the full report fails closed.
         print(f"::warning::merge-hold wait poll failed ({error}); still waiting", file=sys.stderr)
         return True
-    newest = {}
-    for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
-        if run["path"] not in newest or run_order(run) > run_order(newest[run["path"]]):
-            newest[run["path"]] = run
     return (any(run.get("status") != "completed" for run in newest.values())
             or any(row["workflow"] not in newest for row in expected_gates(plan)))
 

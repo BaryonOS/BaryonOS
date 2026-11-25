@@ -1011,6 +1011,15 @@ class GateTests(TestCase):
         self.assertEqual(raised, failures)
         self.assertEqual(state["sleeps"], 3)
 
+    def test_an_unorderable_run_in_a_wait_poll_counts_as_open(self):
+        """Graphify on #517: run_order in the poll belongs inside the poll's error handling."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        unorderable = [wf_run(1, CI), wf_run(2, LEAVES), wf_run(3, LEAVES, created_at=None)]
+        with mock.patch.object(merge_hold, "fetch_listing", return_value=unorderable), \
+                mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertTrue(merge_hold.runs_open("t", "o/r", PULL, HEAD, plan))
+        self.assertIn("still waiting", err.getvalue())
+
     def test_a_gate_that_finishes_during_the_first_report_is_seen(self):
         """CodeRabbit on #517: a stale pending report is refreshed once before it decides."""
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
