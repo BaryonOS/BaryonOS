@@ -190,7 +190,10 @@ the `HAUTH` read carry the hierarchy secret in clear in the command or
 response buffer; the caller wipes those buffers and never formats them.
 Golden bytes are the commands swtpm 0.10.1 accepted
 (`docs/verification/b03-rel05-hauth-probe-20261125/`). No `TPM2_Clear`,
-`ClearControl` or platform-hierarchy command is encoded.
+`ClearControl` or platform-hierarchy command is encoded. Gap: `NV_Write` encodes only
+`authHandle` = the index, so the owner-authorised `HAUTH` write (OWNERWRITE)
+is not yet encodable; the loader slice adds an owner-authorised variant
+instead of widening `HAUTH` to AUTHWRITE.
 
 A policy session is sent with an empty nonce, empty HMAC and
 continueSession clear, so the TPM flushes it after one successful use; after

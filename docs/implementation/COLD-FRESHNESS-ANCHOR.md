@@ -95,8 +95,9 @@ The loader holds the only copy of the hierarchy secret outside the TPM:
 | Attributes | `OWNERWRITE | POLICYREAD | WRITEALL | NO_DA` = `0x02081002`; no `AUTHREAD`, `OWNERREAD` or `POLICY_DELETE` |
 | `authPolicy` | `PolicyPCR(13 = 0³²) + PolicyCommandCode(NV_Read)` = `339de543…ad82ae82` (`POLICY_LOADER_READ`) |
 | Entropy | `EFI_RNG_PROTOCOL`, default algorithm (U25); absent → halt. Never derived from a record, nonce or chain value |
-| Hygiene | the secret is never logged, never put in BootInfo or serial markers, and is wiped from loader memory before the PCR 13 extend; command and response buffers that carried it are wiped after use, and the policy `NV_Read` result (`Response::Data`, which implements `Debug`) is never formatted (loader slice: dedicated read path with wipe) |
+| Hygiene | the secret is never logged, never put in BootInfo or serial markers, and is wiped from loader memory before the PCR 13 extend; command and response buffers that carried it are wiped after use, and the policy `NV_Read` result is decoded into a caller buffer without `Copy` or `Debug` and wiped with volatile writes (loader slice; today `Response::Data` is `Copy + Debug` and must not carry the secret). Before the PCR 13 extend the loader overwrites the CRB data buffer up to the longest secret-bearing command or response length, because the kernel maps that buffer (native check planned) |
 | Loader record | binds `SHA-256(HAUTH)` and names the anchored instance; owner index written only under `PolicyPCR(13 = 0³²) + CC_NV_Write`. **Open design item U26** (handle, size, per-domain layout, public-area check); the host model assumes it |
+| Squatting | before writing the secret, `NV_ReadPublic` and the Name of `HAUTH` (and of the U26 record) must match `NV_HAUTH` exactly; any failed undefine or define, or a mismatch, halts. Never tolerate `NV_DEFINED` here: a runtime attacker with empty ownerAuth could pre-define `0x0100B304` with `AUTHREAD` or `POLICY_DELETE` and then read the secret (security review; host model and loader slice open) |
 
 Loader provisioning order (TEST profile, re-run from the start after any
 cut): remove leftovers while ownerAuth is still empty, define and write
@@ -292,8 +293,9 @@ Agreed with N on 25 November 2026. Residual risks are stated literally; no
 | Disk attacker (store replay) | present any authentic store it has seen | only the store the chain points to is accepted, plus the unacknowledged roll-forward of rule (c) |
 | T3: compromised, correctly measured kernel | extend arbitrary data on any domain | **denial only, but permanent** (P3, agreed): the chain leaves every authentic store and the domain stays denied until authorised re-genesis with a fresh instance, with all durable grants lost. No authorisation policy stops this, and a PCR 13 phase policy would not either, because the kernel legitimately extends at run time |
 | T3, TEST profile without M1-HAUTH (empty ownerAuth; the state until the loader enforces it) | `NV_UndefineSpace` + `NV_DefineSpace` + replay of the public genesis and extend events | **revival of an older store: NOT defended** (retained regression `undefine_redefine_replay_revives_with_empty_owner_auth`) |
-| T3 at run time, M1-HAUTH provisioned | undefine, redefine, clear, read `HAUTH`, write the loader record | **refused**: `TPM_RC_BAD_AUTH` / `AUTH_FAIL` / `POLICY_FAIL` on swtpm (probe H1–H3), next honest boot rejects X as `Stale` (`undefine_redefine_replay_refused_with_hauth_provisioning`). Not yet native |
-| T3 with an OS-usable platformAuth (U23 broken) | platform `TPM2_Clear`, then rebuild the old chain and its own `HAUTH`/hierarchy auth | denial *(host model only; rests on the open loader record U26)*: the record is missing, the next boot halts until a fresh recovery record, recovery clears the foreign hierarchy and provisions new secrets, old stores are `Foreign` (`tpm_clear_is_denial_until_authorised_recovery`) |
+| T3 at run time, M1-HAUTH provisioned | undefine, redefine, clear, read `HAUTH` | **refused**: `TPM_RC_BAD_AUTH` / `AUTH_FAIL` / `POLICY_FAIL` on swtpm (probe H1–H3), next honest boot rejects X as `Stale` (`undefine_redefine_replay_refused_with_hauth_provisioning`). Writing the loader record is refused in the host model only (U26). Not yet native |
+| T3 using ACPI S3: suspend without `TPM2_Shutdown(STATE)` | firmware may fall back to `Startup(CLEAR)` on resume, resetting PCR 13 to 0³² inside the same kernel, then read `HAUTH` | **NOT defended, unverified (U27)**: until the TPM-bearing TEST configuration disables S3 or the firmware is shown to halt or cap PCR 13 on resume, the runtime claim excludes S3 |
+| T3 with an OS-usable platformAuth (U23 broken) | platform `TPM2_Clear`, then rebuild the old chain and its own `HAUTH`/hierarchy auth | denial *(host model only; rests on the open loader record U26 and on U13c: the UEFI copy of the accepted serial must mark the old `ENROLL` as used, be written after the record and not be writable at run time; the model passes `fresh` as an oracle)*: the record is missing, the next boot halts until a fresh recovery record, recovery clears the foreign hierarchy and provisions new secrets, old stores are `Foreign` (`tpm_clear_is_denial_until_authorised_recovery`) |
 | T3 | set `endorsementAuth`; trip the lockout hierarchy with a wrong `lockoutAuth` | denial: EK check fails (section 10.5 halt); recovery uses ownerAuth, not lockoutAuth |
 | Boot-path attacker before B04: loader replaced on the ESP, `BootNext` to other code, or T5 (foreign OS) | run code at PCR 13 = 0³², read `HAUTH`, then undefine, redefine and replay | **revival of an older store one reboot later: NOT defended until B04** (residual `reboot_path_attacker_at_pcr13_zero_still_revives`). PCR 13 phase separation does not authenticate the boot path, the TPM identity or the kernel |
 | swtpm host administrator | snapshot and restore the whole TPM state with a matching store | not defended (REL-05 threat model) |
@@ -309,7 +311,7 @@ owner hierarchy, which conflicts with a protected ownerAuth; the consumer
 interface is unchanged. The counter alternative was not pursued.
 
 **What is claimed:** within a boot, code without loader-phase access (the
-kernel phase, T3 at run time) cannot undefine, redefine or clear the anchor,
+kernel phase, T3 at run time, excluding S3 resume until U27) cannot undefine, redefine or clear the anchor,
 so the targeted M1 revival is refused at run time and on the next honest
 boot (swtpm probe and host model; native proof open).
 **What is not claimed:** protection against code that runs at PCR 13 = 0³²
@@ -335,6 +337,14 @@ Listed in REL-05 section 14; the host model assumes them, S5 must prove them.
   therefore load-bearing.
 - U25 OVMF provides `EFI_RNG_PROTOCOL` in the loader phase (entropy for
   `HAUTH`).
+- U27 ACPI S3 resume in the TPM-bearing TEST QEMU configuration: whether
+  OVMF falls back to `Startup(CLEAR)` after a missing `TPM2_Shutdown(STATE)`
+  and so resets PCR 13. Required: disable S3 there, or prove the firmware
+  halts or caps PCR 13, plus a native negative test.
+- REL-05 section 7 item 9 still routes a cleared TPM to a `DEGRADED`
+  known-good boot, which runs the kernel with an empty ownerAuth; M1-HAUTH
+  and C665 require a halt until authorised recovery. Open conflict, resolved
+  in the loader slice.
 - U26 Loader record design (handle, size, per-domain layout and public-area
   check of the record that binds `HAUTH` and names the anchored instances).
   The clear-is-denial result rests on it.
