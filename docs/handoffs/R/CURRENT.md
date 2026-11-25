@@ -11,9 +11,10 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
   performance methodology. R does not own compositor (U), drivers (H),
   storage (S), network (N), security (B) or SDK/apps (A) source: R delivers
   measured bottleneck analyses and agrees one writer with the owner.
-- **Merge:** draft PRs only until the R merge delegation is durably recorded on
-  `main` (expected after CI PR #519). No force-push, admin bypass, direct `main`
-  push or weakened test.
+- **Merge:** R owns its pull requests up to a protected squash merge with the
+  expected head and verification on `main` (`ADR-SPECIALIST-TEAM-20261125`
+  item 2, merged with #527). Merge order is coordinated with the PR guard. No
+  force-push, admin bypass, direct `main` push or weakened test.
 - **Budgets:** candidate values only. R02-L1 requires a project-owner decision
   before any numeric budget becomes binding; budgets are never relaxed after a
   failed measurement.
@@ -182,6 +183,7 @@ directory. Request U review (UI/a11y); U does not merge. R updates
    `.text` (< 0x28000), rerun the host suite, then U's normal + recover
    sequence (see 13:30Z update); record results in the PR; push; update
    the PR verification table.
-2. After #527 merges: update #526 from `main` once and push this handoff with
-   it; merge #526 and #540 only under the recorded R delegation.
+2. #526: updated from `main` once after #527 (merge commit plus this
+   handoff); squash-merge with the expected head once its applicable checks pass
+   and the PR guard confirms the order.
 3. Keep the `calculator-restored` timeout signal open.
