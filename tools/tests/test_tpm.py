@@ -17,9 +17,15 @@ class NativeTpmTranscriptTests(unittest.TestCase):
     HAUTH = ("LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:{permanent:016x}\n{mode}\n"
              "LOADER-HAUTH:BOUND\n{lockout}\nLOADER-HAUTH:PCR13:CLOSED\n"
              "LOADER-HAUTH:READ:REFUSED\nLOADER-HAUTH:OWNER:REFUSED\n"
+             "LOADER-HAUTH:DA:0000000000000000:0000000000000000\n"
              "LOADER-HAUTH:RESIDUE:NONE\nLOADER-HAUTH:PASS\n")
+    HALT = ("LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:0000000000000400\n"
+            "LOADER-HAUTH:MODE:PROVISION\nLOADER-HAUTH:HALT:PCR13:CLOSED\n"
+            "LOADER-HAUTH:FAIL:RNG_ABSENT:0000000000000000\n")
 
     def transcript(self, case, boot=0):
+        if case == "loader-hauth-no-rng":
+            return self.LOADER + self.HALT
         if case == "loader-hauth":
             mode, lockout = probe.HAUTH_MODE[boot]
             hauth = self.HAUTH.format(permanent=0x405 if boot else 0x400, mode=mode, lockout=lockout)
@@ -39,7 +45,7 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         return text + "\n".join(extra + [f"TPMCRB:{k}:{v:020d}" for k, v in values.items()]) + "\n"
 
     def test_completed_and_missing_device_cases(self):
-        for case in probe.FEATURES:
+        for case in set(probe.FEATURES) - set(probe.HALT):
             self.assertEqual(probe.evaluate(self.transcript(case), case)["BOUNDS_REJECTED"], 7)
 
     def test_loader_probe_records_firmware_facts_and_rejects_gaps(self):
@@ -85,6 +91,9 @@ class NativeTpmTranscriptTests(unittest.TestCase):
             (good.replace("LOADER-HAUTH:PCR13:CLOSED\n", ""), 0),
             (good.replace("HAUTH:PERMANENT:0000000000000400", "HAUTH:PERMANENT:0000000000000401"), 0),
             (good.replace("RNG:PASS", "RNG:ABSENT"), 0),
+            (good.replace("DA:0000000000000000:0000000000000000", "DA:0000000000000000:0000000000000001"), 0),
+            (good.replace("LOADER-HAUTH:DA:0000000000000000:0000000000000000\n", ""), 0),
+            (good + "LOADER-HAUTH:HALT:PCR13:CLOSED\n", 0),
             (good, 2),
         ):
             with self.subTest(bad=bad, boot=boot), self.assertRaises(ValueError):
@@ -92,6 +101,34 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         for case in ("loader-rng", "normal"):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 probe.evaluate(good, case)
+
+    def test_loader_halt_stops_after_the_closed_extend_and_before_the_kernel(self):
+        good = self.transcript("loader-hauth-no-rng")
+        result = probe.evaluate(good, "loader-hauth-no-rng")
+        self.assertEqual((result["HAUTH_PERMANENT"], result["LOADER_RNG"]), (0x400, "ABSENT"))
+        self.assertEqual(probe.markers("loader-hauth-no-rng")[-1],
+                         "LOADER-HAUTH:FAIL:RNG_ABSENT:0000000000000000")
+        self.assertEqual((probe.HALT_EXIT, probe.LOADER_RNG["loader-hauth-no-rng"]), (35, "ABSENT"))
+        for bad, boot in (
+            (good + self.transcript("normal"), 0),
+            (good + "KERNEL:ENTRY\n", 0),
+            (good + "M1:PASS\n", 0),
+            (good.replace("LOADER-HAUTH:MODE:PROVISION\n", "LOADER-HAUTH:MODE:PROVISION\nLOADER-HAUTH:BOUND\n"), 0),
+            (good.replace("HALT:PCR13:CLOSED", "HALT:PCR13:OTHER"), 0),
+            (good.replace("LOADER-HAUTH:HALT:PCR13:CLOSED\n", ""), 0),
+            (good.replace("FAIL:RNG_ABSENT", "FAIL:RNG_ZERO"), 0),
+            (good + "LOADER-HAUTH:PASS\n", 0),
+            (good.replace("RNG:ABSENT", "RNG:PASS"), 0),
+            (good.replace("HAUTH:PERMANENT:0000000000000400", "HAUTH:PERMANENT:0000000000000405"), 0),
+            (good, 1),
+        ):
+            with self.subTest(bad=bad, boot=boot), self.assertRaises(ValueError):
+                probe.evaluate(bad, "loader-hauth-no-rng", boot)
+        for case in ("loader-hauth", "loader-probe", "normal"):
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                probe.evaluate(good, case)
+        with self.assertRaises(ValueError):
+            probe.evaluate(self.transcript("loader-hauth"), "loader-hauth-no-rng")
 
     def test_virtio_rng_is_a_boolean_opt_in_of_the_tpm_fixture_only(self):
         import run

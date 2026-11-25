@@ -26,8 +26,13 @@ const LOCKOUT_AUTH_SET: u32 = 1 << 2;
 const RC_UNDEFINED: u64 = 0x28b;
 /// `TPM_RC_POLICY_FAIL` on session 1 (probe U1).
 const RC_POLICY_FAIL: u64 = 0x99d;
-/// `TPM_RC_BAD_AUTH` on session 1: a hierarchy authValue failure, not DA-counted.
+/// `TPM_RC_BAD_AUTH` on session 1: a hierarchy authValue failure; the loader
+/// reads the DA lockout counter around it.
 const RC_BAD_AUTH: u64 = 0x9a2;
+/// `TPM_PT_PERMANENT` and `TPM_PT_LOCKOUT_COUNTER`: `PT_VAR + 0` and `PT_VAR + 14`
+/// (Part 2 `TPM_PT`; libtpms 0.10 `src/tpm2/TpmTypes.h`).
+const PT_PERMANENT: u32 = 0x200;
+const PT_LOCKOUT_COUNTER: u32 = 0x20e;
 /// `EV_IPL` (TCG PC Client Platform Firmware Profile, OS-loader measurements).
 const EV_IPL: u32 = 0x0d;
 
@@ -66,12 +71,21 @@ pub fn run(fw: &Firmware) {
     let mut secret = Wiped([0u8; MAX_NV_DATA]);
     let bound = bind(fw, &tpm, &mut secret.0);
     // Close the loader window first, whatever happened above.
-    let result = tpm
-        .extend_closed()
+    let extended = tpm.extend_closed();
+    let result = extended
         .and(bound)
         .and_then(|()| after(fw, &tpm, &secret.0));
     drop(secret);
     if let Err(f) = result {
+        if extended.is_ok() {
+            // Observation only: the original failure is reported either way.
+            let line: &[u8] = match tpm.pcr13() {
+                Ok(digest) if digest == rel05::P_CLOSED => b"LOADER-HAUTH:HALT:PCR13:CLOSED\n",
+                Ok(_) => b"LOADER-HAUTH:HALT:PCR13:OTHER\n",
+                Err(_) => b"LOADER-HAUTH:HALT:PCR13:UNREADABLE\n",
+            };
+            serial::write(line);
+        }
         fail(f);
     }
     serial::write(b"LOADER-HAUTH:PASS\n");
@@ -87,7 +101,7 @@ fn fail((code, detail): Fail) -> ! {
 }
 
 fn bind(fw: &Firmware, tpm: &Tpm, secret: &mut [u8; MAX_NV_DATA]) -> Result<(), Fail> {
-    let permanent = tpm.permanent()?;
+    let permanent = tpm.property(PT_PERMANENT)?;
     serial::write(b"LOADER-HAUTH:PERMANENT:");
     serial::hex(u64::from(permanent));
     serial::write(b"\n");
@@ -193,6 +207,7 @@ fn after(fw: &Firmware, tpm: &Tpm, secret: &[u8; MAX_NV_DATA]) -> Result<(), Fai
         Ok(()) => return Err((b"READ_ALLOWED", 0)),
     }
     serial::write(b"LOADER-HAUTH:READ:REFUSED\n");
+    let failures = tpm.property(PT_LOCKOUT_COUNTER)?;
     match tpm.command(Request::NvUndefineSpace {
         index: hauth,
         owner_auth: Password::new(&[]).map_err(codec_fail)?,
@@ -202,9 +217,21 @@ fn after(fw: &Firmware, tpm: &Tpm, secret: &[u8; MAX_NV_DATA]) -> Result<(), Fai
         Ok(_) => return Err((b"OWNER_ALLOWED", 0)),
     }
     serial::write(b"LOADER-HAUTH:OWNER:REFUSED\n");
-    // The scan must see the real buffer: it still holds that last response.
-    const LAST: [u8; 10] = [0x80, 0x01, 0, 0, 0, 0x0a, 0, 0, 0x09, 0xa2];
-    if (0..LAST.len()).any(|at| crb_byte(at) != LAST[at]) {
+    let counted = tpm.property(PT_LOCKOUT_COUNTER)?;
+    serial::write(b"LOADER-HAUTH:DA:");
+    serial::hex(u64::from(failures));
+    serial::write(b":");
+    serial::hex(u64::from(counted));
+    serial::write(b"\n");
+    if counted != failures {
+        return Err((b"DA_COUNTED", u64::from(counted)));
+    }
+    // The scan must see the real buffer: it still holds the last response, the
+    // one-property `GetCapability` answer for 0x20E (byte 10 is moreData).
+    const LAST: [u8; 23] = [
+        0x80, 0x01, 0, 0, 0, 0x1b, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 0, 0, 0x02, 0x0e,
+    ];
+    if (0..LAST.len()).any(|at| at != 10 && crb_byte(at) != LAST[at]) {
         return Err((b"RESIDUE_UNREADABLE", 0));
     }
     if residue(secret) {
@@ -342,15 +369,12 @@ impl Tpm {
         }
     }
 
-    fn permanent(&self) -> Result<u32, Fail> {
-        match self.command(Request::Properties {
-            first: 0x200,
-            count: 1,
-        })? {
+    fn property(&self, id: u32) -> Result<u32, Fail> {
+        match self.command(Request::Properties { first: id, count: 1 })? {
             Response::Properties {
                 count: 1, values, ..
-            } if values[0].property == 0x200 => Ok(values[0].value),
-            _ => Err((b"PERMANENT", 0)),
+            } if values[0].property == id => Ok(values[0].value),
+            _ => Err((b"PROPERTY", u64::from(id))),
         }
     }
 

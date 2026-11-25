@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Real kernel CRB MMIO over a disposable local swtpm. The loader-hauth case
-writes TEST hierarchy auth and NV (M1-HAUTH) into that disposable state only."""
+writes TEST hierarchy auth and NV (M1-HAUTH) into that disposable state only;
+loader-hauth-no-rng checks that the loader halts after the CLOSED extend."""
 from __future__ import annotations
 
 import argparse
@@ -21,15 +22,21 @@ from run import run_guest
 
 FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
             "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb",
-            "loader-hauth": "native-tpm-crb"}
+            "loader-hauth": "native-tpm-crb", "loader-hauth-no-rng": "native-tpm-crb"}
 # B03 REL-05 S6 step 1: firmware TCG2/RNG before EBS, then the normal kernel case.
 # loader-hauth (M1-HAUTH BOUND, TEST): the probe, then provisioning on boot 0 and
 # verification on boot 1 of the same swtpm state.
 LOADER = {"loader-probe": "tpm-loader-probe-test", "loader-rng": "tpm-loader-probe-test",
-          "loader-hauth": "tpm-hauth-provision-test"}
+          "loader-hauth": "tpm-hauth-provision-test", "loader-hauth-no-rng": "tpm-hauth-provision-test"}
 BOOTS = {"loader-hauth": 2}
+# Halt cases: the loader extends CLOSED, then stops before any secret and before the kernel.
+HALT = {"loader-hauth-no-rng": ("LOADER-HAUTH:BEGIN", "LOADER-HAUTH:MODE:PROVISION",
+                                "LOADER-HAUTH:HALT:PCR13:CLOSED",
+                                "LOADER-HAUTH:FAIL:RNG_ABSENT:0000000000000000")}
+HALT_EXIT = 35  # loader serial::exit(0x11), as tools/test.py pins for M1:FAIL
 # U25: the TEST profile has no firmware RNG; `loader-rng` and `loader-hauth` add a virtio-rng device.
-LOADER_RNG = {"loader-probe": "ABSENT", "loader-rng": "PASS", "loader-hauth": "PASS"}
+LOADER_RNG = {"loader-probe": "ABSENT", "loader-rng": "PASS", "loader-hauth": "PASS",
+              "loader-hauth-no-rng": "ABSENT"}
 LOADER_MARKERS = ("LOADER-TPM:TCG2:PRESENT", "LOADER-TPM:PCR13:ZERO", "LOADER-TPM:PASS")
 HAUTH_MODE = (("LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:LOCKOUT:SET"),
               ("LOADER-HAUTH:MODE:EXISTING", "LOADER-HAUTH:LOCKOUT:KEPT"))
@@ -45,6 +52,8 @@ COMMON = ("M2:PASS", "TPMCRB:BOUNDS:PASS", "TPMCRB:MAPPING:PASS",
 
 
 def markers(case, boot=0):
+    if case in HALT:
+        return LOADER_MARKERS + HALT[case]
     final = ("TPMCRB:ABSENT:PASS",) if case == "absent" else ("TPMCRB:RELEASED:PASS", "TPMCRB:PASS")
     hauth = hauth_markers(boot) if case == "loader-hauth" else ()
     # run.is_success matches in serial order: the loader prints before EBS.
@@ -55,6 +64,8 @@ def markers(case, boot=0):
 def evaluate(stdout, case, boot=0):
     if case not in FEATURES or not 0 <= boot < BOOTS.get(case, 1):
         raise ValueError("Unknown native TPM case")
+    if case in HALT:
+        return halted(stdout, case)
     result = run_ipc_wait.evaluate(stdout)
     for marker in markers(case, boot):
         if stdout.splitlines().count(marker) != 1:
@@ -66,6 +77,12 @@ def evaluate(stdout, case, boot=0):
         if len(permanent) != 1 or (int(permanent[0], 16) & 0x5) != (0 if boot == 0 else 0x5):
             raise ValueError("Invalid HAUTH ownerAuth/lockoutAuth state")
         result["HAUTH_PERMANENT"] = int(permanent[0], 16)
+        # The refused owner command must leave the DA lockout counter (0x20E) unchanged.
+        da = re.findall(r"^LOADER-HAUTH:DA:([0-9a-f]{16}):([0-9a-f]{16})$", stdout, re.M)
+        if (len(da) != 1 or len(re.findall(r"^LOADER-HAUTH:DA:", stdout, re.M)) != 1
+                or da[0][0] != da[0][1] or "LOADER-HAUTH:HALT:" in stdout):
+            raise ValueError("Invalid HAUTH lockout-counter observation")
+        result["HAUTH_DA_COUNTER"] = int(da[0][0], 16)
     elif "LOADER-HAUTH:" in stdout:
         raise ValueError("HAUTH loader output outside the loader-hauth case")
     if case in LOADER:
@@ -91,6 +108,23 @@ def evaluate(stdout, case, boot=0):
             raise ValueError("Absent TPM cannot approve the normal case")
     elif result["WRITES"] != 0 or result["QUARANTINED"] != 1 or "TPMCRB:PASS" in stdout:
         raise ValueError("Missing TPM must be quarantined without any hardware write")
+    return result
+
+
+def halted(stdout, case):
+    lines = stdout.splitlines()
+    permanent = re.findall(r"^LOADER-HAUTH:PERMANENT:([0-9a-f]{16})$", stdout, re.M)
+    expected = [HALT[case][0], *(f"LOADER-HAUTH:PERMANENT:{value}" for value in permanent[:1]),
+                *HALT[case][1:]]
+    if (len(permanent) != 1 or int(permanent[0], 16) & 0x5
+            or [line for line in lines if line.startswith("LOADER-HAUTH:")] != expected):
+        raise ValueError("The loader must halt at exactly the expected HAUTH step")
+    if any(line.startswith(("KERNEL:", "M1:PASS", "M2:", "TPMCRB:", "IPCWAIT:")) for line in lines):
+        raise ValueError("The kernel ran after a loader halt")
+    result = loader_observations(stdout)
+    if result["LOADER_RNG"] != LOADER_RNG[case]:
+        raise ValueError(f"Loader RNG must be {LOADER_RNG[case]} in {case}")
+    result["HAUTH_PERMANENT"] = int(permanent[0], 16)
     return result
 
 
@@ -179,7 +213,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; no product keys, genesis, ACCEPTED or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
@@ -192,8 +226,9 @@ def run(case):
             label = f"tpm-{case}" if boot == 0 else f"tpm-{case}-boot{boot}"
             report["guest"] = run_guest(
                 label, required_markers=markers(case, boot), tpm_socket=control,
-                forbidden_markers=("TPMCRB:FAIL:", "IPCWAIT:FAIL:", "PANIC", "M3:FAIL:",
-                                   "LOADER-TPM:FAIL:", "LOADER-HAUTH:FAIL:"),
+                forbidden_markers=("TPMCRB:FAIL:", "IPCWAIT:FAIL:", "PANIC", "M3:FAIL:", "LOADER-TPM:FAIL:")
+                + (() if case in HALT else ("LOADER-HAUTH:FAIL:",)),
+                expected_exit=HALT_EXIT if case in HALT else 33,
                 expected_kernel_sha256=manifest["kernel"]["sha256"],
                 expected_loader_sha256=manifest["loader"]["sha256"],
                 virtio_rng=case in ("loader-rng", "loader-hauth"),
