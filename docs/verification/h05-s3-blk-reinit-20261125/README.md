@@ -1,0 +1,123 @@
+# H05-T5c slice 1: virtio-blk lane 0 re-initialisation after an S3 wake
+
+Date: 25 November 2026 (Europe/Amsterdam). Branch `claude/h05-t5c-blk-reinit-20261125`,
+base `origin/main` c61a1fe0. Decision record: amendment H05-T5c under
+ADR-H05-S3-SYSTEM-20261123 item 3 in `docs/DECISIONS.md`.
+
+## Scope
+
+After a validated ACPI S3 wake and the virtio-rng re-init, the kernel re-validates and
+re-initialises the virtio-blk primary lane (00:05.0). It then runs a discarded
+kernel READ of canary sector 0. If a check refuses, lane 0 is quarantined, every later
+block request returns -24, and the system continues to the S5 gate and cold recovery.
+No ring-3 block capability is issued, and `block_objects == 0` and the SUSPEND storage
+gate are unchanged.
+
+Evidence tags:
+- **emulator:** native QEMU/TCG.
+- **injected:** a labelled kernel-side corruption of one input of a real check.
+- **physical:** none.
+
+## Environment
+
+- QEMU 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), machine `pc-q35-8.2`, OVMF, TCG.
+- Rust toolchain `1.100.0`, from `rust-toolchain.toml` and CI.
+- Build and target directories live inside the worktree. `run_system.py` refuses an
+  artifact outside the checkout:
+  - `NOS_BUILD_DIR=build/h05-t5c`
+  - `NOS_TARGET_DIR=CARGO_TARGET_DIR=target/h05-t5c`
+
+## Commands and raw exit codes
+
+All logs are under `~/projects/BaryonOS-scratch/h/h05-t5c/`. Run directories are under `build/h05-t5c/run/`.
+
+| Command | Raw exit | Log |
+|---|---|---|
+| `cargo +1.100.0 test --locked` (drivers/virtio-blk) | 0 | session output |
+| `cargo +1.100.0 clippy --locked --all-targets -- -D warnings` (drivers/virtio-blk) | 0 | session output |
+| `cargo +1.100.0 fmt --all -- --check` (virtio-blk, kernel, sdk) | 0 | `kernel-fmt.log` |
+| `python3 -B -m unittest tests.test_system_harness` (64 tests) | 0 | session output |
+| `python3 -B -m unittest discover -s tools/tests -p test_sleep.py` (20 tests) | 0 | `test-sleep.log` |
+| `python3 -B tools/test_power_system.py` | 0 (`passed=True stages=22`) | `power-gate.log`, `build/h05-t5c/power-system-gate.json` |
+| `python3 -B tools/build.py --kernel-feature native-acpi-s3 && python3 -B tools/run_sleep.py --case cycles` | 0 (QEMU raw 33, `POWER:S3:PASS`) | `sleep-cycles.log` |
+| Capacity mutant: capacity removed from `negotiated_matches`, `power-s3-blk-reinit-capacity` | 1 (QEMU raw 35) | `mutation-capacity.log` |
+| The same stage after restoring the driver | 0 | `mutation-restored.log` |
+
+Power gate stages: the 11 power cases pass, each followed by a passing cold `recover`
+(QEMU raw 33). Of those 11 cases, the new blk-reinit profiles are:
+- `power-s3-blk-reinit`
+- `-busy`
+- `-identity`
+- `-capacity`
+- `-no-reset-ack`
+
+The stage durations add up to about 90 s, well within the existing 45-minute job
+timeout. `native-power.yml` was not changed: the gate step runs `test_power_system.py`,
+which iterates over `POWER_FEATURE`, and no stage-count pin exists in tests or
+workflows.
+
+## Native markers (from the gate run's `serial.txt`)
+
+| Case | Tag | Re-init marker | LOST_BLOCK | IO_AFTER_WAKE | ACCOUNTED_VOLUME |
+|---|---|---|---|---|---|
+| blk-reinit | emulator | `VOLUME:S3:REINIT:BARS=RESTORED:STATUS=15:CAPACITY=00000000000000002048:SELFTEST=READ` | 6 | 0 | 8 |
+| busy | injected (`SYSTEM:FAULT_INJECTED:S3_BLK_BUSY`) | `VOLUME:S3:REINIT:QUARANTINE:BROKER_BUSY` | 24 | 0 | 0 |
+| identity | injected (`S3_BLK_IDENTITY`) | `VOLUME:S3:REINIT:QUARANTINE:REDISCOVER` | 24 | 0 | 1 |
+| capacity | injected (`S3_BLK_CAPACITY`) | `VOLUME:S3:REINIT:QUARANTINE:CAPACITY` | 24 | 0 | 5 |
+| no-reset-ack | injected (`S3_BLK_NO_RESET_ACK`) | `VOLUME:S3:REINIT:QUARANTINE:RESET_ACK` | 24 | 0 | 731 (polling, timing dependent) |
+
+What the markers show:
+- **LOST_BLOCK:** init's post-wake 0x40 result as a magnitude. -6 means the request
+  reached the authority check; -24 means the lane is quarantined.
+- **Success case only:**
+  - `SUSPEND_BLK_STALE_TICKET=1`: a pre-sleep ticket peek and an old-epoch publish
+    were both refused.
+  - `SUSPEND_BLK_QUARANTINED=0`.
+- **Every injected case:** `SUSPEND_BLK_QUARANTINED=1`.
+- **Accounted re-init accesses:** every one is counted (ACCOUNTED_VOLUME), and
+  `IO_AFTER_WAKE` stays 0 over the keyring and volume accounted totals.
+
+## PIC / INTx finding
+
+On the success path, the INTx line is read from config 0x3c before the self-test. The
+8259 masks are read with `in al, dx` from ports 0x21 and 0xa1:
+
+- `SUSPEND_BLK_INTX_LINE=10`
+- `SUSPEND_BLK_PIC_MASTER=254`
+- `SUSPEND_BLK_PIC_SLAVE=255`
+
+The post-wake `timer_init` in `kernel/src/m2/m3.rs` masks every line except IRQ0, so
+IRQ10 is masked. INTx-disable is also set at the function, and MSI/MSI-X are
+re-disabled. An unmasked line would quarantine with `PIC_UNMASKED`. This path is
+implemented but was not provoked natively.
+
+## Notes required by the coordinator
+
+- **Quarantine code:** -24 is returned for a block request on a quarantined lane.
+  It is distinct from -13, -14 and every existing status code.
+- **Policy continuity:**
+  - The same lane Policy object is used: `start_reset` → `reset_completed(true)`.
+    `Policy::new()` and reassignment are never used.
+  - Pinned structurally by `tests/test_system_harness.py`
+    (`test_blk_reinit_is_accounted_latched_and_keeps_the_policy`, fresh-Policy mutant).
+  - Pinned by the host test `policy_epoch_ticket_floor_survives_the_reinit_reset` in
+    `drivers/virtio-blk`.
+  - Checked natively: TICKET_FLOOR and STALE_TICKET.
+- **Latch carryover against #522:** the test is pending until H merges main after #522.
+- **Published, uncompleted WRITE at SUSPEND:** a device lost in this state is already
+  refused by the existing SUSPEND storage gate, so no path was added.
+- **volume.rs:** 6 hunks:
+  - four one-token `resumed()` → `device_lost()` swaps;
+  - the `quarantine_code` wrapper in `syscall()`;
+  - one contiguous block at the end of the file.
+
+## Not run / not claimable
+
+- Hosted `native-power` CI was not run; this branch has not been pushed.
+- Physical S3 was not tested.
+- The `BARS=KEPT` branch was not observed, because local QEMU restores the BARs.
+- No real device fault was produced, such as a BAR, capacity or identity change.
+  The injections are kernel-side labels.
+- There is no IOMMU, so DMA isolation is not claimable.
+- The ring-3 re-grant, remount and key-erasure gate belong to slices 2-4 and are not
+  implemented.
