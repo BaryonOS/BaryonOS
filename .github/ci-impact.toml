@@ -14,7 +14,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 9
+revision = 10
 
 [policy]
 mode = "select"
@@ -82,11 +82,12 @@ push = "full"
 schedule = "full"
 workflow_dispatch = "manual"
 
-# merge-hold wait budgets (minutes), read from the trusted base. 0 on pull_request:
-# merge-hold decides at once and lists the gates it still waits for; re-run it after
-# they complete (docs/CI-CONTRACT.md, "Enforcement"). Both stay below the job timeout.
+# merge-hold wait budgets (minutes), read from the trusted base. On pull_request
+# merge-hold waits up to 40 minutes for running gates, so auto-merge can follow the
+# last gate without a manual re-run; it polls with one run listing per minute
+# (docs/CI-CONTRACT.md, "Enforcement"). Both stay below the 50-minute job timeout.
 [policy.budgets]
-pull_request_wait_minutes = 0
+pull_request_wait_minutes = 40
 merge_group_wait_minutes = 45
 
 [input_sets]

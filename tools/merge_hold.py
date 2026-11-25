@@ -43,9 +43,10 @@ repository, head repository, branch, event and workflow path. Missing,
 running, failed, cancelled, timed-out or skipped results block; a failed
 `core` or `rwa` job that the plan did not expect blocks too. "Not applicable"
 (filtered, other branch, condition false) is reported, never counted as a pass.
-With `policy.budgets.pull_request_wait_minutes = 0` it decides at once and
-lists what it still waits for; re-run the merge-hold job once those gates have
-finished. `policy.mode = "shadow"` in the base catalogue reports gates without
+With a positive `policy.budgets.pull_request_wait_minutes` it waits for running
+gates, polling with one run listing per minute, and decides once none is open or
+the budget ends; with 0 it decides at once. Gates still pending at the decision
+are listed; re-run the merge-hold job once they have finished. `policy.mode = "shadow"` in the base catalogue reports gates without
 blocking on them. On `merge_group`, where the selected workflows do not run,
 each member needs a successful `pull_request` merge-hold on its own head and
 a queue entry tree equal to that head tree.
@@ -461,6 +462,28 @@ def job_matches(row, job):
     return job.get("name") == row["check_name"]
 
 
+def counted_workflows(plan):
+    """The workflows whose runs on the head gate_report reads (merge-hold itself never counts)."""
+    rows = plan["selected"] + plan["excluded"]
+    return sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW})
+
+
+def runs_open(token, repo, pull, head_sha, plan):
+    """True while a counted workflow still runs for this head or an expected one has no run yet.
+
+    One run listing (usually one page) per poll instead of a full gate_report, so a
+    positive wait budget stays far below the GITHUB_TOKEN rate limit. Only the wait
+    uses it; the decision is always a full gate_report.
+    """
+    workflows = set(counted_workflows(plan))
+    url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request"
+    runs = [run for run in fetch_listing(token, url, "workflow_runs")
+            if run.get("path") in workflows and run_matches(run, repo, pull, head_sha)]
+    started = {run["path"] for run in runs}
+    return (any(run.get("status") != "completed" for run in runs)
+            or any(row["workflow"] not in started for row in expected_gates(plan)))
+
+
 def gate_report(token, repo, pull, head_sha, plan):
     """Return (passed, pending, failed) lines for the applicable gates of this head."""
     expected = expected_gates(plan)
@@ -469,7 +492,7 @@ def gate_report(token, repo, pull, head_sha, plan):
     # waiting on `needs` or a runtime matrix may not be listed yet.
     gated = {row["workflow"] for row in rows if row.get("class") in SELECTABLE
              and row.get("reason") not in ("event-not-applicable", "condition-false")}
-    workflows = sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW})
+    workflows = counted_workflows(plan)
     url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request"
     newest = {}
     for run in fetch_listing(token, url, "workflow_runs"):
@@ -560,7 +583,14 @@ def pull_request_gates(token, repo, number, head_sha):
         passed, pending, failed = gate_report(token, repo, pull, head_sha, plan)
         if failed or not pending or time.monotonic() >= deadline:
             break
-        time.sleep(POLL_SECONDS)
+        # Pending with nothing left running (a gate never started, or a run changed while
+        # it was read and already finished): waiting cannot help, so decide now.
+        if not runs_open(token, repo, pull, head_sha, plan):
+            break
+        while time.monotonic() < deadline:
+            time.sleep(POLL_SECONDS)
+            if not runs_open(token, repo, pull, head_sha, plan):
+                break
     skipped = [f"{row['check_name']}: not applicable (path filter)" for row in plan["selected"]
                if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True]
     lines.append(f"{len(passed)} applicable gate(s) passed; {len(skipped)} filtered out; "

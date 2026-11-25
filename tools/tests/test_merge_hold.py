@@ -955,6 +955,27 @@ class GateTests(TestCase):
         self.assertFalse(passed)
         self.assertEqual(state["sleeps"], 0)  # budget 0: decide at once
 
+    def test_wait_polls_with_one_run_listing_and_reports_only_when_runs_finish(self):
+        """#494 maintenance: a 40-minute budget must stay far below the GITHUB_TOKEN rate limit."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        polls = [running] * 30 + [GOOD_RUNS]
+        passed, out, state = self.decide(plan=plan, polls=polls)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 30)
+        # Two full reports (start and end), each reading jobs and re-reading every counted run;
+        # the 30 polls in between cost one run listing each.
+        self.assertEqual(sum("/jobs?" in url for url in state["calls"]), 4)
+        self.assertEqual(sum("/actions/runs?" in url for url in state["calls"]), 2 + 1 + 30)
+
+    def test_pending_with_nothing_left_running_decides_at_once(self):
+        """A run that already finished after changing between reads cannot resolve by waiting."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        passed, out, state = self.decide(plan=plan, rerun_during_read={2: {"run_attempt": 2}})
+        self.assertFalse(passed)
+        self.assertIn("changed while it was read", out)
+        self.assertEqual(state["sleeps"], 0)
+
     def test_failure_ends_the_wait_at_once(self):
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 10, "merge_group_wait_minutes": 45})
         runs_ = [wf_run(1, CI, conclusion="failure"), wf_run(2, LEAVES, "queued", None)]
