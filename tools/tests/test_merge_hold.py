@@ -864,6 +864,11 @@ class GateTests(TestCase):
                   "GitHub evaluates only the first 300), so GitHub may never start it. It stays expected "
                   "(fail-closed, docs/CI-CONTRACT.md K10); if GitHub skipped it, only a smaller pull request "
                   "or a new head clears it"),
+                 # Above the limit wins over a fallback code: the count, not the diff, is the cause.
+                 ({"changes": {"count": 301}, "mode": "full",
+                   "fallback": {"code": "shallow-history", "detail": [], "reasons": ["shallow-history"]}},
+                  "its path-filter result is undefined above 300 changed files (this change has 301; "
+                  "GitHub evaluates only the first 300), so GitHub may never start it"),
                  ({"changes": {"count": 0}, "mode": "full",
                    "fallback": {"code": "shallow-history", "detail": [], "reasons": ["shallow-history"]}},
                   "its path-filter result is unknown: the changed-file list is incomplete (fallback "
