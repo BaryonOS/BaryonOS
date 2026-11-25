@@ -1279,8 +1279,188 @@ held per device scope in the broker and not per object or handle. The
 service's in-memory latch and N32 remain as additional layers. The trigger and
 the interface by which the service sets the latch are specified before
 implementation; the latch and its own native test are R8 preconditions (8.2).
+**Kernel write latch: specification (O13; S-20261125-2, proposed, not implemented).**
+This paragraph fixes the trigger, the scope and the service interface that the
+decision above leaves to the specification. Nothing here exists in code at
+`8acf1dea` *[main]*. Revised after O13-SPEC-REVIEW-1 (REQUEST_CHANGES, RQ1–RQ4 and
+OPT1–OPT5) and O13-SPEC-REVIEW-2 (REQUEST_CHANGES on that revision, RQ1 and
+OPT1–OPT7; confirmed by O13-SPEC-VERIFY-3), then for a CodeRabbit finding
+(L1b) and O13-SPEC-REVIEW-4 on L1b (REQUEST_CHANGES, RQ1–RQ3 and OPT1–OPT2;
+applied here and confirmed by O13-SPEC-VERIFY-5 after one citation
+fix). All are AI reviews, not a human audit.
+
+- *Destination scope.* The destination profile marks exactly one block object
+  per boot as the destination object when it creates it (2.1); the broker
+  records that object's device and absolute sector range (first sector,
+  count) in a latch table kept beside the per-device `Policy` in
+  `crates/virtio-core` (OPT2), so that its rules get host tests and mutants.
+  The table is add-only: a registration only adds an entry, never replaces or
+  removes one, and a registration beyond its fixed capacity (proposed: 4
+  entries) fails the profile closed at creation (OPT4). It is broker memory,
+  filled at profile creation, never by a user request, and cleared only by a
+  new boot. Without a destination profile the table is empty, so no existing
+  volume, archive or power fixture changes behaviour. The destination device is
+  driven only by lane 1 of `kernel/src/m2/m3/volume.rs`; the destination
+  profile asserts at build time that no other virtio-blk broker (`m6`, `m6b`,
+  `m6c`, `update`) and no legacy volume broker (`native-smp-legacy`, which
+  builds `kernel/src/m2_legacy/m3/volume.rs` without a latch) is built with it
+  (OPT5; review 2, OPT3).
+- *State.* One bit per entry: open or latched. The bit only goes from open to
+  latched. No syscall, process exit, `detach`, reset, quarantine, restart path,
+  rebind or new grant clears it.
+- *Kernel trigger (L1).* When the per-device `Policy` gives a WRITE or
+  FLUSH `Completion::Unknown` (OPT2), the broker latches: for a WRITE, every
+  entry that its translated sector intersects; for a FLUSH, every entry of that
+  `Policy`'s device, because a flush acts on the whole device and
+  `Operation::Flush` carries no sector (`Operation::sector()` returns 0 for it,
+  `crates/virtio-core/src/lib.rs:62`, and sector 0 is a real disk-1 sector; review
+  2, RQ1). The `Unknown` cases are a completion without success
+  (`lib.rs:724-725`), the broker timeout that starts a reset (`timeout` →
+  `start_reset`, `lib.rs:766-781`), a malformed completion, after which the
+  broker resets the device and `start_reset` sets `Unknown` (review 2, OPT1),
+  and the owner's exit or kill while the request is published and uncompleted
+  (`Policy::exit` via `detach`, `lib.rs:788-794`). This is one hook in the `Policy`, not in the owner's poll, so an
+  owner that never polls, exits or is killed cannot avoid it. A READ outcome,
+  successful or not, never latches: a READ is never marked `Unknown` (each of
+  the three sites that set `Unknown` checks `is_mutating`). Completed but
+  unflushed WRITEs hold no record in the `Policy`, so a later reset cannot
+  latch on them; their loss in a cache-dropping reset (N26 (d), N33 (iii),
+  N37 (a)) is caught by the step-3 readback of 2.7, not by the latch (review 2,
+  OPT5).
+  L1 is a strict superset of the 2.7 trigger as the broker can observe it: it
+  also latches on a FORMAT write or flush failure, a mount or remount FLUSH
+  failure and an owner exit during a WRITE or FLUSH; each of those already
+  leads to a state without writes (2.6 failed-mount state, 2.7) (OPT1).
+- *Kernel trigger at refusal (L1b).* A WRITE or FLUSH that passed the
+  authority, scope and input-copy checks and that the broker then refuses for
+  a device-side reason latches at the refusal site in `device_call`, with the
+  same entry rule as L1 (WRITE: intersecting entries; FLUSH: every entry of
+  the device). The kernel produces these refusals itself, so the latch does
+  not depend on the service surviving to report them (CodeRabbit review
+  6054272902 on PR #521). Per refusal site (O13-SPEC-REVIEW-4, OPT1):
+  the lane is offline (-13, or -14 after a failed reset or a failed `discover`
+  or initialisation at boot, `volume.rs:597`, `:626`, `:647`): latch;
+  `policy.prepare` `Exhausted` (-14, ticket counter overflow) and the missing
+  device (`.ok_or(-14)`, unreachable because a lane without a device is
+  offline): latch, fail closed; `prepare_operation` fails for any reason,
+  `Busy` (-8) included (`drivers/virtio-blk/src/lib.rs:380-390`): latch;
+  `policy.prepare` `Range` (-1) and an `input_bytes` error (-3): caller-shape
+  errors, no latch. The -8 that the broker's own lane checks return
+  (`resetting`, `error` held, `Policy` phase not `Ready`) is the normal,
+  transient answer of 2.7 and does not latch.
+- *Service trigger (L2).* The service reports the 2.7 triggers that the
+  kernel cannot see: a kernel -8 past either bound of 2.7 (on submission
+  beyond 2 × `RESET_TIMEOUT`, on the completion poll beyond `POLL_BOUND`),
+  and a completion poll that returns -1 on its own WRITE or FLUSH, which 2.5
+  answers as `Unknown` -16 and so starts the safe path (CodeRabbit review
+  6054452266 on PR #521). The broker cannot latch on that -1 itself: it
+  answers -1 for a ticket that is already consumed or was never its own,
+  without knowing which request the caller meant.
+  With the K5 broker that state is unreachable: a reset ends within
+  `RESET_TIMEOUT` or quarantines the lane (then offline, L1b), and a
+  published request ends at `TIMEOUT` as `Unknown` (L1). L2 therefore covers
+  only a broker that breaks property 4 of 2.7. If the service dies in that
+  state before calling L2, the entry stays open; that residual is accepted
+  because it needs a broker defect plus a same-boot re-grant, which the
+  once-per-boot rule (2.1, N32) excludes for the shipped profile. The same
+  residual, under the same condition, holds for the -1 poll: under the poll
+  rule of 2.7 it shows a service defect (2.5), and if the service then dies
+  before calling L2, the entry stays open. Caller-shape
+  errors (-1, -3, -11) are not 2.7 triggers and latch nothing. The service
+  calls a new block syscall `0x44` (latch): `a[0]` a block handle, `a[1]` to
+  `a[5]` zero (otherwise -1). It runs only the shape check,
+  `check_block(BLOCK_WRITE)` (otherwise that capability error) and the range
+  test; it ignores the lane's `offline`, `resetting`, `error`, quarantine and
+  `Policy` phase, because the service calls it exactly when the lane is stuck
+  (RQ2). Routing: under `native-volume`, `volume.rs` is the module `m5`
+  (`kernel/src/m2/m3.rs:227-230`); `0x44` is added to both number matches in
+  `kernel/src/m2/m3.rs:2318-2336` (the exclusion from `m4::syscall` and the
+  `m5::syscall` dispatch, today `0x40 | 0x41` and `0x42 | 0x43`), gated on `native-volume`
+  so that `m6`, `m6b` and `m6c`, which share those matches under
+  `milestone-m5`, never see it (review 2, OPT2), and handled
+  in `volume.rs` before `device_call`'s device checks, which today refuse it
+  with -2 (`volume.rs:1007`). A process that may write the range may give
+  that right up, while a READ-only holder cannot use the latch to deny backups.
+  If the handle's scope contains one or more whole entries, those entries
+  are latched and the call returns 0; a handle whose scope only partly
+  overlaps an entry, or overlaps none, gets -5 and changes nothing, so a
+  holder cannot deny writes to sectors it has no right to (review 2, OPT4).
+  The call is idempotent and performs no device access. The service also calls
+  it after every L1 case it observes, so that its in-memory latch and the
+  kernel latch never disagree. It does not call it for an O17 digest mismatch
+  alone (O17; *[decided]*, package 2).
+- *Enforcement.* In `device_call`, a WRITE (0x42) whose translated sector lies
+  in a latched entry returns `Access` -5 after the authority and scope checks
+  and before the input copy, the per-device `Policy` and any device access, so
+  that no publication, completion or reset counter changes. READ (0x40), the
+  completion poll (0x41) and FLUSH (0x43) are not refused by the latch, as the
+  remount FLUSH and the recovery READs need them (package 2). WRITEs outside
+  every latched entry, including every disk-0 WRITE, are unaffected. Under K5 a
+  device has at most one request in its `Policy`, so no second WRITE is
+  published when L1 fires. The service maps any -5 on a destination WRITE to
+  the safe path (fails closed); no new code is needed.
+- *Relation to the other layers.* The service's in-memory latch (2.7), the
+  once-per-boot grant rule (2.1) and N32 stay.
+- *Native test (N38, new; R8 precondition).* A test-only kernel feature with a
+  scripted destination object on disk 1; latch state and counters are reported
+  by kernel markers and checked by the host oracle. (a) a WRITE answered `Ok`;
+  (b) an injected WRITE device error, with the latch marker read before any
+  0x41 poll, after which a WRITE on the same handle returns -5 with the disk-1
+  WRITE publication count unchanged; (c) READ and FLUSH on that handle are
+  still admitted and complete; (d) a test-only feature, never built together
+  with N32, performs the re-grant the once-per-boot rule forbids: after the
+  holder exits, a new object on a partly overlapping range with a different
+  first sector is granted; its WRITE that translates into the latched range
+  returns -5 and its WRITE outside it is admitted (RQ4); (e) a disk-0 WRITE is
+  admitted; (f) a separate run: `0x44` on a handle whose scope wholly contains an
+  unlatched entry, then a WRITE
+  returns -5; `0x44` from a READ-only handle is refused; `0x44` on a handle
+  whose scope intersects no entry, or only part of one, returns -5 and latches
+  nothing; over entries [0, 10) and [10, 20), `0x44` on a handle covering
+  [0, 15) returns 0, latches [0, 10), leaves [10, 20) open, and a WRITE into
+  [10, 20) is admitted (CodeRabbit, mixed overlap); `0x44` while
+  the lane is resetting or offline still latches (RQ2); (g) an injected FLUSH
+  error latches every entry of disk 1 although the flush carries no sector; a
+  broker timeout and a malformed completion of a WRITE each latch, again read
+  before any poll; a READ error does not; (h) the holder is killed while its WRITE is published and
+  uncompleted, and the latch is set (RQ3); (i) a latched WRITE with an invalid
+  input pointer returns -5, not -3; (j) a reset started by an injected
+  READ timeout fails (injected), so the lane goes offline; the latch marker
+  reads open; a destination WRITE then returns exactly -13 or -14 and the
+  marker reads latched; the holder is killed before any `0x44`, and under the
+  test-only re-grant of (d) a WRITE into the range returns -5 (L1b; review 4,
+  RQ1); separately, an injected `prepare_operation` failure on a WRITE (the
+  existing `bad_descriptor` path) latches, and an L1b FLUSH refusal latches
+  every disk-1 entry (review 4, OPT2); (l) a WRITE answered `Ok` is polled and consumed, and a
+  second poll of the same ticket returns -1 with the latch still open (the
+  broker does not latch on -1); the test then issues `0x44` as the service's
+  2.5 mapping requires, the latch reads latched, and a WRITE through a
+  handle granted under the test-only re-grant of (d) returns -5 (the service
+  mapping itself is tested on the host, R2); (k) during a reset started by an
+  injected READ timeout, a destination WRITE gets -8 and nothing latches;
+  after the reset the holder polls the READ's -13 (`lane.error` is held until
+  that 0x41 poll, `volume.rs:1066`), and then the same WRITE is admitted
+  (review 4, RQ2). Killing mutations: no check before the
+  `Policy`; a check after the input copy (i); a latch keyed on the object or
+  handle instead of the range, or on the whole device (d); a latch cleared by
+  `detach` or reset (d); a latch set at the poll and not in the `Policy` (b,
+  g, h); a hook only at the completion-error sites (h); a FLUSH latch tested on
+  `sector()` (g); a hook in `complete` and `timeout` only, missing the
+  malformed-completion reset (g); a READ that latches
+  (g); FLUSH refused (c); `0x44` refused while the lane is stuck (f); `0x44`
+  that always latches (f); `0x44` that returns -5 for a mixed overlap, or
+  latches the partly overlapped entry (f); a broker that latches on a -1
+  poll (l); a submission refusal that latches nothing (j); a
+  `prepare_operation` failure that latches nothing (j); an L1b FLUSH that
+  latches only sector 0 (j); a
+  -8 during a reset that latches (k).
+- *Answers to the review questions.* The barrier-1 variant of N37 (a) does not
+  latch: a FLUSH submitted while the lane resets gets -8 and is never admitted,
+  as in N26 (d); if that reset fails, the later submission's -13 or -14 latches
+  under L1b (review 4, RQ3). The reply code stays -5. The table lives in `virtio-core`.
+
 The latch ends only with the boot. Every destination runner
-must pass `-no-reboot` to QEMU, as `tools/run_volume.py:309` already does
+must pass `-no-reboot` to QEMU, as `tools/run_volume.py:374` already does
 *[main]*, so that each guest reboot ends the QEMU process and every boot in the
 gates is a new QEMU process; warm reboot of a product, which a guest cannot
 distinguish from a cold boot, stays open under O9.
@@ -1752,7 +1932,7 @@ harness: the source volume image as today, and a destination image attached as
 the second virtio-blk device at `00:06.0` *[main]*. No host disk, no physical
 device, and no image survives between gate runs except as recorded evidence.
 Every destination runner passes `-no-reboot` to QEMU (2.7), as
-`tools/run_volume.py:309` does *[main]*, so a guest reboot ends the QEMU
+`tools/run_volume.py:374` does *[main]*, so a guest reboot ends the QEMU
 process and each boot is a new process.
 
 **PCI slot and entropy conflict (R5 precondition).** Every runner that
