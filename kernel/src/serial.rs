@@ -35,11 +35,30 @@ pub fn init() {
     out8(0x3fc, 0x0b);
 }
 
+/// H06-T7 labelled injection: once armed, every transmit poll reports the
+/// holding register as busy, so the real bounded wait below runs to its end.
+#[cfg(feature = "test-hwinv-serial-timeout")]
+static STUCK: core::sync::atomic::AtomicBool = core::sync::atomic::AtomicBool::new(false);
+
+#[cfg(feature = "test-hwinv-serial-timeout")]
+pub fn inject_timeout() {
+    STUCK.store(true, core::sync::atomic::Ordering::SeqCst);
+}
+
+fn transmit_ready() -> bool {
+    #[cfg(feature = "test-hwinv-serial-timeout")]
+    if STUCK.load(core::sync::atomic::Ordering::SeqCst) {
+        let _ = in8(0x3fd);
+        return false;
+    }
+    in8(0x3fd) & 0x20 != 0
+}
+
 fn write_raw(bytes: &[u8]) {
     for &byte in bytes {
         let mut ready = false;
         for _ in 0..1_000_000 {
-            if in8(0x3fd) & 0x20 != 0 {
+            if transmit_ready() {
                 ready = true;
                 break;
             }

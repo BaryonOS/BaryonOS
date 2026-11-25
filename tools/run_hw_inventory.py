@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import os
 from pathlib import Path
 import shutil
@@ -54,11 +55,15 @@ CASES = {
                   dmar="HWINV:ACPI:DMAR=PRESENT:DRHD=1", acpi="ACPI:DISCOVERY:MCFG_DMAR"),
 }
 CASES["image"] = CASES["plain"]  # same machine; only the boot medium differs
+SERIAL_TIMEOUT_ARMED = "HWINV:FIXTURE:SERIAL_TIMEOUT_ARMED"
 # Fixture -> (kernel feature of its build, ordered marker prefixes, ESP file to remove).
 FIXTURES = {
     "panic": ("test-hwinv-panic", ("BOOTINFO:OK", "M2:PANIC_LINE:", "M1:FAIL:KERNEL_PANIC"), None),
     "m2-fault": ("test-hwinv-m2-fault", ("M2:FAULT:KERNEL_UD:PASS", "M2:FAIL:KERNEL_EXCEPTION"), None),
     "hwinv-fail": ("test-hwinv-fail", ("M2:PASS", "HWINV:BEGIN", "HWINV:FAIL:FIXTURE"), None),
+    # H06-T7: after this marker every transmit poll reports busy; the bounded UART wait
+    # must then halt silently, so no failure marker can follow and the log stays truncated.
+    "serial-timeout": ("test-hwinv-serial-timeout", ("M2:PASS", "HWINV:BEGIN", SERIAL_TIMEOUT_ARMED), None),
     # Loader M1:FAIL before ExitBootServices, on the unmodified production build.
     "missing-kernel": ("native-hw-inventory", ("M1:FAIL:KERNEL_OPEN",), "kernel.elf"),
 }
@@ -122,15 +127,28 @@ def evaluate_fixture(text: str, fixture: str, alive: bool) -> dict:
     lines = text.replace("\r", "").splitlines()
     positions = [next((i for i, line in enumerate(lines) if line.startswith(marker)), -1)
                  for marker in FIXTURES[fixture][1]]
+    # A serial timeout leaves no failure marker: the protocol must reject the truncated block.
+    expected = ("log needs exactly one HWINV:BEGIN and one HWINV:PASS" if fixture == "serial-timeout"
+                else "log reports ")
     try:
         inventory_from_log(text)
         rejected = False
     except InventoryLogError as error:
-        rejected = str(error).startswith("log reports ")
-    return {"fixture_markers_in_order": -1 not in positions and positions == sorted(positions),
-            "no_hwinv_pass": "HWINV:PASS" not in lines,
-            "protocol_failure_recognised": rejected,
-            "halted_without_exit_port": alive}
+        rejected = str(error).startswith(expected)
+    checks = {"fixture_markers_in_order": -1 not in positions and positions == sorted(positions),
+              "no_hwinv_pass": "HWINV:PASS" not in lines,
+              "protocol_failure_recognised": rejected,
+              "halted_without_exit_port": alive}
+    if fixture == "serial-timeout":
+        # Nothing may follow the armed marker: the next write is the one that timed out.
+        checks["silent_after_injection"] = lines.count(SERIAL_TIMEOUT_ARMED) == 1 and lines[-1] == SERIAL_TIMEOUT_ARMED
+    return checks
+
+
+def cpu_halted(control) -> bool:
+    """HMP `info registers` reports the x86 halt state as `HLT=1`; -smp 1, so one CPU."""
+    reply = control.command("human-monitor-command", {"command-line": "info registers"})
+    return isinstance(reply, str) and re.search(r"\bHLT=1\b", reply) is not None
 
 
 def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None = None,
@@ -185,6 +203,7 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
     failure = None
     qmp_pci = None
     alive_at_pass = False
+    halted = False
     trace: list = []
     rc = None
     with (directory / "serial.txt").open("wb") as stdout, (directory / "stderr.txt").open("wb") as stderr:
@@ -197,6 +216,10 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
                 lines = (directory / "serial.txt").read_bytes().decode("utf-8", "replace").splitlines()
                 if any(line.rstrip("\r") == "HWINV:PASS" or any(m in line for m in FAILURES) for line in lines):
                     break
+                # The serial-timeout fixture ends silently: wait for the vCPU to reach HLT instead.
+                if (case == "serial-timeout" and any(line.rstrip("\r") == SERIAL_TIMEOUT_ARMED for line in lines)
+                        and cpu_halted(control)):
+                    break
                 if time.monotonic() >= deadline or process.poll() is not None:
                     raise RuntimeError("HW-INV did not reach HWINV:PASS or a failure marker")
                 time.sleep(0.05)
@@ -205,6 +228,8 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
             if alive_at_pass:
                 if case in CASES:
                     qmp_pci = qmp_functions(control.command("query-pci"))
+                else:
+                    halted = cpu_halted(control)
                 control.command("quit")
             rc = process.wait(timeout=max(0.1, deadline - time.monotonic()))
         except Exception as error:  # recorded in the report; the case fails
@@ -222,6 +247,7 @@ def run_case(case: str, *, build_directory: Path = BUILD, run_root: Path | None 
         checks, inventory, error = evaluate(text, case, qmp_pci, alive_at_pass)
     else:
         checks, inventory, error = evaluate_fixture(text, case, alive_at_pass), None, None
+        checks["cpu_halted"] = halted  # a terminal path ends in CLI/HLT, not a spin or a reset
     checks["source_unchanged"] = source_hash() == frozen
     if image is not None:
         checks["image_unchanged"] = sha256(directory / "hw-inventory.img") == image["image_sha256"]
