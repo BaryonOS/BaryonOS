@@ -28,21 +28,20 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: cloud (CLOUD-HANDOFF-B, 25 Nov); the local B session is archived and no longer writes.
-- cycle_id: b05-t6-virtio-caps-20261125 (previous b05-t5-user-abi-20261125 closed: #511 merged as bd31a78b,
-  verified on main; user.rs line coverage 99% -> 100%).
-- task: B05-T6 oracle-checked bounded enumeration of the virtio PCI capability walk (`crates/virtio-core`)
-- branch: claude/b05-virtio-caps-20261123
+- Session: local again (25 Nov, hand-back through #503); the cloud B session stopped and no longer writes.
+- cycle_id: b03-f1-floor-crash-20261125 (previous b05-t6-virtio-caps-20261125 closed: #512 merged as ea38dcc6, tree-equal to head b0966d7a).
+- task: B03-F1 native characterization of REL-05 (anti-rollback floor raised before kernel health); not a fix.
+- branch: claude/b03-floor-crash-20261123
 - PR: see the HANDOFF comment for the number and expected head
 - state: RESUME_REQUIRED until the PR is squash-merged and verified on main.
-- result: host-only test `crates/virtio-core/tests/bounded_capability_invariants.rs` (6 tests), verifier MERGE;
-  now listed under the `virtio-dma` boundary in `docs/security-review/scope.json`. Production source unchanged.
+- result: `tools/characterize_update_floor.py` + 9 host tests; evidence `docs/verification/b03-floor-crash-20261123/`.
+  Re-run on main-merged source 25 Nov (QEMU 8.2.2, pc-q35-8.2): hazard observed, all four boots as expected.
 
 ## Evidence / NOT RUN
 
-- Evidence: `docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md`. On the main-merged head:
-  `cargo test -p virtio-core` (21 unit + 6 integration), clippy, fmt, `tools/b05_scope_check.py` and its unit test exit 0.
-- NOT RUN: native QEMU (test-only change); hardware; human audit. No B05 credit.
+- Evidence: the README above (original run at a91d5ade + re-run section). Host tests 9/9 OK.
+- NOT RUN: physical hardware; human audit. B03 stays accepted on main; REL-05 is an open design hazard that needs an
+  owner policy decision (trial boot / health confirmation) before any loader change.
 
 ## Merge procedure lesson (25 Nov)
 
@@ -58,9 +57,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - B04 hosted Secure Boot job: protected `.github/**` request
   (docs/implementation/B04-SECURE-BOOT-CI-INTEGRATION-REQUEST.md).
 
-## Queued B branches (pushed, merged with main on 24–25 Nov, no PR yet)
+## Queued B work (no PR yet)
 
-- claude/b03-floor-crash-20261123 — B03-F1 REL-05 characterization (not a fix); 9 host tests pass.
 - REL-05 fix (floor raised before kernel health) needs an owner policy decision (trial boot / health
   confirmation); B drafts a proposal, no silent change to anti-rollback semantics.
 
@@ -72,5 +70,6 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- Finish the B05-T6 PR (gates, merge-hold re-run, expected-head squash merge, verify on main,
-  post `HANDOFF B b05-t6-virtio-caps-20261125`), then B03-F1, then the REL-05 policy proposal.
+- Finish the B03-F1 PR (gates, merge-hold re-run, expected-head squash merge, verify on main, post
+  `HANDOFF B b03-f1-floor-crash-20261125`). REL-05 policy proposal: `docs/implementation/B03-REL05-FLOOR-POLICY-PROPOSAL.md`
+  (owner decision A/B/C pending; no loader change before it).

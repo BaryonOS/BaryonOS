@@ -5,7 +5,7 @@ use nieuw_os_window_session::{
     shell::Page,
 };
 
-const PAGES: [Page; 10] = [
+const PAGES: [Page; 9] = [
     Page::Lock,
     Page::Users,
     Page::Auth,
@@ -13,7 +13,6 @@ const PAGES: [Page; 10] = [
     Page::Desktop,
     Page::Search,
     Page::Settings,
-    Page::Notifications,
     Page::Session,
     Page::Capability,
 ];
