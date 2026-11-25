@@ -178,7 +178,8 @@ fn full_graph_matches_candle_oracle() {
         .map(|(k, v)| KvCache::new(CONFIG.kv_heads, CONFIG.head_dim, k, v).unwrap())
         .collect();
     let mut budget = Budget::new(u64::MAX, &NoCancel);
-    let (mut hidden, mut normed, mut logits) = (vec![0.; 896], vec![0.; 896], vec![0.; VOCAB]);
+    let (mut hidden, mut normed) = (vec![0.; 896], vec![0.; 896]);
+    let (mut staging, mut logits) = (vec![0.; VOCAB], vec![0.; VOCAB]);
     let mut run = |id: u32, position: usize, caches: &mut [KvCache<'_>]| {
         let mut scratch = vec![0.; CONFIG.scratch_len(position + 1).unwrap()];
         qwen.step(
@@ -194,6 +195,7 @@ fn full_graph_matches_candle_oracle() {
             &hidden,
             CONFIG.rms_epsilon,
             &mut normed,
+            &mut staging,
             &mut logits,
             &mut budget,
         )
@@ -204,7 +206,20 @@ fn full_graph_matches_candle_oracle() {
     for (position, &id) in ids.iter().enumerate() {
         last = run(id, position, &mut caches);
     }
-    // Top-10 final logits: same ids, values within 1e-2.
+    // Top-10 final logits: the computed top-10 id set equals the fixture's,
+    // and each fixture value is within 1e-2.
+    let mut order: Vec<usize> = (0..last.len()).collect();
+    order.sort_by(|a, b| last[*b].total_cmp(&last[*a]));
+    let mut got: Vec<u64> = order[..10].iter().map(|&i| i as u64).collect();
+    let mut want: Vec<u64> = case["top_logits"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e[0].as_u64().unwrap())
+        .collect();
+    got.sort_unstable();
+    want.sort_unstable();
+    assert_eq!(got, want, "top-10 token ids");
     for entry in case["top_logits"].as_array().unwrap() {
         let id = entry[0].as_u64().unwrap() as usize;
         let want = entry[1].as_f64().unwrap() as f32;

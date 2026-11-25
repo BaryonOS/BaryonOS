@@ -306,3 +306,65 @@ fn scratch_len_refuses_kv_width_overflow() {
     };
     assert_eq!(bad.scratch_len(1), None);
 }
+
+#[test]
+fn logits_publish_only_after_every_row_succeeds() {
+    use baryon_ai_reference_forward::Model;
+    // 3×2 embedding, unit norm: the norm charges 4, each row 2.
+    let embedding = encode(&[1., 0., 0., 1., 1., 1.]);
+    let norm = encode(&[1., 1.]);
+    let model = Model {
+        embedding: Bf16::new(3, 2, &embedding).unwrap(),
+        layers: &[],
+        norm: Bf16::new(1, 2, &norm).unwrap(),
+    };
+    let (mut normed, mut staging) = ([0.; 2], [0.; 3]);
+    let mut logits = [9.; 3];
+    // Budget 6: row 0 succeeds, row 1 fails; nothing is published.
+    assert_eq!(
+        model.logits(
+            &[1., 1.],
+            1e-6,
+            &mut normed,
+            &mut staging,
+            &mut logits,
+            &mut Budget::new(6, &NoCancel)
+        ),
+        Err(Error::WorkLimit)
+    );
+    assert_eq!(logits, [9.; 3]);
+    assert_eq!(
+        model.logits(
+            &[1., 1.],
+            1e-6,
+            &mut normed,
+            &mut staging,
+            &mut logits,
+            &mut Budget::new(u64::MAX, &Cancelled)
+        ),
+        Err(Error::Cancelled)
+    );
+    assert_eq!(logits, [9.; 3]);
+    assert_eq!(
+        model.logits(
+            &[1., 1.],
+            1e-6,
+            &mut normed,
+            &mut [0.; 2],
+            &mut logits,
+            &mut Budget::new(u64::MAX, &NoCancel)
+        ),
+        Err(Error::Shape)
+    );
+    model
+        .logits(
+            &[1., 1.],
+            1e-6,
+            &mut normed,
+            &mut staging,
+            &mut logits,
+            &mut Budget::new(10, &NoCancel),
+        )
+        .unwrap();
+    assert!((logits[2] - 2.0).abs() < 1e-5 && (logits[0] - 1.0).abs() < 1e-5);
+}

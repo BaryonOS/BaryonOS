@@ -317,15 +317,23 @@ impl Model<'_, '_> {
     }
 
     /// Final norm and tied output head: `logits = embedding × norm(hidden)`.
+    /// Rows are computed into `staging` and copied to `logits` only after the
+    /// whole projection succeeds, so on any error `logits` is unchanged.
     pub fn logits(
         &self,
         hidden: &[f32],
         epsilon: f32,
         normed: &mut [f32],
+        staging: &mut [f32],
         logits: &mut [f32],
         budget: &mut Budget<'_>,
     ) -> Result<(), Error> {
+        if staging.len() != logits.len() {
+            return Err(Error::Shape);
+        }
         rms_norm(hidden, &self.norm, epsilon, normed, budget)?;
-        self.embedding.matvec(normed, None, logits, budget)
+        self.embedding.matvec(normed, None, staging, budget)?;
+        logits.copy_from_slice(staging);
+        Ok(())
     }
 }
