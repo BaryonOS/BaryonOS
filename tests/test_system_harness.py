@@ -672,7 +672,8 @@ DRIVERS = Path(__file__).resolve().parents[1] / "drivers"
 # Driver entry points that touch neither MMIO nor PCI config space: pool and
 # feature checks, used-ring validation, BAR classification, the in-memory
 # pending flag. Every other `pub fn` / `pub unsafe fn` is a device call.
-PURE = {"validate", "negotiate_rng_features", "validate_used", "classify_bars", "pending"}
+PURE = {"validate", "negotiate_rng_features", "validate_used", "classify_bars", "pending",
+        "identity_matches", "negotiated_matches", "negotiated"}
 DRIVER_FNS = {name for crate in ("virtio-rng", "virtio-blk") for name in re.findall(
     r"^\s*pub (?:unsafe )?fn (\w+)", (DRIVERS / crate / "src/lib.rs").read_text(), re.M)}
 DEVICE_METHODS = "|".join(sorted(DRIVER_FNS - PURE))
