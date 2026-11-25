@@ -151,6 +151,15 @@ that was never published. Staged uploads stay invisible, a session used by
 another caller is `Stale`, and an object index outside the namespace is
 `Invalid`. Head writes nothing and grants no rights; reconciliation still
 re-reads through the existing expected-revision checks.
+
+`NaspRemote` runs the existing `native-client` queue over these frames through
+its `Remote` trait. It sends no principal; the caller it holds only routes the
+client's own tickets. Each exchange gets a fresh correlation, and a reply must
+match the request's opcode and correlation. A request that was not delivered
+keeps its error; one that was delivered without a matching valid reply is
+`Unknown`, so a lost Commit reply leaves the edit `NeedsReconcile` and is never
+replayed. Ciphertext above the 104-byte probe payload fails `Invalid` before
+anything is sent.
 No principal, key, mutable client buffer or capability in the wire.
 
 The 104-byte payload and one selected guest are visible probe limits,

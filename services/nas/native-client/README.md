@@ -44,6 +44,9 @@ old AEAD bytes are not
 silently reused under a different revision. `cancel` cleans up a not-yet-published
 staging via the existing core, but retains the local edit.
 Lower revisions remain blocked. Cleanup errors are returned separately.
+The `Remote` trait abstracts the NAS for one trusted caller; `Local` binds the
+in-process core and `native-probe`'s `NaspRemote` the local NASP frames. The
+`*_via` methods take any `Remote`; the older methods wrap `Local` unchanged.
 `reconcile_latest` discovers the committed revision through `Service::head` and
 reads it within the same authenticated session. It shares the existing reconciliation
 state machine: uncertain writes are observed, never automatically replayed. Both
