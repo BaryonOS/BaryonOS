@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "ea38dcc692de657f7b3c025b223033e3af2b0bb8",
+    "source_commit": "d436a595ac05b2c8fe2a0e51a53659001fa21742",
     "assessment_basis": "parent_commit",
-    "branch": "claude/ui-u-space-parity-20261125",
-    "task": "UI-U-C6-20261125 U04: Space activates a focused search result (ds-1.1 Enter/Space parity)",
+    "branch": "claude/ui-u-notifications-panel-20261125",
+    "task": "UI-U-C5-20261125 U04: Alt+N panel as the single notification centre (keyboard, mouse and clock routes)",
     "previous_score": 43,
-    "summary": "43/100 unchanged. Shell::key now types Space only while focus is on the search field and activates a Tab-focused search result like a pointer click; the ignored host test is folded into the keyboard_only.rs Enter/Space parity test. U04 stays open: Notifications keyboard route (owner decision), native keyboard evidence, screen-reader chain and human trials are missing; evidence is host tests only."
+    "summary": "43/100 unchanged. Per the owner decision of 25 November 2026 (ADR-UI-NOTIFICATIONS-20261125) the Alt+N panel is the only notification surface: the header clock and status band open it, the pointer-only shell Notifications page is removed, and host tests pin Alt+N/band/clock parity, wrapping Tab order, Enter/Space pointer parity, Escape focus retention and held-key single activation. The last ignored U04 keyboard-only test is gone. U04 stays open: native keyboard evidence, the screen-reader chain and human trials are missing; evidence is host tests only."
   },
   "tracks": [
     {
