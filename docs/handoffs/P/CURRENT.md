@@ -43,7 +43,12 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   #542 poll fix. Reviews are handled:
   the CodeRabbit race is fixed, and the AI review and Graphify findings are
   answered. Codex and Copilot have no quota, so they are not retriggered.
-- P0 CI-first mode (owner, ~17:25Z; corrected ~18:05Z): CI keeps priority
+- Freeze lifted (PR guard, 20:19Z; main 0fe66b51): the merge-lane protocol
+  still holds (one lane holder; no catch-up outside the lane). Order #515 →
+  #539 → #533; the guard announces the lane explicitly. Since B9, merge-hold
+  first fails with only "Pending:" lines and restarts itself; only "Failed:"
+  needs action, then `gh run rerun --failed` if it is an infra failure.
+- Superseded P0 CI-first mode (owner, ~17:25Z; corrected ~18:05Z): CI keeps priority
   until all CI batches are resolved, so the main freeze continues after #544
   lands. #533 gets the lane only when a CI PR is genuinely blocked (non-infra
   failure, 15 min without progress, or 60 min) or the CI exit criterion is
