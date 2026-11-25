@@ -39,6 +39,7 @@ native-hw-inventory = ["milestone-m2", "dep:pci-core"]
 test-hwinv-panic = ["native-hw-inventory", "test-panic"]
 test-hwinv-m2-fault = ["native-hw-inventory", "test-m2-kernel-fault"]
 test-hwinv-fail = ["native-hw-inventory"]
+test-hwinv-serial-timeout = ["native-hw-inventory"]
 # H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
 native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
 test-acpi-s5-corrupt-dsdt = ["native-acpi-s5"]
