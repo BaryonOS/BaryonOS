@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 exclude = ["keyring-client", "heap-allocator", "examples/memory", "display-client", "input-client", "examples/display-input-probe", "examples/input-service", "examples/materiaal", "examples/compositor", "examples/desktop-init", "examples/random-probe", "examples/image-probe"]
-members = ["keyring-random-client", "runtime", "catalog-client", "document-session", "task-grant-core", "examples/catalog-read", "examples/volume-docs", "examples/supervisor", "examples/keyring", "examples/update", "examples/system", "settings-core", "search-index"]
+members = ["keyring-random-client", "runtime", "catalog-client", "document-session", "task-grant-core", "examples/catalog-read", "examples/task-grant-broker", "examples/volume-docs", "examples/supervisor", "examples/keyring", "examples/update", "examples/system", "settings-core", "search-index"]
 
 [profile.dev]
 panic = "abort"
