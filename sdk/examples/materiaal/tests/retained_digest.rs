@@ -381,10 +381,12 @@ fn small_edit_under_full_damage_sends_only_changed_tiles() {
     let mut app = editor(&host, buffers, &mut cache);
     assert_exact(&app, &host.borrow(), None);
 
-    // Mutation control: corrupt one pixel of the bottom-right tile, far from
+    // Mutation control: corrupt one pixel of the bottom-left tile, far from
     // the edited text. If that tile were re-sent, the corruption would vanish.
     let a = geometry().assigned;
-    let probe = at(u32::from(a.width) - 3, u32::from(a.height) - 3);
+    // Bottom-left: untouched by the edit and not the last tile, which always
+    // commits so the frame completes.
+    let probe = at(3, u32::from(a.height) - 3);
     let original = host.borrow().framebuffer[probe];
     host.borrow_mut().framebuffer[probe] = original ^ 0x00ff_ffff;
 
