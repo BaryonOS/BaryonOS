@@ -499,7 +499,11 @@ applicable" (#494, phase 5 C1). A row whose hidden hits are all metadata
 (`policy.inert`) stays "Not a pass … (path filter)"; that is a documented
 limit, for example a compiled vendored `README.md`. Central (`always_full`)
 paths are never hits, so a full plan still does not expect a gate whose own
-filter excludes the central path.
+filter excludes the central path. The two allowlist workflows without a push
+backstop (`storage-resilience`, `volume-acceptance`) keep their `paths` list,
+because the 2026-11-08 verification reads it; central paths outside that list and
+new top-level paths therefore still do not start them. Closing that needs a push
+backstop or a filter change with its own verification (#494).
 
 **Results.** merge-hold lists the Actions runs for the pull request head
 (`/actions/runs?head_sha=<head>&event=pull_request`, every page, by id, with a

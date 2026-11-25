@@ -787,7 +787,7 @@ class GateTests(TestCase):
         passed, out, state = self.decide(plan=plan)
         self.assertFalse(passed, out)
         self.assertIn("::error::Failed: s: its path filter hides registered input(s) "
-                      "tests/test_volume_archive.py, so the gate did not run", out)
+                      '"tests/test_volume_archive.py", so the gate did not run', out)
         self.assertIn("2 applicable gate(s) passed; 0 filtered out; 0 pending; 1 failed.", out)
         self.assertNotIn("not applicable (path filter)", out)
         self.assertEqual(state["sleeps"], 0)
@@ -803,7 +803,11 @@ class GateTests(TestCase):
     def test_hidden_input_listing_is_bounded(self):
         paths = [f"tests/t{i}.py" for i in range(7)]
         self.assertEqual(merge_hold.hidden_listing(paths),
-                         "tests/t0.py, tests/t1.py, tests/t2.py, tests/t3.py, tests/t4.py and 2 more")
+                         '"tests/t0.py", "tests/t1.py", "tests/t2.py", "tests/t3.py", "tests/t4.py" and 2 more')
+        # A path chosen by the pull request cannot inject a workflow command or break the log.
+        listed = merge_hold.hidden_listing(["tests/a\n::error::spoof.py", "tests/\udcff.py"])
+        self.assertNotIn("\n", listed)
+        listed.encode("ascii")
 
     def test_missing_or_running_runs_are_pending_and_block(self):
         for runs_, fragment in (([wf_run(1, CI)], "no .github/workflows/leaves.yml run"),

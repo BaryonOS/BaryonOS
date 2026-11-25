@@ -406,7 +406,8 @@ def hidden_input_rows(plan):
 
 
 def hidden_listing(paths, limit=5):
-    shown = ", ".join(paths[:limit])
+    # Paths come from the pull request: ASCII-escape them so no control character reaches the log.
+    shown = ", ".join(json.dumps(path, ensure_ascii=True) for path in paths[:limit])
     return shown + (f" and {len(paths) - limit} more" if len(paths) > limit else "")
 
 

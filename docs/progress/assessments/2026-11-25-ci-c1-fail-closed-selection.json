@@ -3,7 +3,7 @@
   "source_commit": "a571d87cf2332442c8c3acf4a7f2abb4d8af1cb0",
   "assessment_basis": "parent_commit",
   "branch": "ci/c1-fail-closed-selection-20261125",
-  "task": "CI phase 5 C1: fail-closed path-filter rule in merge-hold, storage and volume allowlists cover their native inputs, token-guard script registered for its native users, obligation citations re-anchored; B2 host Rust cache saved only from a push to main (#494)",
+  "task": "CI phase 5 C1: fail-closed path-filter rule in merge-hold, storage and volume allowlists cover their native inputs, token-guard script registered for its native users, obligation citations re-anchored; B2 host Rust cache saved only from a push to main; B1 CI main push runs never cancelled (#494)",
   "previous_score": 43,
   "summary": "43/100 unchanged. CI selection, merge-hold and cache maintenance only. No criterion, native evidence or acceptance result changes."
 }
