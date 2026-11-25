@@ -1329,12 +1329,25 @@ AI reviews, not a human audit.
   also latches on a FORMAT write or flush failure, a mount or remount FLUSH
   failure and an owner exit during a WRITE or FLUSH; each of those already
   leads to a state without writes (2.6 failed-mount state, 2.7) (OPT1).
-- *Service trigger (L2).* Every 2.7 trigger that L1 cannot see, because no
-  request was admitted, is reported by the service (RQ1): a submission error
-  on a destination WRITE or FLUSH (offline -13 or -14 after a failed reset,
-  a `prepare_operation` error, any other device-side submission refusal) and a
-  kernel -8 past either bound of 2.7 (on submission beyond 2 ×
-  `RESET_TIMEOUT`, on the completion poll beyond `POLL_BOUND`). Caller-shape
+- *Kernel trigger at refusal (L1b).* A WRITE or FLUSH that passed the
+  authority and scope checks and that the broker then refuses for a
+  device-side reason (the lane is offline, -13 or -14 after a failed reset, or
+  `prepare_operation` fails) latches at the refusal site in `device_call`, with
+  the same entry rule as L1 (WRITE: intersecting entries; FLUSH: every entry
+  of the device). The kernel produces these refusals itself, so the latch does
+  not depend on the service surviving to report them (CodeRabbit review
+  6054272902 on PR #521). A -8 while the lane resets is the normal, transient
+  answer of 2.7 and does not latch.
+- *Service trigger (L2).* The service reports the only 2.7 trigger that the
+  kernel cannot see: a kernel -8 past either bound of 2.7 (on submission
+  beyond 2 × `RESET_TIMEOUT`, on the completion poll beyond `POLL_BOUND`).
+  With the K5 broker that state is unreachable: a reset ends within
+  `RESET_TIMEOUT` or quarantines the lane (then offline, L1b), and a
+  published request ends at `TIMEOUT` as `Unknown` (L1). L2 therefore covers
+  only a broker that breaks property 4 of 2.7. If the service dies in that
+  state before calling L2, the entry stays open; that residual is accepted
+  because it needs a broker defect plus a same-boot re-grant, which the
+  once-per-boot rule (2.1, N32) excludes for the shipped profile. Caller-shape
   errors (-1, -3, -11) are not 2.7 triggers and latch nothing. The service
   calls a new block syscall `0x44` (latch): `a[0]` a block handle, `a[1]` to
   `a[5]` zero (otherwise -1). It runs only the shape check,
@@ -1391,7 +1404,10 @@ AI reviews, not a human audit.
   broker timeout and a malformed completion of a WRITE each latch, again read
   before any poll; a READ error does not; (h) the holder is killed while its WRITE is published and
   uncompleted, and the latch is set (RQ3); (i) a latched WRITE with an invalid
-  input pointer returns -5, not -3. Killing mutations: no check before the
+  input pointer returns -5, not -3; (j) with the lane offline after an
+  injected failed reset, a destination WRITE is refused and latches, the
+  holder is killed before any `0x44`, and under the test-only re-grant of (d)
+  a WRITE into the range returns -5 (L1b). Killing mutations: no check before the
   `Policy`; a check after the input copy (i); a latch keyed on the object or
   handle instead of the range, or on the whole device (d); a latch cleared by
   `detach` or reset (d); a latch set at the poll and not in the `Policy` (b,
@@ -1399,7 +1415,8 @@ AI reviews, not a human audit.
   `sector()` (g); a hook in `complete` and `timeout` only, missing the
   malformed-completion reset (g); a READ that latches
   (g); FLUSH refused (c); `0x44` refused while the lane is stuck (f); `0x44`
-  that always latches (f).
+  that always latches (f); a submission refusal that latches nothing (j); a
+  -8 during a reset that latches (b, c).
 - *Answers to the review questions.* The barrier-1 variant of N37 (a) does not
   latch: a FLUSH submitted while the lane resets gets -8 and is never admitted,
   as in N26 (d); if that reset fails, the later submission's -13 or -14 is an
