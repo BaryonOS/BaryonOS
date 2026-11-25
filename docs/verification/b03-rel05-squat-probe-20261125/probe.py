@@ -10,7 +10,7 @@ handles before the loader provisions them.
   S1  owner squat with ATTR_HAUTH | AUTHREAD: loader DefineSpace -> NV_DEFINED,
       Name differs, an owner NV_Write of the secret is readable by password,
       an empty-ownerAuth owner undefine removes it;
-  S2  owner squat with POLICY_DELETE: whether it can be defined and undefined;
+  S2  owner squat with POLICY_DELETE: refused with TPM_RC_ATTRIBUTES;
   S3  platform-created squat (raw swtpm: platformAuth empty, U23 broken):
       owner undefine refused, survives TPM2_Clear;
   S4  record squat (U26 handle open; 0x0100B305 stands in): AUTHWRITE lets
@@ -39,6 +39,8 @@ p0.CC.update(NV_ReadPublic=0x169)
 HAUTH, RECORD = ph.HAUTH, 0x0100B305
 POLICY_DELETE, WRITTEN, PLATFORMCREATE = 1 << 10, 1 << 29, 1 << 30
 RC_NV_DEFINED = 0x14C
+RC_NV_AUTHORIZATION = 0x149
+RC_ATTRIBUTES = 0x082
 
 
 def public(index, attrs, policy, size):
@@ -121,14 +123,9 @@ def main(work):
         log("\n### S2: owner squat with POLICY_DELETE")
         rc = define_by(t, p0.RH_OWNER, HAUTH, squat | POLICY_DELETE, p_read, 64)
         log(f"   INFO owner define with POLICY_DELETE -> {decode_rc(rc)}")
-        if rc == 0:
-            rc = ph.undefine(t, HAUTH, p0.RH_OWNER)
-            log(f"   INFO owner NV_UndefineSpace of a POLICY_DELETE index -> {decode_rc(rc)}")
-            check("S2 TPM2_Clear(lockout, empty) on a fresh TPM", clear_lockout(t) == 0, "")
-            rc, _, _ = read_public(t, HAUTH)
-            log(f"   INFO POLICY_DELETE index after TPM2_Clear -> {decode_rc(rc)}")
-        else:
-            check("S2 owner define with POLICY_DELETE refused", True, decode_rc(rc))
+        # TPM_RC_ATTRIBUTES (0x082), format 1 with a parameter number.
+        check("S2 owner define with POLICY_DELETE refused (TPM_RC_ATTRIBUTES)",
+              rc & 0xBF == RC_ATTRIBUTES, decode_rc(rc))
 
         log("\n### S3: platform-created squat (platformAuth empty: U23 broken)")
         rc = define_by(t, ph.RH_PLATFORM, HAUTH, squat | PLATFORMCREATE, p_read, 64)
@@ -136,7 +133,7 @@ def main(work):
         rc, attrs, n = read_public(t, HAUTH)
         check("S3 Name differs from NV_HAUTH", rc == 0 and n not in (want, want_w), f"attrs 0x{attrs:08X}")
         rc = ph.undefine(t, HAUTH, p0.RH_OWNER)
-        check("S3 owner undefine refused", rc != 0, decode_rc(rc))
+        check("S3 owner undefine refused (TPM_RC_NV_AUTHORIZATION)", rc == RC_NV_AUTHORIZATION, decode_rc(rc))
         check("S3 TPM2_Clear(lockout, empty)", clear_lockout(t) == 0, "")
         rc, attrs, n = read_public(t, HAUTH)
         check("S3 platform squat survives TPM2_Clear", rc == 0, decode_rc(rc))

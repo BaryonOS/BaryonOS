@@ -13,7 +13,7 @@
    rc   0x000 TPM_RC_SUCCESS
 ** CHECK PASS: N1 Name before WRITTEN: 000b8bc449e1e502ccff31629cdf815c711e7ef01c335d2a45695e402373a21fd496
 == NV_Write 0x0100B304 by 0x40000001 (empty auth)
-   cmd  80020000006300000137400000010100b304000000094000000900000000000040ea4946a06fa130d6351f6ab33e5d10dc7973c47b45f013b3a2f0db7f71cc8c999c85c6e735387e0e36c41788c79d387b22b65f793aa9468e47d32ea2663972b70000
+   cmd  80020000006300000137400000010100b3040000000940000009000000000000402f65afcb6ae8c9fa4199fc281628d2d941827a2c4d7b634c0316457fad6082344017792aaaac7d973fddcc2766c3e8f67cfe78ec1de0fdac00c482ad206a8f010000
    resp 80020000001300000000000000000000010000
    rc   0x000 TPM_RC_SUCCESS
 ** CHECK PASS: N1 write HAUTH: 
@@ -70,7 +70,7 @@
    resp 80010000000a000002c2
    rc   0x2C2 0x82 (parameter 2)
    INFO owner define with POLICY_DELETE -> 0x82 (parameter 2)
-** CHECK PASS: S2 owner define with POLICY_DELETE refused: 0x82 (parameter 2)
+** CHECK PASS: S2 owner define with POLICY_DELETE refused (TPM_RC_ATTRIBUTES): 0x82 (parameter 2)
 
 ### S3: platform-created squat (platformAuth empty: U23 broken)
 == NV_DefineSpace 0x0100B304 attrs 0x420C1002 by 0x4000000C
@@ -87,7 +87,7 @@
    cmd  80020000001f00000122400000010100b30400000009400000090000000000
    resp 80010000000a00000149
    rc   0x149 TPM_RC_NV_AUTHORIZATION
-** CHECK PASS: S3 owner undefine refused: TPM_RC_NV_AUTHORIZATION
+** CHECK PASS: S3 owner undefine refused (TPM_RC_NV_AUTHORIZATION): TPM_RC_NV_AUTHORIZATION
 == Clear via lockout (empty)
    cmd  80020000001b000001264000000a00000009400000090000000000
    resp 80020000001300000000000000000000010000
@@ -133,10 +133,10 @@ PASS  S1 loader DefineSpace refused  TPM_RC_NV_DEFINED
 PASS  S1 owner NV_Write of the secret accepted  
 PASS  S1 secret readable by password after PCR13 extend (leak)  TPM_RC_SUCCESS
 PASS  S1 empty-ownerAuth owner undefine removes the squat  
-PASS  S2 owner define with POLICY_DELETE refused  0x82 (parameter 2)
+PASS  S2 owner define with POLICY_DELETE refused (TPM_RC_ATTRIBUTES)  0x82 (parameter 2)
 PASS  S3 platform squat defined  TPM_RC_SUCCESS
 PASS  S3 Name differs from NV_HAUTH  attrs 0x420C1002
-PASS  S3 owner undefine refused  TPM_RC_NV_AUTHORIZATION
+PASS  S3 owner undefine refused (TPM_RC_NV_AUTHORIZATION)  TPM_RC_NV_AUTHORIZATION
 PASS  S3 TPM2_Clear(lockout, empty)  
 PASS  S3 platform squat survives TPM2_Clear  TPM_RC_SUCCESS
 PASS  S3 platform undefine removes it  

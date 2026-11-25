@@ -25,9 +25,8 @@ The undefine/redefine/replay revival found in this revision is addressed by
 profile only; ADR-B03-REL05-TPM-20261125): the loader protects `ownerAuth` and
 `lockoutAuth` with a secret readable only in the loader phase. Implemented so
 far: codecs, constants, swtpm feasibility and squatting probes and the host
-model. The
-loader TPM path does not exist yet; until it enforces M1-HAUTH natively, the
-revival stays **not defended** and 5A stays in force.
+model. The loader TPM path does not exist yet; until it enforces M1-HAUTH
+natively, the revival stays **not defended** and 5A stays in force.
 
 | Artefact | Location | Kind |
 |---|---|---|
@@ -107,8 +106,8 @@ cut): while ownerAuth is still empty, remove leftovers and owner squats of
 loader record binding it, `HierarchyChangeAuth(owner)`,
 `HierarchyChangeAuth(lockout)`, then the anchor genesis (undefine, define,
 genesis extend), the loader record naming the accepted pair (TPM copy, U13c),
-the UEFI copy of that pair, then the PCR 13 extend (ten writes on a fresh
-TPM). The loader never adopts a `HAUTH` that no trusted record binds (for
+the UEFI copy of that pair (ten counted writes on a fresh TPM, where the
+undefines find nothing), then the PCR 13 extend. The loader never adopts a `HAUTH` that no trusted record binds (for
 example one provisioned by an attacker after a clear): without a newer record
 it halts; with one it clears with that `HAUTH`'s lockout secret, or with an
 empty lockoutAuth when `lockoutAuthSet` is 0, and provisions new secrets; if
@@ -261,7 +260,13 @@ names: first the TPM copy, in the same policy write of the loader record
 (PCR 13 = 0³²) that names the anchored instance, so a runtime attacker cannot
 forge "already anchored"; then the UEFI copy. The effective pair is the
 surviving copy with the higher serial, and two copies with one serial but
-different records halt. Every cut converges on the next boot (host model
+different records halt. REL-05 section 10.5 orders a record replacement as
+TPM copy, UEFI copy, new ESP record; the anchor genesis is part of accepting
+the record and precedes that sequence, because the TPM copy is the same write
+that marks the genesis done. A cut before it re-runs the genesis under the
+still-fresh record; a cut after it leaves the UEFI copy and the ESP record to
+follow as in section 10.5. The host model takes the staged record as input
+and does not model the ESP record write. Every cut converges on the next boot (host model
 `every_provisioning_cut_converges`, which also fixes the number of writes).
 Losing one copy keeps older records refused, and the loader rewrites a lost
 UEFI copy. Losing both (a TPM clear with U23 broken or by firmware, plus a UEFI
