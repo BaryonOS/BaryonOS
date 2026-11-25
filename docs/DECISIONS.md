@@ -15,7 +15,8 @@ separately at about 12:35Z and given to the PR guard. At about 13:30Z, in the
 CI session while #527 was under review, the owner clarified that the context
 thresholds in item 5 apply only to the executing specialists and that the PR
 guard rotates only at the owner's explicit request. These chat-only
-sources are recorded on #494, comment 7162652798. The owner's formal review of
+sources are recorded in the CI specialist's record on #494, comment
+7162652798. The owner's formal review of
 this pull request, on the current text, is the confirmation that D2 requires.
 
 **Problem:** six workstream sessions handled their own pull requests under
@@ -59,9 +60,9 @@ session's context must rotate were only in issue comments.
    - by 80–85% at the latest, a verified handoff is ready.
 
    The PR guard does not follow these thresholds. It rotates its own context
-   only at the project owner's explicit request. For every session, including
-   the PR guard, ownership of a subtask continues across a rotation and no
-   replacement chat is started.
+   only at the project owner's explicit request. For the executing
+   specialists, ownership of a subtask continues across a rotation. For every
+   session, including the PR guard, no replacement chat is started.
 6. **Product priority.** The product is a general-purpose OS with European data
    sovereignty. Conventional PCs and laptops come first, then server and
    business use. It aims at broad consumer and professional compatibility.
@@ -112,14 +113,16 @@ chosen rather than another split.
     the CI checkpoint (#494, comment 7161215540);
   - the tracking-issue decision of about 12:35Z, given to the PR guard;
   - the clarification of item 5 during the review of #527;
-  - the record of these chat-only sources on #494, comment 7162652798;
+  - the CI specialist's record of these chat-only sources on #494, comment
+    7162652798;
   - the PR guard's operational history in #503.
 
 **Consequences:**
 
 - `AGENTS.md` lists the ten specialists and the naming rule in the merge
   delegation paragraph.
-- The PR guard routes signals, metadata checks and CLEAR_READY verification to
+- The PR guard routes signals, metadata checks and CLEAR_READY verification (CLEAR_READY is the signal that a session's
+  context may be cleared safely) to
   A, P, L and R in the same way as to the existing workstreams.
 - Issues #494 (CI) and #503 (PR guard) stay the places for decisions,
   operational notices and history.
@@ -131,8 +134,8 @@ chosen rather than another split.
 - Apart from two expansions, no authority is widened beyond
   `ADR-MERGE-DELEGATION-20261123` as amended by D2. Item 2 extends that merge
   delegation to A, P, L and R. Item 8 lets the executing specialists create
-  tracking issues and subtasks in their own workstream without separate
-  permission.
+  necessary, substantively justified tracking issues and subtasks in their own
+  workstream, after a duplicate check, without separate permission.
 - Protected-file review, `ADR-MERGE-HOLD-20261113`, required checks and branch
   protection are unchanged.
 - The PR guard has no commit, push, merge, label or review authority.
@@ -148,8 +151,7 @@ following occurs:
 
 - a delegated specialist merges a change that `ADR-MERGE-DELEGATION-20261123`
   as amended by D2 would block;
-- a CLEAR_READY handoff (the signal that a session's context may be cleared
-  safely) fails to resume its subtask;
+- a CLEAR_READY handoff fails to resume its subtask;
 - the PR guard needs write authority to do its job;
 - issue creation produces duplicates or backlog without implementation.
 
