@@ -1052,15 +1052,9 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     };
     if n == 0x41 {
         let lane = &runtime().lanes[dev];
-        let request = lane
-            .error
-            .map(|(q, _)| q)
-            .or_else(|| {
-                lane.policy
-                    .request()
-                    .filter(|q| lane.ended_read != Some(q.ticket))
-            })
-            .ok_or(-1)?;
+        let pending = lane.policy.request();
+        let pending = pending.filter(|q| lane.ended_read != Some(q.ticket));
+        let request = lane.error.map(|(q, _)| q).or(pending).ok_or(-1)?;
         m4::engine()
             .check_block(pid, a[0], required(request.operation))
             .map_err(|e| e.code())?;
@@ -1251,14 +1245,6 @@ fn advance(s: &State) {
     let r = runtime();
     let now = s.ticks;
     r.now = now;
-    // Review R1: no reset acknowledgement read, re-initialisation or used-ring
-    // poll after the S3 wake. Nothing can be active here: the SUSPEND gate
-    // admitted only a quiescent broker, every submission since returned -14,
-    // and `reset` is latched off the device.
-    #[cfg(feature = "test-system-s3")]
-    if super::system::resumed() {
-        return;
-    }
     for index in 0..r.lanes.len() {
         advance_lane(r, index, now);
     }
@@ -1267,6 +1253,14 @@ fn advance(s: &State) {
 /// K5: one device's reset, timeout and completion progress. A lane never
 /// reads or changes the other lane's request state.
 fn advance_lane(r: &mut Runtime, index: usize, now: u64) {
+    // Review R1: no reset acknowledgement read, re-initialisation or used-ring
+    // poll after the S3 wake. Nothing can be active here: the SUSPEND gate
+    // admitted only a quiescent broker, every submission since returned -14,
+    // and `reset` is latched off the device.
+    #[cfg(feature = "test-system-s3")]
+    if super::system::resumed() {
+        return;
+    }
     if r.lanes[index].resetting {
         let writable = if index == 0 {
             !read_only()
