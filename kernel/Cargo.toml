@@ -28,6 +28,9 @@ usb-hid-reattach-core = ["native-usb-hid-probe"]
 native-usb-hid-reattach = ["usb-hid-reattach-core"]
 # H02-T4: same-port USB mouse reattach; a separate boot from the keyboard profile.
 native-usb-hid-mouse-reattach = ["usb-hid-reattach-core"]
+# H02-T5: per-port refusal of an out-of-profile device on root port 1, service of
+# the port-2 mouse, and same-port recovery with an in-profile keyboard.
+native-usb-hid-refusal = ["native-usb-hid-probe"]
 test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
 test-xhci-dma-fault = ["native-xhci-probe"]
 test-xhci-no-dmar = ["native-xhci-probe"]

@@ -5,15 +5,13 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 | Field | Value |
 |---|---|
-| cycle_id | `h06-t8-20261124` |
-| Location | cloud H session (took over from the local session via READY_FOR_CLOUD on #500, comment 7145796849) |
-| Task | H06-T8 exact-line matching for full-line fixture markers (deferred CodeRabbit finding on #500) |
-| Branch | `claude/sweet-franklin-ljra1f` (base main `a2595a3a`) |
-| PR | see the `HANDOFF H h06-t8-20261124` comment |
-| Tested source | `9b24c9d` (source fingerprint `d1cb0845…`), clean tree; later commits add docs, evidence, ledger and progress only |
-| Evidence | [h06-exact-markers-20261124](../../verification/h06-exact-markers-20261124/README.md): full native HW-INV gate on `pc-q35-8.2`, all cases and five terminal fixtures pass; `startswith` mutant fails the new host tests |
-| NOT RUN | physical boot; default/M2 smoke (no kernel or loader change); image-hash reproduction (local hash `7a646569…`, needs B04) |
-| Score | 43/100 unchanged; H06 stays open |
+| cycle_id | `h02-t5-20261125` |
+| Location | local H session (took over from the cloud H session via #503; cloud HANDOFF on #507, comment 7151275971) |
+| Task | H02-T5 native per-port refusal (hub, non-boot tablet, high-speed keyboard, storage) — implemented, native evidence at `1bb81100`, hosted gates pending |
+| Branch | `claude/h02-t5-usb-refusal-20261125` (base main `ad55e019`) |
+| PR | #515 (draft) |
+| Previous | #507 (H06-T8) merged as `78dc7b18`; ledger H06-T8 is `verified` in this branch |
+| Score | 43/100 unchanged; H02 and H06 stay open |
 
 ## Blockers
 
@@ -36,13 +34,14 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 8. A bash gate helper that sets a global `name` clobbers the caller's variable: use `local` in step/mutant functions, or mutant runs silently target the wrong build directory.
 9. `evaluate_fixture` markers that end in `:` are value markers (prefix plus non-empty value); every other fixture marker must be the whole line.
 
+10. QEMU routes QMP input to a USB HID device only after the guest's first interrupt-IN poll; wait on MFINDEX before printing a READY marker. Reset Device on a disabled slot completes with code 11 and Slot ID 0.
+11. Any `kernel/` or `tools/` change, including the runner, changes the source fingerprint: rebuild before `run_usb_hid.py`. `NOS_QEMU_MACHINE` accepts only recorded machines (`pc-q35-8.2`), not `q35`.
+
 ## Next task
 
-#500 (H06-T7) merged as `a2595a3a`; ledger H06-T7 is `verified`. Land H06-T8
-(#507). Then H02-T5: native refusal fixtures for out-of-profile USB devices (hub,
-tablet without boot interface, storage, high-speed), after a QEMU feasibility
-check. After that, H05 virtio-blk re-initialisation after an S3 wake (needs a
-security review). H04 in-flight TX at a link-down edge touches
-`kernel/src/m2/m3/network.rs` and needs agreement with workstream N first.
-Physical H02–H06 work stays blocked on the owner decisions above; image-hash
-reproduction once B04 (#493) is merged.
+H02-T5 evidence: [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md).
+Remaining on #515: hosted `native-xhci` green on the final head, merge main,
+`progress.py --write`/`--check`, ready, `merge-hold` rerun, squash-merge with
+the expected head, `HANDOFF H` comment; flip H02-T5 to `verified` in the next
+PR. Then the next H item: H05 virtio-blk reinit after S3 wake (security review
+first); H04 needs agreement with N.
