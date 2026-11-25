@@ -68,6 +68,9 @@ class Plan(unittest.TestCase):
         self.assertFalse(cf.floor_variable_present(b"NieuwOsMinVersion"))
 
 
+M, X = "marker sequence", "raw exit"
+
+
 class Transcript(unittest.TestCase):
     def test_counterexample_is_accepted(self):
         for boot in cf.BOOTS:
@@ -82,7 +85,7 @@ class Transcript(unittest.TestCase):
         for name, loader in fixed.items():
             tail = ["BOOT:SIGNED:OK", "BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK"]
             ending = "M1:PASS" if loader[-1].endswith(":1") else "M1:FAIL:KERNEL_PANIC"
-            with self.assertRaises(ValueError):
+            with self.assertRaisesRegex(ValueError, M):
                 cf.evaluate(name, transcript(name, loader + tail + [ending]), 33 if ending == "M1:PASS" else 35,
                             False)
 
@@ -90,19 +93,19 @@ class Transcript(unittest.TestCase):
         name = "boot-2-floor-kept"
         good = cf.expected_lines(name)
         cases = [
-            (transcript(name), 33, False),  # a healthy exit code with a panic transcript
-            (transcript(name), 35, True),  # timeout
-            (transcript(name, good[:-1]), 35, False),  # no panic line: a loader failure also exits 35
-            (transcript(name, good + ["M1:PASS"]), 35, False),
-            (transcript(name, ["BOOT:FAIL:NO_VALID_SLOT"]), 35, False),
-            (transcript(name, [good[1], good[0], *good[2:]]), 35, False),
-            (transcript(name, [*good[:3], "BOOT:FAIL:FLOOR_WRITE", *good[3:]]), 35, False),
-            (transcript(name, [line + "-x" for line in good]), 35, False),
+            (transcript(name), 33, False, X),  # a healthy exit code with a panic transcript
+            (transcript(name), 35, True, X),  # timeout
+            (transcript(name, good[:-1]), 35, False, M),  # no panic line: a loader failure also exits 35
+            (transcript(name, good + ["M1:PASS"]), 35, False, M),
+            (transcript(name, ["BOOT:FAIL:NO_VALID_SLOT"]), 35, False, M),
+            (transcript(name, [good[1], good[0], *good[2:]]), 35, False, M),
+            (transcript(name, [*good[:3], "BOOT:FAIL:FLOOR_WRITE", *good[3:]]), 35, False, M),
+            (transcript(name, [line + "-x" for line in good]), 35, False, M),
         ]
-        for text, rc, timed_out in cases:
-            with self.assertRaises(ValueError):
+        for text, rc, timed_out, reason in cases:  # the named check must fire, not any ValueError
+            with self.assertRaisesRegex(ValueError, reason):
                 cf.evaluate(name, text, rc, timed_out)
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, X):
             cf.evaluate("control-v1", transcript("control-v1"), 35, False)
 
 
@@ -120,17 +123,17 @@ class Store(unittest.TestCase):
         for region, byte in (("B", 3), ("inbox", 0)):  # the inbox is caught only by before == after
             changed = bytearray(before)
             disk.flip(changed, disk.image_offset(region, byte))
-            with self.assertRaises(ValueError):
+            with self.assertRaisesRegex(ValueError, "store changed"):
                 cf.check_store(name, before, bytes(changed), FILES)
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "header"):
             cf.check_store(name, store(1, FILES), store(1, FILES), FILES)
 
     def test_slot_bundles_must_match_exactly(self):
         swapped = store(0, dict(FILES, k1=FILES["k2"], m1=FILES["m2"]))
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "does not hold exactly the v1 bundle"):
             cf.check_store("control-v1", swapped, swapped, FILES)
         stale = store(0, dict(FILES, m1=manifest(FILES["k2"], 1)))  # digest no longer matches k1
-        with self.assertRaises(ValueError):
+        with self.assertRaisesRegex(ValueError, "slot A"):
             cf.check_store("control-v1", stale, stale, dict(FILES, m1=manifest(FILES["k2"], 1)))
 
 
