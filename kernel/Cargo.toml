@@ -219,6 +219,8 @@ native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 test-system-nas-interrupt = ["native-system-nas-probe"]
 test-system-nas-repair = ["native-system-nas-probe"]
+test-system-nas-offline = ["native-system-nas-probe"]
+test-system-nas-resume = ["native-system-nas-probe"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.
 native-system-net = ["native-system", "dep:virtio-net-driver"]
 test-system-net-recover = ["native-system-net", "test-system-recover"]

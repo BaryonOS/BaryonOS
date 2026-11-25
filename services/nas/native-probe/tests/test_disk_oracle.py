@@ -108,6 +108,69 @@ def interrupted_image(stage, *, current=None, retained=None, generation=None):
     return bytes(image)
 
 
+def resume_snapshot(revision, content, core, *, status=2, epoch=1, quota=128, guest=12):
+    """Independent copy of the P02-T3 single-namespace layout (not the oracle's)."""
+    raw = bytearray(17216)
+    raw[:8] = b"NOSNAS01"
+    struct.pack_into("<H", raw, 8, 1)
+    struct.pack_into("<Q", raw, 16, core)
+    raw[24:56] = b"NOSPROC1" + (11).to_bytes(8, "little") + bytes(16)
+    raw[64:96] = NAMESPACE
+    raw[96] = status
+    struct.pack_into("<Q", raw, 104, epoch)
+    struct.pack_into("<I", raw, 112, quota)
+    raw[120:152] = b"NOSPROC1" + guest.to_bytes(8, "little") + bytes(16)
+    struct.pack_into("<QH", raw, 192, revision, len(content))
+    raw[208:208 + len(content)] = content
+    return bytes(raw)
+
+
+FIRST = bytes((i * 17 + 9) & 0xFF for i in range(96))
+EDIT = bytes((i * 29 + 3) & 0xFF for i in range(32))
+
+
+def resume_image(stage, **changes):
+    revision, content, core = {"offline": (1, FIRST, 4), "resume": (2, EDIT, 5)}[stage]
+    generation = changes.pop("generation", 1 + 2 * (core - 1))
+    retained = changes.pop("retained", None)
+    current = resume_snapshot(*changes.pop("current", (revision, content, core)), **changes)
+    # The "repair" layout is a current version without history (head = generation - 1).
+    return interrupted_image("repair", current=current, retained=retained, generation=generation)
+
+
+class OfflineResumeOracleTests(unittest.TestCase):
+    def test_exact_offline_and_resume_states_pass(self):
+        offline = oracle.check_resume_image(resume_image("offline"), 11, 12, "offline")
+        resume = oracle.check_resume_image(resume_image("resume"), 11, 12, "resume")
+        self.assertEqual((offline["core_generation"], offline["volume_generation"],
+                          offline["object_revision"], offline["stored_ciphertext_bytes"]),
+                         (4, 7, 1, 96))
+        self.assertEqual((resume["core_generation"], resume["volume_generation"],
+                          resume["object_revision"], resume["stored_ciphertext_bytes"]),
+                         (5, 9, 2, 32))
+        self.assertNotIn(EDIT.hex(), json.dumps(resume))
+
+    def test_unreconciled_replayed_or_altered_states_are_rejected(self):
+        for stage, image in [
+            ("resume", resume_image("offline")),            # resume never committed
+            ("offline", resume_image("resume")),
+            ("resume", resume_image("resume", current=(2, FIRST, 5))),  # wrong bytes
+            ("resume", resume_image("resume", current=(3, EDIT, 6), generation=11)),  # replay
+            ("resume", resume_image("resume", generation=11)),
+            ("resume", resume_image("resume", retained=resume_snapshot(1, FIRST, 4))),
+            ("resume", resume_image("resume", status=4)),
+            ("resume", resume_image("resume", epoch=2)),
+            ("resume", resume_image("resume", quota=256)),
+            ("resume", resume_image("resume", guest=13)),
+        ]:
+            with self.subTest(stage=stage), self.assertRaises(ValueError):
+                oracle.check_resume_image(image, 11, 12, stage)
+        with self.assertRaises(ValueError):
+            oracle.check_resume_image(resume_image("resume"), 11, 12, "repair")
+        with self.assertRaises(ValueError):
+            oracle.check_resume_image(resume_image("resume"), 11, 11, "resume")
+
+
 class InterruptedPurgeOracleTests(unittest.TestCase):
     def test_exact_interrupt_and_repair_states_pass(self):
         interrupt = oracle.check_interrupted_image(interrupted_image("interrupt"), 11, 12, "interrupt")

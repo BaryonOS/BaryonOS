@@ -90,7 +90,7 @@ zero. The existing volume service uses its **own unmodified** layout.
 | 80 | guest coordination RECV | guest reply SEND | admin coordination RECV |
 | 88 | 0 | volume SEND | 0 |
 | 96 | 0 | volume reply RECV | 0 |
-| 112 | normal 0, cold 1, interrupt 2, repair 3 | same | same |
+| 112 | normal 0, cold 1, interrupt 2, repair 3, offline 4, resume 5 | same | same |
 | 208 | 0 | repair: 1 after `finish_cleanup` | 0 |
 | 120 | 0 | 1 | 3 |
 | 160 | NAS PID | admin PID | NAS PID |
@@ -98,6 +98,7 @@ zero. The existing volume service uses its **own unmodified** layout.
 | 176 | own PID | own PID | own PID |
 | 184 | 0 | volume PID | 0 |
 | 200 | guest-exit observation | 0 | 0 |
+| 216 | 0 | 0 | offline: NAS-exit observation |
 
 In the normal fixture, only kernel `observe_exit(GUEST)` sets admin word 200
 from 0 to 1 and emits `NAS:GUEST_OFFLINE:PASS`. The administrator never writes
@@ -237,6 +238,39 @@ Evidence limit: a controlled NAS process exit between two volume RPCs while
 the volume service stays alive. Not covered: power loss, torn or reordered
 writes, disk errors, the revoke-PURGE window, remote sessions, or physical
 erasure of freed sectors (the oracle checks logical volume state only).
+
+## Offline edit across a NAS cold restart (P02-T3)
+
+The guest runs `native-client` through `NaspRemote` in both stages. A send
+that queues nothing is `NotSent(Io)`; once a request is queued, a failed or
+mismatched reply is `Sent` (`Unknown`).
+
+Offline (stage 4, writable fresh image, no replay attachment): the
+administrator offers 128 bytes; the guest accepts, then `prepare_via` and
+`commit_via` publish revision 1 (96 synthetic bytes). After usage Active 96
+the administrator sends Shutdown and the NAS exits normally. Only kernel
+`observe_exit(NAS)`, after `process_died` revoked the NAS endpoints, sets guest
+word 216 to 1 and emits `NAS:NAS_OFFLINE:PASS`. The guest then queues a 32-byte
+edit on base 1; `prepare_via` cannot deliver Open, returns `Io` and the edit
+stays `NeedsReconcile`. Core generation 4; volume generation 7. Expected
+successes/errors: admin 3/0, NAS 8/2, guest 5/2.
+
+Resume (stage 5, the exact passing offline image, writable): the NAS runs
+plain `Service::recover`. The administrator finds the namespace through
+`UsageAt(0)` (Active, 96 bytes, epoch 1) and hands it to the guest. A 40-byte
+edit on base 0 reconciles through Head to `Conflict` and writes nothing. The
+offline edit is then re-created from fixed probe constants (this probe has no
+client persistence; that is a separate OWNER question), reconciles through
+Head to `Ready`, and commits revision 2. Usage ends Active at 32 bytes: the
+copy-on-write reservation counts the old 96 bytes, so 96 + 32 fills the
+128-byte quota exactly. Core generation 5; volume generation 9; no history.
+Expected successes/errors: admin 3/0, NAS 15/2, guest 12/2. Both disk states
+are checked by `disk_oracle.check_resume_image`.
+
+Evidence limit: local QEMU IPC and a controlled NAS exit followed by a second
+boot on the same disk. Not covered: real transport, remote identity, power
+loss, a NAS restart while the client device keeps running, or persistence of
+the client's queue across the guest's own restart.
 
 ## Exact boot-1 token replay — leaf requirement, root binding still open
 
