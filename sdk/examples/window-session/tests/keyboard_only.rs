@@ -294,9 +294,8 @@ fn enter_and_space_activate_each_control_like_a_pointer_click() {
                     let enter = by_key(start, d, k, PhysicalKey::Enter, 0);
                     assert_eq!(enter, click, "Enter {start:?} control {k} at {d:?}");
                 }
-                // Search cells: Space types (field) or is the ignored defect
-                // space_on_a_focused_search_result_activates_it.
-                if start != Start::Search {
+                // The search field types Space; its contract is tested below.
+                if !is_search_field(start, k) {
                     let space = by_key(start, d, k, PhysicalKey::Space, 0);
                     assert_eq!(space, click, "Space {start:?} control {k} at {d:?}");
                 }
@@ -327,11 +326,16 @@ fn held_enter_or_space_activates_exactly_once() {
             let n = controls(&reach(start, d), d).len();
             for k in 0..n {
                 for key in [PhysicalKey::Enter, PhysicalKey::Space] {
-                    if start == Start::Search && key == PhysicalKey::Space {
-                        continue; // Space is text input on Search (see above).
+                    let held = by_key(start, d, k, key, 3);
+                    if is_search_field(start, k) && key == PhysicalKey::Space {
+                        // The field is text input: a held Space keeps typing.
+                        if held.query != "    " {
+                            failures
+                                .push(format!("held Space in field at {d:?}: {:?}", held.query));
+                        }
+                        continue;
                     }
                     let once = by_key(start, d, k, key, 0);
-                    let held = by_key(start, d, k, key, 3);
                     if once != held {
                         failures.push(format!(
                             "{key:?} {start:?} control {k} at {d:?}: {:?} -> {:?}",
@@ -343,19 +347,6 @@ fn held_enter_or_space_activates_exactly_once() {
         }
     }
     assert!(failures.is_empty(), "{failures:#?}");
-}
-
-#[test]
-#[ignore = "U04 defect: ds-1.1 Enter/Space parity — Shell::key excludes Space on Page::Search (shell.rs:485 at a91d5ade), so Space on a Tab-focused result types into the query instead of activating it"]
-fn space_on_a_focused_search_result_activates_it() {
-    for d in DISPLAYS {
-        let n = controls(&reach(Start::Search, d), d).len();
-        for k in 1..n {
-            let click = by_pointer(Start::Search, d, k);
-            let space = by_key(Start::Search, d, k, PhysicalKey::Space, 0);
-            assert_eq!(space, click, "Space on result {k} at {d:?}");
-        }
-    }
 }
 
 #[test]
