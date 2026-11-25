@@ -103,10 +103,10 @@ pub extern "C" fn _start() -> ! {
         }),
     );
     write(DIGEST, expected);
-    for (i, pair) in first.chunks_exact(2).enumerate() {
+    for (i, [low, high]) in first.as_chunks::<2>().0.iter().enumerate() {
         write(
             BITS + 8 * i,
-            u64::from(pair[0].to_bits()) | (u64::from(pair[1].to_bits()) << 32),
+            u64::from(low.to_bits()) | (u64::from(high.to_bits()) << 32),
         );
     }
     write(STATUS, 1);
