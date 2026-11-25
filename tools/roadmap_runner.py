@@ -1729,11 +1729,13 @@ Return the structured result.
             name = f"{record['date']}-{slug}{'' if n == 1 else f'-{n}'}.json"
             try:
                 with open(folder / name, "x", encoding="utf-8") as handle:
+                    written = False
                     try:
                         handle.write(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
-                    except BaseException:
-                        (folder / name).unlink(missing_ok=True)
-                        raise
+                        written = True
+                    finally:
+                        if not written:  # also on interrupt: no partial record stays behind
+                            (folder / name).unlink(missing_ok=True)
                 break
             except FileExistsError:
                 continue
