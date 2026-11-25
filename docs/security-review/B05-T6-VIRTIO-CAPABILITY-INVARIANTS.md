@@ -4,7 +4,7 @@ Status: host-only bounded enumeration. It is not a proof, not a formal
 verification and not an independent human audit. It does not accept B05.
 Baseline: `origin/main` a91d5ade, toolchain `1.100.0` (`rustc 1.100.0
 (0ef1bc386 2026-11-09)`). Scope boundary: `virtio-dma` in
-[scope.json](scope.json). `scope.json` is unchanged by this task.
+[scope.json](scope.json); the test is listed under that boundary.
 
 ## Target
 
