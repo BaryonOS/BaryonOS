@@ -282,8 +282,9 @@ UEFI copy. Losing both (a TPM clear with U23 broken or by firmware, plus a UEFI
 NVRAM reset) lets the old `ENROLL` authorise a second genesis and revives that
 instance's first store: residual `accepted_pair_survives_one_lost_copy`, not
 accepted and reported to the project owner. A TPM clear keeps the endorsement
-primary seed, so the old `ENROLL` still proves the identity (the anchor model
-does not model the EK). This residual is not the "rolling back both copies
+primary seed, so the old `ENROLL` still proves the identity (*TPM 2.0 Part 1
+hierarchy semantics; not probed on swtpm, and the anchor model does not model
+the EK*). This residual is not the "rolling back both copies
 together with the TPM state and the disk" item of section 10.5 (T7), which
 needs a restored snapshot: this one needs only deletion, and section 10.5
 does not define a boot with both copies absent, which looks like a first
