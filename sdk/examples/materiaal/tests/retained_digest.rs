@@ -546,3 +546,36 @@ fn input_lost_banner_sends_exactly_the_changed_tiles() {
     assert_eq!(committed, expected, "only changed tiles may be sent");
     assert!(committed < geometry.tiles() / 2, "sent {committed}");
 }
+
+#[test]
+fn superseded_partial_frame_tiles_are_resent_even_when_unchanged() {
+    let host = surface_host();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut cache = [0; DAMAGE_TILES];
+    let buffers = Buffers {
+        draft: &mut d,
+        original: &mut o,
+        staging: &mut s,
+    };
+    let mut app = editor(&host, buffers, &mut cache);
+
+    // Interrupt a frame right after its first blit.
+    let g = generation(&app);
+    app.set_semantic_value(SemanticId::Document, g, "first")
+        .unwrap();
+    let committed = app.surface_counts().committed_tiles;
+    while app.surface_counts().committed_tiles == committed {
+        app.step().unwrap();
+    }
+    assert!(app.controller().view().dirty, "frame must still be partial");
+
+    // The next frame only appends text, so every tile at or before the one
+    // just blitted renders identically and matches its cached digest. The
+    // receiver refuses RETAIN for a tile changed since its base frame, so
+    // that tile must be re-sent; a RETAIN would fail the step.
+    let g = generation(&app);
+    app.set_semantic_value(SemanticId::Document, g, "firstzzzzzzzzzzzz")
+        .unwrap();
+    finish_paint(&mut app);
+    assert_exact(&app, &host.borrow(), None);
+}

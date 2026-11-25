@@ -100,10 +100,12 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     /// a complete frame in this epoch. `None` keeps full repaints.
     damage: Option<&'a mut [u64]>,
     damage_valid: bool,
-    /// Retained mode: tiles below this index may have been blitted by a
-    /// superseded partial frame since the last complete frame; the receiver
-    /// refuses RETAIN for them and their cached digests are not on screen.
-    stale_below: u64,
+    /// Tiles `[start, end)` blitted so far in the current frame.
+    blitted: (u64, u64),
+    /// Hull of tiles blitted by superseded partial frames since the last
+    /// complete frame. The receiver refuses RETAIN for them and their cached
+    /// digests may not be on screen, so they are always re-sent.
+    stale: (u64, u64),
 }
 impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// `geometry` must be the actual authenticated INFO response from this
@@ -142,7 +144,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             retained_enabled: false,
             damage: None,
             damage_valid: false,
-            stale_below: 0,
+            blitted: (0, 0),
+            stale: (0, 0),
         })
     }
     /// Like `new`, but after the first complete frame only changed tiles (and
@@ -493,12 +496,17 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         self.evidence.ready = false;
         let mut view = self.controller.view();
         if view.generation != self.frame {
-            // A superseded partial frame may have blitted tiles below its
-            // position; keep those out of digest-proven RETAIN until the next
-            // complete frame.
-            if self.next_tile != self.geometry.tiles() {
-                self.stale_below = self.stale_below.max(self.next_tile);
+            // Keep tiles a superseded partial frame blitted out of
+            // digest-proven RETAIN until the next complete frame.
+            let (start, end) = self.blitted;
+            if start != end {
+                self.stale = if self.stale.0 == self.stale.1 {
+                    self.blitted
+                } else {
+                    (self.stale.0.min(start), self.stale.1.max(end))
+                };
             }
+            self.blitted = (0, 0);
             self.frame = view.generation;
             self.next_tile = 0;
         }
@@ -569,7 +577,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 // covers such a run with RETAIN instead of omitting it.
                 let unchanged = self.damage_valid
                     && self.next_tile != last
-                    && self.next_tile >= self.stale_below
+                    && !(self.stale.0..self.stale.1).contains(&self.next_tile)
                     && (!self.retained_enabled || self.surface.retained_base().is_some())
                     && self
                         .damage
@@ -614,6 +622,10 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             if let (Some(cache), Some(hash)) = (self.damage.as_deref_mut(), accepted_digest) {
                 cache[self.next_tile as usize] = hash;
             }
+            if self.blitted.0 == self.blitted.1 {
+                self.blitted.0 = self.next_tile;
+            }
+            self.blitted.1 = self.next_tile + 1;
         }
         self.next_tile = self
             .next_tile
@@ -623,7 +635,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             // The cache now describes the complete frame the surface shows;
             // the receiver clears its changed-since-base state at this point.
             self.damage_valid = self.damage.is_some();
-            self.stale_below = 0;
+            self.stale = (0, 0);
+            self.blitted = (0, 0);
             if !self.controller.presented(self.frame, self.geometry.epoch) {
                 return Err(Error::Binding);
             }
