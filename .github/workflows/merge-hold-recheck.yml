@@ -1,0 +1,74 @@
+# Event-driven re-check for merge-hold (#494 B9). merge-hold decides at once on
+# pull_request (policy.budgets.pull_request_wait_minutes = 0) and fails with
+# "Pending" while gates still run, instead of holding a runner while it polls.
+# When a gate workflow finishes for a same-repository pull request, this
+# workflow re-runs the newest failed or cancelled merge-hold run of that head
+# once no gate run is open any more; the re-run decides again from live data.
+# It never passes or fails a check itself. `workflows` lists the `name:` of
+# every workflow that owns an automatic core or rwa job in .github/ci-impact.toml,
+# Merge hold excluded (pinned by tests/test_ci_workflows.py). workflow_run
+# always runs this file and the script from the default branch.
+name: Merge hold re-check
+
+on:
+  workflow_run:
+    workflows:
+      - App package and artifact quality
+      - Artifact store contract quality
+      - B01 entropy and key management acceptance
+      - B03 signed updates acceptance
+      - CI
+      - CodeQL Advanced
+      - Component leaf quality
+      - FR-I01 joint native system acceptance
+      - K05 process management acceptance
+      - M6e scalable volume acceptance
+      - NAS host, target and native normal/cold checks
+      - Native ACPI S5 poweroff (H05 step)
+      - Native CMOS RTC acceptance
+      - Native display and input acceptance
+      - Native HID input IPC (synthetic reports)
+      - Native HW-INV inventory (QEMU)
+      - Native RANDOM and image foundation acceptance
+      - Native SMP bring-up (K06 step 1)
+      - Native window session and Windows QEMU bundle
+      - Native xHCI DMA and USB HID transport
+      - Network broker quality
+      - Network TLS adapter quality
+      - Resource pressure acceptance
+      - Storage resilience acceptance
+    types: [completed]
+
+# The job block below replaces these for its token.
+permissions:
+  contents: read
+
+concurrency:
+  # One re-check per head at a time; a queued one is replaced by a newer one, never a running one.
+  group: merge-hold-recheck-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  recheck:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout the default branch
+        # No ref: on workflow_run the checkout is the default branch, never pull request code.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/merge_hold_recheck.py
+            .github/ci-impact.toml
+          sparse-checkout-cone-mode: false
+      - name: Re-run merge-hold once the gates of the head have finished
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: python3 -B tools/merge_hold_recheck.py

@@ -65,7 +65,7 @@ NONNATIVE = "@nonnative"
 ZERO_SHA = "0" * 40
 SHA_RE = re.compile(r"[0-9a-f]{40}")
 CITATION_RE = re.compile(r"[^:\s]+:[1-9][0-9]*(-[1-9][0-9]*)?")
-ACTIVATION_RE = re.compile(r"automatic|dispatch|schedule|label:[^\s]+|push-branch:[^\s]+")
+ACTIVATION_RE = re.compile(r"automatic|dispatch|schedule|workflow-run|label:[^\s]+|push-branch:[^\s]+")
 DEP_TABLES = ("dependencies", "dev-dependencies", "build-dependencies")
 ROOT_ONLY_TARGETS = ("bin", "test", "example", "bench")
 
@@ -1403,6 +1403,8 @@ def activation_problem(activation, on_events, condition):
         return None if "pull_request" in on_events else "label activation without pull_request"
     if activation.startswith("push-branch:"):
         return None if "push" in on_events else "push-branch activation without push"
+    if activation == "workflow-run":
+        return None if "workflow_run" in on_events else "workflow-run activation without workflow_run"
     event = "schedule" if activation == "schedule" else "workflow_dispatch"
     if event not in on_events:
         return f"{activation} activation without {event}"

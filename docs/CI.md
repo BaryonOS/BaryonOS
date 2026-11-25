@@ -40,6 +40,7 @@ execution result.
 | Only `docs/**` or root Markdown changed | Required CI remains available; broad specialist workflows do not rerun. On PRs, tooling metadata (the catalogue's `core_only` paths, such as `.agents/**`, `plugins/**` or `LICENSE`) also skips 13 native workflows with a main backstop (`@nonnative`, docs/CI-CONTRACT.md); workflows without `@nonnative` keep their own filters, so `native-hid-input` and `native-xhci` still run (docs/CI-CONTRACT.md) |
 | Manual run through Actions | Each regular workflow can be started separately; evidence workflows provide `full_evidence` |
 | Copilot setup changed | Targeted setup check; after merging, the configuration becomes the Copilot development environment |
+| A gate workflow finishes for a PR from this repository | `merge-hold-recheck.yml` re-runs a failed or cancelled `merge-hold` of that head once no gate run is open; until then `merge-hold` fails fast with "Pending" and holds no runner ([Waiting and Re-check](CI-CONTRACT.md#enforcement-phase-3)) |
 
 `ci.yml` deliberately has no path filters. The existing main and release
 rules require `host-quality` and `qemu-smoke`; skipping an entire workflow

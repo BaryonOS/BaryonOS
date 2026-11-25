@@ -1351,6 +1351,11 @@ class CoverageTests(TestCase):
         self.assertIsNotNone(problem("dispatch", ["pull_request"], None))
         self.assertIsNotNone(problem("label:x", ["push"], None))
         self.assertIsNotNone(problem("push-branch:release", ["pull_request"], None))
+        # #494 B9: a workflow_run-only workflow (the merge-hold re-check) has its own activation.
+        self.assertTrue(ci_impact.ACTIVATION_RE.fullmatch("workflow-run"))
+        self.assertIsNone(problem("workflow-run", ["workflow_run"], None))
+        self.assertIsNotNone(problem("workflow-run", ["pull_request"], None))
+        self.assertIsNotNone(problem("automatic", ["workflow_run"], None))
         catalogue = tomllib.loads(COVERAGE_CATALOGUE.replace(
             'id = "host"\nname = "host"\nclass = "core"\nactivation = "automatic"',
             'id = "host"\nname = "host"\nclass = "operational"\nactivation = "schedule"'))

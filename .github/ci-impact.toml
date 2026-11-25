@@ -86,11 +86,12 @@ schedule = "full"
 workflow_dispatch = "manual"
 
 # merge-hold wait budgets (minutes), read from the trusted base. On pull_request
-# merge-hold waits up to 40 minutes for running gates, so auto-merge can follow the
-# last gate without a manual re-run; it polls with one run listing per minute
-# (docs/CI-CONTRACT.md, "Enforcement"). Both stay below the 50-minute job timeout.
+# merge-hold decides at once (0) and fails with "Pending" while gates run, so it
+# holds no runner while it waits; merge-hold-recheck.yml re-runs it once the gate
+# runs of the head have finished (#494 B9, docs/CI-CONTRACT.md "Waiting"). On
+# merge_group it still waits. Both stay below the 50-minute job timeout.
 [policy.budgets]
-pull_request_wait_minutes = 40
+pull_request_wait_minutes = 0
 merge_group_wait_minutes = 45
 
 [input_sets]
@@ -229,7 +230,7 @@ path = ".github/workflows/ci.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
-obligation = [{ cite = "AGENTS.md:104", anchor = "define the actual hosted gates" }, { cite = "docs/CI.md:44", anchor = "`ci.yml` deliberately has no path filters" }]
+obligation = [{ cite = "AGENTS.md:104", anchor = "define the actual hosted gates" }, { cite = "docs/CI.md:45", anchor = "`ci.yml` deliberately has no path filters" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"] }
 trigger.push = { branches = ["main"] }
 trigger.merge_group = { types = ["checks_requested"] }
@@ -478,7 +479,7 @@ path = ".github/workflows/copilot-setup-steps.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "pull_request"]
-obligation = [{ cite = "docs/CI.md:167", anchor = "The required job ID is `copilot-setup-steps`" }]
+obligation = [{ cite = "docs/CI.md:168", anchor = "The required job ID is `copilot-setup-steps`" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths = [".github/workflows/copilot-setup-steps.yml", ".github/actions/setup-python/**", ".github/actions/setup-qemu/**", "rust-toolchain.toml"] }
 
 [[workflow.job]]
@@ -541,6 +542,23 @@ activation = "label:acceptance-materiaal-probe"
 condition = "${{ github.event_name == 'workflow_dispatch' ||\n    contains(github.event.pull_request.labels.*.name, 'acceptance-materiaal-probe') }}"
 timeout_minutes = 40
 evidence = ["materiaal-probe-evidence"]
+
+[[workflow]]
+# Re-runs a failed or cancelled merge-hold once the gate runs of its head have
+# finished (#494 B9); never a gate, never selected.
+path = ".github/workflows/merge-hold-recheck.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_run"]
+obligation = []
+
+[[workflow.job]]
+id = "recheck"
+class = "operational"
+activation = "workflow-run"
+condition = "github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository.full_name == github.repository"
+timeout_minutes = 5
+evidence = []
 
 [[workflow]]
 path = ".github/workflows/merge-hold.yml"
