@@ -938,3 +938,48 @@ fn nv_read_policy_session_golden_bytes_and_policy_tail() {
     assert!(decode(req(), &rsp_s(&params, &PW_TAIL)).is_err());
     truncations_fail(req, &good);
 }
+
+#[test]
+fn nv_write_owner_matches_the_swtpm_transcript_and_is_bounded() {
+    // Squat probe N1 (swtpm 0.10.1): owner NV_Write of 64 random bytes to
+    // HAUTH with an empty ownerAuth, accepted with TPM_RC_SUCCESS.
+    let golden = hex(concat!(
+        "80020000006300000137400000010100b3040000000940000009000000000000402f65afcb6ae8c9fa",
+        "4199fc281628d2d941827a2c4d7b634c0316457fad6082344017792aaaac7d973fddcc2766c3e8f67c",
+        "fe78ec1de0fdac00c482ad206a8f010000"
+    ));
+    let data = golden[33..97].to_vec();
+    let req = || Request::NvWriteOwner {
+        index: index(trial_tpm::NV_HAUTH.handle),
+        owner_auth: none(),
+        data: &data,
+    };
+    assert_eq!(enc(req()), golden);
+    let mut out = [0u8; MAX_COMMAND];
+    assert!(codec::encode(req(), &mut out).unwrap().is_nv_mutation());
+    let good = rsp_s(&[], &PW_TAIL);
+    assert_eq!(decode(req(), &good), Ok(Response::Empty));
+    truncations_fail(req, &good);
+    // A policy trailer answers a password session: refused.
+    assert!(decode(req(), &rsp_s(&[], &policy_tail())).is_err());
+    // 29-byte ownerAuth + 64 data = 128 fits; 30 bytes exceeds MAX_COMMAND.
+    let pw = [7u8; 30];
+    let at = |n: usize| Request::NvWriteOwner {
+        index: index(trial_tpm::NV_HAUTH.handle),
+        owner_auth: Password::new(&pw[..n]).unwrap(),
+        data: &data,
+    };
+    assert_eq!(enc(at(29)).len(), MAX_COMMAND);
+    assert_eq!(enc_err(at(30)), Error::Length);
+    let d = [0u8; 65];
+    for n in [0usize, 65] {
+        assert_eq!(
+            enc_err(Request::NvWriteOwner {
+                index: index(trial_tpm::NV_HAUTH.handle),
+                owner_auth: none(),
+                data: &d[..n],
+            }),
+            Error::Input
+        );
+    }
+}

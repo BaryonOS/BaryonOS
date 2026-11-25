@@ -176,6 +176,15 @@ pub enum Request<'a> {
         data: &'a [u8],
         offset: u16,
     },
+    /// Owner-authorized `NV_Write` (`authHandle` = `TPM_RH_OWNER`) at offset 0
+    /// for OWNERWRITE indices such as `HAUTH` (WRITEALL: one full write). The
+    /// password and `data` are written into the command buffer in clear; the
+    /// caller wipes that buffer after submission.
+    NvWriteOwner {
+        index: NvIndex,
+        owner_auth: Password<'a>,
+        data: &'a [u8],
+    },
     /// `NV_Read` of 1..=64 bytes with `authHandle` = the index: AUTHREAD
     /// password, or a policy session for POLICYREAD indices such as `HAUTH`.
     NvRead {
@@ -426,6 +435,20 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
                 true,
             )
         }
+        Request::NvWriteOwner {
+            owner_auth, data, ..
+        } => {
+            if data.is_empty() || data.len() > MAX_NV_DATA {
+                return Err(Error::Input);
+            }
+            (
+                35 + owner_auth.0.len() + data.len(),
+                0x137,
+                Tail::Password,
+                Expectation::SessionEmpty,
+                true,
+            )
+        }
         Request::NvRead { auth, size, .. } => {
             if !(1..=MAX_NV_DATA as u16).contains(size) {
                 return Err(Error::Input);
@@ -569,6 +592,17 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
             w.authorize(auth);
             w.tpm2b(data);
             w.u16(offset);
+        }
+        Request::NvWriteOwner {
+            index,
+            owner_auth,
+            data,
+        } => {
+            w.u32(RH_OWNER);
+            w.u32(index.0);
+            w.auth(owner_auth);
+            w.tpm2b(data);
+            w.u16(0);
         }
         Request::NvRead {
             index,
