@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "4e2eda891ef9fcd806c71ad6495753483b95948f",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1-HAUTH: pre-seeded native negative cases on QEMU/swtpm (platform HAUTH squat, foreign ownerAuth, unbound LREC after a provisioning boot, power-cut leftovers) through tools/tpm_seed.py (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. At source a9bd4cef the squat (TPM_RC 0x149) and foreign-ownerAuth (TPM_RC 0x18B) cases halt after the CLOSED extend with raw exit 35 and unchanged public TPM state; the unbound case provisions on boot 0 and halts UNBOUND on boot 1; the cut case removes the leftovers, provisions and verifies; the six existing cases keep their stdout hashes (docs/verification/b03-rel05-hauth-seeded-20261125). TEST-only: no provisioning-path halt after NV writes, no ownerAuth/HAUTH equality check, no DA sensitivity check, no S3b, genesis, ACCEPTED, UEFI copy, hosted CI, hardware or human audit; no criterion accepted."
+}

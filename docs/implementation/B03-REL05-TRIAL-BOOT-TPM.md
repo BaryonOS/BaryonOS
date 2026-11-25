@@ -890,3 +890,27 @@ undefines, no `EFI_RNG_PROTOCOL`, PCR 13 (SHA-256) = `P_CLOSED`, raw exit 35,
 no kernel. Halts after `HAUTH` or `LREC` are written, and the squat,
 unbound-record, foreign-ownerAuth and power-cut cases, still need a pre-seeded
 swtpm state and remain NOT RUN.
+
+### Loader M1-HAUTH pre-seeded negative cases (25 November 2026)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-hauth-seeded-20261125](../verification/b03-rel05-hauth-seeded-20261125/README.md).
+`tools/tpm_seed.py` prepares the disposable swtpm state with raw commands at
+PCR 13 = 0 (the T5 position) and records only public state before and after
+each boot. On that basis the loader:
+
+- halts on a `PLATFORMCREATE` `HAUTH` squat (C21) because the owner undefine is
+  refused with `TPM_RC_NV_AUTHORIZATION` (`0x149`);
+- halts on a foreign ownerAuth with nothing provisioned, because
+  `NV_ReadPublic(HAUTH)` returns `0x18B`;
+- after a real provisioning boot, halts `UNBOUND` on an `LREC` with one
+  flipped binding byte;
+- removes power-cut leftovers (written `HAUTH`, unwritten `LREC`) and
+  provisions again.
+
+Every halt follows the `CLOSED` extend (raw exit 35, no kernel) and leaves the
+seeded public state unchanged. Still open: a provisioning-path halt after an
+NV write (needs fault injection), and a cut between the ownerAuth and
+lockoutAuth changes. The loader also never checks that the ownerAuth equals
+`HAUTH[..32]`, so a foreign owner that plants a well-formed `HAUTH` and `LREC`
+would bind (reported, not tested).
