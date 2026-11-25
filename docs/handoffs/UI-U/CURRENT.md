@@ -25,20 +25,22 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
 
 ## Current cycle
 
-- **cycle_id:** `UI-U-C3-20261124`
-- **task:** U04-K1 — keyboard-only reachability and activation host test
-  (`sdk/examples/window-session/tests/keyboard_only.rs`), landing the PR-less
-  commit `6c2771ef` on current `main`.
-- **branch:** `claude/ui-u-keyboard-only-20261124` (from `origin/main` `9f0eb19e`)
-- **PR:** recorded in the PR itself and in the `HANDOFF UI-U UI-U-C3-20261124`
-  comment after merge.
-- **Tested source:** the reviewed and tested head is recorded in the PR
-  verification table, not in this file.
-- **Evidence scope:** host test only (5 passing, 3 ignored with named
-  defects). No native keyboard run, no screen reader, no human trial.
+- **cycle_id:** `UI-U-C4-20261124`
+- **owner session:** cloud session `session_01TJtT9TYRU1MxszfSZaNAxQ`
+  (marker `CLOUD-HANDOFF-UI-U`); the earlier local UI-U session was idle and
+  is no longer a writer.
+- **task:** U04 — held Enter/Space activates exactly once in `Shell::key`
+  (ds-1.1 B8), un-ignoring `held_enter_or_space_activates_exactly_once`.
+- **branch:** `claude/ui-u-held-key-20261124`, stacked on C3
+  (`claude/ui-u-keyboard-only-20261124`); rebased onto `main` after C3 lands.
+- **PR:** recorded in the PR itself and in its HANDOFF comment after merge.
+- **Evidence scope:** host tests (shell unit test plus `keyboard_only.rs`);
+  hosted native window gates. No native held-key run, no human trial.
 
 ## Previous cycles
 
+- `UI-U-C3-20261124`: U04-K1 keyboard-only host test, PR #497; HANDOFF
+  comment on #497 after merge.
 - `UI-U-C2-20261124`: U05 UX-SR07/SR11 save-failure copy, merged as #487
   (`9f0eb19e`); HANDOFF comment on #487.
 - `UI-U-C1-20261124`: U04 / #447 History dialog order, merged as #483
@@ -73,12 +75,11 @@ closure = Closed. No schema or permission changes and no artificial issues.
   reopen through the row.
 - #448 (Editor 700–783 px compact overlap/collapse): changes frozen frames and
   needs the frame-change list and design approval.
-- U04-K1 keyboard defects, each pinned by an ignored test in
-  `keyboard_only.rs` (shell.rs line numbers at `9f0eb19e`): held Enter/Space
-  repeats activation (`KeyAction::Repeat` accepted, line 432); Space on a
-  focused search result types instead of activating (line 485); the
-  Notifications page opens only by pointer (lines 528-537). Fixes change shell
-  behaviour and frozen frames, so they need design-track agreement first.
+- U04-K1 keyboard defects still pinned by ignored tests in `keyboard_only.rs`:
+  Space on a focused search result types instead of activating (Space is also
+  the query's text input, so the fix needs an interaction decision); the
+  Notifications page opens only by pointer (no keyboard route). The held-key
+  defect is fixed in C4.
 - Storage-owner follow-up: the unbounded stat `history_count` decode
   (`services/volume/src/client.rs:483`, `sdk/document-session/src/volume.rs:286`).
 - Open follow-ups named by PROJECT-STATE: Search S3 wiring and native run,
@@ -102,6 +103,6 @@ closure = Closed. No schema or permission changes and no artificial issues.
 
 ## Next executable task
 
-After C3 merges: fix the held-key repeat defect in `Shell::key` (smallest,
-no frame change) and un-ignore its test, after checking with the design track
-that no frozen frame depends on repeat activation.
+After C4 merges: decide and implement a keyboard route to the Notifications
+page (FR-U05 keyboard-only) that follows ADR-058 desktop conventions, then
+un-ignore `notifications_page_is_reachable_by_keyboard_from_the_desktop`.
