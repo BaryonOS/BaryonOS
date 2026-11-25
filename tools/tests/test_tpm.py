@@ -17,6 +17,8 @@ class NativeTpmTranscriptTests(unittest.TestCase):
     def transcript(self, case):
         if case == "loader-probe":
             return self.LOADER + self.transcript("normal")
+        if case == "loader-rng":
+            return self.LOADER.replace("RNG:ABSENT", "RNG:PASS") + self.transcript("normal")
         text = test_ipc_wait.NativeWaitTranscriptTests().transcript()
         values = {"WRITES": 12000 if case == "normal" else 0,
                   "BOUNDS_REJECTED": 7, "QUARANTINED": int(case == "absent")}
@@ -36,8 +38,14 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         result = probe.evaluate(good, "loader-probe")
         self.assertEqual((result["LOADER_BANKS"], result["LOADER_PERMANENT"], result["LOADER_RNG"]),
                          (0xF, 0x400, "ABSENT"))
-        self.assertEqual(probe.evaluate(good.replace("RNG:ABSENT", "RNG:PASS"),
-                                        "loader-probe")["LOADER_RNG"], "PASS")
+        self.assertEqual(probe.evaluate(self.transcript("loader-rng"), "loader-rng")["LOADER_RNG"],
+                         "PASS")
+        # U25 is pinned per case: no RNG without the device, a working RNG with it.
+        with self.assertRaisesRegex(ValueError, "must be ABSENT"):
+            probe.evaluate(good.replace("RNG:ABSENT", "RNG:PASS"), "loader-probe")
+        for bad in (good, self.transcript("loader-rng").replace("RNG:PASS", "RNG:FAIL")):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                probe.evaluate(bad, "loader-rng")
         for bad in (
             self.transcript("normal"),
             good.replace("LOADER-TPM:TCG2:PRESENT", "LOADER-TPM:TCG2:ABSENT"),
@@ -53,6 +61,13 @@ class NativeTpmTranscriptTests(unittest.TestCase):
                 probe.evaluate(bad, "loader-probe")
         with self.assertRaises(ValueError):
             probe.evaluate(good, "normal")
+
+    def test_virtio_rng_is_a_boolean_opt_in_of_the_tpm_fixture_only(self):
+        import run
+        for kwargs in ({"virtio_rng": True}, {"virtio_rng": 1, "tpm_socket": "x"},
+                       {"virtio_rng": True, "tpm_socket": "x", "m5_case": "read"}):
+            with self.subTest(kwargs=kwargs), self.assertRaisesRegex(ValueError, "virtio-rng"):
+                run.run_guest(**kwargs)
 
     def test_probe_loader_pairs_only_with_the_native_tpm_kernel(self):
         import build

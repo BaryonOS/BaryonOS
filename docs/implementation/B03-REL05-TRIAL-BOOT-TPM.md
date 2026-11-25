@@ -753,8 +753,10 @@ named marker (TEST hook markers emitted before each write in a test feature).
   `EFI_RNG_PROTOCOL` (UEFI 2.10, section 37.5) with its default algorithm in
   the loader phase. It is the entropy source of the M1-HAUTH secrets; when it
   is absent, provisioning halts (no fallback, no derivation from records).
-  *Observed absent under `-cpu qemu64` without an RNG device (loader probe
-  below); the profile needs an entropy source before provisioning can run.*
+  *Observed absent under `-cpu qemu64` without an RNG device and present with
+  a TEST virtio-rng device on OVMF 2025.11 (loader probes below); the
+  provisioning profile must include that device. Not run on the hosted
+  OVMF 2024.02 image.*
 - U26 Design of the M1-HAUTH loader record that binds `SHA-256(HAUTH)` and
   names the anchored instances (policy-written at PCR 13 = 0³²; handle, size,
   per-domain layout and public-area check open; see
@@ -785,3 +787,17 @@ codec. The `native-tpm-crb` kernel then completed its CRB property query, so
 the loader's TCG2 use leaves the CRB usable (part of U2). `EFI_RNG_PROTOCOL`
 was absent (U25). Still open for U2: `HashLogExtendEvent`, extension of every
 bank and PCR 13 after the loader.
+
+### Loader entropy results (25 November 2026, S6 step 4)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-loader-rng-20261125](../verification/b03-rel05-loader-rng-20261125/README.md).
+The new `run_tpm.py --case loader-rng` adds an opt-in `virtio-rng-pci` device
+(host `/dev/urandom`) to the loader-probe fixture. With it, OVMF 2025.11
+provided `EFI_RNG_PROTOCOL` and `GetRNG` returned bytes before
+`ExitBootServices`; without it the protocol stays absent, and the runner pins
+`ABSENT` and `PASS` per case. The kernel serial lines are identical with and
+without the device. An exploratory `-cpu qemu64,+rdrand` run also gave
+`PASS` but was not kept. The contract source stays `EFI_RNG_PROTOCOL`. Still
+open for U25: the hosted OVMF 2024.02 image and a profile in which the kernel
+keyring uses the same device after the loader.

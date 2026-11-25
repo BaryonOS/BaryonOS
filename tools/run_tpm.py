@@ -19,9 +19,11 @@ import run_ipc_wait
 from run import run_guest
 
 FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
-            "loader-probe": "native-tpm-crb"}
+            "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb"}
 # B03 REL-05 S6 step 1: firmware TCG2/RNG before EBS, then the normal kernel case.
-LOADER = {"loader-probe": "tpm-loader-probe-test"}
+LOADER = {case: "tpm-loader-probe-test" for case in FEATURES if case.startswith("loader-")}
+# U25: the TEST profile has no firmware RNG; only `loader-rng` adds a virtio-rng device.
+LOADER_RNG = {"loader-probe": "ABSENT", "loader-rng": "PASS"}
 LOADER_MARKERS = ("LOADER-TPM:TCG2:PRESENT", "LOADER-TPM:PCR13:ZERO", "LOADER-TPM:PASS")
 COMMON = ("M2:PASS", "TPMCRB:BOUNDS:PASS", "TPMCRB:MAPPING:PASS",
           "IPCWAIT:MANIFEST:PASS", "IPCWAIT:REVOKED_FULL_QUEUE:PASS")
@@ -42,6 +44,8 @@ def evaluate(stdout, case):
             raise ValueError(f"Expected exactly one {marker}")
     if case in LOADER:
         result.update(loader_observations(stdout))
+        if result["LOADER_RNG"] != LOADER_RNG[case]:
+            raise ValueError(f"Loader RNG must be {LOADER_RNG[case]} in {case}")
         case = "normal"
     elif "LOADER-TPM:" in stdout:
         raise ValueError("Loader TPM probe output in a kernel-only case")
@@ -146,7 +150,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS; no product keys or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; no product keys or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
@@ -162,6 +166,7 @@ def run(case):
                                    "LOADER-TPM:FAIL:"),
                 expected_kernel_sha256=manifest["kernel"]["sha256"],
                 expected_loader_sha256=manifest["loader"]["sha256"],
+                virtio_rng=case == "loader-rng",
             )
             if not report["guest"]["passed"]:
                 raise ValueError("Native TPM guest failed; inspect retained serial/stderr")
