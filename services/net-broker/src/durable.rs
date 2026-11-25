@@ -30,11 +30,25 @@ pub enum AnchorError {
     Conflict,
     /// The counter cannot advance further.
     Exhausted,
+    /// The anchor owner's per-domain write budget is spent (NV endurance).
+    RateLimited,
+}
+
+/// One anchor read. The backend writes the next binding before it increments
+/// its hardware-monotonic counter, so a crash between the two leaves `Pending`:
+/// the binding of `generation` is gone and only the pending state can complete.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AnchorRead {
+    Current(AnchorState),
+    Pending {
+        generation: u64,
+        next_binding: Digest,
+    },
 }
 
 /// Bounded network-domain capability; no other anchor domain is reachable.
 pub trait FreshnessAnchor {
-    fn read(&mut self) -> Result<AnchorState, AnchorError>;
+    fn read(&mut self) -> Result<AnchorRead, AnchorError>;
     /// Atomic compare-and-swap from `expected` to `expected + 1`, storing `binding`.
     fn advance(&mut self, expected: u64, binding: Digest) -> Result<(), AnchorError>;
 }
@@ -68,9 +82,38 @@ pub enum Startup {
     RolledForward,
 }
 
+/// Completes an interrupted advance, or reports the current anchor state.
+fn settle(anchor: &mut impl FreshnessAnchor, store: &StoreState) -> Result<Settled, Denied> {
+    match anchor.read().map_err(Denied::Anchor)? {
+        AnchorRead::Current(current) => Ok(Settled::Current(current)),
+        AnchorRead::Pending {
+            generation,
+            next_binding,
+        } => {
+            if store.generation != generation.checked_add(1).ok_or(Denied::Ahead)?
+                || store.digest != next_binding
+            {
+                return Err(Denied::Fork);
+            }
+            anchor
+                .advance(generation, next_binding)
+                .map_err(Denied::Anchor)?;
+            Ok(Settled::Completed)
+        }
+    }
+}
+
+enum Settled {
+    Current(AnchorState),
+    Completed,
+}
+
 /// Decides whether a loaded store may be used after a cold boot.
 pub fn startup(anchor: &mut impl FreshnessAnchor, store: &StoreState) -> Result<Startup, Denied> {
-    let current = anchor.read().map_err(Denied::Anchor)?;
+    let current = match settle(anchor, store)? {
+        Settled::Current(current) => current,
+        Settled::Completed => return Ok(Startup::RolledForward),
+    };
     if store.generation < current.generation {
         return Err(Denied::Rollback);
     }
@@ -87,7 +130,10 @@ pub fn startup(anchor: &mut impl FreshnessAnchor, store: &StoreState) -> Result<
 
 /// Called after `next` is durably committed; success is the acknowledgement.
 pub fn acknowledge(anchor: &mut impl FreshnessAnchor, next: &StoreState) -> Result<(), Denied> {
-    let current = anchor.read().map_err(Denied::Anchor)?;
+    let current = match settle(anchor, next)? {
+        Settled::Current(current) => current,
+        Settled::Completed => return Ok(()),
+    };
     if next.generation <= current.generation {
         return Err(Denied::Rollback);
     }
@@ -121,6 +167,8 @@ mod tests {
         state: AnchorState,
         fail_read: Option<AnchorError>,
         fail_advance: Option<AnchorError>,
+        /// Slot written, counter not yet incremented (crash between the writes).
+        pending: Option<Digest>,
         writes: u32,
     }
 
@@ -133,22 +181,35 @@ mod tests {
                 },
                 fail_read: None,
                 fail_advance: None,
+                pending: None,
                 writes: 0,
             }
         }
     }
 
     impl FreshnessAnchor for Fake {
-        fn read(&mut self) -> Result<AnchorState, AnchorError> {
-            self.fail_read.map_or(Ok(self.state), Err)
+        fn read(&mut self) -> Result<AnchorRead, AnchorError> {
+            if let Some(error) = self.fail_read {
+                return Err(error);
+            }
+            Ok(match self.pending {
+                Some(next_binding) => AnchorRead::Pending {
+                    generation: self.state.generation,
+                    next_binding,
+                },
+                None => AnchorRead::Current(self.state),
+            })
         }
         fn advance(&mut self, expected: u64, binding: Digest) -> Result<(), AnchorError> {
             if let Some(error) = self.fail_advance {
                 return Err(error);
             }
-            if expected != self.state.generation {
+            if expected != self.state.generation
+                || self.pending.is_some_and(|pending| pending != binding)
+            {
                 return Err(AnchorError::Conflict);
             }
+            self.pending = None;
             self.state = AnchorState {
                 generation: expected + 1,
                 binding,
@@ -261,7 +322,9 @@ mod tests {
     #[test]
     fn concurrent_advance_loses_the_compare_and_swap() {
         let mut anchor = Fake::at(5, D1);
-        let stale = anchor.read().unwrap();
+        let AnchorRead::Current(stale) = anchor.read().unwrap() else {
+            panic!("pending")
+        };
         assert_eq!(acknowledge(&mut anchor, &state(6, D2, D1)), Ok(()));
         assert_eq!(
             advance(&mut anchor, stale, &state(6, [3; 32], D1)),
@@ -274,7 +337,9 @@ mod tests {
     fn exhausted_counter_denies_instead_of_wrapping() {
         let mut anchor = Fake::at(u64::MAX - 1, D1);
         assert_eq!(acknowledge(&mut anchor, &state(u64::MAX, D2, D1)), Ok(()));
-        let top = anchor.read().unwrap();
+        let AnchorRead::Current(top) = anchor.read().unwrap() else {
+            panic!("pending")
+        };
         assert_eq!(
             advance(&mut anchor, top, &state(0, [3; 32], D2)),
             Err(Denied::Anchor(AnchorError::Exhausted))
@@ -288,6 +353,61 @@ mod tests {
             AnchorState {
                 generation: u64::MAX,
                 binding: D2
+            }
+        );
+    }
+
+    /// Crash after the slot write, before the counter increment: the binding
+    /// of A is overwritten, so only the store at A+1 with that digest completes.
+    #[test]
+    fn interrupted_advance_completes_only_for_the_pending_state() {
+        let mut anchor = Fake::at(5, D1);
+        anchor.pending = Some(D2);
+        assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Err(Denied::Fork));
+        assert_eq!(
+            startup(&mut anchor, &state(6, [3; 32], D1)),
+            Err(Denied::Fork)
+        );
+        assert_eq!(startup(&mut anchor, &state(7, D2, D1)), Err(Denied::Fork));
+        assert_eq!(anchor.writes, 0);
+        assert_eq!(
+            startup(&mut anchor, &state(6, D2, D1)),
+            Ok(Startup::RolledForward)
+        );
+        assert_eq!(
+            anchor.read(),
+            Ok(AnchorRead::Current(AnchorState {
+                generation: 6,
+                binding: D2
+            }))
+        );
+    }
+
+    #[test]
+    fn interrupted_advance_is_completed_by_the_matching_acknowledgement() {
+        let mut anchor = Fake::at(5, D1);
+        anchor.pending = Some(D2);
+        assert_eq!(
+            acknowledge(&mut anchor, &state(6, [3; 32], D1)),
+            Err(Denied::Fork)
+        );
+        assert_eq!(acknowledge(&mut anchor, &state(6, D2, D1)), Ok(()));
+        assert_eq!(anchor.state.generation, 6);
+    }
+
+    #[test]
+    fn rate_limited_advance_is_not_an_acknowledgement() {
+        let mut anchor = Fake::at(5, D1);
+        anchor.fail_advance = Some(AnchorError::RateLimited);
+        assert_eq!(
+            acknowledge(&mut anchor, &state(6, D2, D1)),
+            Err(Denied::Anchor(AnchorError::RateLimited))
+        );
+        assert_eq!(
+            anchor.state,
+            AnchorState {
+                generation: 5,
+                binding: D1
             }
         );
     }
