@@ -4,6 +4,9 @@
 `loader()` block (`crates/update-core/tests/anchor_chain_model.rs`) up to
 BOUND in the real UEFI loader against a disposable swtpm, then a second boot on
 the same TPM state. It accepts no criterion and grants no progress points.
+TEST deviation from the model: the model zeroises the secret before the PCR 13
+extend (`tpm.close()`), whereas the loader keeps it until the post-extend
+residue scan in step 5 and wipes it afterwards.
 First provisioning is **unauthorised and TEST-only**: S3b (EK, signed
 `ENROLL`), genesis, ACCEPTED, the UEFI copy and U28 are not built.
 
@@ -34,6 +37,8 @@ First provisioning is **unauthorised and TEST-only**: S3b (EK, signed
    value just read; lockoutAuth unset only: `HierarchyChangeAuth(lockout, HAUTH[32..])`.
 4. Every path that reached the TPM: `HashLogExtendEvent(13, "BARYON-TRIAL-CLOSED-V1")`
    (`EV_IPL`, flags 0); any earlier failure then stops the boot (exit 0x11).
+   This failure order is designed, not observed: no failing case was run, and
+   the host model halts without the extend.
 5. After the extend: SHA-256 PCR 13 must equal `P_CLOSED`; a fresh policy read
    of `HAUTH` must fail with exactly `0x99D` (`TPM_RC_POLICY_FAIL`, session
    flushed); an empty-ownerAuth owner undefine of `HAUTH` must fail with
@@ -78,14 +83,17 @@ although the probe module was refactored to share its TCG2 helpers.
 
 ## Reading
 
-- U2 (SHA-256 bank of PCR 13): firmware `HashLogExtendEvent` hashes
+- U2 (SHA-256 bank of PCR 13), observed on the local Ubuntu OVMF 2025.11 only;
+  U2 names the pinned hosted image, which was not run here. Firmware
+  `HashLogExtendEvent` hashes
   `DataToHash` and extends PCR 13 so that the SHA-256 bank equals the frozen
   `P_CLOSED`; the loader needs no hash code of its own for the extend.
 - `0x28B` is the "not defined" answer on a fresh TPM (the only tolerated
   non-success; boot 0 passed). `0x9A2` rather than `0x98E` (`TPM_RC_AUTH_FAIL`)
-  indicates that the refused owner command is not counted towards dictionary-
-  attack lockout (TPM 2.0 Part 1, hierarchy authValues); the lockout hierarchy
-  is never tried with a wrong value.
+  suggests that the refused owner command is not counted towards dictionary-
+  attack lockout. This is inferred from the response code only:
+  `TPM_PT_LOCKOUT_COUNTER` was not read and the TPM 2.0 Part 1 text was not
+  checked in this run. The lockout hierarchy is never tried with a wrong value.
 - `RESIDUE:NONE` is observed at the loader's last TPM command, before
   `ExitBootServices`, in the QEMU CRB buffer only.
 
@@ -93,7 +101,9 @@ although the probe module was refactored to share its TCG2 helpers.
 
 - Native negative cases: squatted or unwritten `HAUTH`/`LREC`, an unbound
   `LREC`, a platform squat, foreign ownerAuth, and a power cut between
-  provisioning steps (covered only by the host model).
+  provisioning steps. The host model covers their halt decisions but not the
+  PCR 13 extend before the halt, so the extend-then-stop order is unobserved.
+- `TPM_PT_LOCKOUT_COUNTER` before and after the refused owner command.
 - Read-back of the SHA-1, SHA-384 and SHA-512 banks of PCR 13 and of the TCG
   event log entry (delegated to firmware, not observed).
 - Wiping of the SHA-256 working state inside `hauth_binding`, of firmware or

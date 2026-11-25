@@ -51,6 +51,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - NOT RUN: native negative HAUTH/LREC cases (squat, unbound, foreign ownerAuth, power cut), PCR 13 read-back of the
   SHA-1/384/512 banks, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
   the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
+- Licensing register: `boot/loader/src/tpm_probe.rs` and `tpm_hauth.rs` are not listed in `MPL-2.0-FILES.txt` (no
+  test enforces it); the register is an owner/lead decision, so it is reported, not changed.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
   staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; U25 on the hosted OVMF image and real firmware.
 
@@ -81,8 +83,12 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 ## Next executable task
 
 - Done locally (25 Nov, not pushed): M1-HAUTH BOUND provisioning slice (spec steps 1-5). Commits 8f45c07e (frozen Names,
-  frame sizes), 1a46fa21 (loader, runner, tests), then the evidence/docs commit. Observed: undefine of a missing index =
-  `0x28B`; refused owner command = `0x9A2` (`BAD_AUTH`, not DA-counted); policy read after the extend = `0x99D`.
+  frame sizes), 1a46fa21 (loader, runner, tests), fe21707e (evidence), then an evidence-wording commit. Gate parity at
+  1a46fa21 source (Rust 1.100.0, `GIT_EDITOR` unset): root fmt; tpm-crb test/clippy/fmt/scalar `x86_64-unknown-none`
+  build; update-core test/clippy; `compileall`; `tools/tests` (1178 OK, 15 skipped); the ci.yml `tests/` patterns;
+  `tools/test.py` (boot acceptance). `agent_gate.py --job ci.yml#host-quality` cannot resolve locally (`uses:` step). Observed: undefine of a missing index =
+  `0x28B`; refused owner command = `0x9A2` (`BAD_AUTH`; DA exemption inferred from the RC only, lockout counter not
+  read); policy read after the extend = `0x99D`.
 - Next on #524, in order: (a) native negative cases for the loader halt paths (squatted `HAUTH`, unbound `LREC`, foreign
   ownerAuth; a swtpm pre-seeding step in `run_tpm.py`), (b) S3/U27 and the section 7.9 halt, (c) native S5 with N's joint
   tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.

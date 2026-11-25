@@ -860,11 +860,17 @@ checks the frozen unwritten Name, owner-writes 64 bytes from
 `HAUTH` and `LREC` Names, reads `HAUTH` under `PolicyPCR(13 = 0³²)`, verifies
 the binding and sets lockoutAuth when unset. It then extends PCR 13 with
 `CLOSED` through `HashLogExtendEvent` (`EV_IPL`) on every path that reached
-the TPM and stops on any failure. After the extend the SHA-256 bank equals
+the TPM and is designed to stop on any failure; that failure path was not
+exercised natively, and the host model halts without this extend. After the
+extend the SHA-256 bank equals
 `P_CLOSED`, the policy read of `HAUTH` is refused with `TPM_RC_POLICY_FAIL`,
 an empty-ownerAuth owner undefine is refused with `TPM_RC_BAD_AUTH`, and
 neither 32-byte half of the secret remains in the CRB buffer. A second boot
-on the same swtpm state takes the read-and-verify path only. This settles U2
-for the SHA-256 bank of PCR 13 (the other three banks were not read back) and
-M1-HAUTH steps up to BOUND in this TEST profile only: first provisioning is
-unauthorised because S3b, genesis, ACCEPTED and the UEFI copy are not built.
+on the same swtpm state takes the read-and-verify path only. Unlike the host
+model, which zeroises the secret before the PCR 13 extend, the loader keeps it
+until the post-extend residue scan and wipes it afterwards (TEST deviation).
+U2 is thereby observed for the SHA-256 bank of PCR 13 on the local Ubuntu OVMF
+2025.11 only: U2 names the pinned hosted image, which was not run, and the
+other three banks were not read back. M1-HAUTH steps up to BOUND in this TEST
+profile only: first provisioning is unauthorised because S3b, genesis,
+ACCEPTED and the UEFI copy are not built.
