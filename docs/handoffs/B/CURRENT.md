@@ -29,23 +29,19 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 ## Current cycle
 
 - Session: cloud (CLOUD-HANDOFF-B, 25 Nov); the local B session is archived and no longer writes.
-- cycle_id: b05-t5-user-abi-20261125 (previous b04-repro-loader-20261124 closed: #493 merged as ae735e2c,
-  verified on main; HANDOFF comment on #493).
-- task: B05-T5 bounded invariant enumeration of the ring-3 user ABI (`crates/kernel-core/src/user.rs`)
-- branch: claude/b05-user-abi-20261123
+- cycle_id: b03-f1-floor-crash-20261125 (previous b05-t6-virtio-caps-20261125: PR #512; see its HANDOFF comment).
+- task: B03-F1 native characterization of REL-05 (anti-rollback floor raised before kernel health); not a fix.
+- branch: claude/b03-floor-crash-20261123
 - PR: see the HANDOFF comment for the number and expected head
 - state: RESUME_REQUIRED until the PR is squash-merged and verified on main.
-- result: host-only test `crates/kernel-core/tests/bounded_user_abi_invariants.rs` (12 tests). The open verifier
-  finding (`>=` quota mutant survived) is closed by `parse_quota_boundary_is_exact`; a second verifier pass found
-  the same gap at the window end, closed by `parse_window_end_is_exact`. Production source unchanged.
+- result: `tools/characterize_update_floor.py` + 9 host tests; evidence `docs/verification/b03-floor-crash-20261123/`.
+  Re-run on main-merged source 25 Nov (QEMU 8.2.2, pc-q35-8.2): hazard observed, all four boots as expected.
 
 ## Evidence / NOT RUN
 
-- Evidence: `docs/security-review/B05-T5-USER-ABI-INVARIANTS.md` (case counts, mutation controls, commands).
-  `cargo test -p kernel-core` (59 unit + 12 integration), clippy, fmt and `tools/b05_scope_check.py` exit 0;
-  quota `>=`, `-31`, `-33`, non-accumulating count and window-end `>=` mutants all exit 101.
-- NOT RUN: `cargo llvm-cov` locally; native QEMU (the change is test-only); hardware; human audit.
-  No B05 credit: AI review is not the external human audit.
+- Evidence: the README above (original run at a91d5ade + re-run section). Host tests 9/9 OK.
+- NOT RUN: physical hardware; human audit. B03 stays accepted on main; REL-05 is an open design hazard that needs an
+  owner policy decision (trial boot / health confirmation) before any loader change.
 
 ## Merge procedure lesson (25 Nov)
 
@@ -64,7 +60,6 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 ## Queued B branches (pushed, merged with main on 24–25 Nov, no PR yet)
 
 - claude/b05-virtio-caps-20261123 7762e63f — B05-T6, verifier MERGE; virtio-core tests/clippy/fmt/scope exit 0.
-- claude/b03-floor-crash-20261123 — B03-F1 REL-05 characterization (not a fix); 9 host tests pass.
 - REL-05 fix (floor raised before kernel health) needs an owner policy decision (trial boot / health
   confirmation); B drafts a proposal, no silent change to anti-rollback semantics.
 
@@ -76,5 +71,5 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- Finish the B05-T5 PR (gates, merge-hold re-run, expected-head squash merge, verify on main,
-  post `HANDOFF B b05-t5-user-abi-20261125`), then B05-T6, then B03-F1.
+- Finish the B03-F1 PR (gates, merge-hold re-run, expected-head squash merge, verify on main, post
+  `HANDOFF B b03-f1-floor-crash-20261125`), then draft the REL-05 policy proposal for the owner.

@@ -105,3 +105,24 @@ runner and `signed.rs` matched the pre-mutation values.
   scheme) changes anti-rollback semantics under ADR-049 and
   ADR-B03-B04-TARGET-20261119 D3/D4 and requires a project-owner decision.
   Once fixed, this runner is expected to fail by design.
+
+## Re-run on the main-merged source (25 November 2026, cloud session)
+
+The characterization was repeated without changes to the tool on branch head
+`4aeacbc5` (origin/main `bd31a78b` merged in), in a different environment from
+the run above. Raw files stay in the ignored build directory and are not
+committed; the committed evidence above remains bound to its own source.
+
+| Item | Value |
+| --- | --- |
+| Source fingerprint (`source_hash()`, v3) | `b6bf7c4992b80e697e560e3dc990dd465c3341f1b82dfb4d8b0bdbe919f7511b` |
+| Loader (`signed-boot-test`) SHA-256 | `0de32dc9a147837c71936a784c2225a463e00407b0a59fe847c425885a31e0c7` |
+| QEMU / machine | `QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)`, `pc-q35-8.2` (`NOS_QEMU_MACHINE`) |
+| OVMF | `/usr/share/OVMF/OVMF_CODE_4M.fd` and the `OVMF_VARS_4M.fd` template (floor variable absent from the template) |
+| Command | `NOS_BUILD_DIR=build/b03f1 python3 -B -u tools/characterize_update_floor.py` |
+| Result | exit 0, `observed=true`, `rollback_store_equals_control=true` |
+| Boots | control-v1 raw 33; boot-1-v2-panics raw 35; boot-2-floor-kept raw 35; boot-3-rollback-refused raw 35; all oracles passed |
+| `summary.json` SHA-256 (not committed) | `6fedad9d8b32c284e9f0ec8a6272dde7e0289be1e854f06a186e224559f20490` |
+
+The hazard therefore persists on current main with a second QEMU/OVMF
+combination. This is still characterization only: no fix, no criterion change.
