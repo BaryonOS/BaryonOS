@@ -41,6 +41,8 @@ always_full = [
   ".clippy.toml",
   "**/.clippy.toml",
   ".gitattributes",
+  # git status cleanliness checks in host-quality and native workflows read it (#494 C2).
+  ".gitignore",
   "tools/build.py",
   "tools/build_users.py",
   "tools/common.py",
@@ -72,7 +74,6 @@ core_only = [
   ".c8rc.json",
   ".coveragerc",
   ".coderabbit.yaml",
-  ".gitignore",
   "LICENSE",
   "MPL-2.0-FILES.txt",
 ]
@@ -211,7 +212,7 @@ path = ".github/workflows/artifact-store-quality.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "push", "workflow_dispatch"]
-obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1479", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
+obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1478", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
 trigger.push = { branches = ["main"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
 
@@ -294,7 +295,7 @@ path = ".github/workflows/clear-stale-actions.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["push"]
-obligation = [{ cite = "tests/test_ci_workflows.py:814", anchor = "\".github/workflows/clear-stale-actions.yml\", \"cancel-orphans\"" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:813", anchor = "\".github/workflows/clear-stale-actions.yml\", \"cancel-orphans\"" }]
 trigger.push = { branches = ["maintenance/clear-stale-actions-20261109"], paths = [".github/workflows/clear-stale-actions.yml"] }
 
 [[workflow.job]]
@@ -309,7 +310,7 @@ path = ".github/workflows/codeql.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["push", "pull_request", "merge_group", "workflow_dispatch", "schedule"]
-obligation = [{ cite = "tests/test_ci_workflows.py:804", anchor = "(\".github/workflows/codeql.yml\", \"analyze\")" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:803", anchor = "(\".github/workflows/codeql.yml\", \"analyze\")" }]
 trigger.pull_request = { branches = ["main"] }
 trigger.push = { branches = ["main"] }
 trigger.merge_group = { types = ["checks_requested"] }
@@ -334,7 +335,7 @@ path = ".github/workflows/component-leaves.yml"
 owner = "ci-owner"
 granularity = "variant"
 events = ["pull_request", "push", "workflow_dispatch"]
-obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1471", anchor = "leaves = next(wf for wf in catalogue[\"workflow\"] if wf[\"path\"] == \".github/workflows/component-leaves.yml\")" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1470", anchor = "leaves = next(wf for wf in catalogue[\"workflow\"] if wf[\"path\"] == \".github/workflows/component-leaves.yml\")" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -510,7 +511,7 @@ path = ".github/workflows/kvm-pilot.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch"]
-obligation = [{ cite = "tests/test_ci_workflows.py:696", anchor = "self.workflows[\".github/workflows/kvm-pilot.yml\"][\"jobs\"][\"kvm-pilot\"]" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:695", anchor = "self.workflows[\".github/workflows/kvm-pilot.yml\"][\"jobs\"][\"kvm-pilot\"]" }]
 
 [[workflow.job]]
 id = "kvm-pilot"
@@ -530,7 +531,7 @@ path = ".github/workflows/materiaal-probe.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "pull_request"]
-obligation = [{ cite = "tests/test_ci_workflows.py:1417", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:1416", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
 trigger.pull_request = { types = ["opened", "reopened", "synchronize", "labeled", "ready_for_review"], branches = ["main"] }
 
 [[workflow.job]]
@@ -597,7 +598,7 @@ path = ".github/workflows/native-display-input.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1480", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1479", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -916,7 +917,7 @@ path = ".github/workflows/native-system.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "tests/test_ci_workflows.py:772", anchor = "system = self.workflows[\".github/workflows/native-system.yml\"]" }]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "tests/test_ci_workflows.py:771", anchor = "system = self.workflows[\".github/workflows/native-system.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -933,7 +934,7 @@ path = ".github/workflows/native-window-session.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:244", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1394", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
+obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:244", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1393", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -1007,7 +1008,7 @@ path = ".github/workflows/net-broker-quality.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "docs/PROGRESS.md:112", anchor = "Native packet and transport stack**" }, { cite = "tests/test_ci_workflows.py:748", anchor = "service = self.workflows[\".github/workflows/net-broker-quality.yml\"]" }]
+obligation = [{ cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "docs/PROGRESS.md:112", anchor = "Native packet and transport stack**" }, { cite = "tests/test_ci_workflows.py:747", anchor = "service = self.workflows[\".github/workflows/net-broker-quality.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -1194,7 +1195,7 @@ path = ".github/workflows/volume-acceptance.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request"]
-obligation = [{ cite = "docs/PROGRESS.md:79", anchor = "Space reuse and scalable volumes**" }, { cite = "tests/test_ci_workflows.py:700", anchor = "self.workflows[\".github/workflows/volume-acceptance.yml\"][\"jobs\"][\"m6e\"]" }]
+obligation = [{ cite = "docs/PROGRESS.md:79", anchor = "Space reuse and scalable volumes**" }, { cite = "tests/test_ci_workflows.py:699", anchor = "self.workflows[\".github/workflows/volume-acceptance.yml\"][\"jobs\"][\"m6e\"]" }]
 trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "ui/**", "experiments/**", "tests/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/volume-acceptance.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
 
 [[workflow.job]]

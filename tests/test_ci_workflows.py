@@ -58,7 +58,6 @@ NONNATIVE_PATHS_IGNORE = METADATA_PATHS_IGNORE + [
     ".c8rc.json",
     ".coveragerc",
     ".coderabbit.yaml",
-    ".gitignore",
     "LICENSE",
     "MPL-2.0-FILES.txt",
 ]
@@ -1911,9 +1910,11 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
     runpy, path joins) and named discovery globs, each matched by file name in any
     directory. No reached file may be a core_only path, or name a core_only top-level
     component as a path component, unless the catalogue registers it as an input of that
-    job. Limits: a bare `*`/`**` walk is a data read, not an execution edge; a `*.ext` glob
+    job. A tool that reads a configuration file by convention (`git status` reads
+    `.gitignore`, `coverage` `.coveragerc`, `c8` `.c8rc.json`) counts as naming that file.
+    Limits: a bare `*`/`**` walk is a data read, not an execution edge; a `*.ext` glob
     is resolved below its caller's directory; Rust compile inputs are covered by the
-    `include_*!`/`path` scan, not by the closure."""
+    `include_*!`/`path` scan, not by the closure; other implicit readers are not modelled."""
 
     WORD = r"(?<![\w.-])({})(?![\w-])"
     IMPORT = re.compile(r"^\s*(?:from\s+([\w.]+)\s+import\s+([\w, ()]+)|import\s+([\w., ]+))", re.M)
@@ -1921,6 +1922,9 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
     FILE = re.compile(r"[\w.-]+\.(?:py|sh)\b")
     GLOB = re.compile(r"(?<![^\s\'\"=])([\w./-]*\*[\w.*/-]*)(?![^\s\'\"])")
     LOCAL_ACTION = re.compile(r"\./(\.github/actions/[\w-]+)")
+    IMPLICIT = {".gitignore": re.compile(r"\bgit\W+(?:status|clean|ls-files|check-ignore|add)\b"),
+                ".coveragerc": re.compile(r"\bcoverage\W+(?:run|combine|report|xml|html|json)\b"),
+                ".c8rc.json": re.compile(r"\bc8\b")}
 
     @classmethod
     def setUpClass(cls):
@@ -1965,11 +1969,15 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
                 fnmatch.fnmatchcase(Path(path).name, pattern) or fnmatch.fnmatchcase(Path(path).stem, pattern)))
         return found
 
+    def mentions(self, text):
+        return set(self.mention.findall(text)) | {path for path, reader in self.IMPLICIT.items()
+                                                  if reader.search(text)}
+
     def file_edges(self, path):
         if path not in self.edge_cache:
             text = (ROOT / path).read_text(encoding="utf-8", errors="replace")
             self.edge_cache[path] = (self.edges(text, Path(path).parent.as_posix() + "/"),
-                                     set(self.mention.findall(text)))
+                                     self.mentions(text))
         return self.edge_cache[path]
 
     @staticmethod
@@ -1993,7 +2001,7 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
                 text += "\n" + body
                 pending += self.LOCAL_ACTION.findall(body)
         seeds = self.edges(text, ".github/") | {"tools/build.py"}
-        reached = {workflow: set(self.mention.findall(text))}
+        reached = {workflow: self.mentions(text)}
         todo = list(seeds)
         while todo:
             path = todo.pop()
@@ -2006,8 +2014,10 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
 
     def native_jobs(self):
         for entry in self.catalogue["workflow"]:
+            nonnative = entry.get("trigger", {}).get("pull_request", {}).get("paths_ignore") == "@nonnative"
             for job in entry["job"]:
-                if "native" in job.get("input_sets", []) and job["activation"] == "automatic":
+                # @nonnative skips the whole workflow, so its host jobs count as well.
+                if job["activation"] == "automatic" and ("native" in job.get("input_sets", []) or nonnative):
                     yield entry, job
 
     def violations(self, reached, inputs):
@@ -2016,15 +2026,22 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
             if any(github_path_filter_matches(pattern, path) for pattern in self.core_only) and \
                     not any(github_path_filter_matches(pattern, path) for pattern in inputs):
                 found.append((path, "core_only file"))
-            found += [(path, component) for component in sorted(components)
-                      if not any(pattern.startswith(component + "/") for pattern in inputs)]
+            for component in sorted(components):
+                if component in self.IMPLICIT:  # a convention read matters only for a core_only file
+                    hidden = any(github_path_filter_matches(pattern, component) for pattern in self.core_only)
+                    covered = any(github_path_filter_matches(pattern, component) for pattern in inputs)
+                else:
+                    hidden, covered = True, any(pattern.startswith(component + "/") for pattern in inputs)
+                if hidden and not covered:
+                    found.append((path, component))
         return found
 
     def test_native_pull_request_jobs_reach_core_only_paths_only_through_registered_inputs(self):
-        users = set()
+        users, checked = set(), set()
         for entry, job in self.native_jobs():
             reached = self.closure(entry["path"], job["id"])
             stem = Path(entry["path"]).stem
+            checked.add(f"{stem}#{job['id']}")
             with self.subTest(job=f"{stem}#{job['id']}"):
                 self.assertEqual(self.violations(reached, job.get("inputs", [])), [])
                 if self.violations(reached, []):
@@ -2038,6 +2055,14 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
         for stem in users:
             reached = self.closure(f".github/workflows/{stem}.yml", stem)
             self.assertIn("plugins", reached["tools/tokenguard.py"])
+        # Control: the host jobs of an @nonnative workflow are covered too.
+        self.assertIn("net-broker-quality#net-broker-quality", checked)
+        # Control: the convention scan sees the tree-cleanliness check, so .gitignore must stay
+        # central; were it core_only, @nonnative would hide an input of these jobs.
+        workflow = ".github/workflows/native-foundation.yml"
+        self.assertIn(".gitignore", self.closure(workflow, "native-foundation")[workflow])
+        self.assertIn(".gitignore", self.catalogue["policy"]["always_full"])
+        self.assertNotIn(".gitignore", self.core_only)
 
     def test_closure_follows_harness_discovery_and_imports(self):
         """The design's under-approximation counterexample (CI-P5-A section 6.3) is reached."""

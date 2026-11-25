@@ -1037,10 +1037,16 @@ class CatalogueValidationTests(TestCase):
         self.assertEqual(len({x["workflow"]["path"] for x in native
                               if x["workflow"]["trigger"]["pull_request"].get("paths_ignore") == "@nonnative"}), 13)
         for path in (".github/ci-impact.toml", "tools/ci_impact.py", "tools/merge_hold.py",
-                     ".github/ci-impact.candidate.toml", ".github/workflows/native-rtc.yml"):
+                     ".github/ci-impact.candidate.toml", ".github/workflows/native-rtc.yml", ".gitignore"):
             with self.subTest(path=path):
                 self.assertTrue(ci_impact.first_match(policy["always_full"], path))
                 self.assertIsNone(ci_impact.first_match(policy["core_only"], path))
+                blocked = {x["workflow"]["path"] for x in native if planner.blocked(x, [path], policy)}
+                self.assertLessEqual(blocked, allowlists)
+        # N1/N2 on the real catalogue: a kernel change and an unknown path start every native
+        # workflow apart from the two documented allowlists.
+        for path in ("kernel/src/lib.rs", "newdir/x.py"):
+            with self.subTest(path=path):
                 blocked = {x["workflow"]["path"] for x in native if planner.blocked(x, [path], policy)}
                 self.assertLessEqual(blocked, allowlists)
         # validate's literal check misses a partial overlap such as plugins/**/Cargo.lock, so no
