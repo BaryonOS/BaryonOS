@@ -83,7 +83,7 @@ controller damage is unchanged and may cover the last tile.
   a guest stall after the final commit is not excluded by the log alone. An
   earlier note that compositor focus stayed 0 was wrong. Over all local
   batches: base 30/30 passes, fix heads 21/22; not reproduced at `c3721894`
-  or later heads. Reported to U, who owns the window-session probe.
+  or later heads. Tracked in #545 (owner U).
 - Evidence limit: the tile digest is FNV-1a, which is not collision-resistant.
   A document crafted so that a changed tile's bytes collide with the cached
   digest of the tile on screen would leave that tile stale (this app's own
