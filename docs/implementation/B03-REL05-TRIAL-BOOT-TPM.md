@@ -160,6 +160,7 @@ SHA-256, `TPMA_NV_POLICYWRITE`, `TPMA_NV_AUTHREAD` with empty `authValue`,
 | `0x0100B301` | `CONFIRM` | ordinary, 64 B | `PolicyPCR(13 = P_OPEN)` + `CC_NV_Write` | kernel (trial boot) |
 | `0x0100B302` | `FLOOR` | ordinary, 64 B | `PolicyPCR(13 = 0³²)` + `CC_NV_Write` | loader |
 | `0x0100B303` | `GEN` | counter, 8 B | `PolicyPCR(13 = 0³²)` + `CC_NV_Increment` | loader |
+| `0x0100B305` | `LREC` (M1-HAUTH loader record, U26) | ordinary, 64 B | `PolicyPCR(13 = 0³²)` + `CC_NV_Write` | loader |
 | `0x0100B310`–`0x0100B317` | cold-freshness anchor domains (one `TPM_NT_EXTEND` index, 32 B, per domain; `0x0100B318`–`0x0100B31F` unused) | see [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) | exception to the attributes above: `AUTHWRITE`, not phase-bound; protection comes from the hash chain | kernel on behalf of the domain holder (N04 only) |
 
 `P_OPEN = SHA-256(0³² ‖ SHA-256("BARYON-TRIAL-OPEN-V1"))` in the SHA-256 bank,
@@ -201,6 +202,16 @@ The 120-byte `B03ANC01` anchor of
 later replace this record; the write discipline (single loader writer,
 revision, read-back) is chosen to be compatible.
 
+`LREC` (64 B, M1-HAUTH loader record, U26): magic `NOSLRC01` (8) · state
+(1: 0 BOUND, 1 ACCEPTED) · reserved 0 (3) · accepted serial (4, `u32`) · accepted
+record digest (32 = SHA-256 of the signed `ENROLL` or recovery record,
+section 10.5; zero in BOUND) · `HAUTH` binding (16 = first 16 bytes of
+SHA-256 over the 64 `HAUTH` bytes; *[design choice]*). BOUND is written
+right after `HAUTH`; ACCEPTED is the TPM copy of the accepted pair (U13c).
+The 4-byte field fixes the `ENROLL` and recovery serial at `u32` (section
+10.5), as in the host model; an 8-byte serial would not fit 64 B.
+See [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) for the trust rule.
+
 The full manifest digest is in `CONFIRM`; `TRIAL` stores 24 bytes to fit 64 B.
 The loader compares `CONFIRM.digest[0..24]` with `TRIAL` **and** the full
 32 bytes with a fresh hash of the slot's verified manifest.
@@ -209,7 +220,9 @@ The loader compares `CONFIRM.digest[0..24]` with `TRIAL` **and** the full
 
 `NieuwOsMinVersion` (existing GUID, NV+BS, 8 bytes) keeps its meaning as the
 second floor copy. It is written only by the loader during finalization or
-upward healing (section 7.3). No new UEFI variable is introduced.
+upward healing (section 7.3). No other UEFI variable is introduced by the
+trial design; section 10.5 adds the UEFI copy of the accepted pair (U13c),
+whose name, attributes and clear behaviour are open (U28).
 
 ### 6.4 Candidate identity, rejection and alternation
 
@@ -551,7 +564,7 @@ halts with authenticated recovery (option B as the fail-closed fallback).
 
 - **Enrollment record** `ENROLL` on the ESP: magic `NOSENR01`, format, EK name
   (`nameAlg ‖ SHA-256(EK public)`, TCG default EK template, U13a), enrollment
-  serial, minimum floor at enrollment. It is signed with the update signature
+  serial (`u32`, section 6.2), minimum floor at enrollment. It is signed with the update signature
   scheme and verified against the trust anchors compiled into the loader, so
   its protection is independent of the TPM, the UEFI variables and the disk
   (the *independently protected trust anchor*). In the TEST profile the
@@ -737,8 +750,9 @@ named marker (TEST hook markers emitted before each write in a test feature).
 - U21 That the first `NV_Extend` of a freshly defined `TPM_NT_EXTEND` index
   starts from the all-zero value, and that reading it before any extend fails
   (cold-freshness anchor genesis). *Observed on swtpm 0.10.1, not native S5.*
-- U22 That one `NV_Extend` is atomic across power loss on swtpm (either the
-  old or the new chain value survives, never a third value).
+- U22 That one `NV_Extend`, and one `WRITEALL` `NV_Write` such as `LREC`,
+  is atomic across power loss on swtpm (either the old or the new value
+  survives, never a third value).
 - U23 That the OS can never use platformAuth after OVMF randomises it (U8
   observes the randomisation, not its unavailability for the whole boot).
 - U24 Whether platform authorisation can undefine an owner-created index
@@ -757,10 +771,12 @@ named marker (TEST hook markers emitted before each write in a test feature).
   a TEST virtio-rng device on OVMF 2025.11 (loader probes below); the
   provisioning profile must include that device. Not run on the hosted
   OVMF 2024.02 image.*
-- U26 Design of the M1-HAUTH loader record that binds `SHA-256(HAUTH)` and
-  names the anchored instances (policy-written at PCR 13 = 0³²; handle, size,
-  per-domain layout and public-area check open; see
-  [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md)).
+- U26 Design of the M1-HAUTH loader record. *Designed:* `LREC` at
+  `0x0100B305` (sections 6.1 and 6.2), template of `TRIAL`/`FLOOR`; Names
+  frozen and observed on swtpm 0.10.1
+  ([b03-rel05-lrec-probe-20261125](../verification/b03-rel05-lrec-probe-20261125/README.md));
+  trust rule in [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md). Still
+  open: the loader code and native S5 tests, power-loss atomicity (U22).
 
 ### Feasibility probe results (25 November 2026, swtpm 0.10.1)
 

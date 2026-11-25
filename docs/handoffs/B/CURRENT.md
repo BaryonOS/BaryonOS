@@ -43,8 +43,9 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   tests, swtpm probes under `docs/verification/b03-rel05-*-20261125/`, native `tools/run_tpm.py` normal/absent and
   loader-probe (S6 step 1: firmware TCG2 works through the loader's own binding; `EFI_RNG_PROTOCOL` absent on the
   current TEST QEMU line), loader-rng (S6 step 4: present with an opt-in TEST virtio-rng device on OVMF 2025.11;
-  `docs/verification/b03-rel05-loader-rng-20261125/`).
-- NOT RUN: `HAUTH` provisioning, the loader record, native S5 and joint N04 tests, hosted CI for the loader-probe
+  `docs/verification/b03-rel05-loader-rng-20261125/`), U26 loader record `LREC` (`0x0100B305`, `NV_LREC` with
+  frozen Names, swtpm probe `docs/verification/b03-rel05-lrec-probe-20261125/`).
+- NOT RUN: `HAUTH` provisioning, loader code that reads or writes `LREC`, U22 write atomicity, native S5 and joint N04 tests, hosted CI for the loader-probe
   and loader-rng cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
   staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; U25 on the hosted OVMF image and real firmware.
@@ -76,6 +77,9 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 ## Next executable task
 
 - S6 step 4 (U25) is done locally: `run_guest(virtio_rng=True)` + `run_tpm.py --case loader-rng`; provisioning
-  cases must use that device. Next on #524: U26 record and the record-staging rule in the contract, `HAUTH`
+  cases must use that device. U26 is designed: `LREC` layout in REL-05 section 6.2, trusted only with the written
+  Name; the section 6.3 versus 10.5 UEFI-copy wording is flagged under U28. Next on #524: the U13c record-staging
+  rule in the contract (separate step; mark it proposed and raise one OWNER: question if it changes a normative
+  section 10.5 sentence or adds a write surface), then the loader `LREC` codec and `HAUTH`
   provisioning (wipe, CRB buffer overwrite, PCR 13 extend last, all four banks), S3/U27, the section 7.9 halt,
   native S5 with N's joint tests. Resume from the newest HANDOFF comment on #524.

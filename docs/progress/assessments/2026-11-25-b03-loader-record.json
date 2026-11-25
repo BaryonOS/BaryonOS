@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "745175ad1a441bf9ae4b90fd06d672118be043cb",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 U26: loader record LREC designed (0x0100B305, TRIAL/FLOOR template, 64-byte layout, written-Name trust rule), NV_LREC constant with frozen Names and swtpm probe L0-L5 (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. LREC is specified in REL-05 sections 6.1-6.3 and COLD-FRESHNESS-ANCHOR; update-core pins NV_LREC and both Names; one swtpm 0.10.1 probe (16/16) shows the policy write only at PCR 13 = 0 and that a run-time definer keeps the unwritten Name. No loader code reads or writes LREC, U22 atomicity and the hosted swtpm 0.7.3 are not run, no HAUTH provisioning; 5A stays in force, no criterion accepted."
+}

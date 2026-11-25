@@ -9,8 +9,7 @@ accepts no criterion and grants no progress points.
 
 - Source: branch `claude/b03-rel05-tpm-20261125`, parent `a592e319`, run on the
   final uncommitted tree with `tools/common.source_hash()`
-  `b75a8d4f157be4c4…` (full value in the run reports under the ignored
-  `build/`).
+  `b75a8d4f157be4c43a5df6dfd59b4f94f638129525428ecfeae9d72b481fcb9b`.
 - Change: `tools/run.py` `run_guest(virtio_rng=False)`; when `True` (only
   together with a TPM socket and without an M5 disk) QEMU gets
   `-object rng-random,id=rng0,filename=/dev/urandom` and
@@ -23,9 +22,11 @@ accepts no criterion and grants no progress points.
   present, `GetRNG` failed or returned only zero bytes) fails both.
 - swtpm 0.10.1 (fresh state per run), QEMU 10.2.1, machine `pc-q35-10.0`, TCG,
   `-cpu qemu64`, 1 CPU, 256 MiB. OVMF: Ubuntu `ovmf` 2025.11-3ubuntu7.3,
-  `OVMF_CODE_4M.fd` SHA-256 `874f15a7c9110e78…`.
-- Loader `BOOTX64.EFI` SHA-256 `5f6038d6f7c83cc0…` and kernel SHA-256
-  `ba349c3b83755ec4…`, identical to the step-1 evidence.
+  `OVMF_CODE_4M.fd` SHA-256
+  `874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7`.
+- Loader `BOOTX64.EFI` SHA-256
+  `5f6038d6f7c83cc0b2ef2e99811f9bcefb82515cb0427c9fa11e0de8faee6fba` and kernel SHA-256
+  `ba349c3b83755ec466809d2e509dcb4d825cf8946393c9303024b75ed2b55fda`, identical to the step-1 evidence.
 
 ## Commands and results
 
@@ -39,10 +40,12 @@ Run sequentially in one checkout on the final tree:
 | `python3 -B tools/run_tpm.py --case absent` | 0 | 33 | – | `e6fa721b3827f35c…` |
 | `python3 -B -m unittest tools.tests.test_tpm` | 0 | – | – | 6 tests |
 
+Full guest stdout SHA-256 values: `loader-probe` `5336210692e0d50627d0084586c586e13fe46aa5aa4e98f2076223d199a498de`; `loader-rng` `f8d9e155bf8ce42c78ebfd5e34d89c400addec233b0f8aa0c3d3172098bd7cc9`; `normal` `783d1b60ee0dbb6219b2f5e89a432f0d1d24f257f68300acfa8f852f37dd1b6c`; `absent` `e6fa721b3827f35cf17c3c8704a2a156e01ab8161190135195ac25087c20c3c8`.
+
 Checks on the retained reports:
 
 - The `loader-probe` guest stdout hash equals the step-1 evidence
-  (`5336210692e0d506…`), so that case is byte-identical in output.
+  (`5336210692e0d506…` above), so that case is byte-identical in output.
 - `loader-rng` differs from `loader-probe` in exactly the two QEMU arguments
   above; `normal` and `loader-probe` have equal commands apart from the run
   directory. Every non-loader serial line of `loader-rng`, counters included,
@@ -52,13 +55,15 @@ Checks on the retained reports:
 
 ## Exploratory RDRAND run (not committed)
 
-On an earlier uncommitted tree (`source_hash` `ff70cad2e5726e45…`) a
+On an earlier uncommitted tree (`source_hash`
+`ff70cad2e5726e453d6995026ae8dd7a58e3ea10c75fb9cf239d2ac32e578c5e`) a
 temporary `rdrand` value added `-cpu qemu64,+rdrand` without any RNG device.
 Firmware also reported `RNG:PASS`, QEMU printed no unsupported-feature warning
-and the guest stdout equalled the virtio run (`f8d9e155bf8ce42c…`). It was not
+and the guest stdout equalled the virtio run. It was not
 kept: the virtio-rng device is the one the B01 kernel keyring already owns
-(ADR-043) and already runs in the hosted system profile on QEMU 8.2.2, and it
-leaves the kernel's CPU model unchanged.
+(ADR-043); `tools/run_system.py` adds the same device line unconditionally
+and `native-system.yml` runs it on `ubuntu-24.04` with the pinned QEMU 8.2.2;
+and it leaves the kernel's CPU model unchanged.
 
 ## Reading
 
@@ -75,7 +80,7 @@ leaves the kernel's CPU model unchanged.
 
 The hosted swtpm job runs Ubuntu 24.04 packages: QEMU 8.2.2, machine
 `pc-q35-8.2`, `ovmf` 2024.02-2ubuntu0.10 (`OVMF_CODE_4M.fd` SHA-256
-`ad23261d…`), swtpm 0.7.3. That OVMF image is not on this host; obtaining it is
+`ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083`), swtpm 0.7.3. That OVMF image is not on this host; obtaining it is
 a download that needs explicit approval, and no workflow runs the loader cases
 (`.github/**` is protected). Expected, not observed: upstream `OvmfPkgX64`
 includes `VirtioRngDxe`, so the hosted image should also report `RNG:PASS`

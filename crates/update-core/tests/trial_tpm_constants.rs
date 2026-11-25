@@ -88,7 +88,7 @@ fn attributes_match_spec_6_1() {
     // PPWRITE, OWNERWRITE, POLICY_DELETE, WRITEDEFINE, WRITE_STCLEAR, ORDERLY, READ_STCLEAR.
     let forbidden: u32 =
         (1 << 0) | (1 << 1) | (1 << 10) | (1 << 13) | (1 << 14) | (1 << 26) | (1 << 31);
-    for spec in [NV_TRIAL, NV_CONFIRM, NV_FLOOR, NV_GEN] {
+    for spec in [NV_TRIAL, NV_CONFIRM, NV_FLOOR, NV_GEN, NV_LREC] {
         assert_eq!(spec.attributes & TPMA_NV_AUTHWRITE, 0, "{:#x}", spec.handle);
         assert_ne!(spec.attributes & TPMA_NV_POLICYWRITE, 0);
         assert_eq!(spec.attributes & forbidden, 0);
@@ -128,6 +128,10 @@ fn nv_names_frozen() {
             NV_GEN,
             "000b959b5113b338f9129a3715e8ab4329a0fd0790db8721fbedf57244585c13c91c",
         ),
+        (
+            NV_LREC,
+            "000bad14c18b2e6f42a9e51a1cdfb8d6ef84d0dba6fcfd0598852bde1504447c4782",
+        ),
     ];
     for (spec, n) in expect {
         assert_eq!(name(&spec), n, "{:#x}", spec.handle);
@@ -161,6 +165,16 @@ fn nv_names_frozen() {
     assert_eq!(
         name(&written),
         "000bbd7dcf06efd2bc90ae362d1a85da21c406bc9b64944632c26e2f6f513f739ce2"
+    );
+    // LREC (U26): trusted only with the written Name; an unwritten index with
+    // the expected public area is what a run-time definer could leave behind.
+    let written = NvSpec {
+        attributes: NV_LREC.attributes | TPMA_NV_WRITTEN,
+        ..NV_LREC
+    };
+    assert_eq!(
+        name(&written),
+        "000b282efe987c36f93dc5464cfc70b668f196f74e7bcf62ace9c1a3757ef81f7a60"
     );
 }
 

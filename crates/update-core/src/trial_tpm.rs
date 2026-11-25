@@ -76,8 +76,8 @@ pub const ATTR_ANCHOR_CHAIN: u32 =
 pub const ATTR_HAUTH: u32 =
     TPMA_NV_OWNERWRITE | TPMA_NV_POLICYREAD | TPMA_NV_WRITEALL | TPMA_NV_NO_DA;
 
-/// `PolicyPCR(13 = 0³²) + PolicyCommandCode(NV_Write)`; shared by `TRIAL` and
-/// `FLOOR` (both loader-only, so sharing grants no other writer).
+/// `PolicyPCR(13 = 0³²) + PolicyCommandCode(NV_Write)`; shared by `TRIAL`,
+/// `FLOOR` and `LREC` (all loader-only, so sharing grants no other writer).
 pub const POLICY_LOADER_WRITE: [u8; 32] =
     h("088d4acf1b7ad7d6a53a44d97668736524219be4e7148b45be4dcc3d00462816");
 /// `PolicyPCR(13 = P_OPEN) + PolicyCommandCode(NV_Write)` for `CONFIRM`.
@@ -173,6 +173,16 @@ pub const NV_HAUTH: NvSpec = NvSpec {
     handle: 0x0100_B304,
     attributes: ATTR_HAUTH,
     auth_policy: Some(POLICY_LOADER_READ),
+    size: 64,
+};
+
+/// Loader record `LREC` (U26): binds `HAUTH` and holds the TPM copy of the
+/// accepted pair (U13c). Same template as `TRIAL`/`FLOOR`; its contents are
+/// not secret, so `AUTHREAD` with an empty `authValue` is kept.
+pub const NV_LREC: NvSpec = NvSpec {
+    handle: 0x0100_B305,
+    attributes: ATTR_UPDATE_ORDINARY,
+    auth_policy: Some(POLICY_LOADER_WRITE),
     size: 64,
 };
 

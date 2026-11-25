@@ -30,10 +30,11 @@ enum TpmError {
     NvAuthorization,
 }
 
-/// Loader-only record (open design item U26: an owner index written under
+/// Loader-only record `LREC` (U26: `0x0100B305`, written under
 /// `PolicyPCR(13 = 0³²) + CC_NV_Write`). It binds the `HAUTH` contents (the
-/// real record holds their SHA-256) and holds the TPM copy of the accepted
-/// pair (serial, instance) of the anchored record (U13c).
+/// real record holds a 16-byte SHA-256 prefix) and holds the TPM copy of the
+/// accepted pair (serial, record digest) of the anchored record (U13c); the
+/// model uses the anchored instance as the record digest (see `Record`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Mark {
     hauth: [u8; 64],
@@ -54,7 +55,7 @@ mod tpm {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
     pub enum Index {
         Hauth,
-        /// The U26 loader record (handle open).
+        /// The U26 loader record `LREC` (`0x0100B305`).
         Record,
     }
 
