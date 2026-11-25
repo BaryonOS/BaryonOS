@@ -49,6 +49,11 @@ no full-authority native fixture, no block grants on device 1, clear of the O13
 latch. The broker's host tests pinning request shapes remain defence in depth.
 Open question to S: whether a per-ingress read-only flag on a writable volume
 is the later product route (needed once writers and readers coexist).
+S answer (25 Nov): yes, likely, but it does not exist (service-wide check
+`mutating && self.read_only`, `services/volume/src/service.rs:419`); it needs its
+own S design (rights source, negative tests, reader Stale semantics during
+writer commits) and is not planned during the freeze. A files it as an S task
+only when a later A slice needs coexisting writers and readers.
 
 ## Slices
 
