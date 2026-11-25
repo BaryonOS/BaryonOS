@@ -238,6 +238,20 @@ mod tests {
         assert_eq!(anchor.writes, 0);
     }
 
+    /// B's provisioning convention: slot `{gen: c, binding: 0^32}`; the first
+    /// store is `c + 1` with an all-zero parent.
+    #[test]
+    fn genesis_slot_accepts_only_a_first_store_with_zero_parent() {
+        let mut anchor = Fake::at(7, D0);
+        assert_eq!(
+            acknowledge(&mut anchor, &state(8, D1, D2)),
+            Err(Denied::Fork)
+        );
+        assert_eq!(acknowledge(&mut anchor, &state(8, D1, D0)), Ok(()));
+        assert_eq!(anchor.state.generation, 8);
+        assert_eq!(anchor.state.binding, D1);
+    }
+
     #[test]
     fn commit_then_crash_rolls_forward_once() {
         let mut anchor = Fake::at(5, D1);
