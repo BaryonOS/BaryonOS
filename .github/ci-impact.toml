@@ -14,7 +14,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 10
+revision = 11
 
 [policy]
 mode = "select"
@@ -358,6 +358,13 @@ id = "ai-model-reader"
 check_name = "component-quality (ai-model-reader)"
 matrix = { component = "ai-model-reader", manifest = "experiments/ai/model-store-contract/Cargo.toml", toolchain = "1.100.0" }
 cargo = ["experiments/ai/model-store-contract/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "ai-reference-forward"
+check_name = "component-quality (ai-reference-forward)"
+matrix = { component = "ai-reference-forward", manifest = "experiments/ai/reference-forward/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["experiments/ai/reference-forward/Cargo.toml"]
 evidence = []
 
 [[workflow.job.variant]]

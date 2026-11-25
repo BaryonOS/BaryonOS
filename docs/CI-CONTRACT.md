@@ -599,7 +599,7 @@ owner never uses that bypass.
 ## Selection (phase 4)
 
 **Scope.** Three workflows narrow, on `pull_request` only:
-`component-leaves.yml` per variant (15 registered leaves),
+`component-leaves.yml` per variant (16 registered leaves),
 `app-management-quality.yml` and `net-tls-quality.yml` per job. The integrated
 native suites, CodeQL, `ci.yml` and every other workflow run as before:
 their input relations are not provable more narrowly (the `native` input set
