@@ -2,7 +2,8 @@
 """Real kernel CRB MMIO over a disposable local swtpm. The loader-hauth case
 writes TEST hierarchy auth and NV (M1-HAUTH) into that disposable state only;
 loader-hauth-no-rng checks that the loader halts after the CLOSED extend, and the
-pre-seeded cases (tools/tpm_seed.py) that it halts or repairs on a prepared state."""
+pre-seeded cases (tools/tpm_seed.py) that it halts, repairs or reads a moved DA
+counter on a prepared state."""
 from __future__ import annotations
 
 import argparse
@@ -25,7 +26,8 @@ import tpm_seed
 # Pre-seeded M1-HAUTH cases: (boot before which tools/tpm_seed.py prepares the state, seed).
 SEED = {"loader-hauth-squat": (0, "squat"), "loader-hauth-foreign-owner": (0, "foreign-owner"),
         "loader-hauth-owner-squat": (0, "owner-squat"), "loader-hauth-unbound": (1, "unbound"),
-        "loader-hauth-cut": (0, "cut")}
+        "loader-hauth-cut": (0, "cut"), "loader-hauth-owner-squat-empty": (0, "owner-squat-empty"),
+        "loader-hauth-da-counted": (0, "da-counted")}
 FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
             "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb",
             "loader-hauth": "native-tpm-crb", "loader-hauth-no-rng": "native-tpm-crb",
@@ -35,9 +37,13 @@ FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
 # verification on boot 1 of the same swtpm state.
 LOADER = {"loader-probe": "tpm-loader-probe-test", "loader-rng": "tpm-loader-probe-test",
           **dict.fromkeys(("loader-hauth", "loader-hauth-no-rng", *SEED), "tpm-hauth-provision-test")}
-BOOTS = {"loader-hauth": 2, "loader-hauth-unbound": 2, "loader-hauth-cut": 2}
+BOOTS = {"loader-hauth": 2, "loader-hauth-unbound": 2, "loader-hauth-cut": 2,
+         "loader-hauth-owner-squat-empty": 2}
 # Cases whose non-halt boots must provision or verify exactly like loader-hauth.
-PROVISIONED = ("loader-hauth", "loader-hauth-unbound", "loader-hauth-cut")
+PROVISIONED = ("loader-hauth", "loader-hauth-unbound", "loader-hauth-cut",
+               "loader-hauth-owner-squat-empty", "loader-hauth-da-counted")
+# The only case whose seed leaves a nonzero DA lockout counter; every other reads 0.
+DA_SEEDED = ("loader-hauth-da-counted",)
 PROVISION, EXISTING = "LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:MODE:EXISTING"
 CLOSED = "LOADER-HAUTH:HALT:PCR13:CLOSED"
 # Halt boots, (case, boot) -> (TPMA_PERMANENT ownerAuthSet | lockoutAuthSet, the loader lines
@@ -97,7 +103,8 @@ def evaluate(stdout, case, boot=0):
         # The refused owner command must leave the DA lockout counter (0x20E) unchanged.
         da = re.findall(r"^LOADER-HAUTH:DA:([0-9a-f]{16}):([0-9a-f]{16})$", stdout, re.M)
         if (len(da) != 1 or len(re.findall(r"^LOADER-HAUTH:DA:", stdout, re.M)) != 1
-                or da[0][0] != da[0][1] or "LOADER-HAUTH:HALT:" in stdout):
+                or da[0][0] != da[0][1] or "LOADER-HAUTH:HALT:" in stdout
+                or (int(da[0][0], 16) != 0) != (case in DA_SEEDED)):
             raise ValueError("Invalid HAUTH lockout-counter observation")
         result["HAUTH_DA_COUNTER"] = int(da[0][0], 16)
     elif "LOADER-HAUTH:" in stdout:
@@ -244,7 +251,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign ownerAuth, flipped LREC binding after a provisioning boot, power-cut leftovers) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power-cut leftovers) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
@@ -280,6 +287,9 @@ def run(case):
                 with backend(report, directory) as control:
                     guest(control, boot)
                 directory = control.parent
+                # Sensitivity: the loader's 0x20E read must show the seeded DA-counted failure.
+                if case in DA_SEEDED and report["observed"]["HAUTH_DA_COUNTER"] != entry["seeded"]["lockout_counter"]:
+                    raise ValueError("The loader did not read the seeded DA lockout counter")
                 if case in SEED:
                     # Public state after the boot; a halt must leave the seeded state as it was.
                     entry["after"] = tpm_seed.snapshot(*swtpm(), directory)

@@ -21,7 +21,7 @@ class NativeTpmTranscriptTests(unittest.TestCase):
     HAUTH = ("LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:{permanent:016x}\n{mode}\n"
              "LOADER-HAUTH:BOUND\n{lockout}\nLOADER-HAUTH:PCR13:CLOSED\n"
              "LOADER-HAUTH:READ:REFUSED\nLOADER-HAUTH:OWNER:REFUSED\n"
-             "LOADER-HAUTH:DA:0000000000000000:0000000000000000\n"
+             "LOADER-HAUTH:DA:{da:016x}:{da:016x}\n"
              "LOADER-HAUTH:RESIDUE:NONE\nLOADER-HAUTH:PASS\n")
 
     def transcript(self, case, boot=0):
@@ -32,7 +32,8 @@ class NativeTpmTranscriptTests(unittest.TestCase):
                     + "".join(f"{step}\n" for step in steps))
         if case in probe.PROVISIONED:
             mode, lockout = probe.HAUTH_MODE[boot]
-            hauth = self.HAUTH.format(permanent=0x405 if boot else 0x400, mode=mode, lockout=lockout)
+            hauth = self.HAUTH.format(permanent=0x405 if boot else 0x400, mode=mode, lockout=lockout,
+                                      da=int(case in probe.DA_SEEDED))
             return self.LOADER.replace("RNG:ABSENT", "RNG:PASS") + hauth + self.transcript("normal")
         if case == "loader-probe":
             return self.LOADER + self.transcript("normal")
@@ -135,11 +136,23 @@ class NativeTpmTranscriptTests(unittest.TestCase):
             probe.evaluate(self.transcript("loader-hauth"), "loader-hauth-no-rng")
 
     def test_pre_seeded_cases_pin_the_boot_that_halts_and_its_exact_failure(self):
-        # Boots before the seed, and the repaired cut, behave exactly like loader-hauth.
-        for case, boot in (("loader-hauth-unbound", 0), ("loader-hauth-cut", 0), ("loader-hauth-cut", 1)):
+        # Boots before the seed, the repaired cut and the replaced empty-ownerAuth squat behave
+        # exactly like loader-hauth; the DA case differs only in its nonzero counter.
+        for case, boot in (("loader-hauth-unbound", 0), ("loader-hauth-cut", 0), ("loader-hauth-cut", 1),
+                           ("loader-hauth-owner-squat-empty", 0), ("loader-hauth-owner-squat-empty", 1),
+                           ("loader-hauth-da-counted", 0)):
             result = probe.evaluate(self.transcript(case, boot), case, boot)
             self.assertEqual(result["HAUTH_PERMANENT"] & 0x5, 5 if boot else 0)
-        for case in ("loader-hauth-squat", "loader-hauth-foreign-owner", "loader-hauth-owner-squat"):
+            self.assertEqual(result["HAUTH_DA_COUNTER"], int(case in probe.DA_SEEDED))
+            self.assertEqual(probe.markers(case, boot), probe.markers("loader-hauth", boot))
+        moved = self.transcript("loader-hauth-da-counted")
+        for bad, case in ((self.transcript("loader-hauth"), "loader-hauth-da-counted"),
+                          (moved, "loader-hauth"), (moved, "loader-hauth-owner-squat-empty"),
+                          (moved.replace("0000000000000001\n", "0000000000000002\n"), "loader-hauth-da-counted")):
+            with self.subTest(case=case, bad=bad), self.assertRaises(ValueError):
+                probe.evaluate(bad, case)
+        for case in ("loader-hauth-squat", "loader-hauth-foreign-owner", "loader-hauth-owner-squat",
+                     "loader-hauth-da-counted"):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 probe.evaluate(self.transcript(case), case, 1)
         failures = {steps[-1] for _, steps in probe.HALT.values()}
@@ -274,12 +287,15 @@ class TpmSeedTests(unittest.TestCase):
         squat = tpm_seed.AUTHWRITE | tpm_seed.AUTHREAD | tpm_seed.NO_DA
         for name, permanent, attributes in (("foreign-owner", 1, None),
                                             ("squat", 0, squat | tpm_seed.PLATFORMCREATE),
-                                            ("owner-squat", 1, squat)):
+                                            ("owner-squat", 1, squat), ("owner-squat-empty", 0, squat),
+                                            ("da-counted", 0, None)):
             with self.subTest(name=name):
                 shutil.rmtree(fresh, ignore_errors=True)
                 (fresh / "state").mkdir(parents=True)
                 state = tpm_seed.seed(*self.tool, fresh, name)
                 self.assertEqual((state["permanent"] & 0x5, state["lrec"]), (permanent, {"rc": 0x18B}))
+                # Read on the seeding server itself: only the DA seed moves the counter, by one.
+                self.assertEqual(state["lockout_counter"], int(name == "da-counted"))
                 self.assertEqual(state["hauth"].get("attributes"), attributes)
                 if attributes is None:
                     self.assertEqual(state["hauth"], {"rc": 0x18B})

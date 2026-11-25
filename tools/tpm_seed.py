@@ -3,8 +3,9 @@
 Raw TPM 2.0 commands over a short-lived swtpm `--server` socket on a state
 directory under the build tree, while PCR 13 is at its reset value (the
 boot-path position of threat T5, out of scope until B04). No command or
-response bytes are printed or stored: the foreign ownerAuth is a fresh TEST
-value that is discarded. `observe` reads back only public facts.
+response bytes are printed or stored: the foreign ownerAuth and the scratch
+authValue are fresh TEST values that are discarded. `observe` reads back only
+public facts.
 """
 from __future__ import annotations
 
@@ -18,10 +19,16 @@ import subprocess
 import time
 
 HAUTH, LREC = 0x0100B304, 0x0100B305
+# TEST scratch index for the DA seed; defined and undefined within that seed.
+SCRATCH = 0x0100B3DA
 RH_OWNER, RH_NULL, RS_PW, RH_PLATFORM = 0x40000001, 0x40000007, 0x40000009, 0x4000000C
-CC = {"HierarchyChangeAuth": 0x129, "NV_DefineSpace": 0x12A, "NV_Write": 0x137, "NV_Read": 0x14E,
-      "NV_ReadPublic": 0x169, "PolicyCommandCode": 0x16C, "StartAuthSession": 0x176,
-      "GetCapability": 0x17A, "PolicyPCR": 0x17F}
+CC = {"NV_UndefineSpace": 0x122, "HierarchyChangeAuth": 0x129, "NV_DefineSpace": 0x12A,
+      "NV_Write": 0x137, "NV_Read": 0x14E, "NV_ReadPublic": 0x169, "PolicyCommandCode": 0x16C,
+      "StartAuthSession": 0x176, "GetCapability": 0x17A, "PolicyPCR": 0x17F}
+# TPM_PT_PERMANENT and TPM_PT_LOCKOUT_COUNTER, as the loader reads them.
+PT_PERMANENT, PT_LOCKOUT_COUNTER = 0x200, 0x20E
+# TPM_RC_AUTH_FAIL on session 1: a wrong authValue on a DA-protected entity.
+RC_AUTH_FAIL = 0x98E
 # TPMA_NV (Part 2, 13.4) and the frozen templates of crates/update-core/src/trial_tpm.rs.
 OWNERWRITE, AUTHWRITE, POLICYWRITE, WRITEALL = 1 << 1, 1 << 2, 1 << 3, 1 << 12
 AUTHREAD, POLICYREAD, NO_DA, WRITTEN, PLATFORMCREATE = 1 << 18, 1 << 19, 1 << 25, 1 << 29, 1 << 30
@@ -72,9 +79,9 @@ class Tpm:
             raise RuntimeError(f"Seed command {cc} failed with TPM_RC 0x{rc:03X}")
         return response
 
-    def define(self, hierarchy, index, attributes, policy=b"", size=64):
+    def define(self, hierarchy, index, attributes, policy=b"", size=64, auth=b""):
         public = struct.pack(">IHI", index, 0x000B, attributes) + b2(policy) + struct.pack(">H", size)
-        self.ok("NV_DefineSpace", struct.pack(">I", hierarchy), password(), b2(b"") + b2(public))
+        self.ok("NV_DefineSpace", struct.pack(">I", hierarchy), password(), b2(auth) + b2(public))
 
     def public(self, index):
         """(attributes, Name) of a defined index, or the TPM_RC of NV_ReadPublic."""
@@ -86,8 +93,11 @@ class Tpm:
         name = r[12 + size:]
         return attributes, name[2:2 + struct.unpack(">H", name[:2])[0]]
 
-    def permanent(self):
-        r = self.ok("GetCapability", params=struct.pack(">III", 6, 0x200, 1))
+    def property(self, pt):
+        """One TPM_CAP_TPM_PROPERTIES value."""
+        r = self.ok("GetCapability", params=struct.pack(">III", 6, pt, 1))
+        if struct.unpack(">I", r[-8:-4])[0] != pt:
+            raise RuntimeError(f"GetCapability did not return property 0x{pt:X}")
         return struct.unpack(">I", r[-4:])[0]
 
     def lrec(self):
@@ -116,10 +126,26 @@ def foreign_owner(tpm):
     tpm.ok("HierarchyChangeAuth", struct.pack(">I", RH_OWNER), password(), b2(os.urandom(32)))
 
 
-def owner_squat(tpm):
-    """Probe S1 squat: an owner AUTHREAD | AUTHWRITE HAUTH, then a foreign ownerAuth that keeps it."""
+def owner_squat_empty(tpm):
+    """Probe S1 squat: an owner AUTHREAD | AUTHWRITE HAUTH under the empty ownerAuth."""
     tpm.define(RH_OWNER, HAUTH, AUTHWRITE | AUTHREAD | NO_DA)
+
+
+def owner_squat(tpm):
+    """The probe S1 squat, then a foreign ownerAuth that keeps it."""
+    owner_squat_empty(tpm)
     foreign_owner(tpm)
+
+
+def da_counted(tpm):
+    """One DA-counted failure: a wrong (empty) authValue on a DA-protected scratch index, then
+    the index is removed again, so only TPM_PT_LOCKOUT_COUNTER differs from a fresh state."""
+    before = tpm.property(PT_LOCKOUT_COUNTER)
+    tpm.define(RH_OWNER, SCRATCH, AUTHWRITE | AUTHREAD, size=8, auth=os.urandom(16))
+    rc, _ = tpm.cmd("NV_Read", struct.pack(">II", SCRATCH, SCRATCH), password(), struct.pack(">HH", 8, 0))
+    if rc != RC_AUTH_FAIL or tpm.property(PT_LOCKOUT_COUNTER) != before + 1:
+        raise RuntimeError(f"The scratch failure was not DA-counted (TPM_RC 0x{rc:03X})")
+    tpm.ok("NV_UndefineSpace", struct.pack(">II", RH_OWNER, SCRATCH), password())
 
 
 def unbound(tpm):
@@ -138,12 +164,15 @@ def cut(tpm):
 
 
 SEEDS = {"squat": squat, "foreign-owner": foreign_owner, "owner-squat": owner_squat,
+         "owner-squat-empty": owner_squat_empty, "da-counted": da_counted,
          "unbound": unbound, "cut": cut}
 
 
 def observe(tpm):
-    """Public facts only: PERMANENT, both public areas, and a digest of the non-secret LREC."""
-    facts = {"permanent": tpm.permanent()}
+    """Public facts only: PERMANENT, the DA lockout counter, both public areas, and a digest
+    of the non-secret LREC."""
+    facts = {"permanent": tpm.property(PT_PERMANENT),
+             "lockout_counter": tpm.property(PT_LOCKOUT_COUNTER)}
     for label, index in (("hauth", HAUTH), ("lrec", LREC)):
         public = tpm.public(index)
         facts[label] = ({"rc": public} if isinstance(public, int)
@@ -157,6 +186,9 @@ def observe(tpm):
 def server(binary, env, directory: Path):
     """A swtpm with a command socket on `directory/state`, fully stopped on exit."""
     command, control = directory / "seed.sock", directory / "seed-ctrl.sock"
+    # Fail before starting swtpm: a connect that fails later would leave it running.
+    if len(os.fsencode(control)) > 107:
+        raise ValueError("Use a shorter state directory for the bounded Unix socket name")
     for path in (command, control):
         path.unlink(missing_ok=True)
     process = subprocess.Popen(
