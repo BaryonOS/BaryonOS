@@ -32,31 +32,40 @@ public area is checked against constants on first use per boot.
 
 The store carries its own authenticated generation field `s` (authentication
 is N04's responsibility). Acceptance rule at boot with anchor value `c`:
-`s == c` → current; `s == c + 1` → committed-not-advanced (below);
+`s == c` → current; `s == c + 1` → committed-not-advanced (rule b below);
 anything else → stale or forged → fail closed.
 
-**Variant A — commit then advance (as requested by N):**
+**Chosen protocol — commit then advance** (N04, 25 November 2026;
+ADR-NET-ISSUER-20261125). Reserve-first was rejected: every ordinary crash would
+leave the store looking rolled back and force a fail-closed denial, without a
+security gain over rules (a)+(b).
 
 | Step | Action | Crash after this step |
 |---|---|---|
-| A1 | Write store with `s = c + 1`; flush; read back | Store `c+1`, anchor `c`: policy process calls `advance(c)` and then accepts. |
-| A2 | `advance(c)` → `c + 1` | Consistent. |
+| A1 | Write store with `s = c + 1`; flush; read back | Store `c+1`, anchor `c`: roll forward at the next boot (rule b). |
+| A2 | `advance(expected = c)` → `c + 1` | Consistent. |
 
-Residual window: if a crash occurs between A1 and A2 **and** a disk attacker
-then replaces the store with the previous authentic store (`s = c`), that store
-is accepted. A revocation committed in A1 is lost. The policy process must also
-never write a second, different store with `s = c + 1` before reconciling.
+Rules:
 
-**Variant B — reserve then commit (recommended for revocations):**
-
-| Step | Action | Crash after this step |
-|---|---|---|
-| B1 | `advance(c)` → `c + 1` | Store `s = c < c + 1` → fail closed (all grants denied, re-confirmation needed). No replay accepted. |
-| B2 | Write store with `s = c + 1`; flush; read back | Consistent. |
-
-Variant B has no replay window at the cost of a denial after a crash. The
-choice between A and B (or B for revocation-bearing commits only) belongs to
-N04.
+- **(a) Acknowledge after advance.** A grant, subgrant, revocation or durable
+  denial is effective, and is reported to its caller, only after A2 succeeds.
+  A store commit (A1) alone is never an acknowledgement.
+- **(b) Startup check** with store generation `S` (authenticated by N04) and
+  anchor generation `A`:
+  - `S == A` → accept;
+  - `S == A + 1` → roll forward: the entry at `S` must carry a valid
+    authenticator; the policy process calls `advance(expected = A)` and then
+    accepts (the entry was never acknowledged, so nothing is exposed);
+  - `S < A` → rollback: reject, fail closed;
+  - `S > A + 1` → impossible under this protocol: reject, fail closed.
+- **(c) Crash window between A1 and A2.** A disk attacker who replays the
+  previous authentic store (`S = A`) gets it accepted. This is harmless: the
+  lost `A + 1` entry was never acknowledged (rule a), so no state the user saw
+  is rolled back.
+- **(d) Monotonic compare-and-swap.** `advance` succeeds only if the anchor
+  still holds the expected old value (`A → A + 1`); of two concurrent advances
+  at most one succeeds. The policy process never writes a second, different
+  store at `S = A + 1` before reconciling.
 
 ## Limits
 
