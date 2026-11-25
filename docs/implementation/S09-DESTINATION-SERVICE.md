@@ -1284,8 +1284,9 @@ This paragraph fixes the trigger, the scope and the service interface that the
 decision above leaves to the specification. Nothing here exists in code at
 `8acf1dea` *[main]*. Revised after O13-SPEC-REVIEW-1 (REQUEST_CHANGES, RQ1–RQ4 and
 OPT1–OPT5) and O13-SPEC-REVIEW-2 (REQUEST_CHANGES on that revision, RQ1 and
-OPT1–OPT7); the review-2 fixes are applied here and not re-reviewed. Both are
-AI reviews, not a human audit.
+OPT1–OPT7; confirmed by O13-SPEC-VERIFY-3), then for a CodeRabbit finding
+(L1b) and O13-SPEC-REVIEW-4 on L1b (REQUEST_CHANGES, RQ1–RQ3 and OPT1–OPT2;
+applied here and not re-reviewed). All are AI reviews, not a human audit.
 
 - *Destination scope.* The destination profile marks exactly one block object
   per boot as the destination object when it creates it (2.1); the broker
@@ -1330,14 +1331,22 @@ AI reviews, not a human audit.
   failure and an owner exit during a WRITE or FLUSH; each of those already
   leads to a state without writes (2.6 failed-mount state, 2.7) (OPT1).
 - *Kernel trigger at refusal (L1b).* A WRITE or FLUSH that passed the
-  authority and scope checks and that the broker then refuses for a
-  device-side reason (the lane is offline, -13 or -14 after a failed reset, or
-  `prepare_operation` fails) latches at the refusal site in `device_call`, with
-  the same entry rule as L1 (WRITE: intersecting entries; FLUSH: every entry
-  of the device). The kernel produces these refusals itself, so the latch does
+  authority, scope and input-copy checks and that the broker then refuses for
+  a device-side reason latches at the refusal site in `device_call`, with the
+  same entry rule as L1 (WRITE: intersecting entries; FLUSH: every entry of
+  the device). The kernel produces these refusals itself, so the latch does
   not depend on the service surviving to report them (CodeRabbit review
-  6054272902 on PR #521). A -8 while the lane resets is the normal, transient
-  answer of 2.7 and does not latch.
+  6054272902 on PR #521). Per refusal site (O13-SPEC-REVIEW-4, OPT1):
+  the lane is offline (-13, or -14 after a failed reset or a failed `discover`
+  or initialisation at boot, `volume.rs:597`, `:626`, `:647`): latch;
+  `policy.prepare` `Exhausted` (-14, ticket counter overflow) and the missing
+  device (`.ok_or(-14)`, unreachable because a lane without a device is
+  offline): latch, fail closed; `prepare_operation` fails for any reason,
+  `Busy` (-8) included (`drivers/virtio-blk/src/lib.rs:380-390`): latch;
+  `policy.prepare` `Range` (-1) and an `input_bytes` error (-3): caller-shape
+  errors, no latch. The -8 that the broker's own lane checks return
+  (`resetting`, `error` held, `Policy` phase not `Ready`) is the normal,
+  transient answer of 2.7 and does not latch.
 - *Service trigger (L2).* The service reports the only 2.7 trigger that the
   kernel cannot see: a kernel -8 past either bound of 2.7 (on submission
   beyond 2 × `RESET_TIMEOUT`, on the completion poll beyond `POLL_BOUND`).
@@ -1404,12 +1413,18 @@ AI reviews, not a human audit.
   broker timeout and a malformed completion of a WRITE each latch, again read
   before any poll; a READ error does not; (h) the holder is killed while its WRITE is published and
   uncompleted, and the latch is set (RQ3); (i) a latched WRITE with an invalid
-  input pointer returns -5, not -3; (j) with the lane offline after an
-  injected failed reset, a destination WRITE is refused and latches, the
-  holder is killed before any `0x44`, and under the test-only re-grant of (d)
-  a WRITE into the range returns -5 (L1b); (k) during a reset started by an
-  injected READ timeout, a destination WRITE gets -8 and nothing latches,
-  and after the reset the same WRITE is admitted. Killing mutations: no check before the
+  input pointer returns -5, not -3; (j) a reset started by an injected
+  READ timeout fails (injected), so the lane goes offline; the latch marker
+  reads open; a destination WRITE then returns exactly -13 or -14 and the
+  marker reads latched; the holder is killed before any `0x44`, and under the
+  test-only re-grant of (d) a WRITE into the range returns -5 (L1b; review 4,
+  RQ1); separately, an injected `prepare_operation` failure on a WRITE (the
+  existing `bad_descriptor` path) latches, and an L1b FLUSH refusal latches
+  every disk-1 entry (review 4, OPT2); (k) during a reset started by an
+  injected READ timeout, a destination WRITE gets -8 and nothing latches;
+  after the reset the holder polls the READ's -13 (`lane.error` is held until
+  that 0x41 poll, `volume.rs:1081`), and then the same WRITE is admitted
+  (review 4, RQ2). Killing mutations: no check before the
   `Policy`; a check after the input copy (i); a latch keyed on the object or
   handle instead of the range, or on the whole device (d); a latch cleared by
   `detach` or reset (d); a latch set at the poll and not in the `Policy` (b,
@@ -1418,11 +1433,13 @@ AI reviews, not a human audit.
   malformed-completion reset (g); a READ that latches
   (g); FLUSH refused (c); `0x44` refused while the lane is stuck (f); `0x44`
   that always latches (f); a submission refusal that latches nothing (j); a
+  `prepare_operation` failure that latches nothing (j); an L1b FLUSH that
+  latches only sector 0 (j); a
   -8 during a reset that latches (k).
 - *Answers to the review questions.* The barrier-1 variant of N37 (a) does not
   latch: a FLUSH submitted while the lane resets gets -8 and is never admitted,
-  as in N26 (d); if that reset fails, the later submission's -13 or -14 is an
-  L2 trigger. The reply code stays -5. The table lives in `virtio-core`.
+  as in N26 (d); if that reset fails, the later submission's -13 or -14 latches
+  under L1b (review 4, RQ3). The reply code stays -5. The table lives in `virtio-core`.
 
 The latch ends only with the boot. Every destination runner
 must pass `-no-reboot` to QEMU, as `tools/run_volume.py:374` already does
