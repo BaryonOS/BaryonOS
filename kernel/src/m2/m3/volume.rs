@@ -115,6 +115,13 @@ const NO_APP: AppEvidence = AppEvidence {
 
 /// One virtio-blk device of the broker: lane 0 is 00:05.0 (every profile),
 /// lane 1 the test-only archive disk on 00:06.0.
+///
+/// K5 (S09 destination specification 2.7 and 4.3; owner decision O4 (a) of
+/// 24 November 2026): every piece of request state is per device. Each lane
+/// has its own Policy (one outstanding request per device), reset state and
+/// deadline, error state, completion buffer and publication time, so a fault,
+/// timeout or reset on one device never delays or refuses a request on the
+/// other.
 struct Lane {
     info: Option<Discovery>,
     mapped: [u64; 6],
@@ -122,6 +129,22 @@ struct Lane {
     pool: DmaPool,
     offline: i64,
     quarantined: bool,
+    policy: Policy,
+    data: [u8; 512],
+    error: Option<(virtio_core::Request, i64)>,
+    resetting: bool,
+    reset_deadline: u64,
+    published_at: u64,
+    /// Property 3 (2.7): a read whose -13/-12 result was delivered while its
+    /// reset was still running stays in the Policy until the reset completes;
+    /// its ticket is held here so that a further poll returns -1 and never an
+    /// Offline or stale result.
+    ended_read: Option<u64>,
+}
+impl Lane {
+    fn idle(&self) -> bool {
+        !self.resetting && self.error.is_none() && self.policy.phase() != Phase::Published
+    }
 }
 const NO_LANE: Lane = Lane {
     info: None,
@@ -136,18 +159,17 @@ const NO_LANE: Lane = Lane {
     },
     offline: 0,
     quarantined: false,
+    policy: Policy::new(),
+    data: [0; 512],
+    error: None,
+    resetting: false,
+    reset_deadline: 0,
+    published_at: 0,
+    ended_read: None,
 };
 
 struct Runtime {
     lanes: [Lane; 2],
-    /// Lane of the single outstanding (or resetting) request: one global
-    /// Policy admits at most one request across both devices.
-    active: usize,
-    policy: Policy,
-    data: [u8; 512],
-    error: Option<(virtio_core::Request, i64)>,
-    resetting: bool,
-    reset_deadline: u64,
     now: u64,
     roots: [u64; 2],
     replies: [u64; 2],
@@ -155,7 +177,6 @@ struct Runtime {
     client_reply: [u64; 2],
     publications: [u64; 3],
     completions: [u64; 3],
-    published_at: u64,
     max_completion_ticks: u64,
     timeouts: u64,
     table_writes: u64,
@@ -185,12 +206,6 @@ struct Runtime {
 }
 static mut RUNTIME: Runtime = Runtime {
     lanes: [NO_LANE, NO_LANE],
-    active: 0,
-    policy: Policy::new(),
-    data: [0; 512],
-    error: None,
-    resetting: false,
-    reset_deadline: 0,
     now: 0,
     roots: [0; 2],
     replies: [0; 2],
@@ -198,7 +213,6 @@ static mut RUNTIME: Runtime = Runtime {
     client_reply: [0; 2],
     publications: [0; 3],
     completions: [0; 3],
-    published_at: 0,
     max_completion_ticks: 0,
     timeouts: 0,
     table_writes: 0,
@@ -223,6 +237,15 @@ fn runtime() -> &'static mut Runtime {
     // Callers end each borrow before re-entry, scheduling or cleanup/detach.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }
+
+// The power tracker below is global and its FLUSH clears `dirty` for any
+// lane; that is sound only while the power profile has lane 0 alone (K5
+// review O3).
+#[cfg(all(
+    feature = "native-system-power",
+    feature = "test-volume-archive-device"
+))]
+compile_error!("the H05 power tracker is lane-0 only; it cannot be built with the archive device");
 
 /// H05 power gate (ADR-076): storage durability exactly as this broker
 /// observes it. `dirty` = a WRITE was published after the last successful
@@ -281,11 +304,14 @@ fn power_published(op: Operation) -> bool {
 #[cfg(feature = "native-system-power")]
 pub(super) fn power_gate() -> Result<(), i64> {
     let r = runtime();
-    if r.resetting || r.policy.phase() == Phase::Published {
+    if r.lanes
+        .iter()
+        .any(|lane| lane.resetting || lane.policy.phase() == Phase::Published)
+    {
         return Err(-8);
     }
     if r.lanes[0].offline != 0
-        || r.error.is_some()
+        || r.lanes.iter().any(|lane| lane.error.is_some())
         || power_track().dirty
         || r.publications != r.completions
     {
@@ -299,10 +325,16 @@ pub(super) fn power_gate() -> Result<(), i64> {
 #[cfg(feature = "test-system-s3")]
 pub(super) fn sleep_quiescent() -> bool {
     let r = runtime();
-    r.policy.request().is_none()
-        && r.policy.phase() == Phase::Ready
-        && r.error.is_none()
-        && !r.resetting
+    // A lane without a device (lane 1 outside the archive fixture) never
+    // admitted a request and stays Offline; it is quiescent. Every lane with
+    // a device, also a quarantined one, must be Ready with nothing held.
+    r.lanes.iter().all(|lane| {
+        lane.policy.request().is_none()
+            && lane.error.is_none()
+            && !lane.resetting
+            && (lane.policy.phase() == Phase::Ready
+                || (lane.device.is_none() && lane.policy.phase() == Phase::Offline))
+    })
 }
 /// H05 evidence (review R3): one count per broker access to a virtio-blk
 /// device (descriptor preparation, publication, used-ring poll, reset, reset
@@ -479,11 +511,17 @@ fn broker_diagnostic(r: &Runtime) {
         r.max_completion_ticks,
     );
     print_number(b"VOLUME:BROKER:TIMEOUTS:", r.timeouts);
-    if r.policy.phase() == Phase::Published {
-        print_number(
-            b"VOLUME:BROKER:OUTSTANDING_TICKS:",
-            r.now.saturating_sub(r.published_at),
-        );
+    for (index, lane) in r.lanes.iter().enumerate() {
+        if lane.policy.phase() == Phase::Published {
+            print_number(
+                if index == 0 {
+                    b"VOLUME:BROKER:OUTSTANDING_TICKS:"
+                } else {
+                    b"VOLUME:BROKER:OUTSTANDING_TICKS_DISK1:"
+                },
+                r.now.saturating_sub(lane.published_at),
+            );
+        }
     }
 }
 fn put(s: &State, slot: usize, offset: u64, value: u64) {
@@ -582,7 +620,7 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
     match device {
         Ok(d) => {
             r.lanes[0].device = Some(d);
-            r.policy.reset_completed(true).unwrap();
+            r.lanes[0].policy.reset_completed(true).unwrap();
         }
         Err(_) => {
             r.lanes[0].offline = -14;
@@ -592,8 +630,8 @@ pub fn prepare(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
 }
 
 /// Test-only archive disk on 00:06.0. Absence or any failure sets lane 1
-/// offline (-14) and never touches lane 0. The Policy's first
-/// reset_completed belongs to lane 0, which brings it up after this.
+/// offline (-14) and never touches lane 0. Lane 1 has its own Policy (K5),
+/// brought up here on a successful initialisation.
 #[cfg(feature = "test-volume-archive-device")]
 fn prepare_archive_device(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging) {
     let pool = dma_pool(frames, kernel);
@@ -651,6 +689,7 @@ fn prepare_archive_device(frames: &mut Frames<FRAME_COUNT>, kernel: &mut Paging)
     match device {
         Ok(d) => {
             lane.device = Some(d);
+            lane.policy.reset_completed(true).unwrap();
             lane.offline = 0;
         }
         Err(_) => lane.quarantined = true,
@@ -1012,11 +1051,10 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         object_key: auth.object_key(),
     };
     if n == 0x41 {
-        let request = runtime()
-            .error
-            .map(|(q, _)| q)
-            .or_else(|| runtime().policy.request())
-            .ok_or(-1)?;
+        let lane = &runtime().lanes[dev];
+        let pending = lane.policy.request();
+        let pending = pending.filter(|q| lane.ended_read != Some(q.ticket));
+        let request = lane.error.map(|(q, _)| q).or(pending).ok_or(-1)?;
         m4::engine()
             .check_block(pid, a[0], required(request.operation))
             .map_err(|e| e.code())?;
@@ -1024,16 +1062,22 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             return Err(-1);
         }
         let output = m4::plan(s, slot, a[2], 320, true).map_err(|e| e.code())?;
-        let r = runtime();
-        if let Some((_, code)) = r.error.take() {
-            if r.policy.peek(binding, a[1]).is_ok() {
-                let _ = r.policy.consume(binding, a[1]);
+        let lane = &mut runtime().lanes[dev];
+        if let Some((_, code)) = lane.error.take() {
+            if lane.policy.peek(binding, a[1]).is_ok() {
+                let _ = lane.policy.consume(binding, a[1]);
+            } else if !request.operation.is_mutating() {
+                // Property 3: the read was ended by a reset that is still
+                // running (the Policy drops it at reset completion) or that
+                // failed (a quarantined Policy keeps it). Either way a
+                // further poll must see no request (-1), never -14.
+                lane.ended_read = Some(request.ticket);
             }
             return Err(code);
         }
-        let request = r.policy.peek(binding, a[1]).map_err(err)?;
+        let request = lane.policy.peek(binding, a[1]).map_err(err)?;
         if request.completion == Some(Completion::Unknown) {
-            r.policy.consume(binding, a[1]).map_err(err)?;
+            lane.policy.consume(binding, a[1]).map_err(err)?;
             return Err(-16);
         }
         if request.completion != Some(Completion::Success) {
@@ -1045,7 +1089,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             message.len = u32::from(request.length);
             let start = usize::from(request.offset);
             let end = start + usize::from(request.length);
-            message.data[..usize::from(request.length)].copy_from_slice(&r.data[start..end]);
+            message.data[..usize::from(request.length)].copy_from_slice(&lane.data[start..end]);
         }
         let bytes = message.encode();
         m4::write_plan(&output, &bytes);
@@ -1057,7 +1101,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         if hold_shutdown_flush(request.operation) {
             return Ok(u64::from(message.len));
         }
-        r.policy.consume(binding, a[1]).map_err(err)?;
+        lane.policy.consume(binding, a[1]).map_err(err)?;
         return Ok(u64::from(message.len));
     }
     let op = if n == 0x43 {
@@ -1093,11 +1137,13 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     if r.lanes[dev].offline != 0 {
         return Err(r.lanes[dev].offline);
     }
-    if r.resetting || r.error.is_some() || r.policy.phase() != Phase::Ready {
+    // K5: only this device's own state can refuse the submission.
+    let lane = &mut r.lanes[dev];
+    if lane.resetting || lane.error.is_some() || lane.policy.phase() != Phase::Ready {
         return Err(-8);
     }
-    let capacity = r.lanes[dev].device.as_ref().ok_or(-14)?.capacity;
-    let request = r
+    let capacity = lane.device.as_ref().ok_or(-14)?.capacity;
+    let request = lane
         .policy
         .prepare(binding, op, capacity, s.ticks, TIMEOUT)
         .map_err(err)?;
@@ -1109,15 +1155,20 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             .unwrap()
             .prepare_operation(op, input.as_ref(), false)
     {
-        r.policy.reject_prepared(binding, request.ticket).unwrap();
+        r.lanes[dev]
+            .policy
+            .reject_prepared(binding, request.ticket)
+            .unwrap();
         return Err(err(error));
     }
-    r.policy.publish(request.epoch, request.ticket).unwrap();
+    r.lanes[dev]
+        .policy
+        .publish(request.epoch, request.ticket)
+        .unwrap();
     #[cfg(feature = "native-system-power")]
     let suppress = power_published(op);
     #[cfg(not(feature = "native-system-power"))]
     let suppress = false;
-    r.active = dev;
     device_access();
     r.lanes[dev]
         .device
@@ -1130,15 +1181,15 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     if r.archive_key == Some(binding.object_key) {
         r.archive_ops[operation_index(op)] += 1;
     }
-    r.published_at = s.ticks;
+    r.lanes[dev].published_at = s.ticks;
     Ok(request.ticket)
 }
 
-/// Reset the active lane's device only. The Policy is shared: if this reset
-/// fails, the Policy stays quarantined and both lanes refuse further requests
-/// (fail closed; a known fixture limit that no stage exercises).
-fn reset(r: &mut Runtime, now: u64) {
-    if r.lanes[r.active].quarantined {
+/// Reset one lane's device only (K5): its own Policy, deadline and state. A
+/// failed reset quarantines that lane alone; the other lane keeps working.
+fn reset(r: &mut Runtime, index: usize, now: u64) {
+    let lane = &mut r.lanes[index];
+    if lane.quarantined {
         return;
     }
     // Review R1: after a validated S3 wake the platform already reset the
@@ -1153,22 +1204,29 @@ fn reset(r: &mut Runtime, now: u64) {
         super::system::device_access_suppressed();
         return;
     }
-    r.policy.start_reset().unwrap();
-    r.resetting = true;
-    r.reset_deadline = now + RESET_TIMEOUT;
-    if let Some(device) = r.lanes[r.active].device.as_mut() {
+    lane.policy.start_reset().unwrap();
+    lane.resetting = true;
+    lane.reset_deadline = now + RESET_TIMEOUT;
+    if let Some(device) = lane.device.as_mut() {
         device_access();
         device.begin_reset();
     }
 }
 pub fn detach(pid: u64) {
     let r = runtime();
-    if r.error.is_some_and(|(q, _)| q.binding.pid == pid) {
-        r.error = None;
-    }
-    if r.policy.exit(pid).is_some() && !r.lanes[r.active].quarantined {
-        let now = r.now;
-        reset(r, now);
+    let now = r.now;
+    for index in 0..r.lanes.len() {
+        let lane = &mut r.lanes[index];
+        if lane.error.is_some_and(|(q, _)| q.binding.pid == pid) {
+            lane.error = None;
+        }
+        let exited = lane.policy.exit(pid);
+        if exited.is_some_and(|q| lane.ended_read == Some(q.ticket)) {
+            lane.ended_read = None;
+        }
+        if exited.is_some() && !lane.quarantined {
+            reset(r, index, now);
+        }
     }
 }
 
@@ -1187,6 +1245,14 @@ fn advance(s: &State) {
     let r = runtime();
     let now = s.ticks;
     r.now = now;
+    for index in 0..r.lanes.len() {
+        advance_lane(r, index, now);
+    }
+}
+
+/// K5: one device's reset, timeout and completion progress. A lane never
+/// reads or changes the other lane's request state.
+fn advance_lane(r: &mut Runtime, index: usize, now: u64) {
     // Review R1: no reset acknowledgement read, re-initialisation or used-ring
     // poll after the S3 wake. Nothing can be active here: the SUSPEND gate
     // admitted only a quiescent broker, every submission since returned -14,
@@ -1195,14 +1261,13 @@ fn advance(s: &State) {
     if super::system::resumed() {
         return;
     }
-    if r.resetting {
-        let active = r.active;
-        let writable = if active == 0 {
+    if r.lanes[index].resetting {
+        let writable = if index == 0 {
             !read_only()
         } else {
             device1_writable()
         };
-        let lane = &mut r.lanes[active];
+        let lane = &mut r.lanes[index];
         if lane.device.is_some() {
             device_access();
         }
@@ -1221,41 +1286,42 @@ fn advance(s: &State) {
             } {
                 Ok(device) => {
                     lane.device = Some(device);
-                    r.policy.reset_completed(true).unwrap();
-                    r.resetting = false;
+                    lane.policy.reset_completed(true).unwrap();
+                    lane.resetting = false;
+                    lane.ended_read = None;
                 }
                 Err(_) => {
-                    let _ = r.policy.reset_completed(false);
+                    let _ = lane.policy.reset_completed(false);
                     lane.offline = -14;
-                    r.resetting = false;
+                    lane.resetting = false;
                     lane.quarantined = true;
                 }
             }
-        } else if now >= r.reset_deadline {
-            let _ = r.policy.reset_completed(false);
-            r.resetting = false;
+        } else if now >= lane.reset_deadline {
+            let _ = lane.policy.reset_completed(false);
+            lane.resetting = false;
             lane.quarantined = true;
             lane.offline = -13;
         }
         return;
     }
-    if r.lanes[r.active].offline != 0 || r.policy.phase() != Phase::Published {
+    if r.lanes[index].offline != 0 || r.lanes[index].policy.phase() != Phase::Published {
         return;
     }
-    let request = r.policy.request().unwrap();
-    if r.policy.timeout(now) {
+    let request = r.lanes[index].policy.request().unwrap();
+    if r.lanes[index].policy.timeout(now) {
         r.timeouts += 1;
         let code = if request.operation.is_mutating() {
             -16
         } else {
             -13
         };
-        r.error = Some((request, code));
+        r.lanes[index].error = Some((request, code));
         #[cfg(feature = "native-system-power")]
         {
             power_track().hold = false;
         }
-        reset(r, now);
+        reset(r, index, now);
         return;
     }
     // The timeout fixture also withholds observation until the real deadline.
@@ -1268,7 +1334,7 @@ fn advance(s: &State) {
     #[cfg(not(feature = "native-system-power"))]
     let injection = 0;
     device_access();
-    let completion = r.lanes[r.active].device.as_mut().unwrap().poll(injection);
+    let completion = r.lanes[index].device.as_mut().unwrap().poll(injection);
     // The injection applies only to an observed used-ring advance.
     #[cfg(feature = "native-system-power")]
     if !matches!(&completion, Ok(None)) {
@@ -1279,24 +1345,25 @@ fn advance(s: &State) {
     if !matches!(&completion, Ok(None)) {
         r.max_completion_ticks = r
             .max_completion_ticks
-            .max(now.saturating_sub(r.published_at));
+            .max(now.saturating_sub(r.lanes[index].published_at));
     }
     match completion {
         Ok(Some((data, Completion::Success))) => {
-            r.data = data;
+            r.lanes[index].data = data;
             r.completions[operation_index(request.operation)] += 1;
             #[cfg(feature = "native-system-power")]
             if request.operation == Operation::Flush {
                 power_track().dirty = false;
             }
-            r.policy
+            r.lanes[index]
+                .policy
                 .complete(request.epoch, request.ticket, Completion::Success)
                 .unwrap();
             if let Operation::Write { sector } = request.operation {
                 // Archive sectors are neither volume table nor content writes;
                 // device-1 sectors start at 0 and must never reach the
                 // FIRST_SECTOR subtraction below.
-                if r.active == 1 {
+                if index == 1 {
                     r.device1_writes += 1;
                     // Power cut: stop mid-export, after the new header landed
                     // over the older archive but long before the new end.
@@ -1341,7 +1408,8 @@ fn advance(s: &State) {
             }
         }
         Ok(Some((_, _))) => {
-            r.policy
+            r.lanes[index]
+                .policy
                 .complete(request.epoch, request.ticket, Completion::Io)
                 .unwrap();
             let code = if request.operation.is_mutating() {
@@ -1349,8 +1417,8 @@ fn advance(s: &State) {
             } else {
                 -12
             };
-            r.error = Some((request, code));
-            reset(r, now);
+            r.lanes[index].error = Some((request, code));
+            reset(r, index, now);
         }
         Ok(None) => {}
         Err(error) => {
@@ -1359,8 +1427,8 @@ fn advance(s: &State) {
             } else {
                 err(error)
             };
-            r.error = Some((request, code));
-            reset(r, now);
+            r.lanes[index].error = Some((request, code));
+            reset(r, index, now);
         }
     }
 }
@@ -1494,7 +1562,7 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
             r.finish = true;
             return None;
         }
-        if r.resetting || r.error.is_some() || r.policy.phase() == Phase::Published {
+        if !r.lanes.iter().all(Lane::idle) {
             return None;
         }
     }
@@ -1794,9 +1862,6 @@ pub(super) fn broker_summary() -> ([u64; 3], [u64; 3], bool) {
     (
         r.publications,
         r.completions,
-        r.lanes[0].offline == 0
-            && !r.resetting
-            && r.error.is_none()
-            && r.policy.phase() != Phase::Published,
+        r.lanes[0].offline == 0 && r.lanes.iter().all(Lane::idle),
     )
 }

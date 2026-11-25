@@ -936,3 +936,55 @@ pub fn put_copy(image: &mut [[u8; SECTOR]], slot: usize, copy: &[u8; catalog::CO
 pub fn catalog_of(image: &[[u8; SECTOR]], slot: usize, sectors: u64) -> Option<Catalog> {
     catalog::decode(&copy_of(image, slot), sectors)
 }
+
+/// Lower-case hex of `bytes`, as the oracle's `.expect` files write it.
+pub fn hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+    bytes.iter().fold(String::new(), |mut out, byte| {
+        let _ = write!(out, "{byte:02x}");
+        out
+    })
+}
+
+/// The verdict of a cold boot of the core on `image` (scope = the whole
+/// image), in the line format the oracle cross-check and the reverse
+/// differential share (spec 8.2 R3): the mount state and, when mounted, the
+/// catalog header and every record. Spec 7 "Cross-check limit": the state,
+/// header and records are compared, not the rule that refused a copy.
+pub fn cold_verdict(image: &[[u8; SECTOR]]) -> String {
+    use destination_core::service::State;
+    use std::fmt::Write as _;
+    let h = H::cold(image.to_vec());
+    let state = match h.svc.state() {
+        State::Mounted => "mounted",
+        State::Blank => "blank",
+        State::Corrupt => "corrupt",
+        State::Failed { .. } => "failed",
+    };
+    let mut out = format!("state={state}\n");
+    if h.svc.state() == State::Mounted {
+        let c = h.svc.catalog();
+        let _ = writeln!(
+            out,
+            "id={}\nsequence={}\nnext_entry={}\nnext_free={}\nformatted={}",
+            hex(&c.id),
+            c.sequence,
+            c.next_entry,
+            c.next_free,
+            c.formatted
+        );
+        for r in c.entries() {
+            let _ = writeln!(
+                out,
+                "record={},{},{},{},{},{}",
+                r.id,
+                r.first,
+                r.length,
+                r.trailer,
+                r.sealed_sequence,
+                hex(&r.label[..r.label_length as usize])
+            );
+        }
+    }
+    out
+}

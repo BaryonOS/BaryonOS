@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "9b24c9d5cb102b72db5688d2dc99f7ac25c50274",
+    "source_commit": "ad55e019ccdcff44f947a51b45f3caf0fd7df54b",
     "assessment_basis": "parent_commit",
-    "branch": "claude/sweet-franklin-ljra1f",
-    "task": "H06-T8 exact-line matching for full-line HW-INV fixture markers",
+    "branch": "claude/b05-virtio-caps-20261123",
+    "task": "B05-T6 oracle-checked bounded enumeration of the virtio PCI capability walk (with B05-T5 from #511)",
     "previous_score": 43,
-    "summary": "43/100 unchanged. H06-T8 makes the HW-INV fixture oracle require whole lines for full-line markers (M2:PASS, HWINV:BEGIN, HWINV:FAIL:FIXTURE and others) and a non-empty value for value markers such as M2:PANIC_LINE:; host tests and a startswith mutant cover it, and every native HW-INV case and terminal fixture passed again on the merged source (after #500 and #504) in QEMU/TCG (pc-q35-8.2). Host oracle plus QEMU only; no physical evidence, so H06 earns no points; evidence: docs/verification/h06-exact-markers-20261124/README.md."
+    "summary": "43/100 unchanged. B05-T5 (#511) and B05-T6 add host-only bounded invariant enumerations for the ring-3 user ABI (kernel-core user.rs) and the virtio PCI capability walk (virtio-core), each with mutation controls; this extends the partial 'selected invariants checked by machine' requirement. B05 stays open: no external human examination exists and AI review is not that audit; evidence: docs/security-review/B05-T5-USER-ABI-INVARIANTS.md, docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md."
   },
   "tracks": [
     {
@@ -1730,14 +1730,18 @@
             "verification": [
               "host"
             ],
-            "observation": "Capability enumeration covers19607 nonempty prefixes of7 actions through depth5 with revoke-weakened mutant red; ELF and policy-envelope bounded parser checks and mutation controls added.",
+            "observation": "Capability enumeration covers19607 nonempty prefixes of7 actions through depth5 with revoke-weakened mutant red; ELF and policy-envelope bounded parser checks and mutation controls added; ring-3 user ABI (copy planning, user ELF parse, return frames; B05-T5) and virtio PCI capability walk (B05-T6) bounded enumerations with exact-edge mutation controls added.",
             "remaining": "Bounded tests are not unbounded/formal proofs; external review must determine which additional invariants require stronger verification.",
             "evidence": [
               "crates/capability-core/tests/exhaustive_revocation.rs",
               "docs/roadmap-pipeline/receipts/B05-T2.json",
               "docs/security-review/B05-T4-INVARIANTS.md",
               "crates/elf-loader-core/tests/bounded_parser_invariants.rs",
-              "crates/update-core/tests/bounded_policy_envelope_invariants.rs"
+              "crates/update-core/tests/bounded_policy_envelope_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/bd31a78ba30f28e7d668df1e56bb9b5a276a2d82/crates/kernel-core/tests/bounded_user_abi_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/bd31a78ba30f28e7d668df1e56bb9b5a276a2d82/docs/security-review/B05-T5-USER-ABI-INVARIANTS.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/633a0679926fdeb99837cf799a428950763d9723/crates/virtio-core/tests/bounded_capability_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/633a0679926fdeb99837cf799a428950763d9723/docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md"
             ]
           }
         ]

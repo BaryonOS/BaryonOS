@@ -60,7 +60,8 @@
       ],
       "tests": [
         "tools/run.py",
-        "crates/virtio-core/src/lib.rs"
+        "crates/virtio-core/src/lib.rs",
+        "crates/virtio-core/tests/bounded_capability_invariants.rs"
       ],
       "evidence": [
         "docs/verification/m5/candidate.json"

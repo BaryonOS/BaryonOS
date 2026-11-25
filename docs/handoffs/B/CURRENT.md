@@ -28,8 +28,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: cloud (CLOUD-HANDOFF-B, 25 Nov); the local B session is archived and no longer writes.
-- cycle_id: b03-f1-floor-crash-20261125 (previous b05-t6-virtio-caps-20261125: PR #512; see its HANDOFF comment).
+- Session: local again (25 Nov, hand-back through #503); the cloud B session stopped and no longer writes.
+- cycle_id: b03-f1-floor-crash-20261125 (previous b05-t6-virtio-caps-20261125 closed: #512 merged as ea38dcc6, tree-equal to head b0966d7a).
 - task: B03-F1 native characterization of REL-05 (anti-rollback floor raised before kernel health); not a fix.
 - branch: claude/b03-floor-crash-20261123
 - PR: see the HANDOFF comment for the number and expected head
@@ -57,9 +57,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - B04 hosted Secure Boot job: protected `.github/**` request
   (docs/implementation/B04-SECURE-BOOT-CI-INTEGRATION-REQUEST.md).
 
-## Queued B branches (pushed, merged with main on 24–25 Nov, no PR yet)
+## Queued B work (no PR yet)
 
-- claude/b05-virtio-caps-20261123 7762e63f — B05-T6, verifier MERGE; virtio-core tests/clippy/fmt/scope exit 0.
 - REL-05 fix (floor raised before kernel health) needs an owner policy decision (trial boot / health
   confirmation); B drafts a proposal, no silent change to anti-rollback semantics.
 
