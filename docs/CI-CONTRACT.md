@@ -674,8 +674,8 @@ runs: a merge-hold run of about one minute, one short re-check job per finished
 watched workflow run, a wait of up to two minutes only when merge-hold is still
 open as the last watched run finishes, and usually one merge-hold re-run. While
 merge-hold is red, each watched run that ends after the last gate re-runs it
-once more; the Materiaal probe also runs, and so starts a re-check, on every
-label change.
+once more; the Materiaal probe also runs, and so starts a re-check, each time
+a label is added.
 
 API use: a full decision costs about one pull request read, one or two
 run-list pages, and one job list and one re-read per counted workflow run

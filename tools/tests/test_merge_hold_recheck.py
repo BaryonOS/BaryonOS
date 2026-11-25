@@ -182,6 +182,14 @@ class RecheckTests(TestCase):
         self.assertIn("still in_progress after a wait", lines[-1])
         self.assertIn("gh run rerun 3 --failed", lines[-1])
 
+    def test_all_listed_pull_requests_share_one_wait_budget(self):
+        api, lines = decide([run(1, CI), run(3, HOLD, status="in_progress"),
+                             run(4, HOLD, status="in_progress", number=8)],
+                            payload=event(numbers=(7, 8)), heads={7: HEAD, 8: HEAD})
+        self.assertEqual(api.sleeps, [recheck_module.POLL_SECONDS] * recheck_module.WAIT_POLLS)
+        self.assertEqual(api.posts, [])
+        self.assertTrue(all("still in_progress after a wait" in line for line in lines[-2:]), lines)
+
     def test_a_running_merge_hold_that_started_after_the_gate_finished_is_not_waited_for(self):
         api, lines = decide([run(1, CI), run(3, HOLD, status="in_progress", started=AFTER)])
         self.assertEqual((api.sleeps, api.posts), ([], []))
