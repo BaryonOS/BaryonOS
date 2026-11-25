@@ -2320,7 +2320,9 @@ fn event(source: *const u64) -> *const u64 {
             && !supervisor_call
             && !(cfg!(feature = "milestone-m5")
                 && (matches!(number, 0x40 | 0x41)
-                    || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)))
+                    || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)
+                    // O13 latch: the native-volume broker only, never m6/m6b/m6c.
+                    || cfg!(feature = "native-volume") && number == 0x44))
         {
             let (rax, rdx) = m4::syscall(state, current, number, args);
             #[cfg(feature = "milestone-m6b")]
@@ -2330,7 +2332,8 @@ fn event(source: *const u64) -> *const u64 {
         }
         #[cfg(feature = "milestone-m5")]
         if (matches!(number, 0x40 | 0x41)
-            || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43))
+            || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)
+            || cfg!(feature = "native-volume") && number == 0x44)
         {
             let (rax, rdx) = m5::syscall(state, current, number, args);
             state.processes[current].context[14] = rax as u64;
