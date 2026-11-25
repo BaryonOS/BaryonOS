@@ -1455,6 +1455,14 @@ class EscapeScopeTests(TestCase):
             "ext/src/main.rs": "fn main() {}\n",
             "ext/src/helper.rs": "// helper\n"})
         self.assertEqual(found, [("app", "ext/src/helper.rs", "app/src/lib.rs:1", False)])
+        # A target at the repository root: its sibling root files are scanned, nothing deeper.
+        found = self.scan({
+            "app/Cargo.toml": '[package]\nname = "app"\n[[bin]]\nname = "x"\npath = "../main.rs"\n',
+            "app/src/lib.rs": "// lib\n",
+            "main.rs": "mod helper;\n",
+            "helper.rs": 'const A: &str = include_str!("data/a.txt");\n',
+            "deep/other.rs": 'const B: &str = include_str!("../data/b.txt");\n'})
+        self.assertEqual(found, [("app", "data/a.txt", "helper.rs:1", True)])
         self.assertEqual(ci_impact.external_root_targets(
             lambda path: b'[[bin]]\nname = "x"\npath = "../ext/src/main.rs"\n' if path == "app/Cargo.toml" else None,
             {"app"}), {"app": ["ext/src"]})
@@ -1617,6 +1625,14 @@ class SelectOutputTests(TestCase):
         for over, call in cases:
             with self.subTest(over=over, call=call):
                 out = self.outputs(self.plan(selected=(), **over), **call)
+                self.assertEqual((out["narrowed"], out["run-quality"]), ("false", "true"))
+        # Malformed nested data from any selector never narrows and never fails the job (CodeRabbit on #510).
+        for over in ({"selector": ["invalid"]}, {"selected": [["x"]]}, {"selected": "x"},
+                     {"excluded": [{"id": 3}]}, {"excluded": None}):
+            with self.subTest(over=over):
+                plan = self.plan(selected=())
+                plan.update(over)
+                out = self.outputs(plan)
                 self.assertEqual((out["narrowed"], out["run-quality"]), ("false", "true"))
         for garbage in ([], "plan", None, {}):
             with self.subTest(plan=garbage):

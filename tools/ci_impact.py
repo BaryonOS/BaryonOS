@@ -849,8 +849,9 @@ def cargo_closure(roots, read, escapes):
             if not path.startswith(f"{directory}/"):
                 globs.add(path)
                 # Its `mod` files resolve relative to it, outside this crate: cover the directory.
-                if posixpath.dirname(path):
-                    globs.add(posixpath.dirname(path) + "/**")
+                # At the repository root only its sibling sources: '**' would be every path.
+                directory = posixpath.dirname(path)
+                globs.add(f"{directory}/**" if directory else "*.rs")
         for escape in escapes:
             if escape["crate"] == directory and (escape["when"] == "always" or directory in root_dirs):
                 globs.update(escape["inputs"])
@@ -1534,7 +1535,7 @@ def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset(), external=N
                  for path in sorted(sources) if path.startswith(f"{crate}/")]
         for directory in (external or {}).get(crate, []):
             queue += [(path, True) for path in sorted(sources)
-                      if path.startswith(f"{directory}/") and not path.startswith(f"{crate}/")]
+                      if _within(path, directory) and not path.startswith(f"{crate}/")]
         seen = set()
         while queue:
             source, root_only = queue.pop(0)
@@ -1569,7 +1570,7 @@ def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset(), external=N
                         # A library file can pull in e.g. tests/helper.rs: it is then library source too.
                         queue.append((target, False))
                     continue
-                if root_only and any(target.startswith(f"{directory}/")
+                if root_only and any(_within(target, directory)
                                      for directory in (external or {}).get(crate, [])):
                     # Root gates already take the external target's directory as an input;
                     # a library-scope visit must still be reported (dependent gates do not).
@@ -1631,6 +1632,11 @@ def root_target_paths(read, crate_dirs):
                 if isinstance(entry, dict) and isinstance(entry.get("path"), str):
                     paths.add(posixpath.normpath(posixpath.join(crate, entry["path"])))
     return frozenset(paths)
+
+
+def _within(path, directory):
+    """Is `path` covered by an external target directory's input? The root ('') covers its own files only."""
+    return "/" not in path if directory == "" else path.startswith(f"{directory}/")
 
 
 def external_root_targets(read, crate_dirs):
@@ -1950,9 +1956,13 @@ def select_outputs(plan, catalogue, workflow_path, tested_sha, mode="", base_ref
         plan = {}
     shas = plan.get("shas") if isinstance(plan.get("shas"), dict) else {}
     source = plan.get("catalogue") if isinstance(plan.get("catalogue"), dict) else {}
-    narrow = (mode == "select" and plan.get("event") == "pull_request" and plan.get("mode") == "select"
-              and plan.get("policy_mode") == "select"
-              and (plan.get("selector") or {}).get("trusted") is True
+    selector = plan.get("selector") if isinstance(plan.get("selector"), dict) else {}
+    rows = [plan.get("selected"), plan.get("excluded")]
+    well_formed = all(isinstance(group, list) and all(
+        isinstance(row, dict) and isinstance(row.get("id"), str) for row in group) for group in rows)
+    narrow = (well_formed and mode == "select" and plan.get("event") == "pull_request"
+              and plan.get("mode") == "select" and plan.get("policy_mode") == "select"
+              and selector.get("trusted") is True
               and bool(base_ref) and plan.get("ref") == base_ref
               and shas.get("tested") == tested_sha
               and SHA_RE.fullmatch(str(shas.get("base") or "")) is not None
