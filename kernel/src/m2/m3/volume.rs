@@ -241,7 +241,10 @@ fn runtime() -> &'static mut Runtime {
 // The power tracker below is global and its FLUSH clears `dirty` for any
 // lane; that is sound only while the power profile has lane 0 alone (K5
 // review O3).
-#[cfg(all(feature = "native-system-power", feature = "test-volume-archive-device"))]
+#[cfg(all(
+    feature = "native-system-power",
+    feature = "test-volume-archive-device"
+))]
 compile_error!("the H05 power tracker is lane-0 only; it cannot be built with the archive device");
 
 /// H05 power gate (ADR-076): storage durability exactly as this broker
@@ -301,8 +304,7 @@ fn power_published(op: Operation) -> bool {
 #[cfg(feature = "native-system-power")]
 pub(super) fn power_gate() -> Result<(), i64> {
     let r = runtime();
-    if r
-        .lanes
+    if r.lanes
         .iter()
         .any(|lane| lane.resetting || lane.policy.phase() == Phase::Published)
     {
