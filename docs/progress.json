@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "d436a595ac05b2c8fe2a0e51a53659001fa21742",
+    "source_commit": "017934d70af11746cb29e64caafc8abad417b14a",
     "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/brave-feynman-jbiz6x",
-    "task": "S09 follow-up: reverse-corpus fixture fixes from the PR #509 review; handoff after the merge",
+    "branch": "claude/s09-o13-latch-20261125",
+    "task": "S09 O13: specify the kernel write latch (trigger, scope, interface, native test N38)",
     "previous_score": 43,
-    "summary": "43/100, unchanged: PR #509 (owner decisions O1-O13, the R3 reverse differential on the host, K5 per-device broker state) landed on main as ad55e019 with every hosted gate green on its head. This follow-up adds a genuine formatted-count-below-scope case to the reverse corpus (185 images) and makes the Rust side require a verdict for every image. S09 stays open: no native destination stage, native K5 fixture, O13 kernel latch, O12 owner-binding design, hosted R3 run or human audit exists yet. Main d436a595 (B05-T6 #512 and U04 Space activation, both 43/100 unchanged) is merged into the branch; source commit is main d436a595."
+    "summary": "43/100, unchanged: the S09 destination specification now fixes the O13 kernel write latch that the owner decided on 24 November 2026 (latch table per destination range in virtio-core; kernel trigger on a WRITE or FLUSH that the per-device Policy marks Unknown; service syscall 0x44 for triggers only the service sees; latched WRITE refused with -5 before any device access; READ and FLUSH kept; native test N38). Two independent AI reviews and one verifier checked it; a specification is not an implementation, so S09 stays open: no latch code, native destination stage, native K5 fixture, O12 owner-binding design, hosted R3 run or human audit exists yet. Main 017934d7 (UI-U #520, 43/100 unchanged) is merged into the branch; source commit is main 017934d7."
   },
   "tracks": [
     {
