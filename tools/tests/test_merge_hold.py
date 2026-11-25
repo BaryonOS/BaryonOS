@@ -374,12 +374,24 @@ class MergeGroupTests(TestCase):
         self.assertEqual(calls.count("sleep"), 0)
         polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
         self.assertEqual([url.rsplit("&", 1)[1] for url in polls], ["page=1", "page=2"])
-        # Past MAX_PAGES full pages the read fails and the group fails closed at the deadline.
+        # #494: check runs have their own cap (justified at CHECK_RUN_MAX_PAGES); the other
+        # listings keep MAX_PAGES.
+        cap = merge_hold.CHECK_RUN_MAX_PAGES
+        self.assertEqual((cap, merge_hold.MAX_PAGES), (5, 50))
+        # cap - 1 full pages and a short last page are still read in one poll.
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=[lambda url: DONE if url.endswith(f"&page={cap}") else filler])
+        self.assertEqual(code, 0, out)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual([url.rsplit("&", 1)[1] for url in polls], [f"page={page}" for page in range(1, cap + 1)])
+        # Past cap full pages the read fails and the group fails closed at the deadline.
         code, out, calls = self.run_group(self.QUEUE, checks=[lambda url: filler])
         self.assertEqual(code, 1, out)
         self.assertIn("Too many pages", out)
-        self.assertEqual(len([url for url in calls if f"/commits/{GROUP}/check-runs?" in url
-                              and url.endswith("&page=1")]), calls.count("sleep") + 1)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual(len([url for url in polls if url.endswith("&page=1")]), calls.count("sleep") + 1)
+        # Each poll requests exactly cap pages, never one past it.
+        self.assertEqual(len(polls), cap * (calls.count("sleep") + 1))
 
     def assertLabelsReadAfterWait(self, calls):
         last_poll = max(i for i, url in enumerate(calls) if "/check-runs?" in url)

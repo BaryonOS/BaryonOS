@@ -715,7 +715,8 @@ merge-hold on `merge_group` still waits only for `host-quality` and
 queue member needs, besides its hold decision, a successful newest
 `pull_request` merge-hold run on its own head and a queue entry whose tree
 equals that head tree. This makes a queue with more than one pull request
-ahead fail closed. merge-hold reads every page of a queue commit's check runs.
+ahead fail closed. merge-hold reads every page of a queue commit's check runs,
+up to `CHECK_RUN_MAX_PAGES` (five pages of 100); a full fifth page fails closed.
 
 **Bootstrap.** The pull request that introduces this enforcement is judged by
 the base copy that predates it, so its own merge-hold checks only the

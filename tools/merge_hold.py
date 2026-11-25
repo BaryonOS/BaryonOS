@@ -73,6 +73,13 @@ RELEASE_PREFIX = "acceptance-released: "
 TRUSTED = {"OWNER", "MEMBER", "COLLABORATOR"}
 SHA = re.compile(r"[0-9a-f]{40}")
 MAX_PAGES = 50
+# Check runs of one commit (#494). Only Actions runs count (app_id filter): a queue commit gets
+# the jobs of every merge_group workflow, 77 on a comparable main push (25 Nov 2026) and at
+# most 158 with every matrix expanded. A commit that becomes main's head adds its push runs
+# (at most 157) and workflow_run "recheck" runs. Five pages keep that headroom and bound one
+# read at 5 requests, not 50, against the 1,000 requests/hour GITHUB_TOKEN limit. Past the
+# cap the read fails closed.
+CHECK_RUN_MAX_PAGES = 5
 API = "https://api.github.com"
 # Required checks merge-hold waits for on merge_group (ci.yml job names, run by
 # GitHub Actions, app id 15368). The wait budget stays below the job timeout.
@@ -278,8 +285,9 @@ def tree(token, repo, sha):
 def completed_runs(token, repo, sha):
     """The completed check runs on sha by name (absent or running counts as not done).
 
-    Every page is read: a queue commit runs every gate workflow. A run that shifts
-    between pages while paging only counts as not done, so the wait never ends early.
+    Every page is read, up to CHECK_RUN_MAX_PAGES: a queue commit runs every gate workflow.
+    A run that shifts between pages while paging only counts as not done, so the wait never
+    ends early; more pages than the cap raise, and the wait fails closed at its deadline.
     """
     url = (f"{API}/repos/{repo}/commits/{sha}/check-runs"
            f"?app_id={ACTIONS_APP_ID}&filter=latest&per_page=100")
@@ -290,7 +298,7 @@ def completed_runs(token, repo, sha):
         if len(batch) < 100:
             return done
         page += 1
-        if page > MAX_PAGES:
+        if page > CHECK_RUN_MAX_PAGES:
             raise ValueError("Too many pages")
 
 
