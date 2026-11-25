@@ -123,8 +123,10 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   and hashes: `docs/verification/b03-rel05-pcr13-banks-20261125/` (thirteen cases pass at source 16ff8409; provisioned
   boots now `7a4c0d5c…`/`08a3f833…`, da-counted `14145a63…`, all halt/probe/kernel-only hashes unchanged; loader
   `da716d06…`, kernel `c6cef6ab…`; tpm-crb 1.100.0 test/clippy/fmt/scalar, `tools/tests` 1181 OK, `progress.py --check` 43/100).
-- Next on #524, decision-free: none of the seeded/DA/PCR-bank items is left. A cut between the
-  ownerAuth and lockoutAuth changes needs a host HAUTH secret and `LoaderRecord` encoder. Then, only after the owner
+- Next on #524, decision-free (the seeded/DA/PCR-bank items are done; CHECKPOINT 7173038286): a seeded cut between the
+  ownerAuth and lockoutAuth changes (ownerAuth set, lockoutAuth unset, `HAUTH`/`LREC` written). The seed needs a host
+  `HAUTH` secret and a `LoaderRecord` encoder in `tools/tpm_seed.py`; expected loader path is `MODE:EXISTING`, `BOUND`,
+  `LOCKOUT:SET`. Then, only after the owner
   answers (both are in the "reported to the owner, not accepted" list): (b) S3/U27 and the section 7.9 halt; (c) native
   S5 with N's joint tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
