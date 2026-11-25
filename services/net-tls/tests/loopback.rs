@@ -13,6 +13,10 @@
 //! by the library (`nieuw_os_net_tls::profile`) from the full aws-lc-rs provider;
 //! deviating oracle peers use raw rustls configs because the library refuses them.
 //!
+//! H2 (ADR-N03-PROVIDER-20261125, H3): the `h2_*` tests repeat the positive and
+//! classical-only cases over loopback TCP against Node.js's OpenSSL
+//! (tests/openssl_peer.mjs).
+//!
 //! Credentials: TEST-ONLY Ed25519 keys and self-signed certificates generated at
 //! runtime by rcgen; nothing is committed, no trust root is created. Certificate
 //! validity periods are NOT checked: no trusted certificate-time authority exists,
@@ -839,4 +843,251 @@ fn pinned_server_certificate_with_an_intermediate_is_refused() {
         ))
     );
     assert_refused(&mut o, &server_pin, &client_pin, Err(Refusal::Handshaking));
+}
+
+// ------------------------------------------- H2: Node.js/OpenSSL test peer
+//
+// ADR-N03-PROVIDER-20261125 (H3): besides the rustls oracle above, the profile
+// sides handshake over real loopback TCP with an independent peer, Node.js's
+// bundled OpenSSL (>= 3.5 for X25519MLKEM768), via tests/openssl_peer.mjs.
+// The peer validates the profile's certificate against the pinned self-signed
+// leaf and compares the exact certificate bytes. `NOS_NODE` selects the node
+// binary (default `node`); a missing or too-old peer fails the test.
+
+use rustls::{NamedGroup, StreamOwned};
+use std::io::{BufRead, BufReader};
+use std::net::{TcpListener, TcpStream};
+use std::path::PathBuf;
+use std::process::{Child, ChildStdout, Command, Stdio};
+
+struct NodePeer {
+    child: Child,
+    lines: std::io::Lines<BufReader<ChildStdout>>,
+}
+
+impl NodePeer {
+    fn spawn(role: &str, own: &Identity, peer: &Identity, group: &str, port: Option<u16>) -> Self {
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+        let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(format!(
+            "n03-openssl-{}-{}",
+            std::process::id(),
+            COUNTER.fetch_add(1, Ordering::SeqCst)
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = |name: &str, bytes: &[u8]| {
+            let path = dir.join(name);
+            std::fs::write(&path, bytes).unwrap();
+            path
+        };
+        let script = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/openssl_peer.mjs");
+        let mut command = Command::new(std::env::var("NOS_NODE").unwrap_or_else(|_| "node".into()));
+        command
+            .arg(script)
+            .arg(role)
+            .arg(file("cert.der", own.cert.as_ref()))
+            .arg(file("key.der", &own.key))
+            .arg(file("peer.der", peer.cert.as_ref()))
+            .args([group, core::str::from_utf8(ALPN).unwrap(), SERVER_NAME]);
+        if let Some(port) = port {
+            command.arg(port.to_string());
+        }
+        let mut child = command
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("N03 H2 needs Node.js with OpenSSL >= 3.5 (set NOS_NODE)");
+        let lines = BufReader::new(child.stdout.take().unwrap()).lines();
+        Self { child, lines }
+    }
+    fn event(&mut self) -> serde_like::Event {
+        let line = self.lines.next().expect("node peer closed stdout").unwrap();
+        serde_like::Event(line)
+    }
+    fn finish(mut self) -> (Vec<serde_like::Event>, i32) {
+        let rest = self
+            .lines
+            .by_ref()
+            .map(|l| serde_like::Event(l.unwrap()))
+            .collect();
+        (rest, self.child.wait().unwrap().code().unwrap_or(-1))
+    }
+}
+
+/// A failed assertion must not leave the peer holding the test's output pipes.
+impl Drop for NodePeer {
+    fn drop(&mut self) {
+        let _ = self.child.kill();
+        let _ = self.child.wait();
+    }
+}
+
+/// Minimal field access on the peer's flat JSON lines (no serde dependency).
+mod serde_like {
+    #[derive(Debug)]
+    pub struct Event(pub String);
+    impl Event {
+        pub fn field(&self, name: &str) -> Option<&str> {
+            let key = format!("\"{name}\":");
+            let rest = &self.0[self.0.find(&key)? + key.len()..];
+            Some(match rest.strip_prefix('"') {
+                Some(text) => &text[..text.find('"')?],
+                None => &rest[..rest.find([',', '}'])?],
+            })
+        }
+    }
+}
+
+/// A stalled peer fails the test instead of hanging it.
+fn bounded(socket: TcpStream) -> TcpStream {
+    let limit = Some(std::time::Duration::from_secs(10));
+    socket.set_read_timeout(limit).unwrap();
+    socket.set_write_timeout(limit).unwrap();
+    socket
+}
+
+fn assert_modern_openssl(event: &serde_like::Event) {
+    let version = event.field("openssl").expect("peer reports its OpenSSL");
+    let mut parts = version.split('.').map(|p| p.parse::<u32>().unwrap_or(0));
+    let (major, minor) = (parts.next().unwrap(), parts.next().unwrap_or(0));
+    assert!(
+        (major, minor) >= (3, 5),
+        "OpenSSL {version} lacks X25519MLKEM768"
+    );
+}
+
+fn assert_peer_secure(event: &serde_like::Event) {
+    assert_eq!(event.field("event"), Some("secure"), "{event:?}");
+    assert_modern_openssl(event);
+    assert_eq!(event.field("protocol"), Some("TLSv1.3"));
+    assert_eq!(event.field("cipher"), Some("TLS_AES_256_GCM_SHA384"));
+    assert_eq!(event.field("alpn"), core::str::from_utf8(ALPN).ok());
+    assert_eq!(event.field("authorized"), Some("true"));
+    assert_eq!(event.field("pinned"), Some("true"));
+}
+
+fn assert_profile_hybrid(connection: &rustls::CommonState) {
+    assert_eq!(
+        connection.negotiated_key_exchange_group().map(|g| g.name()),
+        Some(NamedGroup::X25519MLKEM768)
+    );
+    assert_eq!(
+        connection.negotiated_cipher_suite().map(|s| s.suite()),
+        Some(rustls::CipherSuite::TLS13_AES_256_GCM_SHA384)
+    );
+}
+
+#[test]
+fn h2_profile_client_with_openssl_server_is_pinned_hybrid_tls13() {
+    let peers = Peers::new();
+    let (rng, sends) = key_service_random(false);
+    let server_pin = pin_of(&peers.server);
+    let config =
+        client_config(&Side::profile(rng), server_pin.clone(), Some(&peers.client)).unwrap();
+    let mut node = NodePeer::spawn(
+        "server",
+        &peers.server,
+        &peers.client,
+        "X25519MLKEM768",
+        None,
+    );
+    let ready = node.event();
+    assert_modern_openssl(&ready);
+    let port: u16 = ready.field("port").unwrap().parse().unwrap();
+
+    let connection =
+        ClientConnection::new(Arc::new(config), SERVER_NAME.try_into().unwrap()).unwrap();
+    let mut tls = StreamOwned::new(
+        connection,
+        bounded(TcpStream::connect(("127.0.0.1", port)).unwrap()),
+    );
+    while tls.conn.is_handshaking() {
+        tls.conn.complete_io(&mut tls.sock).unwrap();
+    }
+    assert_eq!(profile::accept(&tls.conn, ALPN, &server_pin), Ok(()));
+    assert_profile_hybrid(&tls.conn);
+    assert!(sends.load(Ordering::SeqCst) > 0);
+    tls.write_all(b"profile client").unwrap();
+    let mut reply = Vec::new();
+    let _ = tls.read_to_end(&mut reply);
+    assert_eq!(reply, b"openssl:profile client");
+    tls.conn.send_close_notify();
+    let _ = tls.conn.complete_io(&mut tls.sock);
+    drop(tls);
+
+    assert_peer_secure(&node.event());
+    let (rest, code) = node.finish();
+    assert_eq!(rest[0].field("text"), Some("profile client"));
+    assert_eq!(code, 0);
+}
+
+#[test]
+fn h2_openssl_client_with_profile_server_is_pinned_hybrid_tls13() {
+    let peers = Peers::new();
+    let (rng, sends) = key_service_random(false);
+    let client_pin = pin_of(&peers.client);
+    let config = server_config(&Side::profile(rng), client_pin.clone(), &peers.server).unwrap();
+    let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let node = NodePeer::spawn(
+        "client",
+        &peers.client,
+        &peers.server,
+        "X25519MLKEM768",
+        Some(port),
+    );
+
+    let (socket, _) = listener.accept().unwrap();
+    let mut tls = StreamOwned::new(
+        ServerConnection::new(Arc::new(config)).unwrap(),
+        bounded(socket),
+    );
+    while tls.conn.is_handshaking() {
+        tls.conn.complete_io(&mut tls.sock).unwrap();
+    }
+    assert_eq!(profile::accept(&tls.conn, ALPN, &client_pin), Ok(()));
+    assert_profile_hybrid(&tls.conn);
+    assert!(sends.load(Ordering::SeqCst) > 0);
+    let mut request = [0; 14];
+    tls.read_exact(&mut request).unwrap();
+    assert_eq!(&request, b"openssl client");
+    tls.write_all(b"profile server").unwrap();
+    tls.conn.send_close_notify();
+    let _ = tls.conn.complete_io(&mut tls.sock);
+
+    let (events, code) = node.finish();
+    assert_peer_secure(&events[0]);
+    assert_eq!(events[1].field("text"), Some("profile server"));
+    assert_eq!(code, 0);
+}
+
+#[test]
+fn h2_classical_only_openssl_server_gets_no_fallback() {
+    let peers = Peers::new();
+    let (rng, _) = key_service_random(false);
+    let config = client_config(
+        &Side::profile(rng),
+        pin_of(&peers.server),
+        Some(&peers.client),
+    )
+    .unwrap();
+    let mut node = NodePeer::spawn("server", &peers.server, &peers.client, "X25519", None);
+    let port: u16 = node.event().field("port").unwrap().parse().unwrap();
+
+    let connection =
+        ClientConnection::new(Arc::new(config), SERVER_NAME.try_into().unwrap()).unwrap();
+    let mut tls = StreamOwned::new(
+        connection,
+        bounded(TcpStream::connect(("127.0.0.1", port)).unwrap()),
+    );
+    let mut result = Ok((0, 0));
+    while tls.conn.is_handshaking() && result.is_ok() {
+        result = tls.conn.complete_io(&mut tls.sock);
+    }
+    assert!(
+        result.is_err(),
+        "a classical-only peer must not complete a handshake"
+    );
+    assert!(tls.conn.negotiated_key_exchange_group().is_none());
+    let (events, code) = node.finish();
+    assert_eq!(events[0].field("event"), Some("error"), "{events:?}");
+    assert_ne!(code, 0);
 }
