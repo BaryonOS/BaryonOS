@@ -53,7 +53,13 @@ merges after a task file with a newer date.
 
 Enabling the queue in the ruleset is a separate step that needs the project owner's explicit confirmation at that moment. It must not weaken any existing security or acceptance gate. The strict up-to-date rule and merge-hold stay until the queue has proved itself.
 
-**Rollback:** removing the assessment directory and writing the header again restores the previous format, and the validation of the header is unchanged. D1 and D2 are rolled back by a new project-owner decision.
+**Rollback:** a new project-owner decision restores the previous format in one PR:
+
+1. revert the AGENTS.md progress rule so that an unchanged score again updates the `assessment` header in `docs/progress.json`;
+2. remove the task-file loader and its tests from `tools/progress.py` (the header validation is unchanged and stays);
+3. remove `docs/progress/assessments/` after the lead copies any record that must be kept into the header or `docs/history/`.
+
+D1 and D2 are rolled back by a new project-owner decision.
 
 ## ADR-CI-SELECTION-20261124 — Targeted pull request selection for component gates
 
