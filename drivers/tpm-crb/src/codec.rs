@@ -53,19 +53,24 @@ impl<'a> Password<'a> {
         }
     }
 }
-/// Handle of a policy session returned by `StartAuthSession` (Part 2: HR_POLICY_SESSION).
+/// Handle of a policy session returned by `StartAuthSession` (Part 2:
+/// HR_POLICY_SESSION) plus its nonce size, which the TPM fixes at the caller's
+/// initial nonce size (Part 1, 16.6.3.2) and echoes in every response trailer.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct PolicySession(u32);
+pub struct PolicySession(u32, u8);
 impl PolicySession {
-    pub fn new(value: u32) -> Result<Self, Error> {
-        if value >> 24 == 0x03 {
-            Ok(Self(value))
+    pub fn new(value: u32, nonce_len: u8) -> Result<Self, Error> {
+        if value >> 24 == 0x03 && (16..=DIGEST as u8).contains(&nonce_len) {
+            Ok(Self(value, nonce_len))
         } else {
             Err(Error::Input)
         }
     }
     pub const fn raw(self) -> u32 {
         self.0
+    }
+    pub const fn nonce_len(self) -> u8 {
+        self.1
     }
 }
 /// Authorization for one command. A policy session is sent with an empty
@@ -86,7 +91,7 @@ impl Auth<'_> {
     const fn tail(&self) -> Tail {
         match self {
             Self::Password(_) => Tail::Password,
-            Self::Policy(_) => Tail::Policy,
+            Self::Policy(s) => Tail::Policy(s.1),
         }
     }
 }
@@ -127,9 +132,11 @@ pub enum Request<'a> {
         index: NvIndex,
         auth: Password<'a>,
     },
+    /// `NV_Increment` with `authHandle` = the index: AUTHWRITE password, or a
+    /// policy session for POLICYWRITE counters such as REL-05 `GEN`.
     NvIncrement {
         index: NvIndex,
-        auth: Password<'a>,
+        auth: Auth<'a>,
     },
     /// Policy session, unsalted (`tpmKey` = NULL) and unbound (`bind` = NULL),
     /// no parameter encryption, SHA-256. `nonce_caller` is 16..=32 caller bytes;
@@ -179,6 +186,11 @@ pub enum Request<'a> {
     NvReadPublicArea {
         index: NvIndex,
     },
+    /// `FlushContext` of a policy session that a failed command left loaded
+    /// (`continueSession` clear flushes it only on success).
+    FlushContext {
+        session: PolicySession,
+    },
 }
 /// Response authorization trailer the decoder demands.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -186,9 +198,10 @@ pub(crate) enum Tail {
     None,
     /// TPM_RS_PW: empty nonce, continueSession=1, empty HMAC.
     Password,
-    /// Policy session sent with continueSession=0: fresh 32-byte nonceTPM,
-    /// attributes 0, empty HMAC *[unverified against swtpm, S4/S5]*.
-    Policy,
+    /// Policy session sent with continueSession=0: nonceTPM of the session's
+    /// nonce size, attributes 0, empty HMAC (swtpm transcript
+    /// `docs/verification/b03-rel05-probe-20261125/transcript-u1u7.txt`).
+    Policy(u8),
 }
 #[derive(Clone, Copy)]
 pub(crate) enum Expectation {
@@ -197,7 +210,7 @@ pub(crate) enum Expectation {
     Public { index: NvIndex },
     SessionEmpty,
     Counter,
-    Session,
+    Session { nonce_len: u8 },
     Data { size: u16 },
     Pcr { pcr: u8 },
     PublicArea { index: NvIndex },
@@ -326,9 +339,9 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
             false,
         ),
         Request::NvIncrement { auth, .. } => (
-            31 + auth.0.len(),
+            18 + auth.len(),
             0x134,
-            Tail::Password,
+            auth.tail(),
             Expectation::SessionEmpty,
             true,
         ),
@@ -340,7 +353,9 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
                 27 + nonce_caller.len(),
                 0x176,
                 Tail::None,
-                Expectation::Session,
+                Expectation::Session {
+                    nonce_len: nonce_caller.len() as u8,
+                },
                 false,
             )
         }
@@ -411,6 +426,7 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
             Expectation::PublicArea { index: *index },
             false,
         ),
+        Request::FlushContext { .. } => (14, 0x165, Tail::None, Expectation::Empty, false),
     };
     if len > MAX_COMMAND || out.len() < len {
         return Err(Error::Length);
@@ -456,7 +472,7 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
         Request::NvIncrement { index, auth } => {
             w.u32(index.0);
             w.u32(index.0);
-            w.auth(auth);
+            w.authorize(auth);
         }
         Request::StartPolicySession { nonce_caller } => {
             w.u32(RH_NULL);
@@ -521,6 +537,7 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
             w.put(digest);
         }
         Request::NvReadPublicArea { index } => w.u32(index.0),
+        Request::FlushContext { session } => w.u32(session.0),
     }
     debug_assert_eq!(w.at, len);
     Ok(Command {
@@ -568,6 +585,7 @@ pub enum Response {
         name: [u8; 34],
     },
     Counter(u64),
+    /// `nonce_tpm[..handle.nonce_len()]` is the nonce; the rest is zero.
     Session {
         handle: PolicySession,
         nonce_tpm: [u8; DIGEST],
@@ -644,7 +662,7 @@ pub(crate) fn validate(
     let trailer = match sessions {
         Tail::None => 0,
         Tail::Password => 5,
-        Tail::Policy => 5 + DIGEST,
+        Tail::Policy(n) => 5 + usize::from(n),
     };
     let body = if trailer == 0 {
         &bytes[10..]
@@ -661,7 +679,7 @@ pub(crate) fn validate(
         let ok = match sessions {
             // TPM_RS_PW responses have empty nonce/HMAC and continueSession=1.
             Tail::Password => t == [0, 0, 1, 0, 0],
-            Tail::Policy => u16at(t, 0) == DIGEST as u16 && t[2 + DIGEST..] == [0, 0, 0],
+            Tail::Policy(n) => u16at(t, 0) == u16::from(n) && t[2 + usize::from(n)..] == [0, 0, 0],
             Tail::None => false,
         };
         if !ok {
@@ -736,13 +754,15 @@ pub(crate) fn validate(
                 name,
             })
         }
-        Expectation::Session => {
-            if body.len() != 6 + DIGEST || u16at(body, 4) != DIGEST as u16 {
+        Expectation::Session { nonce_len } => {
+            let n = usize::from(nonce_len);
+            if body.len() != 6 + n || u16at(body, 4) != u16::from(nonce_len) {
                 return Err(Error::Length);
             }
-            let handle = PolicySession::new(u32at(body, 0)).map_err(|_| Error::Protocol)?;
+            let handle =
+                PolicySession::new(u32at(body, 0), nonce_len).map_err(|_| Error::Protocol)?;
             let mut nonce_tpm = [0; DIGEST];
-            nonce_tpm.copy_from_slice(&body[6..]);
+            nonce_tpm[..n].copy_from_slice(&body[6..]);
             Ok(Response::Session { handle, nonce_tpm })
         }
         Expectation::Data { size } => {

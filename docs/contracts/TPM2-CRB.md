@@ -169,16 +169,26 @@ salt, symmetric `TPM_ALG_NULL`, authHash SHA-256, caller nonce 16–32 B);
 public area (ordinary 1–64 B or counter 8 B, nameAlg SHA-256, empty index
 authValue, `authPolicy` empty or 32 B); `NV_Write` of 1–64 B with
 `authHandle` = the index and either a password or a policy session;
-`NV_Read` of 1–64 B; `PCR_Read` and `PCR_Extend` of one SHA-256 PCR; and
+`NV_Increment` with the same two authorization forms (a policy session for a
+POLICYWRITE counter such as `GEN`; the counter attributes are not widened);
+`FlushContext` of a policy session; `NV_Read` of 1–64 B; `PCR_Read` and `PCR_Extend` of one SHA-256 PCR; and
 `NV_ReadPublic` decoded into attributes (with type), size and `authPolicy`.
-Maximum command sizes are 59, 26, 18, 109, 99, 67, 20, 97 and 14 B; a
+Maximum command sizes are 59, 26, 18, 109, 99, 67, 20, 97, 14, 63 (password
+`NV_Increment`), 31 (policy `NV_Increment`) and 14 B (`FlushContext`); a
 combination above 128 B (for example a 32 B password with 64 B of NV data)
 is refused before any output byte changes.
 
 A policy session is sent with an empty nonce, empty HMAC and
-continueSession clear, so the TPM flushes it after one use. Its response must
-carry a 32 B nonceTPM, attributes 0 and an empty HMAC *[unverified against
-swtpm; S4/S5]*. `PCR_Read` refuses an empty or different selection, which is
+continueSession clear, so the TPM flushes it after one successful use; after
+a failed command (for example `TPM_RC_POLICY_FAIL`) it stays loaded and the
+caller flushes it with `FlushContext`. The TPM sizes nonceTPM to the caller's
+initial nonce (TPM 2.0 Part 1, 16.6.3.2), so the `StartAuthSession` reply must
+carry a nonceTPM of exactly the requested 16–32 B, and the handle records that
+size. Every policy-authorized response must then carry a nonceTPM of that size,
+attributes 0 and an empty HMAC (2 + n + 3 B). Golden fixtures for a 16 B session
+(`StartAuthSession`, policy `NV_Write`, policy `NV_Increment`, `FlushContext`)
+are the swtpm bytes in
+`docs/verification/b03-rel05-probe-20261125/transcript-u1u7.txt`. `PCR_Read` refuses an empty or different selection, which is
 how an unallocated SHA-256 bank appears. `NV_ReadPublic` still returns the
 name unverified; REL-05 callers compare the decoded fields with
 `update_core::trial_tpm::NvSpec::matches`. `Command::decode` exposes the same

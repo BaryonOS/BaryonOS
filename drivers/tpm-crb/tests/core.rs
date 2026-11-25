@@ -464,7 +464,7 @@ fn timeout_cancel_never_replays_or_wipes_while_tpm_owns_buffer() {
     ready(&mut t);
     let mut b = [0; 128];
     let index = NvIndex::new(0x1000042).unwrap();
-    let auth = Password::new(&[0x55; 32]).unwrap();
+    let auth = codec::Auth::Password(Password::new(&[0x55; 32]).unwrap());
     let c = codec::encode(Request::NvIncrement { index, auth }, &mut b).unwrap();
     let id = t.execute(&c, 3, 10, 5).unwrap();
     let writes = s.borrow().buffer_writes();
@@ -841,7 +841,7 @@ fn nv_increment_success_requires_empty_session_parameters() {
         let command = codec::encode(
             Request::NvIncrement {
                 index: NvIndex::new(0x1000042).unwrap(),
-                auth: Password::new(&[0x55; 32]).unwrap(),
+                auth: codec::Auth::Password(Password::new(&[0x55; 32]).unwrap()),
             },
             &mut b,
         )

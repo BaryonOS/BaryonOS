@@ -16,7 +16,13 @@ fn none() -> Password<'static> {
     Password::new(&[]).unwrap()
 }
 fn session() -> PolicySession {
-    PolicySession::new(0x0300_0000).unwrap()
+    PolicySession::new(0x0300_0000, 32).unwrap()
+}
+fn hex(s: &str) -> Vec<u8> {
+    (0..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16).unwrap())
+        .collect()
 }
 fn index(v: u32) -> NvIndex {
     NvIndex::new(v).unwrap()
@@ -69,8 +75,11 @@ fn rsp_s(params: &[u8], trailer: &[u8]) -> Vec<u8> {
 }
 const PW_TAIL: [u8; 5] = [0, 0, 1, 0, 0];
 fn policy_tail() -> Vec<u8> {
-    let mut t = vec![0, 32];
-    t.extend_from_slice(&[0x5a; 32]);
+    policy_tail_n(32)
+}
+fn policy_tail_n(n: u8) -> Vec<u8> {
+    let mut t = vec![0, n];
+    t.extend_from_slice(&vec![0x5a; usize::from(n)]);
     t.extend_from_slice(&[0, 0, 0]);
     t
 }
@@ -80,7 +89,7 @@ fn decode(request: Request<'_>, response: &[u8]) -> Result<Response, Error> {
 }
 /// Every strict prefix fails, both as-is (size field disagrees) and with the
 /// size field rewritten to the prefix length; no single-bit flip panics.
-fn truncations_fail(request: impl Fn() -> Request<'static>, good: &[u8]) {
+fn truncations_fail<'a>(request: impl Fn() -> Request<'a>, good: &[u8]) {
     assert!(decode(request(), good).is_ok());
     for len in 0..good.len() {
         assert!(decode(request(), &good[..len]).is_err(), "prefix {len}");
@@ -134,42 +143,123 @@ fn start_policy_session_golden_bytes_and_bounds() {
 
 #[test]
 fn start_policy_session_response_decodes_handle_and_nonce() {
-    let req = || Request::StartPolicySession {
-        nonce_caller: &[9u8; 16],
-    };
-    let mut body = 0x0300_0001u32.to_be_bytes().to_vec();
-    body.extend_from_slice(&[0, 32]);
-    body.extend_from_slice(&[0x33; 32]);
-    let good = rsp(codec::NO_SESSIONS, &body);
-    assert_eq!(
-        decode(req(), &good),
-        Ok(Response::Session {
-            handle: PolicySession::new(0x0300_0001).unwrap(),
-            nonce_tpm: [0x33; 32]
-        })
-    );
-    truncations_fail(req, &good);
-    // An HMAC session (0x02) or a transient handle is not a policy session.
-    for h in [0x0200_0000u32, 0x8000_0000] {
-        let mut b = body.clone();
-        b[..4].copy_from_slice(&h.to_be_bytes());
+    for n in [16u8, 32] {
+        let caller = [9u8; 32];
+        let req = || Request::StartPolicySession {
+            nonce_caller: &caller[..usize::from(n)],
+        };
+        let reply = |m: u8| {
+            let mut body = 0x0300_0001u32.to_be_bytes().to_vec();
+            body.extend_from_slice(&[0, m]);
+            body.extend_from_slice(&vec![0x33; usize::from(m)]);
+            body
+        };
+        let body = reply(n);
+        let good = rsp(codec::NO_SESSIONS, &body);
+        let mut nonce_tpm = [0; 32];
+        nonce_tpm[..usize::from(n)].fill(0x33);
         assert_eq!(
-            decode(req(), &rsp(codec::NO_SESSIONS, &b)),
+            decode(req(), &good),
+            Ok(Response::Session {
+                handle: PolicySession::new(0x0300_0001, n).unwrap(),
+                nonce_tpm
+            })
+        );
+        truncations_fail(req, &good);
+        // An HMAC session (0x02) or a transient handle is not a policy session.
+        for h in [0x0200_0000u32, 0x8000_0000] {
+            let mut b = body.clone();
+            b[..4].copy_from_slice(&h.to_be_bytes());
+            assert_eq!(
+                decode(req(), &rsp(codec::NO_SESSIONS, &b)),
+                Err(Error::Protocol)
+            );
+        }
+        // nonceTPM must have the caller's nonce size (Part 1, 16.6.3.2).
+        for m in [16u8, 17, 31, 32] {
+            if m != n {
+                assert_eq!(
+                    decode(req(), &rsp(codec::NO_SESSIONS, &reply(m))),
+                    Err(Error::Length)
+                );
+            }
+        }
+        assert_eq!(
+            decode(req(), &rsp(codec::SESSIONS, &body)),
             Err(Error::Protocol)
         );
     }
-    let mut short = 0x0300_0001u32.to_be_bytes().to_vec();
-    short.extend_from_slice(&[0, 16]);
-    short.extend_from_slice(&[0x33; 16]);
+    assert!(PolicySession::new(0x0400_0000, 32).is_err());
+    for n in [0, 15, 33] {
+        assert!(PolicySession::new(0x0300_0000, n).is_err());
+    }
+}
+
+#[test]
+fn swtpm_transcript_policy_session_round_trip() {
+    // docs/verification/b03-rel05-probe-20261125/transcript-u1u7.txt, phase A.
+    let start = Request::StartPolicySession {
+        nonce_caller: b"BaryonTrialNonce",
+    };
     assert_eq!(
-        decode(req(), &rsp(codec::NO_SESSIONS, &short)),
-        Err(Error::Length)
+        enc(Request::StartPolicySession {
+            nonce_caller: b"BaryonTrialNonce"
+        }),
+        hex("80010000002b0000017640000007400000070010426172796f6e547269616c4e6f6e63650000010010000b")
     );
+    let Ok(Response::Session { handle, .. }) = decode(
+        start,
+        &hex("80010000002000000000030000000010573a543f2c4a88a89e76664b99f24a94"),
+    ) else {
+        panic!("swtpm StartAuthSession reply refused");
+    };
+    assert_eq!((handle.raw(), handle.nonce_len()), (0x0300_0000, 16));
+    let mut data = b"NOSTRL01".to_vec();
+    data.resize(64, 0);
+    let write = || Request::NvWrite {
+        index: index(0x0100_B300),
+        auth: Auth::Policy(handle),
+        data: &data,
+        offset: 0,
+    };
     assert_eq!(
-        decode(req(), &rsp(codec::SESSIONS, &body)),
-        Err(Error::Protocol)
+        enc(write()),
+        hex("800200000063000001370100b3000100b3000000000903000000000000000000404e4f5354524c303100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
     );
-    assert!(PolicySession::new(0x0400_0000).is_err());
+    let w = hex("80020000002300000000000000000010fb4096445e353dfe96427b981a4e9cce000000");
+    assert_eq!(decode(write(), &w), Ok(Response::Empty));
+    truncations_fail(write, &w);
+    let increment = || Request::NvIncrement {
+        index: index(0x0100_B303),
+        auth: Auth::Policy(handle),
+    };
+    assert_eq!(
+        enc(increment()),
+        hex("80020000001f000001340100b3030100b30300000009030000000000000000")
+    );
+    let i = hex("80020000002300000000000000000010341cb95e66e731483f01d63dc82dd59e000000");
+    assert_eq!(decode(increment(), &i), Ok(Response::Empty));
+    let mut out = [0u8; MAX_COMMAND];
+    assert!(codec::encode(increment(), &mut out)
+        .unwrap()
+        .is_nv_mutation());
+    // A 32-byte session must not accept the 16-byte trailer, nor the reverse.
+    let wide = || Request::NvIncrement {
+        index: index(0x0100_B303),
+        auth: Auth::Policy(session()),
+    };
+    assert!(decode(wide(), &i).is_err());
+    assert!(decode(increment(), &rsp_s(&[], &policy_tail())).is_err());
+    assert_eq!(
+        decode(increment(), &hex("80010000000a0000099d")),
+        Err(Error::Tpm(0x99d))
+    );
+    let flush = || Request::FlushContext { session: handle };
+    assert_eq!(enc(flush()), hex("80010000000e0000016503000000"));
+    assert_eq!(
+        decode(flush(), &hex("80010000000a00000000")),
+        Ok(Response::Empty)
+    );
 }
 
 #[test]
@@ -401,7 +491,7 @@ fn nv_write_policy_and_password_sizes_are_bounded() {
 fn nv_write_response_trailer_must_match_the_session_kind() {
     let policy = || Request::NvWrite {
         index: NvIndex::new(0x0100_B300).unwrap(),
-        auth: Auth::Policy(PolicySession::new(0x0300_0000).unwrap()),
+        auth: Auth::Policy(PolicySession::new(0x0300_0000, 32).unwrap()),
         data: &[1, 2, 3],
         offset: 0,
     };
@@ -695,6 +785,21 @@ fn every_new_command_fits_the_128_byte_bound_at_its_maximum() {
             },
             14,
         ),
+        (
+            Request::NvIncrement {
+                index: index(0x0100_0000),
+                auth: Auth::Password(pw),
+            },
+            63,
+        ),
+        (
+            Request::NvIncrement {
+                index: index(0x0100_0000),
+                auth: Auth::Policy(session()),
+            },
+            31,
+        ),
+        (Request::FlushContext { session: session() }, 14),
     ];
     for (request, len) in max {
         assert_eq!(enc(request).len(), len);
