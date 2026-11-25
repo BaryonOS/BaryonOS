@@ -326,11 +326,16 @@ fn held_enter_or_space_activates_exactly_once() {
             let n = controls(&reach(start, d), d).len();
             for k in 0..n {
                 for key in [PhysicalKey::Enter, PhysicalKey::Space] {
-                    if start == Start::Search && key == PhysicalKey::Space {
-                        continue; // Space is text input on Search (see above).
+                    let held = by_key(start, d, k, key, 3);
+                    if is_search_field(start, k) && key == PhysicalKey::Space {
+                        // The field is text input: a held Space keeps typing.
+                        if held.query != "    " {
+                            failures
+                                .push(format!("held Space in field at {d:?}: {:?}", held.query));
+                        }
+                        continue;
                     }
                     let once = by_key(start, d, k, key, 0);
-                    let held = by_key(start, d, k, key, 3);
                     if once != held {
                         failures.push(format!(
                             "{key:?} {start:?} control {k} at {d:?}: {:?} -> {:?}",
