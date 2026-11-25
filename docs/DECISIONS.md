@@ -87,6 +87,63 @@ extension, kernel profile and health service; the characterization of PR #514
 must fail under the trial profile. Issue #41, B03 and REL-05 remain open;
 scores are unchanged.
 
+## ADR-PROGRESS-ASSESSMENTS-20261125 — Per-task assessment files; CI owner decisions D1 and D2
+
+**Status:** decided by the project owner on 25 November 2026 (#494, comments
+7155783661 and 7155944783). Owner wording: "D3 goedkeuren met behoud van alle
+assessmentvalidatie" (approve D3 while keeping all assessment validation);
+"D1 optie B na geverifieerde merge_group-integratie" (D1 option B after a
+verified merge_group integration); D2: "Yes, option C".
+
+**Problem:** every pull request rewrote the single `assessment` object in
+`docs/progress.json`, so any two open pull requests conflicted on the same
+lines. Since 23 November, 24 of 54 commits on `main` touched the file; #500
+needed four extra CI rounds for it.
+
+**Decision (D3):** a task or pull request that leaves the score unchanged adds
+its own file `docs/progress/assessments/<YYYY-MM-DD>-<slug>.json` with the same
+fields as the `assessment` object (`date`, `source_commit`,
+`assessment_basis`, `branch`, `task`, `previous_score`, `summary`). A score
+change still updates the `assessment` object, the criteria and the generated
+views in `docs/progress.json`, `README.md`, `docs/PROGRESS.md` and the SVG.
+The fixed criteria register and the rubric stay central and unchanged.
+
+`tools/progress.py --check` applies every existing assessment rule to the
+header and to each file, unchanged, and checks `assessment_basis` wherever it
+is present. It adds checks for each file:
+
+- an exact field set, with duplicate keys rejected;
+- a plain, non-symlinked file of at most 16 KiB;
+- a file name whose date matches the recorded date;
+- an integer score.
+
+Files never change the score or the generated views. Like the header's
+`previous_score`, a file's score is the recorded value and is not recomputed.
+Tying it to the current score would turn `main` red whenever a score change
+merges after a task file with a newer date.
+
+**D2 (amends ADR-MERGE-DELEGATION-20261123):**
+
+- For CI files (`.github/**`, `tools/merge_hold.py`, `tools/ci_impact.py`), an independent AI review satisfies "reviewed by someone other than the merging workstream". The review is done by a separate agent without write access, and bot findings must be resolved.
+- Policy, register and security files (any `AGENTS.md` or `CLAUDE.md`, `tools/progress.py`, `docs/progress.json`, `docs/DECISIONS.md`, keys) still need the project owner's review.
+
+**D1 (extends ADR-MERGE-HOLD-20261113):** the merge queue is enabled only after a verified `merge_group` integration:
+
+1. the selected workflows gain `merge_group` triggers at full scope;
+2. merge-hold judges the queue commit;
+3. a queue trial with at least two entries passes.
+
+Enabling the queue in the ruleset is a separate step that needs the project owner's explicit confirmation at that moment. It must not weaken any existing security or acceptance gate. The strict up-to-date rule and merge-hold stay until the queue has proved itself.
+
+**Rollback:** a new project-owner decision restores the previous format in one PR:
+
+1. revert the AGENTS.md progress rule so that an unchanged score again updates the `assessment` header in `docs/progress.json`, and restore the header-only description in `docs/PROGRESS.md`;
+2. convert every open pull request that adds a task file into a header update, or close it, before the loader goes, so that no record merges unvalidated;
+3. replace the task-file loader in `tools/progress.py` with a check that fails while `docs/progress/assessments/` exists, so that a task file merged after step 2 turns the check red instead of staying unvalidated (the header validation is unchanged and stays);
+4. remove `docs/progress/assessments/` after the lead copies any record that must be kept into the header or `docs/history/`.
+
+D1 and D2 are rolled back by a new project-owner decision.
+
 ## ADR-UI-NOTIFICATIONS-20261125 — Alt+N panel as the single notification centre
 
 **Status:** accepted; project-owner decision of 25 November 2026 for UI-U
