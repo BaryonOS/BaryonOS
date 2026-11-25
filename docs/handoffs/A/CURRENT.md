@@ -102,6 +102,20 @@ notice is a fixture; no full A03 acceptance.
   'merge main, re-validate, push once'. S was asked to agree to the broker
   being the sole volume domain-0 client (T2c-2 prerequisite).
 
+- 25 Nov ~18:40Z: **T2c-1 done locally** as d0b034c2 on
+  `claude/a03-t2c1-volume-broker-20261125` (stacked on d1475f34; NOT pushed,
+  no PR yet). Host: broker tests 20/20 (request shape pinned: STAT/READ only,
+  known object, READ selector 0), clippy, fmt, task-grant-core 12/12; native
+  regression native-task-grant normal + denied raw exit 33 (source c21d2cef).
+  Assessment `2026-11-25-a03-volume-read-broker-host.json`, score 43 unchanged.
+  Open: native bin still on a labelled FixtureVolume; a failed READ revokes all
+  holders' grants on that object (fail closed); untested branch Stale followed by
+  a failed re-STAT. Submit as its own PR after #535 merges (retarget to main).
+- T2c-2 inputs: S read-only interface + seeded-read image 6206b8c8 (T2C-SPEC.md).
+  T2c-3 waits for the owner's A/B/C choice (A recommended; PIDs are monotonic,
+  `crates/kernel-core/src/user.rs:147`, so no PID-reuse risk for A).
+- Native runs: NOS_BUILD_DIR must lie inside the checkout (default `build/`).
+
 ## Next action
 
 1. Wait for the PR guard's explicit lane grant for #535 (CI-first freeze).
