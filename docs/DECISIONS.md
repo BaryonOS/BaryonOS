@@ -65,6 +65,21 @@ separately by ADR-NET-ISSUER-20261125 Decision 5B (owner, 25 November 2026)
 under its conditions 1–9; the contract is
 [COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
 
+**Amendment, 25 November 2026 (owner decision C665, PR #524):** the owner
+authorises a strictly bounded extension of the trust architecture: TPM
+identity binding (U13) through an authorised enrollment record signed under
+the compiled-in update trust anchors (an anchor independent of TPM, UEFI
+variables and disk), with an EK-salted session per boot. Until that binding
+is demonstrably reliable, an unknown, replaced, reset or unverifiable TPM
+blocks the normal boot route (`BOOT:FAIL:TPM_IDENTITY`; unenrolled → no-write
+`DEGRADED`) and only an authenticated recovery proceeds. The UEFI floor is
+never raised from an unverified TPM and the anti-rollback floor is never
+lowered silently. Legitimate TPM or motherboard replacement and NVRAM reset
+go through authorised recovery without touching user data. The anchor domains
+B02, B03/B04 and N04 stay separate; N04 re-anchors from genesis after
+recovery (agreed with workstream N). Native tests C23–C30 are required before
+acceptance. Specification section 10.5; TEST profile only.
+
 **Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
 extension, kernel profile and health service; the characterization of PR #514
 must fail under the trial profile. Issue #41, B03 and REL-05 remain open;

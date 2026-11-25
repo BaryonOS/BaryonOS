@@ -9,8 +9,9 @@
 //!
 //! Executor contract (S6): perform `Plan::writes` in order, each followed by
 //! the read-back of section 7.2/7.3; `IncrementGen` must read back `expect`.
-//! Any failed write or read-back stops the plan: re-read the state and call
-//! [`step`] again with the TPM classified as [`Tpm::Fault`]. Then extend PCR 13
+//! Any failed write or read-back stops the plan. A failed `UefiFloor` write
+//! halts ([`Plan::uefi_write_failed`]); any other failure re-reads the state
+//! and calls [`step`] again with the TPM classified as [`Tpm::Fault`]. Then extend PCR 13
 //! with `Handover::extend`; if that fails call [`Plan::extend_failed`].
 use core::fmt;
 
@@ -215,15 +216,32 @@ pub struct AnchorRead {
     pub floor: Option<[u8; RECORD_LEN]>,
     /// `None`: `GEN` unreadable.
     pub generation: Option<u64>,
+    /// U13 TPM identity binding (owner decision C665, section 10.5).
+    pub identity: Identity,
+}
+
+/// Result of the U13 identity check, performed before any record is trusted.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Identity {
+    /// A valid enrollment record (signed under the update trust anchors) names
+    /// this TPM's endorsement key, and the TPM proved possession of it.
+    Verified,
+    /// No enrollment record: the device was never bound. No trial, no write.
+    Unenrolled,
+    /// An enrollment record exists but the proof failed or names another key:
+    /// unknown, replaced or unverifiable TPM. Normal boot is blocked.
+    Mismatch,
 }
 
 // No allocator in the loader; one value per boot, so the size is irrelevant.
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Tpm {
-    /// No TCG2 protocol or `GetCapability` failed: no extend possible.
+    /// No TCG2 protocol and no ACPI `TPM2` table: no TPM, no extend possible.
     Absent,
-    /// Command error, timeout or self-test failure; the extend is still attempted.
+    /// TCG2 present and anything failed (including `GetCapability`), or an
+    /// ACPI `TPM2` table without TCG2. The `CLOSED` extend is still attempted;
+    /// if it fails the executor calls [`Plan::extend_failed`] and halts.
     Fault,
     /// `PCR_Read(13) != 0` at loader start.
     PcrDirty,
@@ -291,6 +309,8 @@ pub enum TpmClass {
     PcrDirty,
     AnchorLost,
     AnchorBehind,
+    /// [`Identity::Unenrolled`].
+    Unenrolled,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -355,6 +375,10 @@ pub struct Handover {
 pub enum Halt {
     NoValidSlot,
     TpmExtend,
+    /// [`Identity::Mismatch`]: only authenticated recovery proceeds.
+    TpmIdentity,
+    /// A `UefiFloor` write failed; see [`Plan::uefi_write_failed`].
+    UefiFloorWrite,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -390,6 +414,8 @@ pub enum Marker {
     },
     FailNoValidSlot,
     FailTpmExtend,
+    FailTpmIdentity,
+    FailUefiFloorWrite,
 }
 
 fn slot_name(slot: u8) -> char {
@@ -409,6 +435,7 @@ impl fmt::Display for Marker {
                 TpmClass::PcrDirty => "BOOT:TPM:FAULT:PCR_DIRTY",
                 TpmClass::AnchorLost => "BOOT:TPM:ANCHOR_LOST",
                 TpmClass::AnchorBehind => "BOOT:TPM:ANCHOR_BEHIND",
+                TpmClass::Unenrolled => "BOOT:TPM:UNENROLLED",
             }),
             Marker::ModeDegraded => f.write_str("BOOT:MODE:DEGRADED"),
             Marker::ModeKnownGood => f.write_str("BOOT:MODE:KNOWN_GOOD"),
@@ -443,6 +470,8 @@ impl fmt::Display for Marker {
             }
             Marker::FailNoValidSlot => f.write_str("BOOT:FAIL:NO_VALID_SLOT"),
             Marker::FailTpmExtend => f.write_str("BOOT:FAIL:TPM_EXTEND"),
+            Marker::FailTpmIdentity => f.write_str("BOOT:FAIL:TPM_IDENTITY"),
+            Marker::FailUefiFloorWrite => f.write_str("BOOT:FAIL:UEFI_FLOOR_WRITE"),
         }
     }
 }
@@ -499,6 +528,15 @@ impl Plan {
             self.path.push(State::Halt);
             self.markers.push(Marker::FailTpmExtend);
         }
+    }
+
+    /// A planned `UefiFloor` write failed. Halt instead of re-stepping as
+    /// `Tpm::Fault`: DEGRADED trusts only the UEFI copy, which would then lie
+    /// below `FLOOR` after a failed heal (review finding C686).
+    pub fn uefi_write_failed(&mut self) {
+        self.outcome = Outcome::Halt(Halt::UefiFloorWrite);
+        self.path.push(State::Halt);
+        self.markers.push(Marker::FailUefiFloorWrite);
     }
 }
 
@@ -622,8 +660,9 @@ fn degraded(obs: &Observation, mut plan: Plan, class: TpmClass) -> Plan {
     // Only the confirmed version: a slot above the UEFI floor was never
     // confirmed and may be a rejected trial, which the untrusted TPM content
     // cannot rule out. Equal versions follow the hint (versions are never
-    // reused, section 6.4; I5 keeps a valid known-good slot bootable).
-    let chosen = pick(&obs.slots, |s| s.version == floor, hint, true, false);
+    // reused, section 6.4). Strict: two different manifests at the floor
+    // version halt, because the untrusted TPM cannot say which was confirmed.
+    let chosen = pick(&obs.slots, |s| s.version == floor, hint, true, true);
     match chosen {
         Some((slot, view)) => handover(
             &mut plan,
@@ -654,6 +693,17 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
         Tpm::PcrDirty => return degraded(obs, plan, TpmClass::PcrDirty),
         Tpm::Ready(anchor) => anchor,
     };
+    // C665/U13: no record of an unidentified TPM is trusted or written.
+    match anchor.identity {
+        Identity::Verified => {}
+        Identity::Unenrolled => return degraded(obs, plan, TpmClass::Unenrolled),
+        Identity::Mismatch => {
+            plan.path.push(State::Halt);
+            plan.markers.push(Marker::FailTpmIdentity);
+            plan.outcome = Outcome::Halt(Halt::TpmIdentity);
+            return plan;
+        }
+    }
     let floor_rec = anchor.floor.as_ref().and_then(FloorRecord::decode);
     let trial_rec = anchor.trial.as_ref().and_then(TrialRecord::decode);
     let (Some(fr), Some(mut t), Some(gen)) = (floor_rec, trial_rec, anchor.generation) else {
@@ -687,6 +737,8 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
         uefi = fr.floor;
     }
     let mut floor = uefi.max(fr.floor);
+    // M2: the known-good manifest is the one recorded at finalization.
+    let mut known = (fr.last_generation != 0).then_some(fr.last_digest);
 
     // Step 4: confirmation before anything else.
     match check {
@@ -710,6 +762,7 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
                 version: t.version,
             });
             floor = t.version;
+            known = obs.slots[usize::from(t.slot)].map(|s| s.digest);
         }
         ConfirmCheck::Valid => plan
             .markers
@@ -815,7 +868,7 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
         plan.markers.push(Marker::ModeKnownGood);
         match pick(
             &obs.slots,
-            |s| s.version == floor,
+            |s| s.version == floor && known.is_none_or(|d| d == s.digest),
             u8::from(obs.hint == 1),
             true,
             false,

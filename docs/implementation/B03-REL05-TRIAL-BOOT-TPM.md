@@ -142,7 +142,7 @@ into a separate PCR; it is not needed for O5.
 All handles are TEST candidates in the owner NV range and must be checked
 against the TCG handle registry *[unverified, U9]*. All indices: `nameAlg`
 SHA-256, `TPMA_NV_POLICYWRITE`, `TPMA_NV_AUTHREAD` with empty `authValue`,
-`TPMA_NV_NO_DA`; **not** `AUTHWRITE`, `ORDERLY`, `POLICY_DELETE`,
+`TPMA_NV_NO_DA`; **not** `PPWRITE`, `OWNERWRITE`, `AUTHWRITE`, `ORDERLY`, `POLICY_DELETE`,
 `WRITEDEFINE`, `READ_STCLEAR` or `WRITE_STCLEAR`. Ordinary indices also set
 `TPMA_NV_WRITEALL` so no partial write is possible.
 
@@ -236,7 +236,9 @@ CONFIRM.gen, FLOOR.floor, FLOOR.last_gen, UEFI floor, GEN)`.
 ### 7.1 Boot algorithm (normative order)
 
 1. `INIT`: locate TCG2; `PCR_Read(13)` must be zero, otherwise `DEGRADED`
-   (`PCR_DIRTY`). Check all public areas; read `TRIAL`, `FLOOR`, `CONFIRM`,
+   (`PCR_DIRTY`). Verify the TPM identity (section 10.5) before any record is
+   trusted: `MISMATCH` → halt `BOOT:FAIL:TPM_IDENTITY` (authenticated recovery
+   only); `UNENROLLED` → `DEGRADED` (`BOOT:TPM:UNENROLLED`, no write). Check all public areas; read `TRIAL`, `FLOOR`, `CONFIRM`,
    `GEN`, UEFI floor.
    `TRIAL`, `FLOOR` and `CONFIRM` are read only if `NV_ReadPublic` reports
    `TPMA_NV_WRITTEN`; an unwritten `CONFIRM` means "no confirmation" (normal
@@ -244,13 +246,18 @@ CONFIRM.gen, FLOOR.floor, FLOOR.last_gen, UEFI floor, GEN)`.
    Provisioning increments `GEN` once so that it is readable (reading a
    never-incremented counter is expected to fail, U16).
 2. Consistency: if `FLOOR.floor > UEFI` → heal: SetVariable(UEFI :=
-   FLOOR.floor). If `UEFI > FLOOR.floor`, this is the interrupted
+   FLOOR.floor). The heal runs only for a verified TPM identity (step 1,
+   owner decision C665); if this write fails the loader halts
+   (`BOOT:FAIL:UEFI_FLOOR_WRITE`) instead of degrading below `FLOOR`. If `UEFI > FLOOR.floor`, this is the interrupted
    finalization of 7.3 when `TRIAL` is PENDING, `CONFIRM` is valid for
    `TRIAL.gen` (step 4 checks) and `TRIAL.version == UEFI` → resume at F2.
    Otherwise → `DEGRADED` (`ANCHOR_BEHIND`). Effective floor
    `f = max(UEFI, FLOOR.floor)`.
-3. Verify both slot manifests (existing `verify_manifest`), independent of
-   the header hint. Hash each verified manifest's 84 signed bytes.
+3. Verify both slot manifests (existing `verify_manifest`) **and each slot's
+   image digest** against its manifest, independent of the header hint. A
+   slot whose image fails is absent for every later step, including step 4
+   and F1, so no confirmation can raise the floor to an image that does not
+   verify. Hash each verified manifest's 84 signed bytes.
 4. **Confirmation processing first** (before the header hint is consulted):
    if `TRIAL.state == PENDING` and `CONFIRM` is well-formed with
    `CONFIRM.gen == TRIAL.gen`, slot/version/digest equal to `TRIAL`, verdict
@@ -260,7 +267,9 @@ CONFIRM.gen, FLOOR.floor, FLOOR.last_gen, UEFI floor, GEN)`.
    was already written: resume at F2; if also `FLOOR.last_gen == TRIAL.gen`:
    resume at F3.
 5. Classify slots against `f`: known-good `K` = verified slot with
-   `version == f`; candidate `C` = verified slot with
+   `version == f` and, once a finalization was recorded
+   (`FLOOR.last_gen ≠ 0`), manifest digest equal to `FLOOR.last_digest`
+   (another signed manifest with the same version is not known-good); candidate `C` = verified slot with
    `version > max(f, TRIAL.max_rejected)` (highest if both qualify).
 6. If PENDING and `C` differs from `TRIAL` in version or digest → `ABANDON`
    (7.4), then continue. If the same `(version, digest)` now sits in the other
@@ -312,7 +321,7 @@ mismatch → `DEGRADED`. UEFI variable write atomicity is assumed (U17).
 
 | Step | Write | Crash outcome |
 |---|---|---|
-| E1 | `NV_Write(TRIAL = REJECTED, reason, max_rejected = max(old, C.version))` | Next boot sees REJECTED: candidate ineligible, known-good boots. |
+| E1 | `NV_Write(TRIAL = REJECTED, reason, max_rejected = max(old, TRIAL.version))` | Next boot sees REJECTED: candidate ineligible, known-good boots. |
 | E2 | Boot `K` with `CLOSED`; floor, slots and user data untouched | — |
 
 A crash between T2 of attempt 3 and E1 is the same state as "attempts == 3,
@@ -354,7 +363,12 @@ counts or exhausts. NV_Write atomicity for one command is assumed *[U4]*.
   C3/C4 is not testable yet.
 - I7 Every loss or inconsistency of TPM state leads to `DEGRADED`, never to a
   lower floor or a trial; a `DEGRADED` handover boots exactly the version
-  equal to the pre-boot UEFI floor, otherwise the loader halts.
+  equal to the pre-boot UEFI floor (strict: two different manifests at that
+  version halt), otherwise the loader halts. An identity `MISMATCH` halts
+  without any write; a failed `UefiFloor` write halts (C686).
+- I9 (U13/C665) No write and no trial happen unless the TPM identity is
+  verified; the known-good release after a finalization is the recorded
+  manifest (`FLOOR.last_digest`, review M2).
 
 ### 7.7 Model decisions fixed by S1 (normative)
 
@@ -411,6 +425,14 @@ incident, 5 November 2026).
 | H3 | Update service completed its run with an expected outcome (`UPDATE:UP_TO_DATE` or `UPDATE:INSTALL_DEFERRED`) and the kernel's resource reclamation checks passed (the conditions behind `UPDATE:RESOURCES:PASS`). | kernel + update service |
 | H4 | Health service itself scheduled at CPL3 with a completed IPC round-trip to the update service. | health service |
 
+**Authority over the list id (review L3).** The loader's compiled constant is
+authoritative: it is written into `TRIAL` and BootInfo. The candidate kernel
+confirms only if its own compiled list id equals the BootInfo value;
+otherwise it writes no `CONFIRM` (`UPDATE:TRIAL:HEALTH_LIST_MISMATCH`), and
+the attempts run out to the normal rejection. A new list id therefore
+requires a loader update first; it can never be confirmed by the candidate
+alone.
+
 `M1:PASS` is the final marker in `kernel/src/m2/m3/update.rs` (line 765, after
 `UPDATE:RESOURCES:PASS`), so it cannot be a precondition; under the trial
 profile it is printed after K4. How the kernel exposes H1/H3 results to the
@@ -452,8 +474,10 @@ known-good fallback. Installation resumes after finalization.
 
 | Observation | Classification |
 |---|---|
-| No TCG2 protocol, or `GetCapability` fails | `ABSENT` |
-| Command error, timeout, self-test failure, `PCR_Read(13) ≠ 0` | `FAULT` |
+| No TCG2 protocol **and** no ACPI `TPM2` table | `ABSENT` |
+| TCG2 present and any command fails (including `GetCapability`), timeout, self-test failure; or an ACPI `TPM2` table without TCG2; `PCR_Read(13) ≠ 0` | `FAULT` (the `CLOSED` extend is attempted; if it fails or no TCG2 exists: halt `BOOT:FAIL:TPM_EXTEND`) |
+| Enrollment present, identity proof fails or names another key | `MISMATCH`: halt `BOOT:FAIL:TPM_IDENTITY` (section 10.5) |
+| No enrollment record | `UNENROLLED`: `DEGRADED`, no write, no trial |
 | Any index missing, public area ≠ constants, `TRIAL`/`FLOOR` unwritten, bad magic, read-back mismatch | `ANCHOR_LOST` |
 | `UEFI floor > FLOOR.floor` | `ANCHOR_BEHIND` (rollback or replacement of TPM state) |
 
@@ -461,7 +485,7 @@ known-good fallback. Installation resumes after finalization.
 
 | Class | Behaviour |
 |---|---|
-| No TCG2 protocol (no TPM, or firmware without TPM support) | `DEGRADED` boot. No extend is possible. Residual: if a TPM device nevertheless exists, a *compromised* kernel (T3) could reach it with PCR 13 at zero and write loader-only state (for example raise `FLOOR` and brick older releases); a benign kernel in this mode does not claim the CRB. |
+| No TCG2 protocol and no ACPI `TPM2` table (no TPM) | `DEGRADED` boot. No extend is possible, and no TPM exists that a kernel could reach with PCR 13 at zero (review finding H1: a `TPM2` table without TCG2 is `FAULT` and halts). |
 | TCG2 present, any NV/read error, but the `CLOSED` extend succeeds | `DEGRADED` boot. |
 | TCG2 present and the extend fails | Controlled halt `BOOT:FAIL:TPM_EXTEND` (no kernel runs). Recovery: power cycle; persistent failure needs TPM service or the TEST re-provisioning of 10.3. Booting degraded instead is rejected: it would hand over with PCR 13 at its reset value (see the state machine). |
 
@@ -488,7 +512,7 @@ never sets a value below the UEFI floor. A production procedure (owner/lockout
 auth custody, physical presence, EK binding) is **not** specified and needs an
 owner decision.
 
-### 10.4 Why a TPM counter alone is insufficient
+### 10.4 Why a TPM counter alone is insufficient (superseded in part by 10.5)
 
 A TPM can be cleared (owner/lockout auth, physical presence) or replaced; a
 replaced TPM is fully attacker-controlled state. The UEFI copy survives that,
@@ -497,8 +521,45 @@ TPM nor the UEFI variable authenticates the code that enforces the floor;
 that is B04. Additional mitigation (step S9): the authenticated loader carries
 a compiled-in minimum image version, below which no slot boots even in
 `DEGRADED`. Binding the provisioned TPM identity (EK name) is an open option
-(U13). A replaced TPM can at most skip a health check for an authenticated
-release; while the UEFI copy is intact it cannot lower the floor.
+(U13). This is now decided: see section 10.5. Without a verified identity a
+TPM is never trusted to raise any floor or to start a trial.
+
+### 10.5 TPM identity binding (U13, owner decision C665)
+
+Owner decision of 25 November 2026 (#524): bind the TPM cryptographically to
+the device; until that binding is demonstrably reliable, an unverifiable TPM
+halts with authenticated recovery (option B as the fail-closed fallback).
+
+- **Enrollment record** `ENROLL` on the ESP: magic `NOSENR01`, format, EK name
+  (`nameAlg ‖ SHA-256(EK public)`, TCG default EK template, U13a), enrollment
+  serial, minimum floor at enrollment. It is signed with the update signature
+  scheme and verified against the trust anchors compiled into the loader, so
+  its protection is independent of the TPM, the UEFI variables and the disk
+  (the *independently protected trust anchor*). In the TEST profile the
+  signer is the public TEST key; production custody is B04.
+- **Per boot:** the loader recreates the EK with `CreatePrimary`, compares its
+  name with `ENROLL`, and performs the anchor reads through a session salted
+  to that EK, verifying the response HMAC. Only the TPM that holds the EK
+  private key can produce a valid response. Matching public areas, NV
+  indices, device properties or a higher reported floor are never evidence of
+  identity.
+- **Outcomes:** `VERIFIED` → section 7; `UNENROLLED` (no record) → `DEGRADED`,
+  no write, no trial; `MISMATCH` (record present, proof fails, other key,
+  bad signature) → halt `BOOT:FAIL:TPM_IDENTITY`. The UEFI floor is raised
+  only after a verified identity (heal, F1); the anti-rollback floor is never
+  lowered silently.
+- **Authenticated recovery** (TPM replacement, motherboard replacement, TPM
+  clear, NVRAM reset): a recovery record signed like `ENROLL` names the new EK
+  and a floor `≥` every surviving copy (UEFI, compiled-in minimum). The loader
+  re-provisions the indices and writes `FLOOR` from that record. User data and
+  slots are untouched. An interrupted recovery leaves the old record in force
+  (it is replaced only after the new indices read back).
+- **Anchor domains** for B02, B03/B04 and N04 stay separate. After recovery,
+  N04 rejects its store and re-anchors from genesis (agreed with N, 25 Nov);
+  network grants are not restored.
+- **Status:** host model implemented (`Identity` in `update-core::trial`,
+  invariants and tests); enrollment tool, EK session, recovery and native
+  tests C23–C30 are steps S3b/S5b (section 13).
 
 ## 11. Test matrix (planned native QEMU + swtpm cases; none executed)
 
@@ -534,6 +595,14 @@ named marker (TEST hook markers emitted before each write in a test feature).
 | C20 | combined T7 | fresh swtpm + fresh `OVMF_VARS` + v1 on disk | UEFI floor reads 0: `BOOT:TPM:ANCHOR_LOST`, `BOOT:FAIL:NO_VALID_SLOT` (denial, not rollback); recovery only through 10.3, which can be abused by whoever runs it (limit) |
 | C21 | index squatting | indices predefined with weaker policy | `BOOT:TPM:ANCHOR_LOST` |
 | C22 | dirty PCR | PCR 13 pre-extended (test firmware hook or EFI shell) | `BOOT:TPM:FAULT:PCR_DIRTY` |
+| C23 | identity: original TPM | enrolled swtpm, normal boot and trial | identity verified, C1/C2 behaviour unchanged |
+| C24 | identity: replacement with identical settings | new swtpm state, indices and records copied byte for byte, `FLOOR` above UEFI | `BOOT:FAIL:TPM_IDENTITY`, no write, UEFI floor unchanged |
+| C25 | identity: higher reported floor | enrolled TPM vs replacement, `FLOOR.floor > UEFI` | heal only on the enrolled TPM; halt on the replacement |
+| C26 | identity: lower reported floor | replacement with `FLOOR.floor < UEFI` | halt; UEFI floor never lowered |
+| C27 | NVRAM reset | fresh `OVMF_VARS`, enrolled TPM intact | heal from the verified `FLOOR` to UEFI, boots the known-good release |
+| C28 | replay | an old `ENROLL` or recovery record, or a recorded TPM response | record refused (serial/signature) or session HMAC fails → halt |
+| C29 | failed authentication | recovery record with a bad signature or a foreign key | refused; normal boot stays blocked |
+| C30 | interrupted recovery | power loss at every recovery write | the old record stays in force or the new one is complete; never a lower floor |
 
 ## 12. Impact on existing gates and tools
 
@@ -570,6 +639,7 @@ named marker (TEST hook markers emitted before each write in a test feature).
 | S2 | Host tool + test computing `P_OPEN`, policy digests and NV public areas; constants committed and frozen. | Host test recomputes with `sha2`; later cross-checked natively in S5. |
 | S3 | `drivers/tpm-crb` codec: StartAuthSession (policy, unsalted, unbound), PolicyPCR, PolicyCommandCode, NV_DefineSpace (ordinary/counter with policy), NV_Write, NV_Read (ordinary), PCR_Read, PCR_Extend (SHA-256 only); NV_ReadPublic must decode type, attributes, size and `authPolicy` (today it returns an opaque name). Keep the 128-byte bound; prove each command size. | Host codec tests including truncated/malformed responses; existing transport tests unchanged. |
 | S4 | Primary-source check of TPM Part 1–3 semantics U1–U8 and swtpm behaviour; record in `drivers/tpm-crb/verification/`. | Document review; native probe in S5. |
+| S3b | U13: EK `CreatePrimary`, salted session with response HMAC (crate choice and dependency review, U13b), `ENROLL`/recovery record codec and signature check on the existing update verify path. | Host codec and record tests; dependency review recorded. |
 | S5 | TEST provisioning tool and a native probe (kernel fixture extension, test feature) that defines the indices on disposable swtpm and shows the policies accept/refuse as designed. | Native QEMU+swtpm, raw exit 33, markers. |
 | S6 | Loader: TCG2 binding (own `repr(C)` if `r-efi` lacks it), PCR 13 read/extend, index checks, S1 decision function, BootInfo extension, new loader feature `signed-boot-trial`. | Native C1, C16, C17, C21, C22; M3-profile boot for the `boot-protocol` change. |
 | S7 | Kernel profile `native-update-trial`: CRB claim reuse, `TrialConfirm` capability, K1–K4, deadline, reset. | Native C2, C6, C8, C9. |
@@ -606,7 +676,9 @@ named marker (TEST hook markers emitted before each write in a test feature).
   combined with a full 32-byte comparison); alternative: 96-byte `TRIAL`.
 - U11 Free BootInfo range for the trial extension.
 - U12 Reset/watchdog behaviour on non-QEMU hardware after a failed health check.
-- U13 Binding the provisioned TPM identity (EK) to detect replacement earlier.
+- U13 **Decided (owner, C665, 25 Nov 2026):** TPM identity binding, section
+  10.5; open sub-questions: EK template and certificate availability in swtpm
+  (U13a), choice and review of the salted-session crypto crate (U13b).
 - U14 Release versioning: versions must never be reused (6.4); to be added to
   the production release policy (B03-PRODUCTION-POLICY-PROPOSAL).
 - U15 The legacy `signed-boot` profile retains the REL-05 hazard until S10.

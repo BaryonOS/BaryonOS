@@ -103,6 +103,10 @@ enum Dev {
     PcrDirty,
     /// NV works, the PCR 13 extend fails (C17b after the reads).
     ExtendBroken,
+    /// U13: no enrollment record (C665).
+    Unenrolled,
+    /// U13: enrollment present, identity proof failed (replaced TPM).
+    IdentityMismatch,
 }
 
 fn observe(store: &Store, disk: &Disk, hint: u8, dev: Dev) -> Observation {
@@ -110,13 +114,20 @@ fn observe(store: &Store, disk: &Disk, hint: u8, dev: Dev) -> Observation {
         Dev::Absent => Tpm::Absent,
         Dev::Fault => Tpm::Fault,
         Dev::PcrDirty => Tpm::PcrDirty,
-        Dev::Ready | Dev::ExtendBroken => Tpm::Ready(AnchorRead {
-            public_ok: store.public_ok,
-            trial: store.trial,
-            confirm: store.confirm,
-            floor: store.floor,
-            generation: store.generation,
-        }),
+        Dev::Ready | Dev::ExtendBroken | Dev::Unenrolled | Dev::IdentityMismatch => {
+            Tpm::Ready(AnchorRead {
+                public_ok: store.public_ok,
+                trial: store.trial,
+                confirm: store.confirm,
+                floor: store.floor,
+                generation: store.generation,
+                identity: match dev {
+                    Dev::Unenrolled => Identity::Unenrolled,
+                    Dev::IdentityMismatch => Identity::Mismatch,
+                    _ => Identity::Verified,
+                },
+            })
+        }
     };
     Observation {
         tpm,
@@ -182,6 +193,12 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
     assert!(post_eff >= pre_eff, "I1: {}", ctx());
     let degraded = plan.path.iter().any(|s| *s == State::Degraded);
     // I7: DEGRADED never writes and never trials.
+    // C665/U13: an unidentified TPM is never written and never trialled.
+    if dev == Dev::IdentityMismatch {
+        assert_eq!(plan.outcome, Outcome::Halt(Halt::TpmIdentity), "{}", ctx());
+        assert!(plan.writes.is_empty(), "U13 write: {}", ctx());
+        return pre.clone();
+    }
     if degraded || dev != Dev::Ready && dev != Dev::ExtendBroken {
         assert!(degraded, "non-ready TPM must degrade: {}", ctx());
         assert!(plan.writes.is_empty(), "I7 write: {}", ctx());
@@ -266,17 +283,31 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
                 Mode::Degraded(class) => {
                     let want = (class != TpmClass::Absent).then_some(Phase::Closed);
                     assert_eq!(h.extend, want, "{}", ctx());
+                    // I7 on the mode itself, not only the path.
+                    assert!(degraded, "{}", ctx());
+                    assert_eq!(h.version, pre.uefi, "I7 mode version: {}", ctx());
                 }
             }
         }
         Outcome::Halt(Halt::TpmExtend) => assert_eq!(dev, Dev::ExtendBroken, "{}", ctx()),
+        Outcome::Halt(Halt::TpmIdentity) => panic!("identity halt without mismatch: {}", ctx()),
+        Outcome::Halt(Halt::UefiFloorWrite) => panic!("executor-only halt: {}", ctx()),
         Outcome::Halt(Halt::NoValidSlot) => {
-            // I5: a valid known-good slot is never refused.
-            assert!(
-                disk.iter().all(|s| s.is_none_or(|(v, _)| v != plan.floor)),
-                "I5: {}",
-                ctx()
-            );
+            // I5: a valid known-good slot is never refused. Known-good means the
+            // floor version and, once finalized, the recorded manifest (M2).
+            // DEGRADED cannot read that record and halts on ambiguity instead.
+            let known = (!degraded)
+                .then(|| post.floor_rec())
+                .flatten()
+                .filter(|f| f.last_generation != 0)
+                .map(|f| f.last_digest);
+            let good: Vec<_> = disk
+                .iter()
+                .flatten()
+                .filter(|(v, w)| *v == plan.floor && known.is_none_or(|d| d == digest(*v, *w)))
+                .collect();
+            let ambiguous = degraded && good.len() == 2 && good[0] != good[1];
+            assert!(good.is_empty() || ambiguous, "I5: {}", ctx());
         }
     }
     if dev == Dev::ExtendBroken {
@@ -287,7 +318,33 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
 
 /// Every write prefix k (including 0 and the full plan): the persisted state
 /// after a power loss must again yield a safe plan.
+/// L1/C686: write k of the plan fails (writes before it are durable). A
+/// failed `UefiFloor` write halts; any other failure re-steps as `Tpm::Fault`,
+/// which must never hand over below the last readable `FLOOR`.
+fn check_write_failures(pre: &Store, disk: &Disk, hint: u8, plan: &Plan) {
+    let ws = writes(plan);
+    let mut s = pre.clone();
+    for w in &ws {
+        if matches!(w, Write::UefiFloor(_)) {
+            let mut failed = *plan;
+            failed.uefi_write_failed();
+            assert_eq!(failed.outcome, Outcome::Halt(Halt::UefiFloorWrite));
+        } else {
+            let again = boot(&s, disk, hint, Dev::Fault);
+            check_plan(&s, disk, Dev::Fault, &again);
+            if let (Outcome::Handover(h), Some(f)) = (again.outcome, s.floor_rec()) {
+                assert!(
+                    h.version >= f.floor,
+                    "L1 below FLOOR: {s:?} {disk:?} {plan:?}"
+                );
+            }
+        }
+        s.apply(w);
+    }
+}
+
 fn check_crash_prefixes(pre: &Store, disk: &Disk, hint: u8, plan: &Plan) -> usize {
+    check_write_failures(pre, disk, hint, plan);
     let ws = writes(plan);
     let mut s = pre.clone();
     for k in 0..=ws.len() {
@@ -484,6 +541,8 @@ fn every_tpm_fault_class_degrades_without_writes() {
                         Dev::Fault,
                         Dev::PcrDirty,
                         Dev::ExtendBroken,
+                        Dev::Unenrolled,
+                        Dev::IdentityMismatch,
                     ] {
                         let plan = boot(&s, &disk, 0, dev);
                         check_plan(&s, &disk, dev, &plan);
@@ -607,7 +666,12 @@ fn reachable_states_crash_consistency_and_attempt_bounds() {
         // Boots under every TPM condition.
         // Fault and PcrDirty take the same no-write path as Absent (covered over
         // arbitrary states by every_tpm_fault_class_degrades_without_writes).
-        for dev in [Dev::Ready, Dev::Absent, Dev::ExtendBroken] {
+        for dev in [
+            Dev::Ready,
+            Dev::Absent,
+            Dev::ExtendBroken,
+            Dev::IdentityMismatch,
+        ] {
             let plan = boot(&w.store, &w.disk, w.hint, dev);
             let post = check_plan(&w.store, &w.disk, dev, &plan);
             boots += 1;
@@ -1052,4 +1116,99 @@ fn marker_strings_match_the_spec() {
     for (m, s) in cases {
         assert_eq!(m.to_string(), s);
     }
+}
+
+fn pending(version: u64, slot: u8, attempts: u8, generation: u64, variant: u8) -> TrialRecord {
+    TrialRecord {
+        state: TrialState::Pending,
+        slot,
+        attempts,
+        reason: TrialReason::None,
+        health_list: HEALTH_LIST_1,
+        generation,
+        version,
+        max_rejected: 0,
+        digest: digest(version, variant)[..TRIAL_DIGEST_LEN]
+            .try_into()
+            .unwrap(),
+    }
+}
+
+/// C307: a pending v3 replaced on disk by a lower signed v2 rejects v3 (the
+/// TRIAL version), so a crash after E1 cannot make v3 eligible again.
+#[test]
+fn abandonment_rejects_the_pending_version_not_its_replacement() {
+    let mut s = provisioned(1, 1);
+    s.trial = Some(pending(3, 1, 1, 1, 0).encode());
+    let disk: Disk = [Some((1, 0)), Some((2, 0))];
+    let plan = boot(&s, &disk, 0, Dev::Ready);
+    check_plan(&s, &disk, Dev::Ready, &plan);
+    let Write::Trial(e1) = writes(&plan)[0] else {
+        panic!("E1 first: {plan:?}")
+    };
+    assert_eq!((e1.state, e1.max_rejected), (TrialState::Rejected, 3));
+    s.apply(&writes(&plan)[0]); // crash after E1, v3 back on disk
+    let back: Disk = [Some((1, 0)), Some((3, 0))];
+    let again = boot(&s, &back, 0, Dev::Ready);
+    check_plan(&s, &back, Dev::Ready, &again);
+    assert!(trial_binding(&again).is_none(), "{again:?}");
+}
+
+/// M2: after finalization only the recorded manifest is known-good; a second
+/// signed manifest with the same version is not booted as known-good.
+#[test]
+fn known_good_requires_the_finalized_manifest() {
+    let mut s = provisioned(2, 1);
+    let mut f = s.floor_rec().unwrap();
+    f.last_generation = 1;
+    f.last_digest = digest(2, 0);
+    s.floor = Some(f.encode());
+    let other: Disk = [Some((2, 1)), None];
+    let plan = boot(&s, &other, 0, Dev::Ready);
+    check_plan(&s, &other, Dev::Ready, &plan);
+    assert_eq!(plan.outcome, Outcome::Halt(Halt::NoValidSlot));
+    let both: Disk = [Some((2, 0)), Some((2, 1))];
+    for hint in [0, 1] {
+        let plan = boot(&s, &both, hint, Dev::Ready);
+        check_plan(&s, &both, Dev::Ready, &plan);
+        assert!(
+            matches!(plan.outcome, Outcome::Handover(h) if h.slot == 0),
+            "{plan:?}"
+        );
+    }
+    // DEGRADED cannot read the record: ambiguity halts.
+    let plan = boot(&s, &both, 1, Dev::Absent);
+    check_plan(&s, &both, Dev::Absent, &plan);
+    assert_eq!(plan.outcome, Outcome::Halt(Halt::NoValidSlot));
+}
+
+/// C665/U13: FLOOR ahead of UEFI (NVRAM reset or replaced TPM) heals only for
+/// a verified TPM identity; a mismatch halts, an unenrolled TPM degrades.
+#[test]
+fn floor_heal_requires_verified_tpm_identity() {
+    let mut s = provisioned(3, 1);
+    s.uefi = 1;
+    let disk: Disk = [Some((1, 0)), Some((3, 0))];
+    let plan = boot(&s, &disk, 0, Dev::Ready);
+    check_plan(&s, &disk, Dev::Ready, &plan);
+    assert_eq!(writes(&plan)[0], Write::UefiFloor(3));
+    let mismatch = boot(&s, &disk, 0, Dev::IdentityMismatch);
+    check_plan(&s, &disk, Dev::IdentityMismatch, &mismatch);
+    assert_eq!(mismatch.outcome, Outcome::Halt(Halt::TpmIdentity));
+    assert!(mismatch.writes.is_empty());
+    assert!(mismatch
+        .markers
+        .iter()
+        .any(|m| m.to_string() == "BOOT:FAIL:TPM_IDENTITY"));
+    let unenrolled = boot(&s, &disk, 0, Dev::Unenrolled);
+    check_plan(&s, &disk, Dev::Unenrolled, &unenrolled);
+    assert!(unenrolled.writes.is_empty());
+    assert!(unenrolled
+        .markers
+        .iter()
+        .any(|m| m.to_string() == "BOOT:TPM:UNENROLLED"));
+    // A failed heal write halts instead of degrading below FLOOR.
+    let mut failed = plan;
+    failed.uefi_write_failed();
+    assert_eq!(failed.outcome, Outcome::Halt(Halt::UefiFloorWrite));
 }

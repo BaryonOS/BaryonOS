@@ -51,7 +51,15 @@ used:
   `Corrupt`, or makes the authentic store look rolled back: denial only.
 - A forged `binding` matches no authentic store unless the attacker also
   holds two authentic stores at the same generation. Rule (d) below forbids
-  the policy process to create such a fork, so a forged binding yields denial.
+  the policy process to create such a fork. **Open (review M1, confirmed by
+  N's red host test, ADR-NET-ISSUER-20261125 Open):** the replay window of
+  rule (c) after a torn A1 can still produce two authentic stores at
+  `A + 1`; a single slot rewrite then revives the older one and rolls back an
+  acknowledged revocation. The "denial only" claim therefore does **not**
+  hold until the owner decides between (i) a policy-written slot, (ii) a
+  per-boot incarnation, (iii) a recorded residual risk, or N's reseal
+  candidate. 5A remains in force; the constants of `trial_tpm.rs` are
+  provisional until then.
 - Neither write can make an older authentic store (`S < A`) acceptable,
   because the counter never decreases and N04 authenticates `S` in the store.
 
@@ -76,7 +84,11 @@ advance(expected, binding)   -> Ok(()) | Err(AnchorError)
   `Err(Corrupt)`.
 
 `advance(expected, binding)` is a monotonic compare-and-swap from `expected`
-to `expected + 1` that stores `binding` with the new generation:
+to `expected + 1` that stores `binding` with the new generation. **The kernel
+serialises steps 1–4 per domain (review C87):** a second `advance` on the same
+domain waits for, or fails against, the first, and after it completes sees
+`c != expected` → `Conflict`. Two concurrent calls can therefore never both
+pass step 1 and leave the counter ahead of the slot.
 
 1. Read `c` and the slot. `c != expected` → `Conflict`. `c == u64::MAX` →
    `Exhausted`. Budget spent → `RateLimited` (no TPM write).
@@ -169,14 +181,22 @@ domain, increments the counter once (a never-incremented counter cannot be
 read, U16; its first value is the TPM's highest-ever counter value, U6) and
 writes the slot `{gen: c, binding: 0³²}`. The all-zero binding is the genesis
 binding: N04's first store is written at `S = c + 1` with parent `0³²`.
+**A missing store is never accepted (review L2, agreed with N):** startup with
+no store is denial, also when the slot shows the genesis binding, because a
+T3 slot write `{gen: c, binding: 0³²}` can imitate genesis. Genesis is entered
+only through authorised provisioning or recovery, never by the policy process
+on its own.
 
 A cleared, replaced or rolled-back TPM yields `Unavailable` (index missing or
-public area changed) or a store that no longer matches (stale `S`, fork):
-fail closed, 5A behaviour. Explicit recovery is re-provisioning plus N04
-reinitialising its store at the new genesis; persisted grants are then only
-suggestions for explicit re-confirmation. A production procedure (owner auth
-custody, physical presence, EK binding U13) is not specified and needs an
-owner decision.
+public area changed, or the REL-05 TPM identity check of section 10.5 fails)
+or a store that no longer matches (stale `S`, fork): fail closed, 5A
+behaviour. Explicit recovery is the authenticated REL-05 recovery (owner
+decision C665: signed recovery record naming the new TPM's EK) plus N04
+rejecting its old store and reinitialising at the new genesis. B carries no
+tombstone or generation across; old network grants are not restored and need
+explicit re-confirmation (agreed with N, 25 November 2026). Torn-A1 recovery
+of the previous store (review C143) is an N04 store requirement (N04-T3), not
+part of this contract.
 
 ## Limits
 
