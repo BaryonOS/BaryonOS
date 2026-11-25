@@ -10,7 +10,9 @@ evidence or a product-latency claim. No criterion or progress point changes.
   `claude/r-track-20261125`; profile `native-window-session-probe`.
 - Commands: [`baseline.sh`](baseline.sh) (one build, then five sequential
   `tools/run_window_session.py --clipboard --timeout 1800` runs with SeaBIOS
-  ROMs, `NOS_QEMU_ACCEL=kvm`).
+  ROMs, `NOS_QEMU_ACCEL=kvm`). The recorded batch ran before the script
+  gained its worktree check and per-run report removal; all five runs exited
+  0, so each copied report is that run's own.
 - QEMU 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), `-cpu qemu64 -smp 1 -m 256M`
   as fixed by the runner; host with 32 logical CPUs, shared with other
   sessions (load average per run in [`meta.txt`](meta.txt), 2.3–4.3).
