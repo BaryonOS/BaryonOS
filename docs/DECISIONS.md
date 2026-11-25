@@ -5,6 +5,83 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-SPECIALIST-TEAM-20261125 — Permanent specialists A, P, L and R; handoffs, naming and context rotation
+
+**Status:** decided by the project owner on 25 November 2026. The owner gave the
+decision to the PR guard session at about 11:25Z. The owner then confirmed the
+wording for recording in the CI specialist session at about 11:45Z ("Yes,
+confirmed"). The CI checkpoint is #494, comment 7161215540.
+
+**Problem:** six workstream sessions handled their own pull requests under
+`ADR-MERGE-DELEGATION-20261123`: S09, U, N, UI/UX design, B and H. Applications,
+personal NAS, local AI and quantum runtime, and system-wide reliability had no
+permanent owner. Handoff locations, session names and the rule for when a
+session's context must rotate were only in issue comments.
+
+**Decision:**
+
+1. **New permanent specialists.** The project owner starts each session; agents
+   never start, fork or replace specialist chats.
+   - **A:** A01–A04, applications, SDK and ecosystem.
+   - **P:** P01–P04, personal NAS and multiple devices.
+   - **L:** L01–L02, local AI and quantum runtime. L also holds the research
+     line for future physical QPU and hybrid hardware.
+   - **R:** R01–R03, reliability, performance and release. R is responsible
+     for performance and reliability across the whole system.
+2. **Merge delegation.** `ADR-MERGE-DELEGATION-20261123`, with its amendments
+   (including D2 of `ADR-PROGRESS-ASSESSMENTS-20261125`), also applies to A, P,
+   L and R. Each owns its pull requests up to a protected squash merge with the
+   expected head and verification on `main`. No additional central gate is
+   added. Protected files still follow the review rules of that ADR and D2.
+3. **Session names.** The sessions are named "BaryonOS - Specialist <X>", where
+   X is R, L, A, S, N, CI, P, B, H or U. "U" stands for UI/UX and is displayed
+   as "Specialist U (UI/UX)". The coordination session is "BaryonOS - PR
+   Bewaker" (PR guard).
+4. **Handoffs.** Each specialist keeps one compact resume pointer in
+   `docs/handoffs/<letter>/CURRENT.md`. CI uses `docs/handoffs/CI/` and the PR
+   guard uses `docs/handoffs/PR-WATCHER/`. A resume pointer records the scope
+   and mandate once and holds no live SHAs or volatile state. Live checkpoints
+   stay in the pull request description and the workstream's handoff issue
+   comment.
+5. **Context rotation.** This rule replaces the earlier fixed percentage
+   thresholds:
+   - 65% context use is a moment to assess, not a stop;
+   - from about 60%, the session updates its durable checkpoint and finishes
+     the current phase;
+   - above about 75%, it starts no new large phase;
+   - by 80–85% at the latest, a verified handoff is ready;
+   - ownership of a subtask continues across rotations;
+   - no replacement chat is started;
+   - the project owner runs `/clear` manually after a verified CLEAR_READY;
+   - the PR guard rotates only at the project owner's explicit request.
+6. **Product priority.** The product is a general-purpose OS with European data
+   sovereignty. Conventional PCs and laptops come first, then server and
+   business use. It aims at broad consumer and professional compatibility.
+   Market potential is a research question, not an assumption. The design
+   ambition and product specification remain in `docs/DESIGN-AMBITION.md` and
+   `docs/implementation/PRODUCT-SPEC.md`.
+7. **Quantum.**
+   - Post-quantum cryptography is a current obligation under ADR-007, ADR-012,
+     ADR-017 and ADR-028, `docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md`
+     and `docs/implementation/QUANTUM-SPEC.md`. B owns that content, together
+     with N for transport. It covers harvest-now-decrypt-later exposure and the
+     classical dependencies that remain.
+   - Physical quantum hardware is a future research line for L and does not
+     block the consumer release.
+   - No claim of full quantum resistance is made without bounded evidence.
+
+**Consequences:**
+
+- `AGENTS.md` lists the ten specialists and the naming rule in the merge
+  delegation paragraph.
+- The PR guard routes signals, metadata checks and CLEAR_READY verification to
+  A, P, L and R in the same way as to the existing workstreams.
+- Issues #494 (CI) and #503 (PR guard) stay the places for decisions,
+  operational notices and history.
+
+**Rollback:** a new project-owner decision. Merge delegation for A, P, L or R
+can be withdrawn individually without changing the other workstreams.
+
 ## ADR-PROGRESS-ASSESSMENTS-20261125 — Per-task assessment files; CI owner decisions D1 and D2
 
 **Status:** decided by the project owner on 25 November 2026 (#494, comments
