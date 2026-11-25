@@ -98,6 +98,7 @@ impl StoreState {
 /// Why durable grants are unavailable; the caller then applies 5A (all denied).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Denied {
+    /// The anchor failed or refused; fail closed (5A).
     Anchor(AnchorError),
     /// The store belongs to another anchor instance (replaced or reset TPM);
     /// only authorised recovery may start a new genesis store.
@@ -292,7 +293,8 @@ mod tests {
         assert_eq!(acknowledge(&mut anchor, &y), Ok(()));
         assert_eq!(startup(&mut anchor, &x), Err(Denied::Stale));
         assert_eq!(startup(&mut anchor, &y), Ok(Startup::Accept));
-        // T3 can only extend forward; no input it holds leads back to X.
+        // Illustration (SHA-256 preimage resistance, not a test of this
+        // module): T3 can only extend forward; no input it holds leads back to X.
         let now = anchor.read().unwrap();
         for data in [
             extend_event(&x.digest),
@@ -429,6 +431,29 @@ mod tests {
             Err(Denied::Anchor(AnchorError::Conflict))
         );
         assert_eq!(startup(&mut anchor, &a), Ok(Startup::Accept));
+        assert_eq!(anchor.writes, writes);
+    }
+
+    #[test]
+    fn failed_roll_forward_is_a_denial() {
+        let (mut anchor, a) = at_a();
+        let x = child(&a, 3);
+        anchor.corrupt_next_write = true;
+        assert_eq!(
+            startup(&mut anchor, &x),
+            Err(Denied::Anchor(AnchorError::Corrupt))
+        );
+        assert_eq!(startup(&mut anchor, &x), Err(Denied::Stale));
+        let (mut anchor, a) = at_a();
+        let x = child(&a, 3);
+        anchor.lose_next_response = true;
+        assert_eq!(
+            startup(&mut anchor, &x),
+            Err(Denied::Anchor(AnchorError::Unavailable))
+        );
+        // The extend landed: the next boot accepts without a second write.
+        let writes = anchor.writes;
+        assert_eq!(startup(&mut anchor, &x), Ok(Startup::Accept));
         assert_eq!(anchor.writes, writes);
     }
 
