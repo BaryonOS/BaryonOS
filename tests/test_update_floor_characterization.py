@@ -134,5 +134,12 @@ class Store(unittest.TestCase):
             cf.check_store("control-v1", stale, stale, dict(FILES, m1=manifest(FILES["k2"], 1)))
 
 
+class Paths(unittest.TestCase):
+    def test_workspace_is_disposable_and_paths_never_raise(self):
+        self.assertEqual(cf.OUT, cf.BUILD / "run" / "update-floor")
+        self.assertEqual(cf.display_path(cf.ROOT / "build" / "x"), "build/x")
+        self.assertEqual(cf.display_path(Path("/outside/build/x")), "/outside/build/x")
+
+
 if __name__ == "__main__":
     unittest.main()

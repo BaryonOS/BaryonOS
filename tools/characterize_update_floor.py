@@ -32,7 +32,15 @@ from common import BUILD, ROOT, TARGET, environment, firmware, save_json, sha256
 import run_update as ru
 import update_disk as disk
 
-OUT = BUILD / "update-floor"
+OUT = BUILD / "run" / "update-floor"  # disposable QEMU images stay under $NOS_BUILD_DIR/run/
+
+
+def display_path(path):
+    """Repository-relative when possible, absolute otherwise (NOS_BUILD_DIR may lie outside ROOT)."""
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
 TIMEOUT = 300
 LABEL = ("CHARACTERIZATION ONLY (REL-05): exit 0 means the floor-before-health hazard was "
          "observed. This is not a fix and earns no progress points.")
@@ -143,8 +151,8 @@ def boot_once(name: str, state_dir, qemu: str, env, files: dict[str, bytes], fro
                   timed_out=timed_out, raw_qemu_exit=rc, command=args,
                   qemu_version=subprocess.check_output([qemu, "--version"], text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen,
-                  run_directory=run_dir.relative_to(ROOT).as_posix(),
-                  state_directory=state_dir.relative_to(ROOT).as_posix(),
+                  run_directory=display_path(run_dir),
+                  state_directory=display_path(state_dir),
                   store_before_sha256=disk.sha256(before), store_after_sha256=disk.sha256(after),
                   vars_before_sha256=disk.sha256(vars_before), vars_after_sha256=disk.sha256(vars_after),
                   floor_variable_before=floor_variable_present(vars_before),

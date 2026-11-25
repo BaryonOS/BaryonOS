@@ -29,16 +29,22 @@ previous version, not unlimited downgrade.
 1. Only a slot that verifies with both pinned anchors and its digest is started
    (ADR-049 point 1). Unchanged.
 2. The floor never decreases.
-3. After a version has been confirmed healthy, no lower version starts again.
+3. After a version has been confirmed healthy, no lower version starts again,
+   unless the owner explicitly adopts an authorised-recovery exception
+   (option B), which then overrides this invariant for one permitted boot.
 4. A disk-only attacker (who can rewrite the unsigned slot header and store but
-   not OVMF_VARS) gains no older version than today's design allows.
+   not OVMF_VARS) gains no version older than the last *confirmed* floor.
+   This is weaker than today's design for unconfirmed releases: today a
+   started-but-crashed v2 already blocks v1, whereas option A keeps v1
+   startable until v2 is confirmed. That extra rollback window is a proposed
+   policy change for the owner to accept, not a property of today's loader.
 5. No unsigned ESP fallback; no new trust root or key.
 
 ## Options
 
 | | A. Trial boot with deferred floor | B. Signed recovery permit above the floor | C. Keep ADR-049, accept the risk |
 | --- | --- | --- | --- |
-| Idea | The loader records a *pending* version instead of raising the floor. The floor rises on a later boot, after the kernel has confirmed health for that version. Bounded boot attempts; then fall back to the other slot. | A separately signed manifest type allows one boot of a version below the floor. | Document REL-05 as an accepted risk. |
+| Idea | The loader records a *pending* version instead of raising the floor. The floor rises on a later boot, after the kernel has confirmed health for that version. Bounded boot attempts; then fall back to the other slot. | A separately signed manifest type allows one boot of a version below the floor. This is an explicit exception to invariant 3. | Document REL-05 as an accepted risk. |
 | Recovers a crashing release | Yes, automatically, to the previous slot. | Only after an operator obtains a signed permit. | No. |
 | New key or ceremony | No. | Yes (permit signing, revocation, replay limits). | No. |
 | Rollback window | Between "new version selected" and "health confirmed": the previous slot (≥ the old floor) may still start. That equals today's A/B guarantee before an update. | None without a permit. | None. |
