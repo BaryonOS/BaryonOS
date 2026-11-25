@@ -110,9 +110,18 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   `stale_below` (tiles a superseded partial frame may have blitted); new test
   `input_lost_banner_sends_exactly_the_changed_tiles` (exact changed-tile
   count, banner on screen); both new tests fail on base `lib.rs`.
-- U accepted retain-by-exact-digest in place of the full-repaint criterion,
-  with conditions (digest over full tile bytes; invalidation after partial or
-  superseded frames, failed present, resize/scale; banner test) — answered.
+- Acceptance items (1) and (2) above are superseded: on 25 Nov 2026 U
+  accepted retain-by-exact-digest in their place (cache updated only after
+  the blit acknowledgement; `stale_below` until the next complete frame;
+  `surface_failed` and per-epoch geometry; the banner test). Focus or
+  selection-ring, theme, layout, size and banner changes take no separate
+  full-repaint trigger: every tile in the scan is rendered from the current
+  view, and any tile whose bytes differ from the cached on-screen digest is
+  blitted, so such a change is never retained. A scale or theme change that
+  alters most tiles therefore re-sends most tiles; a resize means a new
+  surface epoch with an empty cache. Covered by `tests/retained_digest.rs`
+  (layout change with a superseded partial frame; input-lost banner with an
+  exact changed-tile count). U reviews the code in the fix PR.
 - Recover: fails on `main` until #523 (C7, #449). After #523 lands, merge
   `main` once and run U's sequence: build `native-system-materiaal-probe`,
   `run_materiaal_probe.py --case normal --qmp-transport pipe --timeout 240`,
