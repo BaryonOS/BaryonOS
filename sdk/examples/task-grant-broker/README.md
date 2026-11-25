@@ -44,9 +44,11 @@ When a client exits, the kernel's `observe_exit` writes the exited PID into
 the broker's private startup page (count at 448, PIDs from 456), the same
 kernel-written observation that `nas.rs` uses for its admin. The broker polls
 that word, checks the PID against its bootstrap owner PID, and calls
-`retire_process` for it. The notice is authenticated by construction: the page
-is mapped only in the broker and written only by the kernel, and no IPC path
-reaches it, so a client cannot forge a notice. This is a **test fixture**,
+`retire_process` for it. The page is mapped only in the broker's address
+space. The kernel writes the exit-notice slots (448 and 456+), and the broker
+itself writes its counters and retirement results to other words of the same
+page. No client maps the page and no IPC path reaches it, so a client cannot
+forge a notice. The broker is trusted not to write the notice slots. This is a **test fixture**,
 not a product lifecycle ABI; no new syscall or capability type is involved.
 
 ## Native acceptance
