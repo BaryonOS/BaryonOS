@@ -115,10 +115,10 @@ The guest stdout SHA-256 is computed over the report's UTF-8 `stdout`.
   `LREC` (policy write at PCR 13 = 0) would be reported `BOUND`. That needs
   loader-phase TPM access (T5) or a previous OS that never extends PCR 13. It
   is reported as an open item, not tested.
-- An owner-created squat under an empty ownerAuth goes through the same owner
-  undefine as the cut leftovers and is then replaced by provisioning; that
-  variant was not run as a separate case. Under a foreign ownerAuth it halts
-  `PUBLIC` (`loader-hauth-owner-squat`).
+- An owner-created squat under an empty ownerAuth is expected, from the code
+  path, to go through the same owner undefine as the cut leftovers and then be
+  replaced by provisioning; that variant was not run and is not observed.
+  Under a foreign ownerAuth it halts `PUBLIC` (`loader-hauth-owner-squat`).
 - The seeds run on swtpm with an empty platformAuth before firmware. Whether
   firmware leaves the platform hierarchy reachable on real systems (U24) is
   not observed.

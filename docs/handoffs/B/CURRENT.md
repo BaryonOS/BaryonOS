@@ -59,8 +59,10 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
 - Licensing register: `boot/loader/src/tpm_probe.rs`, `tpm_hauth.rs` and `tools/tpm_seed.py` are not listed in
   `MPL-2.0-FILES.txt` (no test enforces it); the register is an owner/lead decision, so it is reported, not changed.
-- CI risks for the seeded slice: `TpmSeedTests` (skipped without swtpm) and the seeds use `--server`, `--ctrl` and
-  `--flags not-need-init,startup-clear`, verified only on swtpm 0.10.1 (hosted CI has 0.7.3); the halt-unchanged check
+- CI risks for the seeded slice: `TpmSeedTests` and the seeds use `--server`, `--ctrl ...,mode=0600` and
+  `--flags not-need-init,startup-clear`, verified only on swtpm 0.10.1. `ci.yml#host-quality` installs no swtpm, so
+  they skip there, but `native-system.yml` runs `tools.tests.test_tpm` with the pinned swtpm 0.7.3, so they run on
+  the first lane push; the halt-unchanged check
   in `run_tpm.run()` has no unit test; ci-impact selects host-quality through the `tools/**` glob.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
   staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; the TEST loader does not check
@@ -108,8 +110,11 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Done locally: 38453a5f `loader-hauth-owner-squat` (owner AUTHREAD | AUTHWRITE `HAUTH` + foreign ownerAuth, halt
   `FAIL:PUBLIC:0100b304`, seeded state unchanged), then the evidence/handoff commit. At source bb091002: eleven native
   cases pass, the ten earlier ones with unchanged stdout hashes; gate results are in the newest #524 CHECKPOINT comment.
-- Next on #524, in order: (b) S3/U27 and the section 7.9 halt, (c) native S5 with N's joint
-  tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
+- Next on #524, decision-free first (batch `tools/` changes so `source_hash` moves once): the owner squat under an
+  empty ownerAuth as a seeded case; a DA-counter sensitivity check; read-back of the other PCR banks. A cut between the
+  ownerAuth and lockoutAuth changes needs a host HAUTH secret and `LoaderRecord` encoder. Then, only after the owner
+  answers (both are in the "reported to the owner, not accepted" list): (b) S3/U27 and the section 7.9 halt; (c) native
+  S5 with N's joint tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
   body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the eleven
   `run_tpm.py` cases (six + five seeded) on the merged head, or state in the PR body that the loader evidence is bound to bb091002; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
