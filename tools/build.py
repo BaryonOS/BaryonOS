@@ -98,6 +98,8 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "nat
                    "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait",
                    "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
                    *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input", "native-dispi-probe"]
+# L01 native SSE2 AI job (kept out of the shared list line to avoid merge collisions).
+KERNEL_FEATURES += ["native-ai-job"]
 
 
 def inspect_elf(path):
@@ -255,6 +257,19 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     elif kernel_feature in ("native-fpu", "test-fpu-wait"):
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
+    elif kernel_feature == "native-ai-job":
+        from run_fpu import build_users as build_fpu_users
+        extra_env, canary = build_fpu_users()
+        output = BUILD / "users/ai-job"
+        run_logged([sys.executable, "-B", str(ROOT / "experiments/ai/native-job/build.py"),
+                    "--output-dir", str(output), "--target-dir", str(TARGET / "ai-job-user")],
+                   "build-ai-job-user")
+        job = json.loads((output / "build-report.json").read_text())
+        if job.get("passed") is not True or sha256(output / "ai-job-native.elf") != job.get("binary_sha256"):
+            raise ValueError("Native AI job executable failed its artifact gate")
+        extra_env = {"NOS_FPU_B_ELF": extra_env["NOS_FPU_B_ELF"],
+                     "NOS_AI_JOB_ELF": str((output / "ai-job-native.elf").resolve())}
+        qsim_report = {"job": job, "canary": canary}
     elif kernel_feature in ("native-qsim", "native-smp-qsim", "native-smp-m3-soak"):
         output = BUILD / "users/qsim"
         run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
@@ -467,6 +482,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["memory"] = qsim_report
         elif kernel_feature in ("native-fpu", "test-fpu-wait"):
             manifest["fpu"] = qsim_report
+        elif kernel_feature == "native-ai-job":
+            manifest["ai_job"] = qsim_report
         elif kernel_feature in ("native-ipc-wait", "native-tpm-crb", "test-tpm-crb-absent"):
             manifest["ipc_wait"] = qsim_report
         elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
