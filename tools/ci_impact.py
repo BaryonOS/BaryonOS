@@ -1172,6 +1172,11 @@ class Planner:
                 row["reasons"] = [list(hit) for hit in hits[:MAX_REASONS]]
                 row["reason_count"] = len(hits)
                 row["blocked_by_filter"] = self.blocked(execution, changed, policy)
+                # A filter may hide only metadata: merge-hold fails a blocked row that hides
+                # a registered input (#494, phase 5 C1). Metadata stays a documented limit.
+                row["filter_hidden_inputs"] = sorted(
+                    {path for _, path in hits if not first_match(policy.get("inert", []), path)}
+                ) if row["blocked_by_filter"] is True else []
                 selected_rows.append(row)
             else:
                 reason = "manual-event" if mode == "manual" else self.exclusion(execution) or "no-input-match"

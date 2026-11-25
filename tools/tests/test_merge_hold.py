@@ -780,6 +780,31 @@ class GateTests(TestCase):
         self.assertIn("Not a pass: s: not applicable (path filter)", out)
         self.assertIn("Plan sha256:" + "0" * 64, out)
 
+    def test_filter_hiding_a_registered_input_fails(self):
+        # #494 C1: a path filter may hide only metadata; a hidden registered input fails at once.
+        plan = plan_fixture()
+        plan["selected"][-1]["filter_hidden_inputs"] = ["tests/test_volume_archive.py"]
+        passed, out, state = self.decide(plan=plan)
+        self.assertFalse(passed, out)
+        self.assertIn("::error::Failed: s: its path filter hides registered input(s) "
+                      "tests/test_volume_archive.py, so the gate did not run", out)
+        self.assertIn("2 applicable gate(s) passed; 0 filtered out; 0 pending; 1 failed.", out)
+        self.assertNotIn("not applicable (path filter)", out)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_filter_hiding_only_metadata_is_not_a_pass_but_does_not_block(self):
+        plan = plan_fixture()
+        plan["selected"][-1]["filter_hidden_inputs"] = []
+        passed, out, _ = self.decide(plan=plan)
+        self.assertTrue(passed, out)
+        self.assertIn("Not a pass: s: not applicable (path filter)", out)
+        self.assertNotIn("Passed: s:", out)
+
+    def test_hidden_input_listing_is_bounded(self):
+        paths = [f"tests/t{i}.py" for i in range(7)]
+        self.assertEqual(merge_hold.hidden_listing(paths),
+                         "tests/t0.py, tests/t1.py, tests/t2.py, tests/t3.py, tests/t4.py and 2 more")
+
     def test_missing_or_running_runs_are_pending_and_block(self):
         for runs_, fragment in (([wf_run(1, CI)], "no .github/workflows/leaves.yml run"),
                                 ([wf_run(1, CI), wf_run(3, LEAVES, "in_progress", None)], "which is in_progress"),
