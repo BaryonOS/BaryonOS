@@ -418,7 +418,7 @@ dependencies (`host-dependencies: 'true'`, which provides PyYAML for
    data, which is activated only on counterexample-free shadow evidence.
    No selection or enforcement step reads it: merge-hold, the select jobs and
    the `validate` and `coverage` steps of host-quality ignore it. A host-quality
-   unit test does validate the head copy, so an invalid candidate fails
+   unit test does validate the checked-out copy, so an invalid candidate fails
    host-quality, and as a `.github/**` path every edit to it makes the plan
    full. Without a base copy the candidate plan is `full`
    (`bootstrap-no-base-catalogue`).
@@ -666,9 +666,9 @@ a `push` backstop on `main` (`entropy-keys`, `nas-core`,
 `signed-updates`) ignore `"@nonnative"`: a change confined to documentation,
 project metadata and `core_only` tooling metadata (`.agents/**`, `.claude/**`,
 `plugins/**`, `LICENSE` and the rest of the list) starts none of them, and
-merge-hold does not wait for them. Without a usable classification, for
-example after a fallback before classification on the base, those gates stay
-expected and fail or stay Pending instead ("Expected set", K10). Their `push` trigger stays `"@metadata"`, so
+merge-hold does not wait for them. Without a usable diff or classification,
+merge-hold instead keeps those gates Pending or fails them as possibly hidden
+inputs ("Expected set", K10). Their `push` trigger stays `"@metadata"`, so
 the merged commit runs them on `main`; a failure there reopens the rule, and a
 run cancelled by a newer push to `main` is no evidence either way.
 `native-hid-input` and `native-xhci` (which execute `plugins/**` through
@@ -779,14 +779,17 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
   tooling-metadata-only pull request (phase 5 C2) GitHub starts none of the 13
   `@nonnative` workflows, but the plan can still expect them: after a pre-diff
   fallback that merge-hold accepts (`ambiguous-merge-base`, `shallow-history`,
-  `missing-history`, `diff-failed`, `unknown-diff-status`, `diff-parse`), or
-  under a rollback or full `pull_request` mode with more than 300 changed
-  files. merge-hold then reports them Pending until a re-run with a usable diff
-  or a new head. A fallback before classification (for example
+  `missing-history`, `diff-failed`, `unknown-diff-status`, `diff-parse`), after
+  `diff-too-large` (more than 5,000 files), or under a rollback or full
+  `pull_request` mode with more than 300 changed files. merge-hold then reports
+  them Pending until a re-run with a usable diff or a new head. A fallback before classification (for example
   `cargo-manifest-missing`, or a Cargo construct on the base) instead fails
   those rows as possibly hidden inputs, with a message that names the
-  `core_only` paths. Each case needs broken history, a broken base catalogue
-  or an active rollback; none is expected in the normal squash-merge flow.
+  `core_only` paths. The causes are broken history, an oversized diff, a
+  transient read failure, a broken base catalogue, an active rollback or an
+  unmodelled Cargo construct on the base; only the last persists, because once
+  merged onto `main` it fails the 13 rows on every later tooling-only pull
+  request until the construct is modelled.
 
 ## Phases
 
@@ -805,7 +808,7 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
 - **4 (current, select):** component leaves per variant, app-management and
   net-tls per job; see "Selection".
 - **Rollback:** setting `policy.mode = "full"` in the catalogue on the base
-  branch makes every plan full immediately: every workflow that its own path
-  filter starts runs everything while merge-hold keeps verifying every applicable gate, and host-quality,
+  branch makes every plan full immediately: every workflow that its own
+  path filter starts runs everything while merge-hold keeps verifying every applicable gate, and host-quality,
   qemu-smoke, CodeQL and the acceptance hold are unchanged. `shadow` (above)
   is the separate emergency switch for the enforcement itself.
