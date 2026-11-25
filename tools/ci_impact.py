@@ -59,6 +59,9 @@ JOB_ID_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_-]*")
 VARIANT_ID_RE = re.compile(r"[A-Za-z0-9_.*-]+")
 EVENT_FULL_CODES = {"merge_group": "merge-group", "push": "push-main", "schedule": "schedule"}
 METADATA = "@metadata"
+# policy.inert plus policy.core_only: only on a pull_request trigger whose workflow keeps a
+# @metadata push trigger as the main backstop (#494, phase 5 C2).
+NONNATIVE = "@nonnative"
 ZERO_SHA = "0" * 40
 SHA_RE = re.compile(r"[0-9a-f]{40}")
 CITATION_RE = re.compile(r"[^:\s]+:[1-9][0-9]*(-[1-9][0-9]*)?")
@@ -121,6 +124,27 @@ def _glob_regex(pattern):
 def github_path_filter_matches(pattern, path):
     """Match GitHub path-filter globs: '*' stays within a segment, '**' spans."""
     return _glob_regex(pattern).fullmatch(path) is not None
+
+
+def trigger_globs(value, policy):
+    """Expand a recorded path filter: @metadata is policy.inert, @nonnative adds policy.core_only."""
+    if value == METADATA:
+        return list(policy.get("inert", []))
+    if value == NONNATIVE:
+        return list(policy.get("inert", [])) + list(policy.get("core_only", []))
+    return value
+
+
+def nonnative_overlaps(policy):
+    """core_only and always_full patterns of which one names a path the other matches.
+
+    Matching each pattern as a literal path catches containment either way; a partial
+    overlap such as `plugins/**` with `**/Cargo.lock` is left to the tracked-path test."""
+    full, core = policy.get("always_full", []), policy.get("core_only", [])
+    if not (_list_of_str(full) and _list_of_str(core)):
+        return []
+    return sorted({f"{c} ~ {a}" for c in core for a in full
+                   if github_path_filter_matches(c, a) or github_path_filter_matches(a, c)})
 
 
 def first_match(patterns, path):
@@ -505,6 +529,7 @@ def validate(catalogue):
         add("at least one [[workflow]] is required")
         workflows = []
     seen_paths, seen_ids, seen_checks = set(), set(), {}
+    uses_nonnative = False
     for windex, workflow in enumerate(workflows):
         if not isinstance(workflow, dict):
             add(f"workflow[{windex}]: not a table")
@@ -554,8 +579,17 @@ def validate(catalogue):
                     add(f"{where}: trigger.{event}.branches: {pattern!r}: unsupported branch pattern")
             if "paths" in spec:
                 globs(f"{where}: trigger.{event}.paths", spec["paths"])
-            if "paths_ignore" in spec and spec["paths_ignore"] != METADATA:
+            if "paths_ignore" in spec and spec["paths_ignore"] not in (METADATA, NONNATIVE):
                 globs(f"{where}: trigger.{event}.paths_ignore", spec["paths_ignore"])
+            if spec.get("paths_ignore") == NONNATIVE:
+                uses_nonnative = True
+                push = trigger.get("push")
+                # The push run on main is the post-merge backstop for a misclassified core_only path.
+                if event != "pull_request" or "push" not in wf_events or not isinstance(push, dict) \
+                        or push.get("paths_ignore") != METADATA \
+                        or ("branches" in push and "main" not in (push["branches"] or [])):
+                    add(f"{where}: trigger.{event}: {NONNATIVE} only on pull_request, with a push "
+                        f"trigger on main filtered by {METADATA}")
             if "paths" in spec and "paths_ignore" in spec:
                 add(f"{where}: trigger.{event} has both paths and paths_ignore")
         jobs = workflow.get("job")
@@ -685,6 +719,9 @@ def validate(catalogue):
                 stack += graph[need]
                 if classes[need] not in SELECTABLE:
                     add(f"{stem(path)}#{job_id}: needs {need}, which is never selected ({classes[need]})")
+    if uses_nonnative:
+        for overlap in nonnative_overlaps(policy):
+            add(f"policy.core_only overlaps always_full, which {NONNATIVE} would hide: {overlap}")
     if not problems:
         for execution in executions(catalogue):
             if execution["id"] in seen_ids:
@@ -1232,7 +1269,7 @@ class Planner:
             return None  # unknown: GitHub's filter result is not defined for this diff
         if "paths" in spec:
             return not any(first_match(spec["paths"], path) for path in changed)
-        ignore = policy.get("inert", []) if spec["paths_ignore"] == METADATA else spec["paths_ignore"]
+        ignore = trigger_globs(spec["paths_ignore"], policy)
         return all(first_match(ignore, path) for path in changed)
 
 
@@ -1380,7 +1417,7 @@ def workflow_problems(workflows, catalogue):
     problems = []
     add = problems.append
     registered = {wf["path"]: wf for wf in catalogue.get("workflow", [])}
-    inert = catalogue.get("policy", {}).get("inert", [])
+    policy = catalogue.get("policy", {})
     for path in sorted(set(workflows) - set(registered)):
         add(f"workflow-unregistered: {path}")
     for path in sorted(set(registered) - set(workflows)):
@@ -1396,8 +1433,8 @@ def workflow_problems(workflows, catalogue):
             actual = {"types": spec.get("types"), "branches": spec.get("branches"),
                       "paths": spec.get("paths"), "paths_ignore": spec.get("paths-ignore")}
             recorded = dict(entry.get("trigger", {}).get(event, {}))
-            if recorded.get("paths_ignore") == METADATA:
-                recorded["paths_ignore"] = inert
+            if recorded.get("paths_ignore") in (METADATA, NONNATIVE):
+                recorded["paths_ignore"] = trigger_globs(recorded["paths_ignore"], policy)
             for key in ("types", "branches", "paths", "paths_ignore"):
                 if _norm(actual[key]) != _norm(recorded.get(key)):
                     add(f"trigger-mismatch: {path}: {event}.{key}: catalogue={recorded.get(key)!r} "
