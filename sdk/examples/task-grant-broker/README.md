@@ -26,7 +26,11 @@ BAD_REQUEST=3, plus the ordering signals GO=4 and RESUME=5. A wrong length,
 tag, attached capability or unknown operation from a known client is answered
 with BAD_REQUEST; a message from any other sender is counted and gets no reply.
 Object 1 (revision 1) contains the 12 bytes `A03 grant ok`; object 2 exists
-but is never granted.
+but is never granted. The broker registers both objects from volume STAT and
+fetches a granted READ through `volume_core::client::Client` (STAT and READ
+only). Natively it still talks to `FixtureVolume`, a read-only stand-in, until
+A03-T2c-2 wires volume domain 0; host tests run it against the real volume
+service on a RAM disk.
 
 ## Fixture standing in for the trusted dialog
 
