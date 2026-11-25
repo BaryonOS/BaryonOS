@@ -68,6 +68,10 @@ this file.
    re-anchor it together with the catalogue after every test shift.
 4. After B9, a merge-hold failure with only "Pending:" lines is expected while
    gates run. Do not push a fix; the re-check re-runs it.
+5. Until a candidate increment changes it, `.github/ci-impact.candidate.toml`
+   is its own header plus a data-identical copy of the catalogue. Every
+   catalogue change (revision bump included) is copied into it in the same
+   pull request.
 
 ## Resume procedure
 
