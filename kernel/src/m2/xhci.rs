@@ -39,6 +39,9 @@ enum Error {
     Isolation,
     #[cfg(feature = "native-usb-hid-probe")]
     Usb,
+    /// H02-T5: one port's device was refused and its slot (if any) undone.
+    #[cfg(feature = "native-usb-hid-refusal")]
+    Refused,
 }
 
 /// IF=0 bootstrap-only PCI mechanism 1; no untrusted caller or concurrent CPU.

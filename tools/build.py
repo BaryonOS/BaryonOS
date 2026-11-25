@@ -71,7 +71,7 @@ HWINV_FEATURES = ("native-hw-inventory", "test-hwinv-panic", "test-hwinv-m2-faul
                   "test-hwinv-serial-timeout")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "native-hw-inventory",
                    "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail", "test-hwinv-serial-timeout",
-                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "test-usb-hid-readonly-fault",
+                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "native-usb-hid-refusal", "test-usb-hid-readonly-fault",
                    "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
                    "native-smp-m3-load", "native-smp-m3-soak", "native-smp-m4-quotas", "native-smp-qsim", "native-smp-m3-kill",

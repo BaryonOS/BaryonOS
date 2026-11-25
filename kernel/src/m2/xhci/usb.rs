@@ -9,17 +9,16 @@
 //! new generation and rejects generation-1 work after slot reuse. The separate
 //! `native-usb-hid-mouse-reattach` profile does the same for the mouse, after
 //! the keyboard is retired, so its generation 2 can reuse the keyboard's slot.
+//! The separate `native-usb-hid-refusal` profile refuses an out-of-profile
+//! device on one port without ending service of the other port.
 use super::*;
+#[cfg(any(feature = "usb-hid-reattach-core", feature = "native-usb-hid-refusal"))]
+use nieuw_os_usb_core::hotplug::{Error as PortError, Phase};
 use nieuw_os_usb_core::{
     boot::MouseChanges,
-    boot_interface::{Protocol, Speed},
-    boot_session::{Changes, CompletionStatus, Lifetime, Session, Token},
+    boot_interface::{Error as BindingError, Protocol, Speed},
+    boot_session::{Changes, CompletionStatus, Error as SessionError, Lifetime, Session, Token},
     hotplug::{Ports, Ticket},
-};
-#[cfg(feature = "usb-hid-reattach-core")]
-use nieuw_os_usb_core::{
-    boot_session::Error as SessionError,
-    hotplug::{Error as PortError, Phase},
 };
 
 // Every grant exists before the fixed domain is established; none is added
@@ -74,6 +73,33 @@ const PORT_CHANGES: u32 = 0x7f << 17;
 fn bad(code: u64) -> Error {
     serial::hex(b"USB-DIAG:REJECT:", code);
     Error::Usb
+}
+
+/// Why the device on one root port is outside this low/full-speed boot-HID
+/// profile. Every reason is decided before SET_CONFIGURATION, before any
+/// interrupt endpoint context, and without a Session.
+#[derive(Clone, Copy)]
+enum Refusal {
+    /// PORTSC speed is neither low nor full (high-speed devices, storage).
+    Speed,
+    /// USB 2.0 §9.6.1/§11.23.1: bDeviceClass 9 is a hub.
+    Hub,
+    /// Interface 0 is not a HID boot keyboard or mouse (USB HID 1.11 §4.2).
+    NotBoot,
+    /// Any other configuration the boot-interface binding rejects.
+    Binding,
+}
+
+#[cfg_attr(not(feature = "native-usb-hid-refusal"), allow(dead_code))]
+impl Refusal {
+    fn marker(self) -> &'static [u8] {
+        match self {
+            Refusal::Speed => b"USB:REFUSE:SPEED\n",
+            Refusal::Hub => b"USB:REFUSE:HUB\n",
+            Refusal::NotBoot => b"USB:REFUSE:NOT_BOOT\n",
+            Refusal::Binding => b"USB:REFUSE:BINDING\n",
+        }
+    }
 }
 
 fn write32(pa: u64, offset: usize, values: &[u32]) {
@@ -421,7 +447,8 @@ impl Engine<'_> {
         let speed = match speed_id {
             1 => Speed::Full,
             2 => Speed::Low,
-            _ => return Err(bad(8)),
+            // No slot exists yet: nothing to undo.
+            _ => return Err(self.refuse(Refusal::Speed, None, 8)),
         };
         if state & 3 != 3 {
             return Err(bad(9));
@@ -462,6 +489,10 @@ impl Engine<'_> {
         {
             return Err(bad(10));
         }
+        // Refused before its configuration is read; other profiles keep code 14.
+        if descriptor[4] == 9 {
+            return Err(self.refuse(Refusal::Hub, Some(slot), 14));
+        }
         if self.control(index, slot, [0x80, 6, 0, 2, 0, 0, 9, 0], 9)? != 9 {
             return Err(bad(11));
         }
@@ -475,8 +506,13 @@ impl Engine<'_> {
             return Err(bad(13));
         }
         let configuration = bytes::<256>(self.pages[DESCRIPTOR], 0);
-        let mut session =
-            Session::new(lifetime, &configuration[..total], 0, speed).map_err(|_| bad(14))?;
+        let mut session = match Session::new(lifetime, &configuration[..total], 0, speed) {
+            Ok(session) => session,
+            Err(SessionError::Binding(BindingError::NotBoot)) => {
+                return Err(self.refuse(Refusal::NotBoot, Some(slot), 14))
+            }
+            Err(_) => return Err(self.refuse(Refusal::Binding, Some(slot), 14)),
+        };
         let binding = session.binding();
         if self.control(
             index,
@@ -532,6 +568,61 @@ impl Engine<'_> {
             pending: None,
             report,
         })
+    }
+
+    /// Refuses the device on this port. In the refusal profile a slot that
+    /// Address Device created (EP0 only, no transfer pending) is disabled and
+    /// its DCBAA entry cleared before `Refused` returns; a failed Disable Slot
+    /// stays terminal. Every other profile keeps its terminal reject `code`.
+    fn refuse(&mut self, reason: Refusal, slot: Option<u8>, code: u64) -> Error {
+        #[cfg(feature = "native-usb-hid-refusal")]
+        {
+            let _ = code;
+            if let Some(slot) = slot {
+                if let Err(error) = self.command(10, slot, 0, 0) {
+                    return error;
+                }
+                write32(self.pages[DCBAA], usize::from(slot) * 2, &[0, 0]);
+                fence(Ordering::SeqCst);
+                if let Err(error) = self.slot_disabled(slot) {
+                    return error;
+                }
+            }
+            serial::write(reason.marker());
+            Error::Refused
+        }
+        #[cfg(not(feature = "native-usb-hid-refusal"))]
+        {
+            let _ = (reason, slot);
+            bad(code)
+        }
+    }
+
+    /// Negative check after Disable Slot: a Reset Device command for the same
+    /// slot must complete with Slot Not Enabled (xHCI 1.2c §4.6.11, code 11).
+    #[cfg(feature = "native-usb-hid-refusal")]
+    fn slot_disabled(&mut self, slot: u8) -> Result<(), Error> {
+        let pointer = self.trb(
+            COMMAND_RING,
+            self.command_next,
+            0,
+            0,
+            17 << 10 | u32::from(slot) << 24,
+        )?;
+        self.command_next += 1;
+        self.controller
+            .write(self.controller.caps.doorbell_offset, 0);
+        let event = self.next()?;
+        if event.kind() != 33
+            || event.parameter != pointer
+            || event.code() != 11
+            // QEMU reports Slot ID 0 for a slot that is no longer enabled.
+            || (event.slot() != slot && event.slot() != 0)
+        {
+            return Err(event.rejected());
+        }
+        serial::write(b"USB:REFUSE:SLOT_DISABLED\n");
+        Ok(())
     }
 
     /// One Ports-correlated attach. Only a real, matched enumeration result
@@ -628,6 +719,7 @@ impl Engine<'_> {
     /// Slot, then terminal Session detach releasing exactly the held `keys`
     /// (keyboard) or `buttons` (mouse) and nothing else.
     /// Returns the detached work so its token can be checked as stale.
+    #[cfg_attr(feature = "native-usb-hid-refusal", allow(dead_code))]
     fn disconnect(&mut self, hid: &mut Hid, keys: &[u8], buttons: u8) -> Result<Pending, Error> {
         let offset = self.port_offset(hid.port)?;
         if self.controller.read(offset) & 1 != 0 {
@@ -691,6 +783,7 @@ impl Engine<'_> {
     }
 
     /// The detached token cannot complete, and repeated detach releases nothing.
+    #[cfg_attr(feature = "native-usb-hid-refusal", allow(dead_code))]
     fn deny_stale(hid: &mut Hid, pending: Pending) -> Result<(), Error> {
         let idle = match hid.session.binding().protocol {
             Protocol::Keyboard => Changes::Keyboard(Default::default()),
@@ -708,6 +801,7 @@ impl Engine<'_> {
         Ok(())
     }
 
+    #[cfg_attr(feature = "native-usb-hid-refusal", allow(dead_code))]
     fn reports(&mut self, keyboard: &mut Hid, mouse: &mut Hid) -> Result<Retired, Error> {
         if keyboard.session.binding().protocol != Protocol::Keyboard
             || mouse.session.binding().protocol != Protocol::Mouse
@@ -822,7 +916,7 @@ impl Engine<'_> {
     }
 
     /// While Detached, only a connect on `port` with PED=0 may start attach.
-    #[cfg(feature = "usb-hid-reattach-core")]
+    #[cfg(any(feature = "usb-hid-reattach-core", feature = "native-usb-hid-refusal"))]
     fn await_connect(&mut self, ports: &Ports<2>, index: usize, port: u8) -> Result<(), Error> {
         for _ in 0..INPUT_POLLS {
             let Some(event) = self.poll()? else {
@@ -842,6 +936,145 @@ impl Engine<'_> {
                 return Err(bad(42));
             }
             return Ok(());
+        }
+        Err(Error::Timeout)
+    }
+
+    /// QEMU makes a USB HID device the host input target only once the xHC
+    /// first polls its interrupt endpoint, so READY waits until MFINDEX
+    /// (xHCI 1.2c §5.5.1: 14 bits of 125 µs microframes) has advanced by two of
+    /// this endpoint's periods plus one frame. Bounded and read-only.
+    #[cfg(feature = "native-usb-hid-refusal")]
+    fn settle(&self, hid: &Hid) -> Result<(), Error> {
+        let target = 16 * u32::from(hid.session.binding().interval_ms) + 8;
+        let mfindex = self.controller.caps.runtime_offset;
+        let mut last = self.controller.read(mfindex) & 0x3fff;
+        let mut elapsed = 0;
+        for _ in 0..POLLS {
+            let now = self.controller.read(mfindex) & 0x3fff;
+            elapsed += now.wrapping_sub(last) & 0x3fff;
+            last = now;
+            if elapsed >= target {
+                return Ok(());
+            }
+            core::hint::spin_loop();
+        }
+        Err(Error::Timeout)
+    }
+
+    /// Refusal profile, after the port-1 refusal and the port-2 mouse attach:
+    /// the mouse keeps delivering reports; the refused device's unplug moves
+    /// only port 1 from Failed to Detached; a later in-profile keyboard on port
+    /// 1 enumerates as a new generation into `output`/`report` (the refused
+    /// slot was disabled and its DCBAA entry cleared) and delivers one key.
+    #[cfg(feature = "native-usb-hid-refusal")]
+    fn refusal(
+        &mut self,
+        ports: &mut Ports<2>,
+        mouse: &mut Hid,
+        output: u64,
+        report: Buffer,
+    ) -> Result<(), Error> {
+        if mouse.session.binding().protocol != Protocol::Mouse || mouse.port != 2 {
+            return Err(bad(57));
+        }
+        self.submit(mouse)?;
+        self.settle(mouse)?;
+        serial::write(b"USB:REFUSE:READY\n");
+        let mut phase = 0;
+        let mut unplugged = false;
+        for _ in 0..INPUT_POLLS {
+            let Some(event) = self.poll()? else {
+                core::hint::spin_loop();
+                continue;
+            };
+            if event.kind() == 34 {
+                // Only the refused device's unplug, after the mouse sequence.
+                let port = self.port_event(event)?;
+                let connected = self.controller.read(self.port_offset(port)?) & 1 != 0;
+                if phase != 2 || port != 1 || connected || ports.phase(0) != Ok(Phase::Failed) {
+                    return Err(bad(58));
+                }
+                ports.detach(0).map_err(|_| bad(58))?;
+                serial::write(b"USB:REFUSE:UNPLUG:PASS\n");
+                unplugged = true;
+                break;
+            }
+            if event.slot() != mouse.slot {
+                return Err(event.rejected());
+            }
+            let Changes::Mouse(change) = self.complete(mouse, event)? else {
+                return Err(bad(59));
+            };
+            if change != MouseChanges::default() {
+                let down = MouseChanges {
+                    dx: 7,
+                    dy: -3,
+                    buttons_pressed: 1,
+                    buttons_released: 0,
+                };
+                let up = MouseChanges {
+                    buttons_released: 1,
+                    ..Default::default()
+                };
+                match phase {
+                    0 if change == down => {
+                        phase = 1;
+                        serial::write(b"USB:REFUSE:MOUSE_DOWN\n");
+                    }
+                    1 if change == up => {
+                        phase = 2;
+                        serial::write(b"USB:REFUSE:MOUSE_UP\n");
+                    }
+                    _ => return Err(bad(59)),
+                }
+            }
+            self.submit(mouse)?;
+        }
+        if !unplugged {
+            return Err(Error::Timeout);
+        }
+        self.await_connect(ports, 0, 1)?;
+        let (mut keyboard, _) = self.attach(ports, 0, 1, output, report, None)?;
+        if keyboard.session.binding().protocol != Protocol::Keyboard
+            || ports.phase(0) != Ok(Phase::Ready)
+            || keyboard.slot == mouse.slot
+        {
+            return Err(bad(60));
+        }
+        serial::write(b"USB:REFUSE:RECOVER:KEYBOARD\n");
+        self.submit(&mut keyboard)?;
+        self.settle(&keyboard)?;
+        serial::write(b"USB:REFUSE:RECOVER:READY\n");
+        let mut pressed = false;
+        for _ in 0..INPUT_POLLS {
+            let Some(event) = self.poll()? else {
+                core::hint::spin_loop();
+                continue;
+            };
+            // The mouse stays idle and no further port change is admitted.
+            if event.kind() == 34 || event.slot() != keyboard.slot {
+                return Err(event.rejected());
+            }
+            let Changes::Keyboard(keys) = self.complete(&mut keyboard, event)? else {
+                return Err(bad(61));
+            };
+            if keys.status.is_some() || keys.modifiers_pressed != 0 || keys.modifiers_released != 0
+            {
+                return Err(bad(61));
+            }
+            if !keys.pressed().is_empty() || !keys.released().is_empty() {
+                if !pressed && keys.pressed() == [4] && keys.released().is_empty() {
+                    pressed = true;
+                    serial::write(b"USB:REFUSE:RECOVER:KEY_DOWN\n");
+                } else if pressed && keys.released() == [4] && keys.pressed().is_empty() {
+                    serial::write(b"USB:REFUSE:RECOVER:KEY_UP\n");
+                    return Ok(());
+                } else {
+                    return Err(bad(61));
+                }
+            }
+            self.submit(&mut keyboard)?;
         }
         Err(Error::Timeout)
     }
@@ -1245,51 +1478,73 @@ pub(super) fn execute(
             offset: 0,
             io: io[REPORT + index],
         };
-        let (mut keyboard, keyboard_ticket) =
-            engine.attach(&mut ports, 0, 1, io[OUTPUT_CONTEXT], report(0), None)?;
-        announce(&keyboard);
-        let (mut mouse, mouse_ticket) =
-            engine.attach(&mut ports, 1, 2, io[OUTPUT_CONTEXT + 1], report(1), None)?;
-        announce(&mouse);
-        serial::write(b"USB:PROTOCOL:PASS\n");
-        let retired = engine.reports(&mut keyboard, &mut mouse)?;
-        #[cfg(feature = "native-usb-hid-reattach")]
+        #[cfg(feature = "native-usb-hid-refusal")]
         {
-            let _ = mouse_ticket;
-            let captured = retired.event.ok_or_else(|| bad(43))?;
-            engine.reattach(
-                &mut ports,
-                keyboard_ticket,
-                &keyboard,
-                retired,
-                &[(captured, keyboard.slot)],
-                &[],
-                (pages[SPARE], io[SPARE]),
-            )?;
+            // H02-T5: port 1 holds an out-of-profile device; only its refusal
+            // is accepted. One attempt per attach: the refused port stays
+            // Failed and cannot be re-enumerated until that device is unplugged.
+            match engine.attach(&mut ports, 0, 1, io[OUTPUT_CONTEXT], report(0), None) {
+                Err(Error::Refused) => {}
+                Ok(_) => return Err(bad(56)),
+                Err(error) => return Err(error),
+            }
+            if ports.phase(0) != Ok(Phase::Failed) || ports.attach(0) != Err(PortError::Busy) {
+                return Err(bad(56));
+            }
+            serial::write(b"USB:REFUSE:PORT_HELD\n");
+            let (mut mouse, _) =
+                engine.attach(&mut ports, 1, 2, io[OUTPUT_CONTEXT + 1], report(1), None)?;
+            announce(&mouse);
+            engine.refusal(&mut ports, &mut mouse, io[OUTPUT_CONTEXT], report(0))?;
         }
-        #[cfg(feature = "native-usb-hid-mouse-reattach")]
+        #[cfg(not(feature = "native-usb-hid-refusal"))]
         {
-            let _ = keyboard_ticket;
-            let keyboard_event = retired.event.ok_or_else(|| bad(43))?;
-            // QEMU may hand the keyboard's slot to a later Enable Slot, so its
-            // DCBAA entry is cleared and its pages filled before any attach.
-            engine.retire(&mut ports, &keyboard)?;
-            fill(pages[OUTPUT_CONTEXT], RETIRED);
-            fill(pages[REPORT], RETIRED);
-            let mouse_retired = engine.hold_and_unplug_mouse(&mut mouse)?;
-            let mouse_event = mouse_retired.event.ok_or_else(|| bad(43))?;
-            engine.reattach(
-                &mut ports,
-                mouse_ticket,
-                &mouse,
-                mouse_retired,
-                &[(keyboard_event, keyboard.slot), (mouse_event, mouse.slot)],
-                &[retired.pending.token],
-                (pages[SPARE], io[SPARE]),
-            )?;
+            let (mut keyboard, keyboard_ticket) =
+                engine.attach(&mut ports, 0, 1, io[OUTPUT_CONTEXT], report(0), None)?;
+            announce(&keyboard);
+            let (mut mouse, mouse_ticket) =
+                engine.attach(&mut ports, 1, 2, io[OUTPUT_CONTEXT + 1], report(1), None)?;
+            announce(&mouse);
+            serial::write(b"USB:PROTOCOL:PASS\n");
+            let retired = engine.reports(&mut keyboard, &mut mouse)?;
+            #[cfg(feature = "native-usb-hid-reattach")]
+            {
+                let _ = mouse_ticket;
+                let captured = retired.event.ok_or_else(|| bad(43))?;
+                engine.reattach(
+                    &mut ports,
+                    keyboard_ticket,
+                    &keyboard,
+                    retired,
+                    &[(captured, keyboard.slot)],
+                    &[],
+                    (pages[SPARE], io[SPARE]),
+                )?;
+            }
+            #[cfg(feature = "native-usb-hid-mouse-reattach")]
+            {
+                let _ = keyboard_ticket;
+                let keyboard_event = retired.event.ok_or_else(|| bad(43))?;
+                // QEMU may hand the keyboard's slot to a later Enable Slot, so its
+                // DCBAA entry is cleared and its pages filled before any attach.
+                engine.retire(&mut ports, &keyboard)?;
+                fill(pages[OUTPUT_CONTEXT], RETIRED);
+                fill(pages[REPORT], RETIRED);
+                let mouse_retired = engine.hold_and_unplug_mouse(&mut mouse)?;
+                let mouse_event = mouse_retired.event.ok_or_else(|| bad(43))?;
+                engine.reattach(
+                    &mut ports,
+                    mouse_ticket,
+                    &mouse,
+                    mouse_retired,
+                    &[(keyboard_event, keyboard.slot), (mouse_event, mouse.slot)],
+                    &[retired.pending.token],
+                    (pages[SPARE], io[SPARE]),
+                )?;
+            }
+            #[cfg(not(feature = "usb-hid-reattach-core"))]
+            let _ = (keyboard_ticket, mouse_ticket, retired);
         }
-        #[cfg(not(feature = "usb-hid-reattach-core"))]
-        let _ = (keyboard_ticket, mouse_ticket, retired);
         if domain.fault().map_err(|_| Error::Isolation)?.is_some() {
             return Err(Error::Isolation);
         }
