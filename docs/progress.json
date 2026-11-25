@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "ea38dcc692de657f7b3c025b223033e3af2b0bb8",
+    "source_commit": "d436a595ac05b2c8fe2a0e51a53659001fa21742",
     "assessment_basis": "parent_commit",
-    "branch": "claude/ui-u-space-parity-20261125",
-    "task": "UI-U-C6-20261125 U04: Space activates a focused search result (ds-1.1 Enter/Space parity)",
+    "branch": "claude/h02-t5-usb-refusal-20261125",
+    "task": "H02-T5 h02-t5-20261125: native per-port refusal of out-of-profile USB devices",
     "previous_score": 43,
-    "summary": "43/100 unchanged. Shell::key now types Space only while focus is on the search field and activates a Tab-focused search result like a pointer click; the ignored host test is folded into the keyboard_only.rs Enter/Space parity test. U04 stays open: Notifications keyboard route (owner decision), native keyboard evidence, screen-reader chain and human trials are missing; evidence is host tests only."
+    "summary": "43/100 unchanged. The exclusive native-usb-hid-refusal profile refuses a hub, a non-boot tablet, a high-speed keyboard and USB storage on xHCI root port 1 at the driver boundary (slot disabled and proven gone), keeps the port-2 mouse in service and recovers port 1 with a new-generation keyboard; QEMU raw 33 for all four cases, regressions unchanged, six mutants fail. H02 stays open: physical USB devices, hubs, physical hotplug, IRQ delivery, the reference hardware matrix and human acceptance are missing; evidence is QEMU only."
   },
   "tracks": [
     {
