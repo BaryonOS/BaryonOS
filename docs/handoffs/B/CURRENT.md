@@ -85,3 +85,25 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   `LREC`/`HAUTH` TPM I/O and `HAUTH`
   provisioning (wipe, CRB buffer overwrite, PCR 13 extend last, all four banks), S3/U27, the section 7.9 halt,
   native S5 with N's joint tests. Resume from the newest HANDOFF comment on #524.
+
+## Next slice spec (written 25 Nov ~18:15Z, not started)
+
+M1-HAUTH BOUND provisioning in the loader (TEST, QEMU/swtpm), without S3b (EK, `ENROLL` verification) and U28:
+1. Check the tpm-crb codec covers every command of the host model `loader()` block up to BOUND, within 128 bytes:
+   undefine (tolerate TPM_RC_HANDLE only), define and owner-write `HAUTH` (entropy from `EFI_RNG_PROTOCOL`,
+   `virtio_rng=True`), define `LREC` and policy-write it BOUND (`LoaderRecord`, `hauth_binding`), owner and lockout
+   `HierarchyChangeAuth`, read back with the Name and binding check. Fill any gap as its own codec commit first
+   (set `CARGO_TARGET_DIR`; `drivers/tpm-crb/target/` is untracked).
+2. PCR 13 extend in every active bank (codec is SHA-256 only; four banks under OVMF; one bank per command):
+   settle the mechanism from U2/U5 first.
+3. New TEST loader feature plus a new `run_tpm.py` case; kernel unchanged. The four existing cases keep their guest
+   stdout hashes. Update the `run_tpm.py` docstring and scope string ("no keys or NV mutation" no longer holds).
+4. In the loader, after the extend: the policy `HAUTH` read and an empty-auth owner command are refused. Markers
+   carry results only, never secret bytes.
+5. Sub-step 2: two boots on one swtpm state; the second reads `HAUTH` and matches `LREC`.
+Stop before genesis, ACCEPTED and the UEFI copy. NOT RUN: the SHA-256 working-state wipe of `hauth_binding`
+(no claim that the secret is wiped from loader memory).
+
+Lane: owner correction ~18:05Z. CI keeps priority until every CI batch is resolved, and the main freeze holds after #544.
+#524 (draft, BEHIND main) does not catch up or push until the PR guard grants the lane. Infra reruns on 5e126571
+(runs 45649628744, 45649628788, 45649628817) all succeeded; merge-hold stays red only because the branch is BEHIND.
