@@ -2197,7 +2197,8 @@ def candidate_drift(candidate, catalogue):
     if len(declared) != 1 or not declared[0]:
         return f"the header must declare '{CANDIDATE_INCREMENT} <none or a name>' exactly once"
     if declared[0] != "none":
-        return None  # a declared increment; validate still checks its data
+        # A declared increment names its issue, so a look-alike such as "None" cannot switch the check off.
+        return None if re.search(r"#[0-9]+", declared[0]) else "a declared increment names its issue (#<number>)"
     header = candidate[:len(candidate) - len(catalogue)]
     if not candidate.endswith(catalogue) or not header.endswith("\n") \
             or any(not line.startswith("#") for line in header.splitlines()):
@@ -2341,7 +2342,10 @@ class CiImpactShadowTests(unittest.TestCase):
                  "comment drift in the copy": (copy + "# extra\n", catalogue),
                  "no declaration": (copy.replace(marker, "", 1), catalogue),
                  "empty declaration": (copy.replace(marker, CANDIDATE_INCREMENT + "\n", 1), catalogue),
-                 "two declarations": (copy.replace(marker, marker + marker, 1), catalogue)}
+                 "two declarations": (copy.replace(marker, marker + marker, 1), catalogue),
+                 "look-alike of none": (copy.replace(marker, CANDIDATE_INCREMENT + " None\n", 1), catalogue),
+                 "increment without an issue": (drifted.replace(marker, CANDIDATE_INCREMENT + " C4\n", 1),
+                                                catalogue)}
         for label, (text, base) in cases.items():
             with self.subTest(case=label):
                 self.assertIsNotNone(candidate_drift(text, base))
