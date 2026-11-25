@@ -97,6 +97,24 @@ session's context must rotate were only in issue comments.
    - A specialist checks for duplicates before creating an issue.
    - An issue stays within the specialist's own workstream.
 
+**Alternatives:** the owner recorded no alternatives that were considered. The
+implicit alternative is the previous state: six delegated workstreams, with
+applications, personal NAS, local AI and reliability work handled under
+separate ad-hoc mandates or not owned at all. The record does not establish
+why four new specialists were chosen rather than another split.
+
+**Rationale/sources:**
+
+- **Rationale:** the ownership gap described under Problem. No further
+  rationale is recorded.
+- **Sources:**
+  - the owner's decision given to the PR guard at about 11:25Z;
+  - the confirmation in the CI session at about 11:45Z (#494, comment
+    7161215540);
+  - the tracking-issue decision of about 12:35Z, relayed by the PR guard;
+  - the clarification of item 5 during the review of #527;
+  - the PR guard's operational history in #503.
+
 **Consequences:**
 
 - `AGENTS.md` lists the ten specialists and the naming rule in the merge
