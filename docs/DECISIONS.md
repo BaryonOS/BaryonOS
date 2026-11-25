@@ -142,7 +142,14 @@ recommendations become decisions as listed here.
 **Open:** proposal questions 6 (whether N04 acceptance requires durable
 revocation across restart), 7 (the component holding boot-lifetime denial
 entries) and 8 (the per-boot incarnation source) are not decided by this
-entry.
+entry. Review of the anchor contract on #524 (25 November 2026) found that the
+digest binding does not by itself reject a same-generation fork: with the
+unauthenticated slot write (T3), a crash before the slot write, a replayed
+store at `A` and a hostile slot rewrite can revive a stale authentic store at
+`A + 1` over an acknowledged revocation (M1; red host test
+`hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation`,
+ignored until fixed). A missing store with binding `0^32` can likewise be
+forged as genesis (L2). Both are open owner questions; 5A stays in force.
 
 **Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
 N04 stays open until its native evidence exists; the score is unchanged.
