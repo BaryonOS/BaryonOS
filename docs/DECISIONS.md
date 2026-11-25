@@ -537,10 +537,13 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    only) and runs a kernel-driven READ of reserved canary sector 0 whose bytes
    are discarded. No block capability is issued, `block_objects == 0` and the
    SUSPEND storage gate are unchanged, and init's post-wake 0x40 with its POWER
-   handle now reaches the authority check (-6) instead of -14. The three volume
-   latches use `device_lost()` = resumed and not re-initialised; in every other
+   handle now reaches the authority check (-6) instead of -14. The volume latch
+   (four `resumed()` call sites in three functions: `device_call` twice,
+   `reset`, `advance_lane`) now uses `device_lost()` = resumed and not
+   re-initialised; in every other
    S3 profile block devices stay lost (-14), and the rng path is unchanged.
-   Project-owner decisions of 25 November 2026:
+   Project-owner decisions of 25 November 2026, as relayed in the H05-T5c task
+   brief (Q4 quoted verbatim from it; Q1-Q3, Q5 and Q6 summarised in full):
    - **Q1** (ring-3 block re-grant), **Q2** (mandatory remount after a wake) and
      **Q3** (key erasure before SUSPEND) are later slices; this slice
      implements none of them and relaxes no gate.

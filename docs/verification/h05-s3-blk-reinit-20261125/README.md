@@ -33,10 +33,10 @@ All logs are under `~/projects/BaryonOS-scratch/h/h05-t5c/`. Run directories are
 
 | Command | Raw exit | Log |
 |---|---|---|
-| `cargo +1.100.0 test --locked` (drivers/virtio-blk) | 0 | session output |
-| `cargo +1.100.0 clippy --locked --all-targets -- -D warnings` (drivers/virtio-blk) | 0 | session output |
-| `cargo +1.100.0 fmt --all -- --check` (virtio-blk, kernel, sdk) | 0 | `kernel-fmt.log` |
-| `python3 -B -m unittest tests.test_system_harness` (64 tests) | 0 | session output |
+| `cargo +1.100.0 test --locked --manifest-path drivers/virtio-blk/Cargo.toml` (5 tests) | 0 | `blk-test.log` |
+| `cargo +1.100.0 clippy --locked --manifest-path drivers/virtio-blk/Cargo.toml --all-targets -- -D warnings` | 0 | `blk-clippy.log` |
+| `cargo +1.100.0 fmt --manifest-path <virtio-blk, kernel, sdk>/Cargo.toml -- --check` | 0, 0, 0 | `blk-fmt.log`, `kernel-fmt.log`, `sdk-fmt.log` |
+| `python3 -B -m unittest tests.test_system_harness` (64 tests) | 0 | `system-harness.log` |
 | `python3 -B -m unittest discover -s tools/tests -p test_sleep.py` (20 tests) | 0 | `test-sleep.log` |
 | `python3 -B tools/test_power_system.py` | 0 (`passed=True stages=22`) | `power-gate.log`, `build/h05-t5c/power-system-gate.json` |
 | `python3 -B tools/build.py --kernel-feature native-acpi-s3 && python3 -B tools/run_sleep.py --case cycles` | 0 (QEMU raw 33, `POWER:S3:PASS`) | `sleep-cycles.log` |
@@ -106,9 +106,10 @@ implemented but was not provoked natively.
 - **Latch carryover against #522:** the test is pending until H merges main after #522.
 - **Published, uncompleted WRITE at SUSPEND:** a device lost in this state is already
   refused by the existing SUSPEND storage gate, so no path was added.
-- **volume.rs:** 6 hunks:
-  - four one-token `resumed()` → `device_lost()` swaps;
+- **volume.rs:** 5 hunks against c61a1fe0 (`git diff c61a1fe0 HEAD -- kernel/src/m2/m3/volume.rs | grep -c '^@@'`):
   - the `quarantine_code` wrapper in `syscall()`;
+  - three hunks holding four one-token `resumed()` → `device_lost()` swaps, at four call
+    sites in three functions (`device_call` twice, `reset`, `advance_lane`);
   - one contiguous block at the end of the file.
 
 ## Not run / not claimable
