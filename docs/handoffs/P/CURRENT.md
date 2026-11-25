@@ -73,9 +73,10 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   - write set (slice 1): `services/nas/native-probe/src/lib.rs`,
     `services/nas/native-probe/tests/ipc.rs`,
     `services/nas/native-probe/CONTRACT.md`.
-  - acceptance: probe `cargo test`, `clippy -D warnings` and `fmt --check`
-    (1.90.0); native `clippy --features native --bins` (1.100.0); probe and
-    NAS Python unittests; the unchanged four-stage native gate.
+  - acceptance: the `nas-core.yml` nas-workspace steps for the probe on Rust
+    1.100.0 (debug and release test and clippy `--all-targets`, `fmt --check`,
+    `x86_64-unknown-none` build, native `clippy --features native --bins`);
+    probe and NAS Python unittests; the unchanged four-stage native gate.
   - local result (b5d1221f): probe host tests 8+2+3 pass, clippy/fmt pass,
     native clippy pass, Python unittests OK, native gate 4/4 raw 33
     (normal, recover, interrupt, repair; source 72b890a4…).
