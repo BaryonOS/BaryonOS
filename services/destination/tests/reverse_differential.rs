@@ -31,6 +31,18 @@ fn oracle_crafted_images_mount_with_the_oracle_verdict() {
         .filter(|path| path.extension().is_some_and(|ext| ext == "expect"))
         .collect();
     names.sort();
+    // Every image must carry the oracle's verdict: an image without one would
+    // otherwise be skipped silently and shrink the corpus unnoticed.
+    let images = fs::read_dir(dir)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "img"))
+        .count();
+    assert_eq!(
+        images,
+        names.len(),
+        "images without a matching .expect file"
+    );
     let (mut mounted, mut refused, mut mismatches) = (0, 0, Vec::new());
     for expect_path in &names {
         let expect = fs::read_to_string(expect_path).unwrap();

@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "d436a595ac05b2c8fe2a0e51a53659001fa21742",
+    "source_commit": "8acf1deaaf0c9d9ab79f904850a56015910ba093",
     "assessment_basis": "parent_commit",
     "branch": "claude/ui-u-notifications-panel-20261125",
     "task": "UI-U-C5-20261125 U04: Alt+N panel as the single notification centre (keyboard, mouse and clock routes)",

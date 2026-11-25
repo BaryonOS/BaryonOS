@@ -20,24 +20,22 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261124-6 (cloud session).
-- **Owner decisions:** packages 1 and 2 of 24 November 2026 (O1–O13; O14–O18
-  confirmed) are recorded in `docs/implementation/S09-DESTINATION-SERVICE.md`
-  (header note, 8.1). ADR text and CI/K5 needs: `COORDINATOR-REQUEST-20261124.md`
-  (C1–C5) beside this file.
-- **Branch / PR:** `claude/brave-feynman-jbiz6x`, PR #509 (draft until the
-  required checks pass on its head). Contents: decisions, R3 reverse
-  differential (host), R2 status, K5 step 1 (`kernel/src/m2/m3/volume.rs`).
-- **Evidence on `1a3924de` (local):** native volume gate 32/32 and H05
-  power gate 12/12 (`build/k5d-*`); earlier on `04b06de2`: native volume gate 32/32
-  (`build/k5c-volume.log`), H05 power gate 12/12 with S3, S3 re-init and
-  held completion (`build/k5c-power/power-system-gate.json`); destination
-  tests, oracle suite, reverse differential 182 and forward 30 images.
-- **Review:** K5-REVIEW-1 (independent AI security review) REQUEST_CHANGES,
-  R1 (S3 quiescence with an absent lane) fixed in `04b06de2`; O1–O3 applied;
-  O4 (tickets restart per lane) noted, no consumer found.
-- **Hosted:** `native-hw-inventory` failed once on `409614d4` with "Missing
-  QMP greeting" in the plain boot (doc-only head; not attributed; commented).
+- **cycle_id:** S-20261125-1 (cloud session). Cycle S-20261124-6 landed on
+  `main` as `ad55e019` (PR #509, squash): owner decisions O1–O13 in
+  `docs/implementation/S09-DESTINATION-SERVICE.md`, the R3 reverse
+  differential (host), the R2 status record and K5 step 1 (per-device broker
+  state in `kernel/src/m2/m3/volume.rs`, S3 latch in `advance_lane`).
+  Evidence for K5: native volume gate 32/32 and H05 power gate 12/12 locally
+  on `9b30c556`, and every hosted gate on the merged head.
+- **This branch:** `claude/brave-feynman-jbiz6x`, restarted from `ad55e019`.
+  Task: the two valid Graphify review findings on PR #509 (a real
+  formatted-count-below-scope case; every reverse-corpus image needs a
+  verdict) and this handoff.
+- **Coordinator requests:** C1–C5 in `COORDINATOR-REQUEST-20261124.md` are
+  still open (ADR, hosted R3 checks, P10, destination gate, K5 routing).
+- **Process note:** `main` enforces strict up-to-date required checks; with
+  merges about hourly and gates of about 45 minutes, a PR can stay behind.
+  A merge queue would remove that race (repository setting, coordinator).
 
 ## Lessons
 
@@ -70,6 +68,12 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    with `volume_core` (`Service`, `Client`, `archive::export`) over an
    in-memory `Disk`; the harness switches verifiers with `AnyVerifier`.
 
+10. `tests/test_system_harness.py` (PostWakeLatchStructure) pins the source
+   shape of the volume broker: every device call must follow the S3 latch
+   in the same function and be counted by `device_access()`, and a
+   rustfmt-split `.request()` line reads as a device call. Run it locally
+   after any change to `kernel/src/m2/m3/volume.rs`.
+
 9. The reverse differential is two-step: the Python test writes the corpus
    (`DEST_REVERSE_OUT=build/<dir>`), then the Rust test reads it
    (`DEST_REVERSE_IN`, absolute path). Without the variable the Rust test
@@ -77,18 +81,13 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Next executable task
 
-1. PR #509: confirm `host-quality`, `qemu-smoke`, `merge-hold` (and
-   `native-hw-inventory`) on the head, then squash-merge with the expected
-   head and confirm on `main`.
-2. Native K5 fixtures (new test stage; pins by the CI owner, C4/C5):
-   disk-1 admitted while disk 0 is in flight; no disk-1 request between a
-   disk-1 timeout and the acknowledged reset.
-3. O13 kernel write latch in the per-device broker (trigger and service
-   interface first, then a native test; keeps READ and remount FLUSH).
-4. O12 owner-binding design (catalog version, trusted identity, access
-   checks, recovery without the original disk) with B and the user/session
-   owner; O1 remembered-VERIFY store; O3/O5 catalog extension.
-5. R5: destination service binary in the test profile on disk 1 with the
-   deterministic `DEST:ID:TEST-ONLY` ID and a scripted dialog.
+1. O13 kernel write latch in the per-device broker: specify the trigger and
+   the service interface, then implement with a native test; keep READ and
+   the remount FLUSH, keep N32; O17 mismatch alone sets no latch.
+2. Native K5 fixtures (new stage; pins by the CI owner, C4/C5).
+3. O12 owner-binding design with B and the user/session owner; O1
+   remembered-VERIFY store; O3/O5 catalog extension.
+4. R5: destination service binary in the test profile on disk 1 with
+   `DEST:ID:TEST-ONLY` and a scripted dialog.
 
 Owner decisions D1–D5 and a human audit remain outside S's authority.
