@@ -191,6 +191,8 @@ jobs:
         run: |
           cargo +1.100.0 test --manifest-path experiments/ai/native-job/Cargo.toml --locked --target-dir "$PWD/target"
           cargo +1.100.0 clippy --manifest-path experiments/ai/native-job/Cargo.toml --locked --target-dir "$PWD/target" --all-targets -- -D warnings
+          # The ring-3 bin needs the native feature, so --all-targets skips it.
+          cargo +1.100.0 clippy --manifest-path experiments/ai/native-job/Cargo.toml --locked --target-dir "$PWD/target" --features native --bin ai-job-native -- -D warnings
           cargo +1.100.0 fmt --manifest-path experiments/ai/native-job/Cargo.toml --all -- --check
       - name: Product prototype tests
         env:
