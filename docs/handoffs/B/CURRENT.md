@@ -40,10 +40,13 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 ## Evidence / NOT RUN
 
 - Evidence: host model `crates/update-core/tests/anchor_chain_model.rs`, `drivers/tpm-crb` codec and transport
-  tests, swtpm probes under `docs/verification/b03-rel05-*-20261125/`, native `tools/run_tpm.py` normal/absent.
-- NOT RUN: loader TPM path, native S5 provisioning and joint N04 tests, physical hardware, human audit.
+  tests, swtpm probes under `docs/verification/b03-rel05-*-20261125/`, native `tools/run_tpm.py` normal/absent and
+  loader-probe (S6 step 1: firmware TCG2 works through the loader's own binding; `EFI_RNG_PROTOCOL` absent on the
+  current TEST QEMU line).
+- NOT RUN: `HAUTH` provisioning, the loader record, native S5 and joint N04 tests, hosted CI for the loader-probe
+  case, physical hardware, human audit.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
-  staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt.
+  staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; U25 entropy source.
 
 ## Merge procedure lesson (25 Nov)
 
@@ -71,6 +74,11 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- REL-05 loader TPM slice on #524: TCG2 SubmitCommand path, `HAUTH` provisioning with the squatting checks,
-  U26 loader record, U25 entropy, buffer wipe before the PCR 13 extend, S3/U27 and the section 7.9 halt;
-  then native S5 with N's joint tests. Resume from the newest HANDOFF comment on #524.
+- REL-05 loader slice on #524, S6 step 4 first: U25 entropy experiment. Try virtio-rng and `-cpu qemu64,+rdrand`
+  as an opt-in `run_guest` argument (existing profiles byte-identical) and a new `run_tpm` case; check the kernel
+  markers stay unchanged; pin `RNG:ABSENT` in `loader-probe` and `RNG:PASS` in the new case; check what the hosted
+  stack (swtpm 0.7.3, `pc-q35-8.2`, its OVMF) would show. The source stays `EFI_RNG_PROTOCOL`; any other source is
+  a contract change.
+- Then: U26 record and the record-staging rule in the contract, `HAUTH` provisioning (wipe, CRB buffer overwrite,
+  PCR 13 extend last, all four banks), S3/U27, the section 7.9 halt, native S5 with N's joint tests. Resume from
+  the newest HANDOFF comment on #524.
