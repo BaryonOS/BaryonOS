@@ -80,8 +80,9 @@ are rejected.
   - `select` (phase 4): as `enforce`, and workflows with a `select` job skip
     executions the plan does not select.
   - `full`: the selection rollback. Every plan becomes full with fallback
-    `policy-rollback`, so every workflow runs everything, while merge-hold
-    still verifies every applicable gate.
+    `policy-rollback`, so every workflow that its own path filter starts runs
+    everything (see "Tooling metadata"), while merge-hold still verifies every
+    applicable gate.
 - `[policy.budgets]` (required): `pull_request_wait_minutes` and
   `merge_group_wait_minutes`, integers from 0 to 45 (below the 50-minute
   merge-hold timeout). merge-hold reads them from the trusted base.
@@ -415,8 +416,12 @@ dependencies (`host-dependencies: 'true'`, which provides PyYAML for
    the advisory candidate catalogue (#494, phase 5 C3). The candidate starts
    as a copy of the enforced catalogue and later carries candidate selection
    data, which is activated only on counterexample-free shadow evidence.
-   merge-hold, the select jobs and host-quality never read it. Without a base
-   copy the candidate plan is `full` (`bootstrap-no-base-catalogue`).
+   No selection or enforcement step reads it: merge-hold, the select jobs and
+   the `validate` and `coverage` steps of host-quality ignore it. A host-quality
+   unit test does validate the head copy, so an invalid candidate fails
+   host-quality, and as a `.github/**` path every edit to it makes the plan
+   full. Without a base copy the candidate plan is `full`
+   (`bootstrap-no-base-catalogue`).
 3. A report-only step runs `coverage` from the checkout and writes
    `build/ci-impact/coverage.json`, plus its status and at most 50 problems
    in the step summary. It never asserts the status.
@@ -661,7 +666,9 @@ a `push` backstop on `main` (`entropy-keys`, `nas-core`,
 `signed-updates`) ignore `"@nonnative"`: a change confined to documentation,
 project metadata and `core_only` tooling metadata (`.agents/**`, `.claude/**`,
 `plugins/**`, `LICENSE` and the rest of the list) starts none of them, and
-merge-hold does not wait for them. Their `push` trigger stays `"@metadata"`, so
+merge-hold does not wait for them. Without a usable classification, for
+example after a fallback before classification on the base, those gates stay
+expected and fail or stay Pending instead ("Expected set", K10). Their `push` trigger stays `"@metadata"`, so
 the merged commit runs them on `main`; a failure there reopens the rule, and a
 run cancelled by a newer push to `main` is no evidence either way.
 `native-hid-input` and `native-xhci` (which execute `plugins/**` through
@@ -768,6 +775,18 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
   `.github/ci-impact.toml` already was (`.github/**`).
 - **K9, activation OR-guard heuristic: unchanged, report only.** Activation
   correctness is not inferred from it; merge-hold judges actual results.
+- **K10, `@nonnative` gates that never start: open, fail-closed.** On a
+  tooling-metadata-only pull request (phase 5 C2) GitHub starts none of the 13
+  `@nonnative` workflows, but the plan can still expect them: after a pre-diff
+  fallback that merge-hold accepts (`ambiguous-merge-base`, `shallow-history`,
+  `missing-history`, `diff-failed`, `unknown-diff-status`, `diff-parse`), or
+  under a rollback or full `pull_request` mode with more than 300 changed
+  files. merge-hold then reports them Pending until a re-run with a usable diff
+  or a new head. A fallback before classification (for example
+  `cargo-manifest-missing`, or a Cargo construct on the base) instead fails
+  those rows as possibly hidden inputs, with a message that names the
+  `core_only` paths. Each case needs broken history, a broken base catalogue
+  or an active rollback; none is expected in the normal squash-merge flow.
 
 ## Phases
 
@@ -786,7 +805,7 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
 - **4 (current, select):** component leaves per variant, app-management and
   net-tls per job; see "Selection".
 - **Rollback:** setting `policy.mode = "full"` in the catalogue on the base
-  branch makes every plan full immediately: every workflow runs everything
-  while merge-hold keeps verifying every applicable gate, and host-quality,
+  branch makes every plan full immediately: every workflow that its own path
+  filter starts runs everything while merge-hold keeps verifying every applicable gate, and host-quality,
   qemu-smoke, CodeQL and the acceptance hold are unchanged. `shadow` (above)
   is the separate emergency switch for the enforcement itself.

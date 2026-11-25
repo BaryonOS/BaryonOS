@@ -1,8 +1,11 @@
 # CI impact CANDIDATE catalogue (advisory; #494 phase 5 C3). Contract: docs/CI-CONTRACT.md.
 #
 # ci.yml#ci-impact-shadow plans the base commit's copy of this file with the base
-# selector and preserves build/ci-impact/plan-candidate.json. merge-hold, the select
-# jobs and host-quality never read it, so it changes no CI run. It starts as a copy of
+# selector and preserves build/ci-impact/plan-candidate.json. No selection or
+# enforcement step reads it: merge-hold, the select jobs and the validate and
+# coverage steps of host-quality ignore it. A host-quality unit test does validate
+# it, so an invalid candidate fails host-quality, and as a .github/** path every
+# edit makes the plan full. It starts as a copy of
 # .github/ci-impact.toml; later increments put their candidate selection data here and
 # activate it only on counterexample-free shadow evidence.
 #

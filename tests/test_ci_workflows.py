@@ -2179,7 +2179,7 @@ class CiImpactShadowTests(unittest.TestCase):
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
 
     def test_only_the_shadow_job_reads_the_candidate_catalogue(self):
-        """#494 phase 5 C3: merge-hold, select jobs and host-quality never consume the candidate."""
+        """#494 phase 5 C3: no selection or enforcement step consumes the candidate; host-quality only validates it."""
         users = {}
         for path in [*(ROOT / ".github").rglob("*.y*ml"), *(ROOT / "tools").glob("*.py")]:
             text = path.read_text(encoding="utf-8")
