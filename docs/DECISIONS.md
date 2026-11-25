@@ -164,8 +164,24 @@ sibling without an acknowledged revocation (red tests
 `reseal_multi_boot_sibling_reseal_revives_over_acknowledged_change`). With an
 unauthenticated slot, the counter is the only anchor state an attacker cannot
 choose, so no binding rule separates two authentic stores at one generation.
-The reseal is therefore not implemented; M1 stays open for a renewed owner
-decision. 5A stays in force.
+The reseal is therefore not implemented.
+
+**M1 decision (project owner, 25 November 2026), superseding the reseal
+approval:** the protected-slot route through B. B owns the protected slot,
+its authorisation policy, NV names and lifecycle, and is authorised to make
+the bounded slot-policy changes this requires; no other trust-root change and
+no direct TPM access for N. N reaches the anchor only through the
+capability-controlled interface; network, storage and update domains stay
+separate. Stale slot writes, replay and unauthorised generation changes must
+not reactivate revoked network grants across multiple cold boots. The threat
+model must state explicitly whether the protection holds against a
+compromised kernel; no protection beyond demonstrated guarantees is claimed.
+Crash consistency, TPM endurance, authenticated recovery and monotonicity are
+preserved. Both M1 regression tests are retained and extended with multi-boot
+replay, unauthorised slot writes, interrupted commits, TPM replacement and
+recovery; native verification is required in addition to host tests. 5A stays
+in force until the protected slot and the complete 5B integration are
+demonstrably safe.
 
 **Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
 N04 stays open until its native evidence exists; the score is unchanged.

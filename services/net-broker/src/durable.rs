@@ -10,7 +10,11 @@
 //! Ordering is commit-then-advance: a mutation is acknowledged only after the
 //! anchor advance succeeds. Every anchor generation carries the digest of the
 //! exact authenticated store state (grants and tombstones), so neither an older
-//! store nor a different store at the same generation is accepted.
+//! store nor a different store at the same generation is accepted, provided
+//! the slot is the protected slot of the M1 decision: with the unprotected
+//! contract a hostile slot write can select a sibling store (ignored residual
+//! tests below). A store also binds the anchor instance, so a replaced or
+//! reset TPM yields `Foreign` until authorised recovery re-anchors from genesis.
 
 /// Digest of one authenticated store state, computed by the store owner.
 pub type Digest = [u8; 32];
@@ -51,12 +55,17 @@ pub trait FreshnessAnchor {
     fn read(&mut self) -> Result<AnchorRead, AnchorError>;
     /// Atomic compare-and-swap from `expected` to `expected + 1`, storing `binding`.
     fn advance(&mut self, expected: u64, binding: Digest) -> Result<(), AnchorError>;
+    /// Identity of this anchor instance; it changes when B re-provisions the
+    /// domain, e.g. after authorised recovery from a TPM replacement (C665).
+    fn instance(&mut self) -> Result<Digest, AnchorError>;
 }
 
 /// An authenticated store state as loaded from durable storage. `parent` is the
 /// digest of the state at `generation - 1` that this state was derived from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct StoreState {
+    /// Anchor instance this store was anchored to at genesis.
+    pub instance: Digest,
     pub generation: u64,
     pub digest: Digest,
     pub parent: Digest,
@@ -72,6 +81,17 @@ pub enum Denied {
     Ahead,
     /// Same or next generation, but not the state the anchor is bound to.
     Fork,
+    /// The store belongs to another anchor instance (replaced or reset TPM);
+    /// only authorised recovery may re-anchor it from genesis.
+    Foreign,
+}
+
+fn same_instance(anchor: &mut impl FreshnessAnchor, store: &StoreState) -> Result<(), Denied> {
+    if anchor.instance().map_err(Denied::Anchor)? == store.instance {
+        Ok(())
+    } else {
+        Err(Denied::Foreign)
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -110,6 +130,7 @@ enum Settled {
 
 /// Decides whether a loaded store may be used after a cold boot.
 pub fn startup(anchor: &mut impl FreshnessAnchor, store: &StoreState) -> Result<Startup, Denied> {
+    same_instance(anchor, store)?;
     let current = match settle(anchor, store)? {
         Settled::Current(current) => current,
         Settled::Completed => return Ok(Startup::RolledForward),
@@ -130,6 +151,7 @@ pub fn startup(anchor: &mut impl FreshnessAnchor, store: &StoreState) -> Result<
 
 /// Called after `next` is durably committed; success is the acknowledgement.
 pub fn acknowledge(anchor: &mut impl FreshnessAnchor, next: &StoreState) -> Result<(), Denied> {
+    same_instance(anchor, next)?;
     let current = match settle(anchor, next)? {
         Settled::Current(current) => current,
         Settled::Completed => return Ok(()),
@@ -170,6 +192,10 @@ mod tests {
         /// Slot written, counter not yet incremented (crash between the writes).
         pending: Option<Digest>,
         writes: u32,
+        instance: Digest,
+        /// Protected slot (M1 decision): writes need B's authorisation, which
+        /// the modelled attacker lacks. Unprotected models today's contract.
+        protected: bool,
     }
 
     impl Fake {
@@ -183,7 +209,25 @@ mod tests {
                 fail_advance: None,
                 pending: None,
                 writes: 0,
+                instance: I0,
+                protected: false,
             }
+        }
+
+        fn protected_at(generation: u64, binding: Digest) -> Self {
+            Self {
+                protected: true,
+                ..Self::at(generation, binding)
+            }
+        }
+
+        /// An attacker's direct slot write outside the capability interface.
+        fn hostile_slot_write(&mut self, binding: Digest) -> bool {
+            if self.protected {
+                return false;
+            }
+            self.state.binding = binding;
+            true
         }
     }
 
@@ -217,14 +261,23 @@ mod tests {
             self.writes += 1;
             Ok(())
         }
+        fn instance(&mut self) -> Result<Digest, AnchorError> {
+            if let Some(error) = self.fail_read {
+                return Err(error);
+            }
+            Ok(self.instance)
+        }
     }
 
     const D0: Digest = [0; 32];
     const D1: Digest = [1; 32];
     const D2: Digest = [2; 32];
+    const I0: Digest = [0xA0; 32];
+    const I1: Digest = [0xA1; 32];
 
     fn state(generation: u64, digest: Digest, parent: Digest) -> StoreState {
         StoreState {
+            instance: I0,
             generation,
             digest,
             parent,
@@ -443,7 +496,7 @@ mod tests {
     /// crash before W1, plus a replayed S=A and a hostile slot write (T3),
     /// must not displace the acknowledged Y at A+1.
     #[test]
-    #[ignore = "M1 open: red until an owner-approved fix lands"]
+    #[ignore = "M1 residual without a protected slot (unprotected contract)"]
     fn hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation() {
         let x = state(6, [3; 32], D1); // committed to disk, crash before W1
         let mut anchor = Fake::at(5, D1);
@@ -452,7 +505,7 @@ mod tests {
         // Y carries an acknowledged revocation.
         assert_eq!(acknowledge(&mut anchor, &state(6, D2, D1)), Ok(()));
         // T3 rewrites the slot binding and puts X back on disk.
-        anchor.state.binding = x.digest;
+        assert!(anchor.hostile_slot_write(x.digest));
         assert_ne!(startup(&mut anchor, &x), Ok(Startup::Accept));
     }
 
@@ -470,7 +523,7 @@ mod tests {
         let mut anchor = Fake::at(5, D1);
         assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
         assert_eq!(acknowledge(&mut anchor, &z), Ok(()));
-        anchor.state.binding = x.digest;
+        assert!(anchor.hostile_slot_write(x.digest));
         assert_eq!(startup(&mut anchor, &x), Ok(Startup::Accept));
         assert_eq!(acknowledge(&mut anchor, &y), Err(Denied::Fork));
         // Hostile write after Y is acknowledged: X is now a rollback.
@@ -478,7 +531,7 @@ mod tests {
         assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
         assert_eq!(acknowledge(&mut anchor, &z), Ok(()));
         assert_eq!(acknowledge(&mut anchor, &y), Ok(()));
-        anchor.state.binding = x.digest;
+        assert!(anchor.hostile_slot_write(x.digest));
         assert_eq!(startup(&mut anchor, &x), Err(Denied::Rollback));
         // Crash mid-reseal (Z on disk, slot not written) and a replay of S=A:
         // accepted again, so the next boot reseals again; X rolls forward only
@@ -492,14 +545,14 @@ mod tests {
     /// slot write. Boot 2 rolls X forward, so X's revocation is in force. T3
     /// then rewrites the slot to D(Z) and presents Z.
     #[test]
-    #[ignore = "M1 open: reseal after cold Accept is insufficient"]
+    #[ignore = "M1 residual without a protected slot: reseal is insufficient"]
     fn reseal_multi_boot_crashed_reseal_revives_over_rolled_forward_change() {
         let x = state(6, [3; 32], D1); // carries revocation R
         let z = state(6, [4; 32], D1); // crashed reseal of S=A
         let mut anchor = Fake::at(5, D1);
         assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
         assert_eq!(startup(&mut anchor, &x), Ok(Startup::RolledForward));
-        anchor.state.binding = z.digest;
+        assert!(anchor.hostile_slot_write(z.digest));
         assert_ne!(startup(&mut anchor, &z), Ok(Startup::Accept));
     }
 
@@ -507,7 +560,7 @@ mod tests {
     /// its reseal Z3. Boot 2 accepts X under a forged slot and acknowledges
     /// reseal X2 (R durable). T3 then forges D(Z3).
     #[test]
-    #[ignore = "M1 open: reseal after every cold outcome is insufficient"]
+    #[ignore = "M1 residual without a protected slot: reseal is insufficient"]
     fn reseal_multi_boot_sibling_reseal_revives_over_acknowledged_change() {
         let x = state(6, [3; 32], D1); // carries revocation R
         let z = state(6, [4; 32], D1);
@@ -515,10 +568,92 @@ mod tests {
         let x2 = state(7, [6; 32], x.digest); // acknowledged reseal of X
         let mut anchor = Fake::at(5, D1);
         assert_eq!(startup(&mut anchor, &z), Ok(Startup::RolledForward));
-        anchor.state.binding = x.digest;
+        assert!(anchor.hostile_slot_write(x.digest));
         assert_eq!(startup(&mut anchor, &x), Ok(Startup::Accept));
         assert_eq!(acknowledge(&mut anchor, &x2), Ok(()));
-        anchor.state.binding = z3.digest;
+        assert!(anchor.hostile_slot_write(z3.digest));
         assert_ne!(startup(&mut anchor, &z3), Ok(Startup::Accept));
+    }
+
+    // M1 protected-slot decision: the same attack sequences with B's
+    // authorised slot. Host model of the guarantee B must demonstrate natively.
+
+    #[test]
+    fn protected_slot_refuses_the_single_boot_m1_attack() {
+        let x = state(6, [3; 32], D1);
+        let mut anchor = Fake::protected_at(5, D1);
+        assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Ok(Startup::Accept));
+        assert_eq!(acknowledge(&mut anchor, &state(6, D2, D1)), Ok(()));
+        assert!(!anchor.hostile_slot_write(x.digest));
+        assert_eq!(startup(&mut anchor, &x), Err(Denied::Fork));
+    }
+
+    #[test]
+    fn protected_slot_refuses_both_multi_boot_attacks() {
+        let x = state(6, [3; 32], D1);
+        let z = state(6, [4; 32], D1);
+        // Rolled-forward X must not be displaced by a crashed sibling Z.
+        let mut anchor = Fake::protected_at(5, D1);
+        assert_eq!(startup(&mut anchor, &x), Ok(Startup::RolledForward));
+        assert!(!anchor.hostile_slot_write(z.digest));
+        assert_eq!(startup(&mut anchor, &z), Err(Denied::Fork));
+        // Replay across further boots: older and sibling stores stay refused.
+        assert_eq!(
+            startup(&mut anchor, &state(5, D1, D0)),
+            Err(Denied::Rollback)
+        );
+        let y = state(7, D2, x.digest);
+        assert_eq!(acknowledge(&mut anchor, &y), Ok(()));
+        for stale in [x, z, state(7, [5; 32], z.digest)] {
+            assert!(!anchor.hostile_slot_write(stale.digest));
+            assert_ne!(startup(&mut anchor, &stale), Ok(Startup::Accept));
+        }
+        assert_eq!(startup(&mut anchor, &y), Ok(Startup::Accept));
+    }
+
+    #[test]
+    fn protected_slot_interrupted_commit_completes_only_once() {
+        let mut anchor = Fake::protected_at(5, D1);
+        anchor.pending = Some(D2);
+        assert_eq!(startup(&mut anchor, &state(5, D1, D0)), Err(Denied::Fork));
+        assert_eq!(
+            startup(&mut anchor, &state(6, [3; 32], D1)),
+            Err(Denied::Fork)
+        );
+        assert_eq!(
+            startup(&mut anchor, &state(6, D2, D1)),
+            Ok(Startup::RolledForward)
+        );
+        assert_eq!(anchor.state.generation, 6);
+        assert_eq!(startup(&mut anchor, &state(6, D2, D1)), Ok(Startup::Accept));
+    }
+
+    #[test]
+    fn replaced_tpm_rejects_the_store_until_authorised_genesis() {
+        let store = state(9, D2, D1);
+        // B re-provisions the domain after authorised recovery: new instance.
+        let mut anchor = Fake::protected_at(40, D0);
+        anchor.instance = I1;
+        assert_eq!(startup(&mut anchor, &store), Err(Denied::Foreign));
+        assert_eq!(acknowledge(&mut anchor, &store), Err(Denied::Foreign));
+        assert_eq!(anchor.writes, 0);
+        // Recovery creates a fresh genesis store on the new instance; nothing
+        // of the old store (grants or tombstones) is carried across.
+        let genesis = StoreState {
+            instance: I1,
+            ..state(41, D1, D0)
+        };
+        assert_eq!(acknowledge(&mut anchor, &genesis), Ok(()));
+        assert_eq!(startup(&mut anchor, &genesis), Ok(Startup::Accept));
+    }
+
+    #[test]
+    fn unavailable_instance_denies() {
+        let mut anchor = Fake::protected_at(5, D1);
+        anchor.fail_read = Some(AnchorError::Unavailable);
+        assert_eq!(
+            startup(&mut anchor, &state(5, D1, D0)),
+            Err(Denied::Anchor(AnchorError::Unavailable))
+        );
     }
 }
