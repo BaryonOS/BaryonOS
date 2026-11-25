@@ -496,7 +496,8 @@ def runs_open(token, repo, pull, head_sha, plan):
             if run["path"] not in newest or run_order(run) > run_order(newest[run["path"]]):
                 newest[run["path"]] = run
     except (OSError, ValueError, TypeError) as error:
-        # An unorderable run also lands here: the wait goes on and the full report fails closed.
+        # A run without a start or creation time also lands here: the wait goes on and the
+        # next full report (at the latest at the deadline) fails closed on it.
         print(f"::warning::merge-hold wait poll failed ({error}); still waiting", file=sys.stderr)
         return True
     return (any(run.get("status") != "completed" for run in newest.values())
