@@ -14,12 +14,16 @@ This revision replaces the earlier counter-plus-slot design (counter
 `TPM_NT_COUNTER`, 64-byte slot `NOSANC01`, `Pending` read): a hostile slot
 rewrite could revive an older authentic store at the same generation (review
 M1, confirmed by N's red host tests). The slot is now one hash chain per
-domain, agreed with N on 25 November 2026.
+domain, agreed with N on 25 November 2026. Three points of this revision are
+**B proposals awaiting N's confirmation**: (P1) `extend` takes `D(S)` and the
+kernel derives `E` (the handoff had `extend(expected_chain, E)`); (P2) rule
+(d) is no longer needed for safety; (P3) a stray extend is permanent denial
+with all durable grants lost, and same-TPM recovery needs a fresh instance.
 
 | Artefact | Location | Kind |
 |---|---|---|
 | Pure functions `extend_event`, `chain_step`, `chain_after`, `instance`, `genesis_event`, `genesis_chain` | `crates/update-core/src/anchor.rs` | host code, `no_std` |
-| NV constants (`ATTR_ANCHOR_CHAIN`, `anchor_domain`, `TPM_NT_EXTEND`, `TPM_CC_NV_EXTEND`) | `crates/update-core/src/trial_tpm.rs` | S2 constants |
+| NV constants (`ATTR_ANCHOR_CHAIN`, `anchor_domain`, `TPM_NT_EXTEND`) | `crates/update-core/src/trial_tpm.rs` | S2 constants |
 | Host model of the chain against N's attack sequences | `crates/update-core/tests/anchor_chain_model.rs` | host model, not evidence of TPM behaviour |
 | N04 consumer | `services/net-broker/src/durable.rs` (N branch) | N's host prototype; N moves it to this contract |
 
@@ -86,7 +90,7 @@ The ENROLL digest and the 32-byte provisioning nonce come from the signed
 enrolment or recovery record (REL-05 section 10.5, C665) and reach the
 kernel through BootInfo. **The kernel derives `E` from the capability's
 domain and the caller's `D(S)`**; the caller never supplies `E`, so a domain
-holder cannot extend on behalf of another domain.
+holder cannot extend on behalf of another domain (proposal P1).
 
 Golden vectors (Rust test `golden_vectors`, recomputed independently with
 Python `hashlib`; N's fake and the S5 swtpm run must produce the same bytes):
@@ -193,14 +197,24 @@ a second `extend(S.prev, D(S))` returns `Conflict`.
   earlier sibling can never be accepted again (host model
   `hostile_extend_cannot_revive_a_stale_store_at_the_same_position`,
   `crashed_sibling_cannot_displace_a_rolled_forward_store`). The old rule (d)
-  is no longer needed for safety.
+  is no longer needed for safety (proposal P2).
 
 ## Provisioning and recovery (TEST only)
 
 The TEST provisioning tool of REL-05 section 10.3 defines the index and
 performs one extend with the genesis event. It is re-runnable after a cut
 between the two steps: it extends only while the index reads as never
-written (U21, U16). N04's first store has `prev` = genesis chain.
+written (U21, U16), so it never revives a written index.
+
+**Same-TPM recovery** (after a stray extend, proposal P3) is owner-authorised
+`NV_UndefineSpace`, then provisioning with a **fresh instance**: every
+genesis uses a new provisioning nonce from a new signed record, and the tool
+refuses an instance that was used before. Re-genesis with the old instance
+would let a disk attacker walk the old store history forward one boot at a
+time and choose any branch, including an unacknowledged sibling (host model
+`same_tpm_regenesis_after_a_stray_extend_needs_a_fresh_instance`). This uses
+the same primitive as the undefine/redefine/replay residual below; only the
+authorisation differs. N04's first store has `prev` = genesis chain.
 **A missing store is never accepted (review L2, agreed with N):** startup
 with no store is denial. Genesis is entered only through authorised
 provisioning or recovery, never by the policy process on its own. On a
@@ -227,7 +241,7 @@ Agreed with N on 25 November 2026. Residual risks are stated literally; no
 | Actor | Can | Result |
 |---|---|---|
 | Disk attacker (store replay) | present any authentic store it has seen | only the store the chain points to is accepted, plus the unacknowledged roll-forward of rule (c) |
-| T3: compromised, correctly measured kernel | extend arbitrary data on any domain | **denial only, but permanent**: the chain leaves every authentic store and the domain stays denied until authorised genesis recovery, with all durable grants lost. No authorisation policy stops this, and a PCR 13 phase policy would not either, because the kernel legitimately extends at run time |
+| T3: compromised, correctly measured kernel | extend arbitrary data on any domain | **denial only, but permanent** (P3): the chain leaves every authentic store and the domain stays denied until authorised re-genesis with a fresh instance, with all durable grants lost. No authorisation policy stops this, and a PCR 13 phase policy would not either, because the kernel legitimately extends at run time |
 | T3, today's TEST profile (empty ownerAuth) | `NV_UndefineSpace` + `NV_DefineSpace` + replay of the public genesis and extend events | **revival of an older store: NOT defended** (host model `undefine_redefine_replay_revives_with_empty_owner_auth`) |
 | T3 with empty lockoutAuth | `TPM2_Clear` | owner indices disappear; the loader's TRIAL/FLOOR check halts the next boot (ANCHOR_LOST, REL-05) *[reachability unverified, U24]* |
 | T5: foreign OS booted on the machine | the same as T3 | out of scope until B04 (measured boot); a PCR 13 phase policy would not stop it |
@@ -252,8 +266,10 @@ chain (a new counter starts at the TPM's highest-ever value, U6) would detect
 a redefinition within slot scope, at the cost of a two-write commit again.
 
 `OWNER:` may B change `ownerAuth`/`lockoutAuth` in the TEST profile for this
-mitigation, or should the undefine/redefine/replay revival be recorded as an
-accepted residual risk, or the counter alternative be pursued?
+mitigation (loader-phase authorised recovery must then still be able to
+undefine the index for re-genesis), or should the undefine/redefine/replay
+revival be recorded as an accepted residual risk, or the counter alternative
+be pursued?
 
 Until then the claim "no revival by T3" is **false** in the TEST profile.
 
@@ -288,7 +304,8 @@ Cold restart accept; roll forward once after a cut at A1; accept after a cut
 at X; replayed older store refused; sibling store refused after an
 acknowledgement; stray extend → denial; lost response → no double extend;
 TPM absent, cleared, squatted or never provisioned → `Unavailable`; replaced
-TPM → `Foreign` until authorised genesis; `Conflict` on a concurrent extend;
+TPM → `Foreign` until authorised genesis; same-TPM re-genesis with a fresh
+instance after a stray extend; `Conflict` on a concurrent extend;
 spent budget → `RateLimited`; a network capability cannot reach the update
 records or another domain; the golden vectors above on swtpm; the
 undefine/redefine/replay sequence (expected revival in today's TEST profile,

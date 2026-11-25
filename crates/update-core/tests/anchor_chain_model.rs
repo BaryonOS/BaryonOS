@@ -365,6 +365,44 @@ fn genesis_only_through_provisioning() {
     assert_ne!(chain_step(&a.read().unwrap(), &g), genesis_chain(DOM, &I0));
 }
 
+/// Owner-authorised recovery on the same TPM: undefine, define, genesis.
+fn regenesis(a: &mut Anchor, instance: Digest) {
+    let auth = a.tpm.owner_auth.clone();
+    a.tpm.undefine_owner(&auth, handle()).unwrap();
+    provision(&mut a.tpm, &instance);
+    a.instance = instance;
+}
+
+/// A stray extend kills the domain; same-TPM recovery needs a fresh instance.
+#[test]
+fn same_tpm_regenesis_after_a_stray_extend_needs_a_fresh_instance() {
+    let (mut a, s_a) = at_a();
+    let y = s_a.child(2);
+    assert_eq!(acknowledge(&mut a, &y), Ok(()));
+    a.tpm.nv_extend(handle(), &[0xee; 32]).unwrap();
+    assert_eq!(startup(&mut a, &y), Err(Denied::Stale));
+    // Provisioning alone does not revive a written index.
+    provision(&mut a.tpm, &I0);
+    assert_eq!(startup(&mut a, &y), Err(Denied::Stale));
+    // Fresh instance (new nonce from the signed recovery record): old stores
+    // are Foreign, the new genesis store rolls forward.
+    regenesis(&mut a, I1);
+    for old in [s_a, y] {
+        assert_eq!(startup(&mut a, &old), Err(Denied::Foreign));
+    }
+    let g = first(I1, 7);
+    assert_eq!(startup(&mut a, &g), Ok(Startup::RolledForward));
+    // Reusing the old instance would let a disk attacker walk the old history
+    // forward one boot at a time, choosing any branch (here the stale X):
+    // every genesis therefore requires a fresh nonce.
+    let mut a = at_a().0;
+    let x = s_a.child(3);
+    a.tpm.nv_extend(handle(), &[0xee; 32]).unwrap();
+    regenesis(&mut a, I0);
+    assert_eq!(startup(&mut a, &s_a), Ok(Startup::RolledForward));
+    assert_eq!(startup(&mut a, &x), Ok(Startup::RolledForward));
+}
+
 /// N: `replaced_tpm_rejects_the_store_until_authorised_genesis`.
 #[test]
 fn replaced_tpm_rejects_the_store_until_authorised_genesis() {

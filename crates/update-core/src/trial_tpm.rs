@@ -37,7 +37,6 @@ pub const P_CLOSED: [u8; 32] =
 // TPM 2.0 Part 2 constants used below.
 pub const TPM_ALG_SHA256: u16 = 0x000B;
 pub const TPM_CC_NV_INCREMENT: u32 = 0x0000_0134;
-pub const TPM_CC_NV_EXTEND: u32 = 0x0000_0136;
 pub const TPM_CC_NV_WRITE: u32 = 0x0000_0137;
 pub const TPM_CC_POLICY_COMMAND_CODE: u32 = 0x0000_016C;
 pub const TPM_CC_POLICY_PCR: u32 = 0x0000_017F;
