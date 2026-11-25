@@ -94,7 +94,12 @@ recommendations become decisions as listed here.
   grant survives restart, are adopted.
 - **Decision 5 (cold freshness).** The cold rollback anchor is aligned with
   workstream B (B02 secure records and the ADR-B03-B04-TARGET anchor backend);
-  no network-specific trust root is introduced. Until reliable freshness can be
+  no network-specific trust root is introduced. Agreed split (N and B, 25 November
+  2026): B owns the anchor and its contract in
+  `docs/implementation/COLD-FRESHNESS-ANCHOR.md` (in preparation); the N04
+  policy process is a consumer that reads one store-wide generation through
+  an attenuated capability, advances it only after a durable store commit and
+  fails closed on a missing or corrupt anchor. Until reliable freshness can be
   guaranteed, behaviour stays fail-closed and cold reinstatement unavailable
   (5A): after a cold
   boot every network grant starts denied, and persisted grants are only
