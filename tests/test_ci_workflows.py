@@ -1121,7 +1121,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(job["name"], "merge-hold")
         self.assertEqual(
             job["permissions"],
-            {"checks": "read", "contents": "read", "issues": "read", "pull-requests": "read"},
+            {"actions": "read", "checks": "read", "contents": "read", "issues": "read",
+             "pull-requests": "read"},
         )
         for key in ("if", "needs", "continue-on-error", "strategy", "defaults",
                     "container", "services"):
@@ -1132,6 +1133,9 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         waited = ast.literal_eval(re.search(r"^WAIT_CHECKS = (.+)$", source, re.M).group(1))
         minutes = re.search(r"^WAIT_SECONDS = ([0-9]+) \* 60$", source, re.M)
         wait_seconds = int(minutes.group(1)) * 60
+        # Phase 3: catalogue budgets are capped by MAX_WAIT_SECONDS, which equals the fixed wait.
+        cap = re.search(r"^MAX_WAIT_SECONDS = ([0-9]+) \* 60$", source, re.M)
+        self.assertEqual(int(cap.group(1)) * 60, wait_seconds)
         ci = self.workflows[".github/workflows/ci.yml"]
         self.assertEqual(set(waited), {"host-quality", "qemu-smoke"})
         for name in waited:
@@ -1145,25 +1149,44 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
         self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
         self.assertLess(int(job["timeout-minutes"]), 60)
-        checkout, decide = job["steps"]
+        checkout, load, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
-        self.assertEqual(checkout["with"], {"persist-credentials": "false"})
-        for step in (checkout, decide):
+        self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
+        for step in (checkout, load, decide):
             for key in ("if", "continue-on-error", "working-directory"):
                 self.assertNotIn(key, step)
+        # Phase 3 (#494): the decision runs the base commit's copies, never the PR's.
+        self.assertNotIn("uses", load)
+        self.assertEqual(load["id"], "base")
+        self.assertNotIn("${{", load["run"])
+        for needle in ('git rev-list --parents -n 1 HEAD', '"$second" != "$HEAD_SHA"',
+                       'git cat-file blob "$base:tools/merge_hold.py"',
+                       'git cat-file blob "$base:tools/ci_impact.py"', 'set -euo pipefail'):
+            self.assertIn(needle.replace('"$second"', '"${second:-}"'), load["run"])
+        self.assertEqual(load["env"], {
+            "EVENT_NAME": "${{ github.event_name }}",
+            "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+            "MERGE_GROUP_BASE_SHA": "${{ github.event.merge_group.base_sha }}",
+        })
         self.assertNotIn("uses", decide)
         self.assertEqual(decide["shell"], "bash")
-        self.assertEqual(decide["run"].strip(), "python3 -B tools/merge_hold.py")
+        self.assertEqual(decide["run"].strip(), 'python3 -B -I "$RUNNER_TEMP/merge-hold-base/merge_hold.py"')
+        # The workflow may add variables but must keep every one an older base copy reads.
         self.assertEqual(decide["env"], {
             "GH_TOKEN": "${{ github.token }}",
             "REPO": "${{ github.repository }}",
             "EVENT_NAME": "${{ github.event_name }}",
             "PR_NUMBER": "${{ github.event.pull_request.number }}",
             "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+            "BASE_SHA": "${{ steps.base.outputs.base-sha }}",
+            "TESTED_SHA": "${{ steps.base.outputs.tested-sha }}",
             "MERGE_GROUP_HEAD_SHA": "${{ github.event.merge_group.head_sha }}",
             "MERGE_GROUP_HEAD_REF": "${{ github.event.merge_group.head_ref }}",
             "MERGE_GROUP_BASE_REF": "${{ github.event.merge_group.base_ref }}",
+            "MERGE_GROUP_BASE_SHA": "${{ github.event.merge_group.base_sha }}",
         })
+        read = set(re.findall(r'os\.environ(?:\.get)?[\[(]"([A-Z_]+)"', source))
+        self.assertLessEqual(read - {"GITHUB_RUN_ID", "GITHUB_STEP_SUMMARY"}, set(decide["env"]))
 
     def test_only_artifact_uploads_can_tolerate_errors(self):
         """Storage failure may be optional; failed builds, tests and collectors are not."""
@@ -1709,6 +1732,10 @@ push = "full"
 schedule = "full"
 workflow_dispatch = "manual"
 
+[policy.budgets]
+pull_request_wait_minutes = 0
+merge_group_wait_minutes = 45
+
 [[workflow]]
 path = ".github/workflows/ci.yml"
 owner = "ci-owner"
@@ -1762,11 +1789,25 @@ class CiImpactShadowTests(unittest.TestCase):
             "if-no-files-found": "error",
             "path": "build/ci-impact/plan.json\nbuild/ci-impact/coverage.json\n",
             "required-paths": "build/ci-impact/plan.json"})
-        # Catalogue coverage is a report in this non-required job, never an assertion in host-quality.
+        # The shadow job keeps a report-only coverage step; host-quality asserts it (phase 3).
         coverage, = [step for step in steps if "ci_impact.py coverage" in step.get("run", "")]
         self.assertNotIn("${{", coverage["run"])
+        self.assertNotIn("--strict", coverage["run"])
         self.assertNotIn("continue-on-error", coverage)
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
+
+    def test_host_quality_fails_on_an_invalid_or_drifted_catalogue(self):
+        """Phase 3 (#494): merge-hold enforces plans, so catalogue drift must fail a required gate."""
+        steps = self.ci["jobs"]["host-quality"]["steps"]
+        names = [step.get("name", step.get("uses", "")) for step in steps]
+        gate = steps[names.index("CI impact catalogue is valid and matches the workflows")]
+        self.assertLess(names.index("Pinned Python"), names.index(gate["name"]))
+        self.assertEqual(steps[names.index("Pinned Python")]["with"], {"host-dependencies": "true"})
+        lines = [line.strip() for line in gate["run"].strip().splitlines()]
+        self.assertEqual(lines, ["python3 -B tools/ci_impact.py validate .github/ci-impact.toml",
+                                 "python3 -B tools/ci_impact.py coverage --strict"])
+        for key in ("if", "continue-on-error"):
+            self.assertNotIn(key, gate)
 
     def test_select_action_passes_expressions_only_through_env(self):
         steps = self.action["runs"]["steps"]

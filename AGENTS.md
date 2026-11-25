@@ -123,7 +123,7 @@ The CI workflows in `.github/workflows/` define the actual hosted gates. `python
 ## Protected files
 
 Unattended pipeline workers must never change policy, their evaluators, or evidence. A lead may change these only in an explicitly scoped, reviewed PR, with relevant tests:
-- Any `AGENTS.md` or `CLAUDE.md` at **any directory depth**, `.agents/**`, `.claude/**`, `.codex/**`, `.github/**`, `tools/agent_gate.py`, `tools/agent_pipeline.py`, `tools/roadmap_runner.py`, `tools/common.py`, `tools/progress.py`.
+- Any `AGENTS.md` or `CLAUDE.md` at **any directory depth**, `.agents/**`, `.claude/**`, `.codex/**`, `.github/**`, `tools/agent_gate.py`, `tools/agent_pipeline.py`, `tools/roadmap_runner.py`, `tools/common.py`, `tools/progress.py`, and the CI gate selector and enforcer `tools/ci_impact.py` and `tools/merge_hold.py` (their catalogue `.github/ci-impact.toml` is covered by `.github/**`).
 - `docs/progress.json` and generated `README.md`, `docs/PROGRESS.md`, `docs/assets/progress.svg`; `docs/PROJECT-STATE.md` and `docs/DECISIONS.md` are lead-owned.
 - Historical `docs/verification/**` and `docs/history/**`; new evidence must use a new child directory. Vendored or licensed source: `services/keyring/vendor/`, `services/image-codec/vendor/`, `experiments/quantum/third-party/`, `.agents/skills/os-dev/references/`, `LICENSE`, `plugins/token-guard/LICENSE`, `docs/third-party/licenses/`.
 - `ui/prototype/tokens.css` (frozen), `ui/design/system/tokens.css` (generated), `CODEX-WORKFLOW.md` section 4/Sources, and `tools/update-keys/TEST-*`. Do not commit private keys, `.env*`, `build/`, `target/` or `graphify-out/`.

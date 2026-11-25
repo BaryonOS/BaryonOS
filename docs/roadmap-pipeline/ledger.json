@@ -3167,7 +3167,7 @@
       "criterion": "H06",
       "milestone": "M9",
       "executor": "lead",
-      "status": "active",
+      "status": "verified",
       "title": "Serial-timeout HW-INV terminal fixture and HLT oracle (QEMU)",
       "goal": "Close the H06-T5 gap: a test-only labelled injection makes every UART transmit poll report busy after HWINV:FIXTURE:SERIAL_TIMEOUT_ARMED, so the real bounded wait in write_raw expires and the terminal path halts silently; the runner requires the truncated block to be rejected by the HW-INV parser, no output after the armed marker, and HLT=1 from HMP info registers for every terminal fixture.",
       "deps": [
@@ -3206,8 +3206,14 @@
           "event": "active",
           "at": "2026-11-24",
           "reason": "Specialist H cycle h06-t7-20261124 on branch claude/h06-t7-serial-timeout-20261124 from main 4ab40610."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-25",
+          "reason": "PR #500 squash-merged as a2595a3a; tested head 2f5fd8f2 passed all applicable native gates, including native-hw-inventory, and merge-hold attempt 2."
         }
-      ]
+      ],
+      "source_commit": "a2595a3a8c8f1d2b1d0b76fce1c692a8251cac21"
     },
     {
       "id": "H06-T8",

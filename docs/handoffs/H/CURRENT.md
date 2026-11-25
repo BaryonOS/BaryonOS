@@ -38,7 +38,11 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 ## Next task
 
-After #500 merges: ledger H06-T7 → `verified`; land H06-T8. Then the next eligible
-H task from `docs/roadmap-pipeline/ledger.json`; physical H02–H06 work stays
-blocked on the owner decisions above. Image-hash reproduction once B04 (#493) is
-merged.
+#500 (H06-T7) merged as `a2595a3a`; ledger H06-T7 is `verified`. Land H06-T8
+(#507). Then H02-T5: native refusal fixtures for out-of-profile USB devices (hub,
+tablet without boot interface, storage, high-speed), after a QEMU feasibility
+check. After that, H05 virtio-blk re-initialisation after an S3 wake (needs a
+security review). H04 in-flight TX at a link-down edge touches
+`kernel/src/m2/m3/network.rs` and needs agreement with workstream N first.
+Physical H02–H06 work stays blocked on the owner decisions above; image-hash
+reproduction once B04 (#493) is merged.
