@@ -347,6 +347,30 @@ jobs:
           NOS_TARGET_DIR="$PWD/target/ci-sdk-denied" \
           CARGO_TARGET_DIR="$PWD/target/ci-sdk-denied" \
           python3 -B tools/run_sdk_app.py --case denied
+      - name: A03 task-grant broker - fixture grant
+        shell: bash
+        run: |
+          rm -rf build/ci-task-grant-normal target/ci-task-grant-normal
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-normal" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-normal" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-normal" \
+          python3 -B tools/build.py --kernel-feature native-task-grant
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-normal" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-normal" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-normal" \
+          python3 -B tools/run_task_grant.py --case normal
+      - name: A03 task-grant broker - no grant
+        shell: bash
+        run: |
+          rm -rf build/ci-task-grant-denied target/ci-task-grant-denied
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-denied" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-denied" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-denied" \
+          python3 -B tools/build.py --kernel-feature test-task-grant-denied
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-denied" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-denied" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-denied" \
+          python3 -B tools/run_task_grant.py --case denied
       - name: Preserve compact QEMU diagnostics
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
@@ -409,6 +433,22 @@ jobs:
             build/ci-sdk-denied/run/native-sdk-app-denied-*/result.json
             build/ci-sdk-denied/run/native-sdk-app-denied-*/serial.txt
             build/ci-sdk-denied/run/native-sdk-app-denied-*/stderr.txt
+            build/ci-task-grant-normal/manifest.json
+            build/ci-task-grant-normal/native-task-grant-normal.json
+            build/ci-task-grant-normal/logs/*.json
+            build/ci-task-grant-normal/logs/*.stdout.txt
+            build/ci-task-grant-normal/logs/*.stderr.txt
+            build/ci-task-grant-normal/run/native-task-grant-normal-*/result.json
+            build/ci-task-grant-normal/run/native-task-grant-normal-*/serial.txt
+            build/ci-task-grant-normal/run/native-task-grant-normal-*/stderr.txt
+            build/ci-task-grant-denied/manifest.json
+            build/ci-task-grant-denied/native-task-grant-denied.json
+            build/ci-task-grant-denied/logs/*.json
+            build/ci-task-grant-denied/logs/*.stdout.txt
+            build/ci-task-grant-denied/logs/*.stderr.txt
+            build/ci-task-grant-denied/run/native-task-grant-denied-*/result.json
+            build/ci-task-grant-denied/run/native-task-grant-denied-*/serial.txt
+            build/ci-task-grant-denied/run/native-task-grant-denied-*/stderr.txt
 
   upload-coverage-rust:
     name: upload-coverage-rust

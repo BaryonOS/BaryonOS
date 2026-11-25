@@ -90,6 +90,7 @@ mod qsim;
 mod qsim_job;
 #[cfg(feature = "native-sdk-app")]
 #[cfg_attr(feature = "native-ipc-wait", path = "m3/wait_fixture.rs")]
+#[cfg_attr(feature = "native-task-grant", path = "m3/task_grant.rs")]
 mod sdk_app;
 #[cfg(feature = "native-supervisor")]
 #[cfg_attr(feature = "native-system", allow(dead_code))]
