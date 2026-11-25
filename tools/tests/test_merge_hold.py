@@ -955,6 +955,112 @@ class GateTests(TestCase):
         self.assertFalse(passed)
         self.assertEqual(state["sleeps"], 0)  # budget 0: decide at once
 
+    def test_wait_polls_with_one_run_listing_and_reports_only_when_runs_finish(self):
+        """#494 maintenance: a 40-minute budget must stay far below the GITHUB_TOKEN rate limit."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        polls = [running] * 30 + [GOOD_RUNS]
+        passed, out, state = self.decide(plan=plan, polls=polls)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 30)
+        # Two full reports (start and end), each reading jobs and re-reading every counted run;
+        # the 30 polls in between cost one run listing each.
+        self.assertEqual(sum("/jobs?" in url for url in state["calls"]), 4)
+        self.assertEqual(sum("/actions/runs?" in url for url in state["calls"]), 2 + 1 + 30)
+
+    def test_pending_with_nothing_left_running_decides_at_once(self):
+        """A run that already finished after changing between reads cannot resolve by waiting."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        passed, out, state = self.decide(plan=plan, rerun_during_read={2: {"run_attempt": 2}})
+        self.assertFalse(passed)
+        self.assertIn("changed while it was read", out)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_an_open_run_without_a_selectable_gate_does_not_hold_the_wait(self):
+        """Review of #517: only gated workflows keep the wait going."""
+        advisory = ".github/workflows/advisory.yml"
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45},
+                            excluded=plan_fixture()["excluded"] + [
+                                {"id": "adv#a", "class": "advisory", "workflow": advisory, "job": "a",
+                                 "check_name": "a", "reason": "advisory"}])
+        runs_ = [wf_run(1, CI), wf_run(2, LEAVES), wf_run(5, advisory, "in_progress", None)]
+        passed, out, state = self.decide(plan=plan, runs_=runs_, rerun_during_read={2: {"run_attempt": 2}})
+        self.assertFalse(passed)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_a_failed_poll_keeps_waiting_and_the_full_report_decides(self):
+        """Review of #517: a transient API error during the wait neither ends it nor fails the job."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        real = merge_hold.fetch_listing
+        failures = [OSError("HTTP 502"), ValueError("listing changed")]
+        raised = []
+
+        def flaky(token, url, key):
+            if key == "workflow_runs":
+                STATE["listings"] += 1
+                if STATE["listings"] in (2, 3):  # the first two wait polls; the first listing is the report's
+                    raised.append(failures[len(raised)])
+                    raise raised[-1]
+            return real(token, url, key)
+
+        STATE = {"listings": 0}
+        with mock.patch.object(merge_hold, "fetch_listing", flaky):
+            passed, out, state = self.decide(plan=plan, polls=[running] * 3 + [GOOD_RUNS])
+        self.assertTrue(passed, out)
+        self.assertEqual(raised, failures)
+        self.assertEqual(state["sleeps"], 3)
+
+    def test_a_gate_that_finishes_during_the_first_report_is_seen(self):
+        """CodeRabbit on #517: a stale pending report is refreshed once before it decides."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        reports = iter([[wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]])
+        real = merge_hold.fetch_listing
+
+        def finishing(token, url, key):
+            if key == "workflow_runs" and "/jobs" not in url:
+                stale = next(reports, None)
+                if stale is not None:  # the first report still sees leaves running
+                    return stale
+            return real(token, url, key)
+
+        with mock.patch.object(merge_hold, "fetch_listing", finishing):
+            passed, out, state = self.decide(plan=plan)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_a_rerun_that_finishes_during_the_report_after_polling_is_refreshed(self):
+        """CodeRabbit on #517: after a poll the next stale report still gets one refresh."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        done = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="success", attempt=2)]
+        jobs = {**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)")]}
+        reads = {"n": 0}
+        real = merge_hold.fetch_listing
+
+        def listing(token, url, key):
+            if key == "workflow_runs":
+                reads["n"] += 1
+                if reads["n"] == 4:  # the report after the poll (read 3) still sees attempt 1 running
+                    return running
+            return real(token, url, key)
+
+        with mock.patch.object(merge_hold, "fetch_listing", listing):
+            passed, out, state = self.decide(plan=plan, polls=[running, done], jobs=jobs)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 1)
+
+    def test_a_superseded_open_run_does_not_hold_the_wait(self):
+        """CodeRabbit on #517: the wait poll applies gate_report's newest-run rule."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        older_open = dict(wf_run(2, LEAVES, "in_progress", None), created_at="2026-11-24T19:00:00Z")
+        newer_open = wf_run(3, LEAVES, "in_progress", None)
+        polls = [[wf_run(1, CI), older_open, newer_open], [wf_run(1, CI), older_open, wf_run(3, LEAVES)]]
+        jobs = {**GOOD_JOBS, 3: [job(31, 3, "quality (viewer)")]}
+        passed, out, state = self.decide(plan=plan, polls=polls, jobs=jobs)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 1)
+
     def test_failure_ends_the_wait_at_once(self):
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 10, "merge_group_wait_minutes": 45})
         runs_ = [wf_run(1, CI, conclusion="failure"), wf_run(2, LEAVES, "queued", None)]
