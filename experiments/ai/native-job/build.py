@@ -3,8 +3,9 @@
 
 The job is compiled for the hard-float x86_64-unknown-linux-gnu ABI as a
 freestanding static ELF. The gate below checks the linked ELF, including the
-precompiled core/compiler_builtins code: SSE/SSE2 only, no x87, MMX, SSE3+,
-VEX/EVEX, privileged or Linux syscall instructions, int 0x80 as the only trap.
+precompiled core/compiler_builtins code against a positive allowlist of baseline
+x86-64 integer and SSE/SSE2 mnemonics: no x87, MMX, SSE3+, BMI, VEX/EVEX, privileged
+or Linux syscall instructions; int 0x80 is the only executable trap.
 """
 from __future__ import annotations
 
@@ -14,7 +15,6 @@ import json
 import os
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import sys
 
@@ -37,22 +37,37 @@ psllq psraw psrad psrldq psrlw psrld psrlq psubb psubw psubd psubq psubsb psubsw
 psubusw punpckhbw punpckhwd punpckhdq punpckhqdq punpcklbw punpcklwd punpckldq punpcklqdq pxor
 lfence mfence""".split())
 CMP_PSEUDO = re.compile(r"^cmp(?:eq|lt|le|unord|neq|nlt|nle|ord)(?:ss|ps|sd|pd)$")
-FORBIDDEN = set("""hlt cli sti in out ins insb insw insd outs outsb outsw outsd lgdt lidt lldt ltr
-sgdt sidt wrmsr rdmsr syscall sysenter sysexit sysret iretq iret invlpg wbinvd invd clts lmsw swapgs
-xsave xsave64 xsaveopt xrstor xrstor64 xsetbv xgetbv fxsave fxsave64 fxrstor fxrstor64 emms femms
-rdrand rdseed cpuid ud2""".split())
-PREFIXES = {"lock", "rep", "repz", "repe", "repnz", "repne", "data16", "cs", "ds", "es", "ss", "fs", "gs", "notrack", "bnd"}
+# Baseline x86-64 integer instructions (no BMI, POPCNT/LZCNT/TZCNT, CRC32, VEX or
+# system instructions). Everything not listed here or in SSE/SSE2 is rejected.
+GPR = set("""mov movabs movzx movsx movsxd lea add adc sub sbb and or xor not neg inc dec cmp
+test imul mul idiv div shl shr sal sar rol ror rcl rcr shld shrd bt bts btr btc bsf bsr bswap
+xchg cmpxchg xadd push pop call ret jmp nop cbw cwde cdqe cwd cdq cqo leave movs stos cmps scas
+lods int""".split())
+CC = "o|no|b|c|nae|ae|nb|nc|e|z|ne|nz|be|na|a|nbe|s|ns|p|pe|np|po|l|nge|ge|nl|le|ng|g|nle"
+CONDITIONAL = re.compile(rf"^(?:j(?:{CC}|rcxz|ecxz)|set(?:{CC})|cmov(?:{CC}))$")
+TERMINATORS = {"ret", "jmp", "call", "int3"}
+PREFIXES = {"lock", "rep", "repz", "repe", "repnz", "repne", "data16", "addr32", "cs", "ds", "es", "ss",
+            "fs", "gs", "notrack", "bnd", "xacquire", "xrelease"}
+REX = re.compile(r"^rex(?:\.[WRXB]+)?$")
 WIDE = re.compile(r"\b(?:[yz]mm\d+|mm[0-7]|st\(?\d?\)?|k[0-7]|tmm\d|cr\d+|dr\d+)\b")
+SEGMENT = re.compile(r"(?:^|,)\s*[c-gs]s\s*(?:,|$)|\b[fg]s:")
 XMM = re.compile(r"\bxmm(\d+)\b")
+LABEL = re.compile(r"^[0-9a-f]+ <[^>]+>:$")
 
 
 def inspect_instructions(disassembly: str) -> dict:
-    """Allowlist SSE/SSE2 on the linked ELF; reject everything outside that profile.
+    """Positive mnemonic allowlist (baseline GPR + SSE/SSE2) on the linked ELF.
 
-    A bounded decoded-mnemonic check of GNU objdump text, not a formal proof.
+    `int 0x80` is the only executable trap; `int3` is accepted only as linker
+    padding after an unconditional transfer and before the next symbol. A bounded
+    decoded-mnemonic check of GNU objdump text, not a formal proof.
     """
     count = sse = traps = 0
+    previous, padding = "", False
     for line in disassembly.splitlines():
+        if LABEL.match(line.strip()):
+            previous, padding = "", False
+            continue
         match = re.match(r"^\s*([0-9a-f]+):\t(.*)$", line)
         if not match:
             if re.match(r"^\s*[0-9a-f]+:", line):
@@ -60,28 +75,34 @@ def inspect_instructions(disassembly: str) -> dict:
             continue
         address, text = match.groups()
         words = text.split()
-        while words and words[0] in PREFIXES:
+        while words and (words[0] in PREFIXES or REX.match(words[0])):
             words = words[1:]
         if not words:
             continue  # prefix-only padding line
         mnemonic, operands = words[0], " ".join(words[1:])
         count += 1
-        if mnemonic == "(bad)":
-            raise ValueError(f"undecodable bytes at {address}")
-        if WIDE.search(operands):
+        if mnemonic == "int3":
+            if not (padding or previous in TERMINATORS):
+                raise ValueError(f"int3 outside inter-function padding at {address}")
+            padding, previous = True, mnemonic
+            continue
+        if padding:
+            raise ValueError(f"code follows int3 padding without a symbol at {address}")
+        if WIDE.search(operands) or SEGMENT.search(operands):
             raise ValueError(f"register outside the SSE2 profile at {address}: {text}")
-        if mnemonic in FORBIDDEN or (mnemonic.startswith("f") and mnemonic not in {"fence"}):
-            raise ValueError(f"forbidden instruction at {address}: {text}")
-        simd = mnemonic in SSE or mnemonic in SSE2 or bool(CMP_PSEUDO.match(mnemonic))
-        if XMM.search(operands) and not simd:
-            raise ValueError(f"xmm instruction outside SSE/SSE2 at {address}: {text}")
         if any(int(r) > 15 for r in XMM.findall(operands)):
             raise ValueError(f"EVEX register at {address}: {text}")
-        sse += simd
+        simd = mnemonic in SSE or mnemonic in SSE2 or bool(CMP_PSEUDO.match(mnemonic))
+        if mnemonic == "pextrw" and "PTR" in operands.split(",")[0]:
+            simd = False  # the memory-destination form is SSE4.1
+        if not simd and (XMM.search(operands) or not (mnemonic in GPR or CONDITIONAL.match(mnemonic))):
+            raise ValueError(f"instruction outside the baseline GPR + SSE/SSE2 profile at {address}: {text}")
         if mnemonic == "int":
             if operands.strip() != "0x80":
                 raise ValueError(f"unexpected interrupt at {address}")
             traps += 1
+        sse += simd
+        previous = mnemonic
     if count == 0 or sse == 0 or traps == 0:
         raise ValueError("empty code, no SSE2 use or missing int 0x80 boundary")
     return {"decoded_instructions": count, "sse_sse2_instructions": sse, "int80_sites": traps}
@@ -91,11 +112,42 @@ def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+SOURCE_TREES = (HERE, ROOT / "experiments/ai/reference-forward")
+SKIPPED = {"target", "__pycache__", ".git"}
+
+
+def source_tree_sha256() -> str:
+    """Fingerprint of the job and forward-engine inputs (the kernel source hash omits them)."""
+    digest = hashlib.sha256()
+    for tree in SOURCE_TREES:
+        for path in sorted(tree.rglob("*")):
+            relative = path.relative_to(tree)
+            if SKIPPED & set(relative.parts) or path.is_dir():
+                continue
+            if path.is_symlink() or not path.is_file():
+                raise ValueError(f"unexpected source entry: {path}")
+            digest.update(path.relative_to(ROOT).as_posix().encode() + b"\0" + sha(path).encode() + b"\n")
+    return digest.hexdigest()
+
+
+def publish(path: Path, data: bytes) -> None:
+    """Write via an exclusive temporary file and rename; never through an existing symlink."""
+    if path.is_symlink():
+        raise ValueError(f"refusing symlinked output: {path}")
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
+    with os.fdopen(descriptor, "wb") as handle:
+        handle.write(data)
+    os.replace(temporary, path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--target-dir", type=Path, required=True)
     args = parser.parse_args()
+    if args.output_dir.is_symlink():
+        raise SystemExit("refusing a symlinked output directory")
     output, target = args.output_dir.resolve(), args.target_dir.resolve()
     output.mkdir(parents=True, exist_ok=True)
     report: dict = {"schema_version": 1, "target": TARGET, "passed": False, "commands": []}
@@ -111,8 +163,8 @@ def main() -> None:
 
     def run(command: list[str], name: str, environment: dict) -> str:
         done = subprocess.run(command, cwd=ROOT, env=environment, text=True, capture_output=True, timeout=600)
-        (output / f"{name}.stdout.txt").write_text(done.stdout)
-        (output / f"{name}.stderr.txt").write_text(done.stderr)
+        publish(output / f"{name}.stdout.txt", done.stdout.encode())
+        publish(output / f"{name}.stderr.txt", done.stderr.encode())
         report["commands"].append({"argv": command, "returncode": done.returncode})
         if done.returncode:
             raise RuntimeError(f"{name} failed: {done.stderr[-2000:]}")
@@ -120,11 +172,12 @@ def main() -> None:
 
     manifest = str(HERE / "Cargo.toml")
     try:
+        report["source_tree_sha256"] = source_tree_sha256()
         report["rustc"] = run(["rustc", "+1.100.0", "--version"], "rustc", env).strip()
         run(["cargo", "+1.100.0", "build", "--manifest-path", manifest, "--locked", "--offline", "--release",
              "--target", TARGET, "--features", "native", "--bin", "ai-job-native"], "cargo-build", env)
         binary = output / "ai-job-native.elf"
-        shutil.copyfile(target / TARGET / "release/ai-job-native", binary)
+        publish(binary, (target / TARGET / "release/ai-job-native").read_bytes())
         undefined = run(["nm", "-u", str(binary)], "undefined", env)
         if undefined.strip():
             raise RuntimeError(f"undefined symbols: {undefined}")
@@ -135,10 +188,12 @@ def main() -> None:
                         "--release", "--bin", "ai-job-expected"], "host-expected", host_env)
         report["expected"] = json.loads(expected)
         report["binary_sha256"] = sha(binary)
+        if source_tree_sha256() != report["source_tree_sha256"]:
+            raise RuntimeError("job or forward-engine source changed during the build")
         report["passed"] = True
         print(f"Native AI job artifact passed: {binary}")
     finally:
-        (output / "build-report.json").write_text(json.dumps(report, indent=2) + "\n")
+        publish(output / "build-report.json", (json.dumps(report, indent=2) + "\n").encode())
     if not report["passed"]:
         raise SystemExit(1)
 

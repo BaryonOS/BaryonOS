@@ -6,7 +6,9 @@ spec = importlib.util.spec_from_file_location("ai_job_build", Path(__file__).res
 build = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(build)
 
-OK = "  40020000:\tmulss  xmm0,DWORD PTR [rdi]\n  40020004:\tint    0x80\n  40020006:\tdata16 cs nop WORD PTR [rax+rax*1+0x0]\n"
+OK = ("0000000040020000 <job>:\n  40020000:\tmulss  xmm0,DWORD PTR [rdi]\n  40020004:\tint    0x80\n"
+      "  40020006:\tdata16 cs nop WORD PTR [rax+rax*1+0x0]\n  40020010:\tret\n  40020011:\tint3\n"
+      "  40020012:\tint3\n\n0000000040020020 <next>:\n  40020020:\tcmovae rax,rcx\n")
 
 
 class Gate(unittest.TestCase):
@@ -16,9 +18,25 @@ class Gate(unittest.TestCase):
     def test_rejects_outside_profile(self):
         for bad in ("vmulss xmm0,xmm1,xmm2", "addsubps xmm0,xmm1", "pshufb xmm0,xmm1", "fld DWORD PTR [rax]",
                     "vaddps ymm0,ymm1,ymm2", "paddb mm0,mm1", "syscall", "int    0x3", "mulss xmm16,xmm1",
-                    "fxsave64 [rax]", "mov rax,cr3", "(bad)"):
+                    "fxsave64 [rax]", "mov rax,cr3", "(bad)",
+                    # Warden counterexamples: prefixed system/x87 forms, VEX without
+                    # vector registers, SSE3+/BMI, system instructions and traps.
+                    "rex.W syscall", "addr32 syscall", "rex syscall", "rex fld DWORD PTR [rax]",
+                    "vzeroupper", "vldmxcsr DWORD PTR [rax]", "vstmxcsr DWORD PTR [rax]",
+                    "shlx rax,rbx,rcx", "andn rax,rbx,rcx", "pdep rax,rbx,rcx",
+                    "pextrw WORD PTR [rax],xmm0,0x1", "crc32 eax,ecx", "monitor", "mwait",
+                    "popcnt rax,rbx", "lzcnt rax,rbx", "tzcnt rax,rbx", "sysretq", "clac", "wrpkru",
+                    "rdfsbase rax", "xsavec [rax]", "xsaves [rax]", "xsaveopt64 [rax]", "sldt eax",
+                    "str eax", "smsw eax", "int1", "ud1 eax,DWORD PTR [rax]", "ud2", "cpuid",
+                    "mov ds,eax", "mov rax,QWORD PTR fs:0x28", "hlt", "rdtsc"):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 build.inspect_instructions(OK + f"  40020010:\t{bad}\n")
+
+    def test_int3_only_as_padding(self):
+        for bad in ("  40020030:\tint3\n",  # after a non-terminator
+                    "  40020030:\tret\n  40020031:\tint3\n  40020032:\tnop\n"):  # code after padding
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                build.inspect_instructions(OK + bad)
 
 
 if __name__ == "__main__":

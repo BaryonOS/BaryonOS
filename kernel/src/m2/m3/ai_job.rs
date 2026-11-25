@@ -20,6 +20,10 @@ const BITS: u64 = 128;
 const WORDS: usize = 32;
 const MIN_ITERATIONS: u64 = 2000;
 const MIN_TICKS: u64 = 50;
+/// Timer IRQs that must land on the job itself in each run; the job also
+/// yields every 64 iterations, so its self-reported duration alone does not
+/// prove preemption. A measured pass sees about 23 per run.
+const MIN_JOB_TIMER_IRQS: u64 = MIN_TICKS / 4;
 /// 100 Hz PIT ticks (20 s); a measured pass needs about 110. The host
 /// runner's 60 s timeout is sized above this bound.
 const MAX_TICKS: u64 = 2000;
@@ -30,6 +34,9 @@ struct Evidence {
     reuse: u64,
     canary_exits: u64,
     timer: [u64; 2],
+    /// `timer[0]` and kernel ticks when the current job lifetime was spawned.
+    timer_mark: u64,
+    spawn_ticks: u64,
     first_b_loops: u64,
     macs: u64,
     argmax: u64,
@@ -42,6 +49,8 @@ static mut EVIDENCE: Evidence = Evidence {
     reuse: 0,
     canary_exits: 0,
     timer: [0; 2],
+    timer_mark: 0,
+    spawn_ticks: 0,
     first_b_loops: 0,
     macs: 0,
     argmax: 0,
@@ -71,6 +80,7 @@ pub(super) fn manifest(s: &State) {
         b"MANIFEST",
     );
     // Same independent frame account as the FPU fixture.
+    evidence().spawn_ticks = s.ticks;
     evidence().baseline = s.free_count()
         + s.processes[..2]
             .iter()
@@ -96,7 +106,10 @@ fn collect_canary(s: &State) {
         b"CANARY_STATE_CHECKS",
     );
     require(
-        word(s, 1, 104) >= word(s, 1, 96) + 12 && word(s, 1, 112) >= 2,
+        word(s, 1, 96)
+            .checked_add(12)
+            .is_some_and(|floor| word(s, 1, 104) >= floor)
+            && word(s, 1, 112) >= 2,
         b"CANARY_CLOCK_PROGRESS",
     );
     require(
@@ -109,7 +122,7 @@ fn collect_canary(s: &State) {
     );
 }
 
-fn print_run(s: &State, run: u64) {
+fn print_run(s: &State, run: u64, job_irqs: u64) {
     let digit = b'0' + run as u8;
     let mut label = *b"AIJOB:RUN0:ITERATIONS:";
     label[9] = digit;
@@ -120,6 +133,9 @@ fn print_run(s: &State, run: u64) {
     let mut label = *b"AIJOB:RUN0:END_TICKS:";
     label[9] = digit;
     print_number(&label, word(s, 0, END_TICKS));
+    let mut label = *b"AIJOB:RUN0:TIMER_IRQS:";
+    label[9] = digit;
+    print_number(&label, job_irqs);
     let mut label = *b"AIJOB:RUN0:MACS:";
     label[9] = digit;
     print_number(&label, word(s, 0, MACS));
@@ -164,9 +180,11 @@ pub(super) fn observe_exit(s: &State, slot: usize, _: u64) {
     require(word(s, 0, MISMATCHES) == 0, b"JOB_MISMATCHES");
     require(word(s, 0, ITERATIONS) >= MIN_ITERATIONS, b"JOB_ITERATIONS");
     require(
-        end >= start && end - start >= MIN_TICKS,
+        e.spawn_ticks <= start && start <= end && end <= s.ticks && end - start >= MIN_TICKS,
         b"JOB_PREEMPTED_DURATION",
     );
+    let job_irqs = e.timer[0] - e.timer_mark;
+    require(job_irqs >= MIN_JOB_TIMER_IRQS, b"JOB_TIMER_PREEMPTION");
     if e.runs == 0 {
         e.macs = word(s, 0, MACS);
         e.argmax = word(s, 0, ARGMAX);
@@ -189,7 +207,7 @@ pub(super) fn observe_exit(s: &State, slot: usize, _: u64) {
         // Release the canary only after both AI lifetimes completed.
         write_word(s.processes[1].physical(DATA + 160), 1);
     }
-    print_run(s, e.runs + 1);
+    print_run(s, e.runs + 1, job_irqs);
     e.runs += 1;
 }
 
@@ -203,6 +221,8 @@ pub(super) fn poll(s: &mut State) {
         s.ticks < MAX_TICKS && s.syscall_calls < 2_000_000,
         b"BOUNDED_RUN",
     );
+    // A process killed for invalid saved state reaches no observer hook.
+    require(!s.fault && !s.unexpected, b"PROCESS_FAULT");
     // A failed job publishes 0x100+code and spins on yield instead of exiting.
     if s.processes[0].status != Status::Dead {
         let status = word(s, 0, STATUS);
@@ -214,7 +234,12 @@ pub(super) fn poll(s: &mut State) {
     let e = evidence();
     if e.runs == 1 && e.reuse == 0 && s.processes[0].status == Status::Dead {
         require(s.processes[1].status == Status::Ready, b"SURVIVOR");
-        if word(s, 1, 88) > e.first_b_loops + 8 {
+        if e.first_b_loops
+            .checked_add(8)
+            .is_some_and(|floor| word(s, 1, 88) > floor)
+        {
+            e.timer_mark = e.timer[0];
+            e.spawn_ticks = s.ticks;
             s.spawn_process(0);
             require(s.processes[0].pid == 3, b"FRESH_PID");
             e.reuse = 1;

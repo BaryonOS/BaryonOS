@@ -2,6 +2,7 @@
 """Run and validate the opt-in native SSE2 AI job profile (`native-ai-job`)."""
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
 import re
 import shutil
@@ -18,12 +19,16 @@ END = ("AIJOB:CONTEXT_ISOLATION:PASS", "AIJOB:CLEANUP:PASS", "AIJOB:PASS", "M1:P
 REQUIRED = BOOT + ("AIJOB:MANIFEST:PASS", "AIJOB:SURVIVOR:PASS", "AIJOB:SLOT_REUSE:PASS") + END
 FORBIDDEN = ("FAIL", "PANIC")
 WORDS = 32
-RUN_FIELDS = ("ITERATIONS", "START_TICKS", "END_TICKS", "MACS", "DIGEST", "ARGMAX",
+RUN_FIELDS = ("ITERATIONS", "START_TICKS", "END_TICKS", "TIMER_IRQS", "MACS", "DIGEST", "ARGMAX",
               *(f"BITS{i:02d}" for i in range(WORDS)))
 TOTAL_FIELDS = ("RUNS", "SLOT_REUSES", "TIMER_A", "TIMER_B", "TIMER_IRQS", "SYSCALL_CALLS", "SAVES",
                 "RESTORES", "BASELINE_FRAMES", "FREE_FRAMES", "CONTEXT_BYTES_WIPED")
 PIT_HZ = 100
+_spec = importlib.util.spec_from_file_location("ai_job_build", ROOT / "experiments/ai/native-job/build.py")
+job_build = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(job_build)
 MIN_ITERATIONS, MIN_TICKS = 2000, 50
+MIN_JOB_TIMER_IRQS = MIN_TICKS // 4
 SCOPE = ("Opt-in native-ai-job profile: one capability-free ring-3 SSE2 AI job (tiny two-layer decoder "
          "fixture, not Qwen) run twice with slot reuse beside the fpu-b register canary, using the existing "
          "eager FXSAVE64/FXRSTOR64 context. Evidence limits: QEMU TCG qemu64, one CPU, no SMP and no "
@@ -92,20 +97,20 @@ def validate_sequence(stdout: str, expected: dict) -> dict:
         argmax = list(run["ARGMAX"].to_bytes(8, "little")[:4])
         ticks = run["END_TICKS"] - run["START_TICKS"]
         if (run["ITERATIONS"] < MIN_ITERATIONS or run["END_TICKS"] < run["START_TICKS"] or ticks < MIN_TICKS
-                or run["ARGMAX"] >> 32):
+                or run["TIMER_IRQS"] < MIN_JOB_TIMER_IRQS or run["ARGMAX"] >> 32):
             raise ValueError(f"Run {number} is incomplete or not preempted long enough")
         if (bits != oracle_bits or run["DIGEST"] != expected["digest"] or run["MACS"] != expected["macs"]
                 or argmax != oracle_argmax):
             raise ValueError(f"Run {number} differs from the host oracle")
         results.append({"run": number, "iterations": run["ITERATIONS"], "start_ticks": run["START_TICKS"],
-                        "end_ticks": run["END_TICKS"], "ticks": ticks, "macs_per_iteration": run["MACS"],
+                        "end_ticks": run["END_TICKS"], "ticks": ticks, "job_timer_irqs": run["TIMER_IRQS"], "macs_per_iteration": run["MACS"],
                         "macs_per_second": run["MACS"] * run["ITERATIONS"] * PIT_HZ // ticks,
                         "digest": run["DIGEST"], "argmax": argmax, "bits": bits})
     if runs[0]["START_TICKS"] >= runs[1]["START_TICKS"] or runs[0]["END_TICKS"] > runs[1]["START_TICKS"]:
         raise ValueError("Runs overlap or are out of order")
     user_irqs = totals["TIMER_A"] + totals["TIMER_B"]
     if (totals["RUNS"] != 2 or totals["SLOT_REUSES"] != 1 or totals["CONTEXT_BYTES_WIPED"] != 8192
-            or totals["TIMER_A"] < 2 or totals["TIMER_B"] < 2 or totals["TIMER_IRQS"] != user_irqs
+            or totals["TIMER_A"] != runs[0]["TIMER_IRQS"] + runs[1]["TIMER_IRQS"] or totals["TIMER_B"] < 2 or totals["TIMER_IRQS"] != user_irqs
             or totals["SAVES"] != user_irqs + totals["SYSCALL_CALLS"] or totals["RESTORES"] != totals["SAVES"]
             or totals["FREE_FRAMES"] == 0 or totals["FREE_FRAMES"] != totals["BASELINE_FRAMES"]):
         raise ValueError("Inconsistent native context, timer or frame evidence")
@@ -121,12 +126,14 @@ def validate_build(build: Path, frozen: str) -> dict:
         raise ValueError("Build the native-ai-job profile on the current source first")
     job = load_json(private_path(build / "users/ai-job/build-report.json", regular=True))
     canary = load_json(private_path(build / "users/fpu/build-report.json", regular=True))
-    if (manifest.get("ai_job") != {"job": job, "canary": canary} or job.get("passed") is not True
+    elf = private_path(build / "users/ai-job/ai-job-native.elf", regular=True)
+    if (manifest.get("ai_job") != {"job": job, "canary": canary, "job_elf": inspect_user(elf)}
+            or job.get("passed") is not True
+            or job.get("source_tree_sha256") != job_build.source_tree_sha256()
             or canary.get("passed") is not True or not isinstance(job.get("expected"), dict)
             or not isinstance(canary.get("apps"), list) or len(canary["apps"]) != 2):
-        raise ValueError("Unbound or malformed AI job/canary build report")
+        raise ValueError("Unbound, stale or malformed AI job/canary build report")
     kernel_bytes = private_path(build / "esp/kernel.elf", regular=True).read_bytes()
-    elf = private_path(build / "users/ai-job/ai-job-native.elf", regular=True)
     if sha256(elf) != job.get("binary_sha256") or elf.read_bytes() not in kernel_bytes:
         raise ValueError("AI job ELF hash or embedded bytes mismatch")
     app = canary["apps"][1]
@@ -162,10 +169,12 @@ def run_ai_job() -> dict:
     shutil.copyfile(build / "users/ai-job/build-report.json", inputs / "build-report.json")
     shutil.copyfile(build / "users/fpu/fpu-b.elf", inputs / "fpu-b.elf")
     save_json(inputs / "build-manifest.json", bound["manifest"])
-    checks = {"before_launch_source_unchanged": source_hash() == frozen}
+    job_tree = bound["job"]["source_tree_sha256"]
+    checks = {"before_launch_source_unchanged": source_hash() == frozen
+              and job_build.source_tree_sha256() == job_tree}
     report = {"schema_version": 1, "scope": SCOPE, "passed": False, "checks": checks,
               "pit_hz": PIT_HZ, "source_fingerprint_version": 3, "source_sha256": frozen,
-              "job_binary_sha256": bound["job"]["binary_sha256"], "oracle": bound["job"]["expected"],
+              "job_source_tree_sha256": job_tree, "job_binary_sha256": bound["job"]["binary_sha256"], "oracle": bound["job"]["expected"],
               "qemu_entry_path": qemu, "qemu_entry_sha256": qemu_hash, "inputs_directory": str(inputs)}
     try:
         if not all(checks.values()):
@@ -187,7 +196,8 @@ def run_ai_job() -> dict:
         checks["run2_equals_host_oracle_and_run1"] = observed["runs"][0]["bits"] == observed["runs"][1]["bits"]
         checks["context_wipe_and_entry_counts"] = True
         checks["frames_returned_to_baseline"] = True
-        checks["after_run_source_unchanged"] = source_hash() == frozen
+        checks["after_run_source_unchanged"] = (source_hash() == frozen
+                                                and job_build.source_tree_sha256() == job_tree)
         checks["qemu_entry_unchanged"] = sha256(Path(qemu)) == qemu_hash
         checks["user_binary_snapshots"] = (sha256(inputs / "ai-job-native.elf") == bound["job"]["binary_sha256"]
                                            and sha256(inputs / "fpu-b.elf") == bound["canary"]["apps"][1]["sha256"])

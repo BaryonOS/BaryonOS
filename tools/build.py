@@ -258,9 +258,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
     elif kernel_feature == "native-ai-job":
-        from run_fpu import build_users as build_fpu_users
+        from run_fpu import build_users as build_fpu_users, private_path
+        from build_users import inspect_user
         extra_env, canary = build_fpu_users()
-        output = BUILD / "users/ai-job"
+        output = private_path(BUILD / "users/ai-job")
+        output.mkdir(parents=True, exist_ok=True)
+        for name in ("ai-job-native.elf", "build-report.json"):
+            private_path(output / name)  # Refuse bad existing outputs before Cargo.
         run_logged([sys.executable, "-B", str(ROOT / "experiments/ai/native-job/build.py"),
                     "--output-dir", str(output), "--target-dir", str(TARGET / "ai-job-user")],
                    "build-ai-job-user")
@@ -269,7 +273,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             raise ValueError("Native AI job executable failed its artifact gate")
         extra_env = {"NOS_FPU_B_ELF": extra_env["NOS_FPU_B_ELF"],
                      "NOS_AI_JOB_ELF": str((output / "ai-job-native.elf").resolve())}
-        qsim_report = {"job": job, "canary": canary}
+        qsim_report = {"job": job, "canary": canary, "job_elf": inspect_user(output / "ai-job-native.elf")}
     elif kernel_feature in ("native-qsim", "native-smp-qsim", "native-smp-m3-soak"):
         output = BUILD / "users/qsim"
         run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
