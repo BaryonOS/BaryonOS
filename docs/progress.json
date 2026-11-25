@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "77dd864e7ed3d351d4fc99b8a66ece47cc1e274f",
+    "source_commit": "c61a1fe096401a21436fa4b042214f3017fa2b76",
     "assessment_basis": "parent_commit",
     "branch": "claude/ui-u-readonly-ctrl-s-20261125",
     "task": "UI-U-C8-20261125 U03: Ctrl+S on a read-only document shows the ReadOnly refusal again (materiaal recover probe)",
     "previous_score": 43,
-    "summary": "43/100 unchanged. Since #210 Ctrl+S on a read-only Materiaal document was a silent no-op, so the native materiaal recover probe timed out in its readonly phase (C7, raw exit 35). The controller now routes read-only Write-tool Ctrl+S to save(), which the SDK refuses with ReadOnly; the Read tool and other disabled states stay silent. A materiaal chain host test (with a mutation control) and local native normal and recover runs at feba6c3b pass with raw exit 33: one error, a new frame, no save ACK and no disk writes or flushes. Hosted gates do not run the recover case. U03 stays open: deny copy (U03-T3 part 2), encrypted durable storage and human trials are missing."
+    "summary": "43/100 unchanged. Since #210 Ctrl+S on a read-only Materiaal document was a silent no-op, so the native materiaal recover probe timed out in its readonly phase (C7, raw exit 35). The controller now routes read-only Write-tool Ctrl+S to save(), which the SDK refuses with ReadOnly; the Read tool and other disabled states stay silent. A materiaal chain host test (with a mutation control) and local native normal and recover runs at feba6c3b pass with raw exit 33: one error, a new frame, no save ACK and no disk writes or flushes. Hosted gates do not run the recover case. Main c61a1fe0 (B03-F1 #514) is merged into the branch. U03 stays open: deny copy (U03-T3 part 2), encrypted durable storage and human trials are missing."
   },
   "tracks": [
     {
