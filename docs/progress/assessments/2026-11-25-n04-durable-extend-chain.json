@@ -3,7 +3,7 @@
   "source_commit": "9cc1b86f73e2d23dd37811e54571d7ad57c0c91a",
   "assessment_basis": "parent_commit",
   "branch": "claude/n04-durable-extend-chain-20261125",
-  "task": "Port the N04 durable-store freshness model to B's extend-chain anchor contract (#524 at 0ccbe535); M1 regression tests green against a hostile extend (#529)",
+  "task": "Port the N04 durable-store freshness model to B's extend-chain anchor contract (#524 at 5db011cc); M1 regression tests green against a hostile extend (#529)",
   "previous_score": 43,
   "summary": "43/100 unchanged. Host model only: no kernel anchor service, swtpm run or torn-A1 store recovery exists, so N04 stays open and 5A remains the product behaviour."
 }

@@ -185,7 +185,7 @@ demonstrably safe.
 
 **Amendment (25 November 2026): the protected slot is an extend chain.** B
 implements the M1 route as a per-domain `TPM_NT_EXTEND` hash chain (contract
-`docs/implementation/COLD-FRESHNESS-ANCHOR.md` on #524, basis `0ccbe535`;
+`docs/implementation/COLD-FRESHNESS-ANCHOR.md` on #524, basis `5db011cc`;
 P1–P3 agreed with N). The generation counter, the rewritable slot binding and
 the `Pending` state above are replaced: a store records `prev`, the chain value
 it was committed on top of; the kernel derives `E(S)` from the domain and
@@ -203,7 +203,11 @@ under B's names and now pass against a hostile extend:
 `replaced_tpm_rejects_the_store_until_authorised_genesis`. A stray extend now
 denies every store until authorised genesis (fail closed). Host evidence only;
 native S5 verification on swtpm, torn-A1 store recovery (C143, #529) and the
-residuals listed in B's contract remain open, and 5A stays in force.
+residuals listed in B's contract remain open, and 5A stays in force. One
+residual passes N04's own checks: if both copies of the accepted pair are
+lost (TPM clear plus UEFI NVRAM reset, open U13c item), the old `ENROLL`
+authorises a second genesis under the old instance, so the instance check
+does not reject that instance's revived first store.
 
 **Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
 N04 stays open until its native evidence exists; the score is unchanged.
