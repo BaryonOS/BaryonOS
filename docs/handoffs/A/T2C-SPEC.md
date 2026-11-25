@@ -80,6 +80,31 @@ closed endpoint and that fault and kill exits reach the same endpoint-closing
 cleanup as a normal exit; pin "an owned endpoint closes no later than its
 owner's exit" with a capability-core test.
 
+**Verified 25 Nov (read-only, A session; citations at e8f38b99):**
+- The broker observes **Revoked (-10)**, not Closed: `Engine::exit` revokes the
+  owner's nodes and descendants before closing (capability-core `lib.rs:1594-1640`),
+  and `resolve` checks `revoked` first (`lib.rs:1694-1699`); host test
+  `tests.rs:658-664`. Closed (-9) arises only while the owner lives and drops its
+  last RECV. -10 is distinct from BadHandle -4, Again -8 and Closed -9, but not
+  from an explicit ancestor revoke; the broker treats both as "client authority
+  gone" and retires (fail closed). After `close`, the old handle value gives
+  BadHandle (generation bump); handles are per process, so no aliasing.
+- `ipc_wait` fails the whole wait on the first error (wait.rs:79-83,156,196-205),
+  without an index: the broker must probe each client handle with
+  `check`/send to find which client ended (polled detection, as expected).
+- Exit syscall, ring-3 fault, invalid RSP, K05 KILL, orphan kill and SMP
+  recovery all reach `retire_authority` -> `m4::process_exit` -> `Engine::exit`.
+  No timer/quota termination exists.
+- Constraints for T2c-3: (1) `retire_authority` calls `m4::process_exit` only
+  under `milestone-m4`, and under `native-smp-m3-ipc` only for slots 1|2 (8|9 in
+  soak) (`kernel/src/m2/m3.rs:2801-2806`): the T2c profile must be a
+  `milestone-m4` profile without that slot restriction, checked by a native case.
+  (2) On SMP kill/orphan, KILLED is reported before `Engine::exit` runs (up to the
+  100 ms kill-ack deadline, m3.rs:3000-3031); until then the target still runs
+  and its grants remain valid. Grants end when the process actually ends, not at
+  the KILL request (evidence limit). (3) No existing test checks endpoint
+  closure after a fault or kill: T2c-3 adds a native fault case.
+
 No process-exit wait interest or kernel-to-user event queue exists today
 (`wait.rs:62` accepts SEND/RECV only); exits flow through `retire_authority`
 (`m3.rs:1705,2788-2807`) -> `m4::process_exit` -> `Engine::exit`, which closes
