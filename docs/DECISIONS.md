@@ -57,7 +57,7 @@ Enabling the queue in the ruleset is a separate step that needs the project owne
 
 1. revert the AGENTS.md progress rule so that an unchanged score again updates the `assessment` header in `docs/progress.json`, and restore the header-only description in `docs/PROGRESS.md`;
 2. convert every open pull request that adds a task file into a header update, or close it, before the loader goes, so that no record merges unvalidated;
-3. remove the task-file loader and its tests from `tools/progress.py` (the header validation is unchanged and stays);
+3. replace the task-file loader in `tools/progress.py` with a check that fails while `docs/progress/assessments/` exists, so that a task file merged after step 2 turns the check red instead of staying unvalidated (the header validation is unchanged and stays);
 4. remove `docs/progress/assessments/` after the lead copies any record that must be kept into the header or `docs/history/`.
 
 D1 and D2 are rolled back by a new project-owner decision.
