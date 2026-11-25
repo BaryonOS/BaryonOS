@@ -23,28 +23,35 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Record real issue–PR, parent/sub and blocked-by links; closing keywords only for the
   scoped issue a PR fully resolves. Merged = Done, other closure = Closed. A merge is not
   criterion acceptance. No schema/permission changes, no artificial issues.
-- Gap on #486: the local gh token lacks `read:project`, so project 5 membership and
+- Gap: neither the local gh token (no `read:project`) nor the cloud session (repository-scoped) can reach project 5, so membership and
   fields are not set; owner action needed.
 
 ## Current cycle
 
-- cycle_id: b04-repro-loader-20261124 (previous b02-key1-relay-20261124 closed: #486 merged as 93dabb65, CLEAR_READY)
-- task: B04 build divergence (loader/image_payload) diagnosis and root-cause fix
-- branch: claude/b04-repro-divergence-20261124
+- Session: cloud (CLOUD-HANDOFF-B, 25 Nov); the local B session is archived and no longer writes.
+- cycle_id: b05-t5-user-abi-20261125 (previous b04-repro-loader-20261124 closed: #493 merged as ae735e2c,
+  verified on main; HANDOFF comment on #493).
+- task: B05-T5 bounded invariant enumeration of the ring-3 user ABI (`crates/kernel-core/src/user.rs`)
+- branch: claude/b05-user-abi-20261123
 - PR: see the HANDOFF comment for the number and expected head
 - state: RESUME_REQUIRED until the PR is squash-merged and verified on main.
-- result: lld-link wall-clock COFF/debug timestamps and a PDB (run paths) feeding the CodeView GUID
-  were the only differing bytes; `/Brepro` + `/DEBUG:NONE` on the UEFI target make two isolated
-  default builds byte-identical on this host. Comparator unchanged, nothing normalised.
+- result: host-only test `crates/kernel-core/tests/bounded_user_abi_invariants.rs` (12 tests). The open verifier
+  finding (`>=` quota mutant survived) is closed by `parse_quota_boundary_is_exact`; a second verifier pass found
+  the same gap at the window end, closed by `parse_window_end_is_exact`. Production source unchanged.
 
 ## Evidence / NOT RUN
 
-- Evidence: `docs/verification/b04-repro-loader-20261124/` (red/red/green/green raw reports,
-  byte diffs, Secure Boot TEST chain 5/5 at `0c590f13`, smoke raw 33, `tools/test.py` exit 0).
-- NOT RUN: hosted CI; non-default profiles in repro_check; other host/path/toolchain;
-  FAT image bytes; hardware; human audit. No CI job runs repro_check (protected `.github/**`).
-- progress/PROJECT-STATE/ledger untouched (lead-owned). Their wording "loader/image_payload differ"
-  becomes stale on merge; the lead should reassess B04-T2 text. No B04 credit: same-host only.
+- Evidence: `docs/security-review/B05-T5-USER-ABI-INVARIANTS.md` (case counts, mutation controls, commands).
+  `cargo test -p kernel-core` (59 unit + 12 integration), clippy, fmt and `tools/b05_scope_check.py` exit 0;
+  quota `>=`, `-31`, `-33`, non-accumulating count and window-end `>=` mutants all exit 101.
+- NOT RUN: `cargo llvm-cov` locally; native QEMU (the change is test-only); hardware; human audit.
+  No B05 credit: AI review is not the external human audit.
+
+## Merge procedure lesson (25 Nov)
+
+- With `pull_request_wait_minutes = 0`, merge-hold fails at once while gates run. After the applicable gates finish
+  (ignore `upload-coverage-*`, `copilot*`, Graphify), re-run the merge-hold job, then squash-merge with the expected
+  head before `main` moves. #493 needed six update rounds; signalled on #503.
 
 ## Blockers (external)
 
@@ -54,11 +61,12 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - B04 hosted Secure Boot job: protected `.github/**` request
   (docs/implementation/B04-SECURE-BOOT-CI-INTEGRATION-REQUEST.md).
 
-## Parked local work (not pushed, not in this cycle)
+## Queued B branches (pushed, merged with main on 24–25 Nov, no PR yet)
 
-- claude/b05-user-abi-20261123 e4e6a9aa — open medium verifier finding (quota off-by-one mutant survives).
-- claude/b05-virtio-caps-20261123 5dc89767 — verifier MERGE.
-- claude/b03-floor-crash-20261123 f18ba29c — verifier MERGE.
+- claude/b05-virtio-caps-20261123 7762e63f — B05-T6, verifier MERGE; virtio-core tests/clippy/fmt/scope exit 0.
+- claude/b03-floor-crash-20261123 — B03-F1 REL-05 characterization (not a fix); 9 host tests pass.
+- REL-05 fix (floor raised before kernel health) needs an owner policy decision (trial boot / health
+  confirmation); B drafts a proposal, no silent change to anti-rollback semantics.
 
 ## Lessons
 
@@ -68,7 +76,5 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- Finish the B04 repro PR: hosted checks green on the current head, expected-head squash merge,
-  verify on main, post `HANDOFF B b04-repro-loader-20261124`.
-- After that cycle: B05 parked branches (b05-user-abi quota off-by-one mutant first), or B04
-  hosted job once the protected `.github/**` request is handled.
+- Finish the B05-T5 PR (gates, merge-hold re-run, expected-head squash merge, verify on main,
+  post `HANDOFF B b05-t5-user-abi-20261125`), then B05-T6, then B03-F1.

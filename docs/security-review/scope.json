@@ -8,7 +8,8 @@
         "kernel/src/m2/paging.rs"
       ],
       "tests": [
-        "tools/tests/test_kernel_memory.py"
+        "tools/tests/test_kernel_memory.py",
+        "crates/kernel-core/tests/bounded_user_abi_invariants.rs"
       ],
       "evidence": [
         "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md"
