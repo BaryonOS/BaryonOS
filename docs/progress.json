@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-24",
-    "source_commit": "52cff56858c8721c102780a6a72ac7dfe1a34d9d",
+    "date": "2026-11-25",
+    "source_commit": "9b24c9d5cb102b72db5688d2dc99f7ac25c50274",
     "assessment_basis": "parent_commit",
-    "branch": "claude/n02-slirp-negative-dns-20261124",
-    "task": "N02-T6 NXDOMAIN against the real resolver via libslirp",
+    "branch": "claude/sweet-franklin-ljra1f",
+    "task": "H06-T8 exact-line matching for full-line HW-INV fixture markers",
     "previous_score": 43,
-    "summary": "43/100 unchanged. The libslirp case now also resolves the reserved name missing.invalid: app A gets NotFound in-guest, the kernel pins two UDP queries and one additional rejected request, and the runner requires exactly one NXDOMAIN without addresses bound to that query on the wire. The resolver is the host-configured one reached through QEMU user networking; no physical NIC, timeout, truncation or stale-response case is covered, so N02 remains open and earns no points."
+    "summary": "43/100 unchanged. H06-T8 makes the HW-INV fixture oracle require whole lines for full-line markers (M2:PASS, HWINV:BEGIN, HWINV:FAIL:FIXTURE and others) and a non-empty value for value markers such as M2:PANIC_LINE:; host tests and a startswith mutant cover it, and every native HW-INV case and terminal fixture passed again on the merged source (after #500 and #504) in QEMU/TCG (pc-q35-8.2). Host oracle plus QEMU only; no physical evidence, so H06 earns no points; evidence: docs/verification/h06-exact-markers-20261124/README.md."
   },
   "tracks": [
     {
@@ -906,7 +906,7 @@
             "verification": [
               "native"
             ],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures). H06-T6 packs it into a deterministic raw GPT/FAT32 image with a recorded SHA-256 that boots in QEMU as a disk.",
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures). H06-T6 packs it into a deterministic raw GPT/FAT32 image with a recorded SHA-256 that boots in QEMU as a disk. H06-T7 adds the serial-timeout fixture and an HLT=1 check for every terminal fixture.",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",

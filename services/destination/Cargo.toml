@@ -11,7 +11,14 @@ path = "src/lib.rs"
 # Test-only hooks (N29): never enabled by a product build. The self
 # dev-dependency below turns it on for this crate's own test targets only.
 test-hooks = []
+# The production archive verifier (spec 2.3): links
+# `volume_core::archive::verify`. The native service enables it; the core
+# alone does not depend on `volume-core`.
+volume-verifier = ["dep:volume-core"]
+
+[dependencies]
+volume-core = { path = "../volume", default-features = false, optional = true }
 
 [dev-dependencies]
 capability-core = { path = "../../crates/capability-core" }
-destination-core = { path = ".", features = ["test-hooks"] }
+destination-core = { path = ".", features = ["test-hooks", "volume-verifier"] }

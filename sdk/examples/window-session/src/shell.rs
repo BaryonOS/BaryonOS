@@ -484,6 +484,13 @@ impl Shell {
         if key.key == PhysicalKey::Enter
             || key.key == PhysicalKey::Space && self.page != Page::Search
         {
+            // ds-1.1 B8: one activation per physical press. An auto-repeated
+            // Enter/Space is consumed so a held key cannot walk Lock -> Users
+            // -> Auth or reopen what the first press closed; Tab and arrows
+            // above keep their repeat.
+            if key.action == KeyAction::Repeat {
+                return Effect::take(true, Command::None);
+            }
             let control = self
                 .controls(width, height, scale)
                 .into_iter()
@@ -927,5 +934,30 @@ mod visual_interaction_tests {
         );
         assert_eq!(shell.focus, 0);
         assert_eq!(press(&mut shell, PhysicalKey::Enter), Command::Activate(0));
+    }
+    #[test]
+    fn repeat_moves_focus_but_never_activates() {
+        let repeat = |s: &mut Shell, key| {
+            s.key(
+                KeyboardEvent {
+                    key,
+                    action: KeyAction::Repeat,
+                    modifiers: Default::default(),
+                },
+                1280,
+                720,
+                1,
+            )
+        };
+        let mut shell = Shell::new(false);
+        shell.open(Page::Search);
+        // A held Tab keeps moving focus (B8 keeps navigation repeat).
+        repeat(&mut shell, PhysicalKey::Tab);
+        assert_eq!(shell.focus, 1);
+        // A repeated Enter is consumed without activating or leaving the page.
+        let effect = repeat(&mut shell, PhysicalKey::Enter);
+        assert_eq!(effect, Effect::take(true, Command::None));
+        assert_eq!(shell.page(), Page::Search);
+        assert_eq!(shell.focus, 1);
     }
 }
