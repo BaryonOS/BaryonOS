@@ -539,9 +539,14 @@ required-check rule forces such an update anyway.
 merge-hold first makes a full decision. If gates are pending and a counted
 workflow still has an unfinished run on the head, or an expected gate workflow
 has no run yet, it waits: once a minute it reads only the head's run listing,
-and it makes the next full decision once nothing is open or the budget ends. A
-failure ends the wait at once, and pending gates with nothing left running
-decide at once, because waiting cannot resolve them. Gates still pending at
+and it makes the next full decision once no gated workflow run is open or the
+budget ends. Only runs of workflows with a selectable gate count as open, and a
+failed poll counts as open (the next full decision settles it). A failure seen
+by a full decision ends the wait at once; a failed job inside a run that is
+still going is seen only when that run finishes. Pending gates with nothing
+left running decide at once, because waiting cannot resolve them. An expected
+gate workflow that GitHub never starts keeps the wait going until the budget
+ends, so such a pull request fails after 40 minutes instead of at once. Gates still pending at
 the decision are listed; re-run the failed merge-hold job after they finish
 (`gh run rerun <run id> --failed`, or any label change). With 0, merge-hold
 decides once without waiting.

@@ -976,6 +976,38 @@ class GateTests(TestCase):
         self.assertIn("changed while it was read", out)
         self.assertEqual(state["sleeps"], 0)
 
+    def test_an_open_run_without_a_selectable_gate_does_not_hold_the_wait(self):
+        """Review of #517: only gated workflows keep the wait going."""
+        advisory = ".github/workflows/advisory.yml"
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45},
+                            excluded=plan_fixture()["excluded"] + [
+                                {"id": "adv#a", "class": "advisory", "workflow": advisory, "job": "a",
+                                 "check_name": "a", "reason": "advisory"}])
+        runs_ = [wf_run(1, CI), wf_run(2, LEAVES), wf_run(5, advisory, "in_progress", None)]
+        passed, out, state = self.decide(plan=plan, runs_=runs_, rerun_during_read={2: {"run_attempt": 2}})
+        self.assertFalse(passed)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_a_failed_poll_keeps_waiting_and_the_full_report_decides(self):
+        """Review of #517: a transient API error during the wait neither ends it nor fails the job."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        real = merge_hold.fetch_listing
+        failures = iter([OSError("HTTP 502"), ValueError("listing changed")])
+
+        def flaky(token, url, key):
+            if key == "workflow_runs" and STATE["polls"] in (1, 2):
+                STATE["polls"] += 1
+                raise next(failures)
+            STATE["polls"] += 1
+            return real(token, url, key)
+
+        STATE = {"polls": 0}
+        with mock.patch.object(merge_hold, "fetch_listing", flaky):
+            passed, out, state = self.decide(plan=plan, polls=[running] * 3 + [GOOD_RUNS])
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 3)
+
     def test_failure_ends_the_wait_at_once(self):
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 10, "merge_group_wait_minutes": 45})
         runs_ = [wf_run(1, CI, conclusion="failure"), wf_run(2, LEAVES, "queued", None)]
