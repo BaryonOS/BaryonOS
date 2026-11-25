@@ -51,9 +51,11 @@ listed and fail the check. merge-hold-recheck.yml (tools/merge_hold_recheck.py)
 re-runs this job once every gate run of the head has finished; a manual re-run
 remains the fallback.
 `policy.mode = "shadow"` in the base catalogue reports gates without blocking on
-them. On `merge_group`, where the selected workflows do not run,
-each member needs a successful `pull_request` merge-hold on its own head and
-a queue entry tree equal to that head tree.
+them. On `merge_group` the selected workflows also run on the queue commit,
+but this hold waits there only for host-quality and qemu-smoke and does not
+judge their gates (until D1 step 2), so each member still needs a successful
+`pull_request` merge-hold on its own head and a queue entry tree equal to that
+head tree.
 """
 
 import json
@@ -716,8 +718,9 @@ def merge_group_hold(token, repo):
         passed, message, labels = pull_request_hold(token, repo, number, pr_head)
         # Compare with this PR's own queue entry: that commit is what main
         # becomes when it merges, and its own group checks that tree. The
-        # selected gates run only on pull_request, so their verdict on the PR
-        # head (its merge-hold) covers the entry only when the trees are equal.
+        # selected gates also run on the queue commit, but only their
+        # pull_request verdict on the PR head (its merge-hold) is judged, and it
+        # covers the entry only when the trees are equal.
         same_tree = tree(token, repo, entry_commit) == tree(token, repo, pr_head)
         if passed and LABEL in labels and not same_tree:
             passed, message = False, (
@@ -727,7 +730,7 @@ def merge_group_hold(token, repo):
         elif passed and not same_tree:
             passed, message = False, (
                 f"The applicable gates ran on {pr_head}, but its queue entry {entry_commit} lands a "
-                "different tree, and the selected workflows do not run on merge_group. Update the branch.")
+                "different tree, and merge-hold does not yet judge the gates on merge_group. Update the branch.")
         elif passed and not pull_request_gates_passed(token, repo, pr_head, number):
             passed, message = False, (
                 f"No successful pull_request merge-hold verified the applicable gates on {pr_head}.")

@@ -148,6 +148,7 @@ class SmpCiAggregationTests(unittest.TestCase):
                      "smp-matrix-aggregate", "smp-final-gate"}
         for event, full, diagnostic, expected in (
             ("pull_request", False, False, {"artifact-download-contract", "native-smp", "experimental-m3-m4-smp"}),
+            ("merge_group", False, False, {"artifact-download-contract", "native-smp", "experimental-m3-m4-smp"}),
             ("workflow_dispatch", False, False, {"native-smp", "experimental-m3-m4-smp"}),
             ("workflow_dispatch", True, False, full_jobs),
             ("workflow_dispatch", False, True, {"diagnostic-clock"}),

@@ -240,7 +240,7 @@ class MergeGroupTests(TestCase):
         one = [entry(1, 8, GROUP, OTHER)]
         code, out, _ = self.run_group(one, trees={GROUP: "1" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 1)
-        self.assertIn("do not run on merge_group", out)
+        self.assertIn("does not yet judge the gates on merge_group", out)
         for runs_, why in (([], "no run"), ([gate_run(OTHER, "failure")], "failed"),
                            ([gate_run(OTHER, run_id=1), gate_run(OTHER, "failure", run_id=2)], "newer failed"),
                            ([gate_run(OTHER, None, status="in_progress")], "running"),
@@ -320,7 +320,7 @@ class MergeGroupTests(TestCase):
             trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 0, out)
         # Phase 3: PR 8's gates ran on its own head. If its entry lands another tree
-        # (PR 7's change on top), the selected workflows never tested that tree.
+        # (PR 7's change on top), no gate verdict that merge-hold judges covers that tree.
         code, out, _ = self.run_group(
             queue,
             labels={7: [merge_hold.LABEL]},
