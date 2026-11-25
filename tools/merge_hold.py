@@ -45,8 +45,11 @@ running, failed, cancelled, timed-out or skipped results block; a failed
 (filtered, other branch, condition false) is reported, never counted as a pass.
 With a positive `policy.budgets.pull_request_wait_minutes` it waits for running
 gates, polling with one run listing per minute, and decides once none is open or
-the budget ends; with 0 it decides at once. Gates still pending at the decision
-are listed; re-run the merge-hold job once they have finished.
+the budget ends; with 0 (the catalogue value since #494 B9) it decides at once
+and holds no runner while gates run. Gates still pending at the decision are
+listed and fail the check. merge-hold-recheck.yml (tools/merge_hold_recheck.py)
+re-runs this job once every gate run of the head has finished; a manual re-run
+remains the fallback.
 `policy.mode = "shadow"` in the base catalogue reports gates without blocking on
 them. On `merge_group`, where the selected workflows do not run,
 each member needs a successful `pull_request` merge-hold on its own head and
@@ -644,7 +647,10 @@ def pull_request_gates(token, repo, number, head_sha):
     lines += [prefix + "Pending: " + line for line in pending]
     if pending and not failed:
         run = os.environ.get("GITHUB_RUN_ID", "<run id>")
-        lines.append(f"{prefix}Re-run this merge-hold job after the pending gates finish "
+        lines.append(f"{prefix}For a pull request from this repository the merge-hold re-check "
+                     "(merge-hold-recheck.yml) usually re-runs this job when the pending gates "
+                     "finish; a failure with only Pending lines needs no fix. If it is not re-run, "
+                     "re-run it once the gates have finished "
                      f"(gh run rerun {run} --failed).")
     lines += ["Passed: " + line for line in passed] + ["Not a pass: " + line for line in skipped]
     return (not failed and not pending) or not enforce, lines

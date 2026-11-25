@@ -9,6 +9,7 @@ native QEMU acceptance.
 import ast
 import fnmatch
 import hashlib
+import importlib.util
 import io
 import json
 import os
@@ -786,7 +787,8 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertLessEqual(required, set(preserve["with"]["path"].splitlines()))
 
     def test_public_prs_keep_minimal_token_permissions(self):
-        """Allow narrowly scoped writes only for CodeQL, orphan-run cleanup and coverage uploads."""
+        """Allow narrowly scoped writes only for CodeQL, orphan-run cleanup, coverage uploads
+        and the merge-hold re-check."""
         for path, workflow in self.workflows.items():
             with self.subTest(path=path):
                 self.assertNotIn("pull_request_target", workflow["on"])
@@ -813,6 +815,12 @@ class WorkflowContractTests(unittest.TestCase):
                     ".github/workflows/clear-stale-actions.yml", "cancel-orphans"
                 ):
                     self.assertEqual(permissions, {"actions": "write"})
+                elif (path, job_id) == (".github/workflows/merge-hold-recheck.yml", "recheck"):
+                    # #494 B9: actions write only to re-run merge-hold.
+                    self.assertEqual(
+                        permissions,
+                        {"actions": "write", "contents": "read", "pull-requests": "read"},
+                    )
                 elif (path, job_id) in (
                     (".github/workflows/ci.yml", "upload-coverage-rust"),
                     (".github/workflows/ci.yml", "upload-coverage-python"),
@@ -1375,6 +1383,57 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         })
         read = set(re.findall(r'os\.environ(?:\.get)?[\[(]"([A-Z_]+)"', source))
         self.assertLessEqual(read - {"GITHUB_RUN_ID", "GITHUB_STEP_SUMMARY"}, set(decide["env"]))
+
+    def test_merge_hold_recheck_reruns_from_the_default_branch_after_every_gate_workflow(self):
+        """#494 B9: merge-hold decides at once on pull_request; an event-driven re-check re-runs it."""
+        with open(ROOT / ".github/ci-impact.toml", "rb") as handle:
+            catalogue = tomllib.load(handle)
+        self.assertEqual(catalogue["policy"]["budgets"],
+                         {"pull_request_wait_minutes": 0, "merge_group_wait_minutes": 45})
+        spec = importlib.util.spec_from_file_location("merge_hold_recheck", ROOT / "tools/merge_hold_recheck.py")
+        recheck = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(recheck)
+        gates = recheck.gate_workflows(catalogue)
+        self.assertIn(".github/workflows/ci.yml", gates)
+        self.assertNotIn(".github/workflows/merge-hold.yml", gates)
+        path = ".github/workflows/merge-hold-recheck.yml"
+        workflow = self.workflows[path]
+        # The trigger list is exactly the name of every gate workflow, so each gate run that
+        # the script waits for starts another re-check when it completes.
+        self.assertEqual(list(workflow["on"]), ["workflow_run"])
+        trigger = workflow["on"]["workflow_run"]
+        self.assertEqual(set(trigger), {"workflows", "types"})
+        self.assertEqual(trigger["types"], ["completed"])
+        self.assertEqual(sorted(trigger["workflows"]), sorted({self.workflows[gate]["name"] for gate in gates}))
+        self.assertEqual(len(trigger["workflows"]), len(gates))
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertEqual(workflow["concurrency"], {
+            "group": "merge-hold-recheck-${{ github.event.workflow_run.event }}-"
+                     "${{ github.event.workflow_run.head_repository.full_name }}-"
+                     "${{ github.event.workflow_run.head_sha }}",
+            "cancel-in-progress": "false"})
+        self.assertEqual(list(workflow["jobs"]), ["recheck"])
+        job = workflow["jobs"]["recheck"]
+        self.assertEqual(job["if"], "github.event.workflow_run.event == 'pull_request' && "
+                                    "github.event.workflow_run.head_repository.full_name == github.repository")
+        self.assertEqual(job["timeout-minutes"], "5")
+        self.assertEqual(job["permissions"],
+                         {"actions": "write", "contents": "read", "pull-requests": "read"})
+        for key in ("needs", "continue-on-error", "strategy", "defaults", "container", "services", "env"):
+            self.assertNotIn(key, job)
+        checkout, run = job["steps"]
+        self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
+        # No ref: workflow_run checks out the default branch, never pull request code.
+        self.assertEqual(checkout["with"], {
+            "persist-credentials": "false",
+            "sparse-checkout": "tools/merge_hold_recheck.py\n.github/ci-impact.toml\n",
+            "sparse-checkout-cone-mode": "false"})
+        self.assertNotIn("uses", run)
+        self.assertEqual(run["run"], "python3 -B tools/merge_hold_recheck.py")
+        self.assertEqual(run["env"], {"GH_TOKEN": "${{ github.token }}", "REPO": "${{ github.repository }}"})
+        for step in (checkout, run):
+            for key in ("if", "continue-on-error", "working-directory"):
+                self.assertNotIn(key, step)
 
     def test_only_artifact_uploads_can_tolerate_errors(self):
         """Storage failure may be optional; failed builds, tests and collectors are not."""
