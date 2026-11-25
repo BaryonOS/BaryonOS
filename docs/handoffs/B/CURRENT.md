@@ -59,17 +59,20 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   thirteen native cases at source 16ff8409; `docs/verification/b03-rel05-pcr13-banks-20261125/`, local commit 2c9fdec9),
   the seeded cut between the ownerAuth and lockoutAuth changes (`loader-hauth-lockout-cut`: `MODE:EXISTING`, `BOUND`,
   `LOCKOUT:SET` at PERMANENT `0x401`, only lockoutAuthSet changes, boot 1 identical to `loader-hauth`; fourteen native
-  cases at source 6817b4e7; `docs/verification/b03-rel05-hauth-lockout-cut-20261125/`, local commit 94acc222).
-- NOT RUN: a provisioning-path halt after an NV write (fault injection; the seeded cut points are after the LREC
-  define and between the ownerAuth and lockoutAuth changes only), the TCG event log for PCR 13, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
+  cases at source 6817b4e7; `docs/verification/b03-rel05-hauth-lockout-cut-20261125/`, local commit 94acc222),
+  the remaining cut points (`HAUTH` defined, `HAUTH` written, `LREC` written: each re-provisions with `loader-hauth`
+  output, and `check_state` requires a fresh `LREC`; seventeen native cases at source 2816266d;
+  `docs/verification/b03-rel05-hauth-cut-points-20261125/`, local commit fa2d7f58).
+- NOT RUN: a fault-injected interruption of a real loader boot and a torn NV write (every provisioning step is
+  covered by a host-seeded cut), the TCG event log for PCR 13, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
   the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
 - Licensing register: `boot/loader/src/tpm_probe.rs`, `tpm_hauth.rs` and `tools/tpm_seed.py` are not listed in
   `MPL-2.0-FILES.txt` (no test enforces it); the register is an owner/lead decision, so it is reported, not changed.
 - CI risks for the seeded slice: `TpmSeedTests` and the seeds use `--server`, `--ctrl ...,mode=0600` and
   `--flags not-need-init,startup-clear`, verified only on swtpm 0.10.1. `ci.yml#host-quality` installs no swtpm, so
   they skip there, but `native-system.yml` runs `tools.tests.test_tpm` with the pinned swtpm 0.7.3, so they run on
-  the first lane push; the halt-unchanged check
-  and the repair-changes-only-lockoutAuthSet check in `run_tpm.run()` have no unit test; ci-impact selects host-quality through the `tools/**` glob.
+  the first lane push; the post-boot state checks
+  are unit-tested through `run_tpm.check_state()`; ci-impact selects host-quality through the `tools/**` glob.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
   staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; the TEST loader does not check
   ownerAuth against `HAUTH[..32]` (a foreign owner planting a well-formed `HAUTH`/`LREC` would bind); U25 on the hosted OVMF image and real firmware.
@@ -132,14 +135,16 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   commit, then the assessment/spec commit (CHECKPOINT 7173740570, ~20:30Z). Fourteen native cases at source
   6817b4e7; results in the new evidence directory. #524 checks on 5e126571: 69 pass, 10 skipped, only merge-hold
   red (BEHIND); 0 unresolved review threads.
-- Next on #524, decision-free: the remaining seeded cut points of the provisioning sequence (HAUTH defined but
-  unwritten; HAUTH written before the LREC define; LREC written before the ownerAuth change), each expected to repair
-  through `MODE:PROVISION` like `loader-hauth-cut`. Then, only after the owner
+- Done locally: fa2d7f58 remaining cut points (seeds `hauth-defined`, `hauth-written`, `lrec-written` as one helper
+  chain; cases `loader-hauth-cut-*`; `check_state()` with unit tests and the fresh-`LREC` rule), then the
+  evidence/assessment commit. Seventeen native cases at source 2816266d; `tools/tests` 1184 OK.
+- Next on #524, decision-free: the TCG event log for PCR 13 (the loader reads the firmware log and checks one
+  `EV_IPL` `CLOSED` entry for PCR 13), unless the lane arrives first. Then, only after the owner
   answers (both are in the "reported to the owner, not accepted" list): (b) S3/U27 and the section 7.9 halt; (c) native
   S5 with N's joint tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
-  body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the fourteen
-  `run_tpm.py` cases (six + eight seeded) on the merged head, or state in the PR body that the loader evidence is bound to 6817b4e7; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
+  body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the seventeen
+  `run_tpm.py` cases (six + eleven seeded) on the merged head, or state in the PR body that the loader evidence is bound to 2816266d; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
 
 Lane: the owner lifted the main freeze at 20:19Z (main 0fe66b51, #524 BEHIND by 8, no TPM-file overlap). Lane order from the
 PR guard: #515 (H) -> #539 -> #533 -> #543 -> #535 -> #525 / #523 / #540 / #524 / #538; one lane holder at a time, no

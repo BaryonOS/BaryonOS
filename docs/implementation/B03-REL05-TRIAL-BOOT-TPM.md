@@ -955,3 +955,16 @@ follows the `loader-hauth` path. Because the loader does not compare ownerAuth
 with `HAUTH[..32]`, the same result would follow from any non-empty ownerAuth
 with a consistent `HAUTH` and `LREC`. The other cut points of the provisioning
 sequence and fault injection remain NOT RUN.
+
+### Loader M1-HAUTH power cut after every provisioning step (25 November 2026)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-hauth-cut-points-20261125](../verification/b03-rel05-hauth-cut-points-20261125/README.md).
+`tools/tpm_seed.py` now seeds a cut after each provisioning step: `HAUTH`
+defined, `HAUTH` written, `LREC` defined, `LREC` written, and the ownerAuth
+change. While ownerAuth is still empty (the first four), the TEST loader
+removes both handles and provisions again with output identical to a fresh
+TPM; `run_tpm.py` (`check_state`) requires that every such boot ends with a
+freshly written `LREC`, never the seeded one. After the ownerAuth change it
+sets lockoutAuth only. The states are host-built, not fault-injected, and a
+torn NV write (U22) is not modelled.
