@@ -33,7 +33,8 @@ GitHub Copilot; client adapters add tool constraints, never authority.
    not a human audit. No optional review quota retries or continuous CI polling.
 8. Checkpoint coherent work: exact source, commands, raw exit codes, local log paths,
    NOT RUN reasons, blocker and executable next step. Update the existing progress
-   assessment without awarding unaccepted criteria. Commit, push and open/update a
+   assessment without awarding unaccepted criteria (an unchanged score is a new
+   `docs/progress/assessments/` file, not a progress.json edit). Commit, push and open/update a
    draft PR under the current mandate. The six workstreams hold the merge mandate
    for their own PRs under ADR-MERGE-DELEGATION-20261123; an explicit assignment can
    also delegate integration. No repeated approval is required within that scope.

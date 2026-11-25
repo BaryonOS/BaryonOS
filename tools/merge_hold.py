@@ -43,10 +43,12 @@ repository, head repository, branch, event and workflow path. Missing,
 running, failed, cancelled, timed-out or skipped results block; a failed
 `core` or `rwa` job that the plan did not expect blocks too. "Not applicable"
 (filtered, other branch, condition false) is reported, never counted as a pass.
-With `policy.budgets.pull_request_wait_minutes = 0` it decides at once and
-lists what it still waits for; re-run the merge-hold job once those gates have
-finished. `policy.mode = "shadow"` in the base catalogue reports gates without
-blocking on them. On `merge_group`, where the selected workflows do not run,
+With a positive `policy.budgets.pull_request_wait_minutes` it waits for running
+gates, polling with one run listing per minute, and decides once none is open or
+the budget ends; with 0 it decides at once. Gates still pending at the decision
+are listed; re-run the merge-hold job once they have finished.
+`policy.mode = "shadow"` in the base catalogue reports gates without blocking on
+them. On `merge_group`, where the selected workflows do not run,
 each member needs a successful `pull_request` merge-hold on its own head and
 a queue entry tree equal to that head tree.
 """
@@ -461,15 +463,51 @@ def job_matches(row, job):
     return job.get("name") == row["check_name"]
 
 
+def counted_workflows(plan):
+    """The workflows whose runs on the head gate_report reads (merge-hold itself never counts)."""
+    rows = plan["selected"] + plan["excluded"]
+    return sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW})
+
+
+def gated_workflows(plan):
+    """Workflows with a gate GitHub may start: a running run of one must finish, because jobs
+    waiting on `needs` or a runtime matrix may not be listed yet."""
+    return {row["workflow"] for row in plan["selected"] + plan["excluded"]
+            if row.get("class") in SELECTABLE
+            and row.get("reason") not in ("event-not-applicable", "condition-false")}
+
+
+def runs_open(token, repo, pull, head_sha, plan):
+    """True while a gated workflow still runs for this head or an expected one has no run yet.
+
+    One run listing (usually one page) per poll instead of a full gate_report, so a
+    positive wait budget stays far below the GITHUB_TOKEN rate limit. Only the wait
+    uses it; the decision is always a full gate_report. A failed read counts as open:
+    the wait goes on and the next full report decides, so a transient API error
+    neither ends the wait nor fails the job.
+    """
+    workflows = gated_workflows(plan) - {GATE_WORKFLOW}
+    url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request"
+    try:
+        runs = [run for run in fetch_listing(token, url, "workflow_runs")
+                if run.get("path") in workflows and run_matches(run, repo, pull, head_sha)]
+    except (OSError, ValueError, TypeError) as error:
+        print(f"::warning::merge-hold wait poll failed ({error}); still waiting", file=sys.stderr)
+        return True
+    newest = {}
+    for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
+        if run["path"] not in newest or run_order(run) > run_order(newest[run["path"]]):
+            newest[run["path"]] = run
+    return (any(run.get("status") != "completed" for run in newest.values())
+            or any(row["workflow"] not in newest for row in expected_gates(plan)))
+
+
 def gate_report(token, repo, pull, head_sha, plan):
     """Return (passed, pending, failed) lines for the applicable gates of this head."""
     expected = expected_gates(plan)
     rows = plan["selected"] + plan["excluded"]
-    # Workflows with a gate GitHub may start: a running run of one must finish, because jobs
-    # waiting on `needs` or a runtime matrix may not be listed yet.
-    gated = {row["workflow"] for row in rows if row.get("class") in SELECTABLE
-             and row.get("reason") not in ("event-not-applicable", "condition-false")}
-    workflows = sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW})
+    gated = gated_workflows(plan)
+    workflows = counted_workflows(plan)
     url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request"
     newest = {}
     for run in fetch_listing(token, url, "workflow_runs"):
@@ -556,11 +594,25 @@ def pull_request_gates(token, repo, number, head_sha):
             "test the tree that would merge. Update the branch; the new head is checked again."]
     budget = min(int((plan.get("budgets") or {}).get("pull_request_wait_minutes", 0)) * 60, MAX_WAIT_SECONDS)
     deadline = time.monotonic() + budget
+    fresh = False  # the last report was made after the runs were seen closed
     while True:
         passed, pending, failed = gate_report(token, repo, pull, head_sha, plan)
         if failed or not pending or time.monotonic() >= deadline:
             break
-        time.sleep(POLL_SECONDS)
+        if not runs_open(token, repo, pull, head_sha, plan):
+            # A gate may have finished during the report: decide once more. Pending again
+            # with nothing left running (a run changed while read and finished) cannot
+            # resolve by waiting, so decide now.
+            if fresh:
+                break
+            fresh = True
+            continue
+        while time.monotonic() < deadline:
+            time.sleep(POLL_SECONDS)
+            if not runs_open(token, repo, pull, head_sha, plan):
+                break
+        # A new attempt may start and finish during the next report: allow one refresh again.
+        fresh = False
     skipped = [f"{row['check_name']}: not applicable (path filter)" for row in plan["selected"]
                if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True]
     lines.append(f"{len(passed)} applicable gate(s) passed; {len(skipped)} filtered out; "

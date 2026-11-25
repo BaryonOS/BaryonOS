@@ -17,6 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import roadmap_runner as rr
+import progress
 
 REAL_GIT_CALLBACKS = rr.git_callbacks
 
@@ -833,8 +834,80 @@ class Session(unittest.TestCase):
                 run.return_value = rr.subprocess.CompletedProcess([], 0, "", "")
                 rr.Controller(rr.Config(), root / "state").record_assessment(dict(task("A"), title="t"), "a" * 40,
                                                                            "verified")
+            files = sorted((root / "docs" / "progress" / "assessments").iterdir())
+            record = json.loads(files[0].read_text())
+            # D3: an unchanged score writes one task file and never rewrites progress.json.
+            self.assertEqual(json.loads((root / "docs" / "progress.json").read_text()), {"tracks": []})
+        # The record passes the same rules progress.py --check applies to task files.
+        self.assertEqual(set(record), progress.ASSESSMENT_KEYS)
+        self.assertTrue(progress.ASSESSMENT_FILE.fullmatch(files[0].name))
+        progress.validate_assessment(record)
         argv = [c.args[0] for c in run.call_args_list]
-        self.assertEqual([a[1:4] for a in argv], [["-I", "-B", "tools/progress.py"]] * 2)
+        self.assertEqual([a[1:5] for a in argv], [["-I", "-B", "tools/progress.py", "--check"]])
+        self.assertRegex(files[0].name, r"^\d{4}-\d{2}-\d{2}-roadmap-a-verified\.json$")
+        self.assertEqual(record["previous_score"], 0)
+        self.assertEqual(record["source_commit"], "a" * 40)
+
+    def test_a_second_assessment_of_the_same_task_gets_its_own_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs").mkdir()
+            (root / "docs" / "progress.json").write_text(json.dumps({"tracks": []}))
+            with unittest.mock.patch.object(rr, "ROOT", root), \
+                    unittest.mock.patch.object(rr.subprocess, "run") as run, \
+                    unittest.mock.patch.object(rr, "git", return_value=""):
+                run.return_value = rr.subprocess.CompletedProcess([], 0, "", "")
+                controller = rr.Controller(rr.Config(), root / "state")
+                for _ in range(2):
+                    controller.record_assessment(dict(task("A"), title="t | <b>\nx"), "a" * 40, "verified")
+                for path in (root / "docs" / "progress" / "assessments").iterdir():
+                    progress.validate_assessment(json.loads(path.read_text()))
+            names = sorted(p.name for p in (root / "docs" / "progress" / "assessments").iterdir())
+        self.assertEqual(len(names), 2)
+        self.assertTrue(any(name.endswith("-verified-2.json") for name in names))
+
+    def test_a_failing_close_removes_the_partial_file(self):
+        real_open = open
+
+        class FullDisk:
+            def __init__(self, path, *args, **kwargs):
+                self.handle = real_open(path, *args, **kwargs)
+
+            def __enter__(self):
+                return self
+
+            def write(self, _text):
+                return 0
+
+            def __exit__(self, *exc):
+                self.handle.close()
+                raise OSError(28, "No space left on device")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs").mkdir()
+            (root / "docs" / "progress.json").write_text(json.dumps({"tracks": []}))
+            with unittest.mock.patch.object(rr, "ROOT", root), \
+                    unittest.mock.patch("builtins.open", FullDisk), \
+                    unittest.mock.patch.object(rr, "git", return_value=""):
+                with self.assertRaises(OSError):
+                    rr.Controller(rr.Config(), root / "state").record_assessment(dict(task("A"), title="t"),
+                                                                               "a" * 40, "verified")
+            self.assertEqual(list((root / "docs" / "progress" / "assessments").iterdir()), [])
+
+    def test_a_rejected_assessment_file_is_removed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs").mkdir()
+            (root / "docs" / "progress.json").write_text(json.dumps({"tracks": []}))
+            with unittest.mock.patch.object(rr, "ROOT", root), \
+                    unittest.mock.patch.object(rr.subprocess, "run") as run, \
+                    unittest.mock.patch.object(rr, "git", return_value=""):
+                run.return_value = rr.subprocess.CompletedProcess([], 1, "bad", "")
+                with self.assertRaisesRegex(rr.Stop, "--check failed"):
+                    rr.Controller(rr.Config(), root / "state").record_assessment(dict(task("A"), title="t"),
+                                                                               "a" * 40, "verified")
+            self.assertEqual(list((root / "docs" / "progress" / "assessments").iterdir()), [])
 
 
 class RunnerResiduals(unittest.TestCase):
