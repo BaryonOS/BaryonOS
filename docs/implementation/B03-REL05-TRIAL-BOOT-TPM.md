@@ -283,7 +283,10 @@ it (owner decision C665). Otherwise, if `FLOOR.floor > UEFI` → heal: SetVariab
    (another signed manifest with the same version is not known-good); candidate `C` = verified slot with
    `version > max(f, TRIAL.max_rejected)` (highest if both qualify).
 6. If PENDING and `C` differs from `TRIAL` in version or digest → `ABANDON`
-   (7.4), then continue. If the same `(version, digest)` now sits in the other
+   (7.4, E1), then **recompute `C`** with step 5 against the raised
+   `max_rejected` and continue at step 8 with that result; the stale
+   classification is never used (a lower replacement does not become
+   eligible). Step 7 likewise recomputes `C` after E1. If the same `(version, digest)` now sits in the other
    slot, it is the same candidate: attempts carry over, the next T2 records
    the new slot, and a confirmation bound to the old slot is rejected
    (conservative; costs at most one attempt).
@@ -333,7 +336,7 @@ mismatch → `DEGRADED`. UEFI variable write atomicity is assumed (U17).
 | Step | Write | Crash outcome |
 |---|---|---|
 | E1 | `NV_Write(TRIAL = REJECTED, reason, max_rejected = max(old, TRIAL.version))` | Next boot sees REJECTED: candidate ineligible, known-good boots. |
-| E2 | Boot `K` with `CLOSED`; floor, slots and user data untouched | — |
+| E2 | Continue at step 8 of 7.1 with `C` recomputed after E1: boot `K` with `CLOSED` unless a different candidate above the new `max_rejected` remains (then `TRIAL_START`); floor, slots and user data untouched | — |
 
 A crash between T2 of attempt 3 and E1 is the same state as "attempts == 3,
 PENDING": the next boot performs E1. This is the automatic rollback of O7.
