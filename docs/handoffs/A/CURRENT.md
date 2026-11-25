@@ -1,9 +1,10 @@
 # Workstream A handoff (Applications, SDK, Installation and Ecosystem)
 
 Owner session: BaryonOS - Specialist A (`local_163a86f0-2d5c-421d-a9dc-10cda1c5a245`).
-Coordination: BaryonOS - PR Bewaker. Merge mandate: owner extended
-ADR-MERGE-DELEGATION-20261123 to A on 25 Nov ~11:25Z; recording follows in a CI
-governance PR after #519. Work draft-only until then; report kernel write set to
+Coordination: BaryonOS - PR Bewaker. Merge mandate: recorded on main in
+ADR-SPECIALIST-TEAM-20261125 clause 2 (#527, 9cc1b86f), which extends
+ADR-MERGE-DELEGATION-20261123 to A; squash with --match-head-commit after the
+required checks and merge-hold pass. Report the kernel write set to
 the PR Bewaker before committing under `kernel/` (S and H write `volume.rs`).
 Last updated: 2026-11-25 (Europe/Amsterdam).
 
@@ -60,10 +61,10 @@ acceptance.
 - #519 merged as 3b9a94c5: rebase a-track onto it before committing. D3 policy:
   an unchanged score gets a new `docs/progress/assessments/<YYYY-MM-DD>-<slug>.json`
   instead of editing the docs/progress.json header; a register change still
-  needs `progress.py --write` plus the views. A self-merge waits for CI's
-  governance PR.
+  needs `progress.py --write` plus the views.
 
-- CI D2 review of #531 ci.yml at 3075c1b3: no blocking findings. Conditions:
+- CI D2 review of #531 ci.yml at 3075c1b3: no blocking findings; CI confirmed
+  it still holds for d84a080b (no `.github` delta). Conditions:
   hosted qemu-smoke, host-quality and merge-hold pass on the head; any new head
   needs a ci.yml-only delta check by CI before merge.
 - A03-T2b (grant retirement on process exit) is implemented in
@@ -75,8 +76,8 @@ acceptance.
 
 ## Next action
 
-Keep #531 and the T2b PR green. Merge #531 after governance PR #527 lands and
-CI's conditions hold, then retarget T2b. Next A slice: bind the broker to real
+Keep #531 and the T2b PR green. Merge #531 (head d84a080b) once CI's conditions
+hold, then retarget T2b to main. Next A slice: bind the broker to real
 Materiaal volume objects (per-object READ via the volume service; coordinate the
 volume.rs boundary with S) and replace the exit fixture with a product
 exit-notification path (kernel owner decision).
