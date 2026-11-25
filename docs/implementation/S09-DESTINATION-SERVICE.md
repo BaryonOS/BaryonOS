@@ -136,6 +136,59 @@ remain for the other tests. This is host evidence only: no native service
 links the adapter yet, and the other R5 preconditions (O4 (a)–(c), the
 hosted R3 cross-check and reverse differential, the K5 broker) are unchanged.
 
+**Owner decisions of 24 November 2026 (task S-20261124-6).** The project
+owner decided O4 (a)–(c), O11, O12 and O13 on 24 November 2026. The decided
+rules are recorded at each former *[proposed]* marker and in 8.1; the owner's
+words are summarised there in English. A design approval is not test
+evidence and does not close S09. In short:
+- **O4 (a)** K4 and K5 are approved for targeted implementation. K5 separates
+  all relevant broker state and buffers per device, including the recorded
+  handling of a further completion poll after a read ended by a reset
+  (property 3 of 2.7). K5 is an R5 precondition, K4 a product-profile
+  precondition; K1–K3 do not block R5. Attaching a backup device while the
+  system runs remains part of the later product design.
+- **O4 (b)** ADR-S09-DUALDISK-20261119 B3 and B5 are amended for R5 only: the
+  destination service may hold the second virtual disk exclusively with READ,
+  WRITE and FLUSH, and a scripted test dialog is permitted. B4 and B6 are
+  unchanged: isolated disposable images only, no product activation and no
+  access to real host disks.
+- **O4 (c)** The deterministic destination ID (section 7, option (b)) is
+  permitted only in the explicit test profile, labelled `DEST:ID:TEST-ONLY`;
+  product builds must not use it. The real entropy route must have native
+  evidence before R8.
+- **O11** A v1 destination is a separate storage device. A partition on the
+  source device does not count as an independent recovery copy.
+- **O12** The product binds an owner per backup registration. Backups must
+  not be disabled in general once a second profile exists. The catalog
+  version, trusted identity, access checks and recovery route are to be
+  designed and checked against the profile, key and encryption contracts. R5
+  and R6 may use one profile for now. An owner field is not evidence of
+  encryption.
+- **O13** A kernel-enforced write latch on the destination scope after the
+  specified trigger is required. A restart, rebind or newly granted
+  capability must not bypass it. It is implemented and tested before R8; the
+  once-per-boot grant rule and N32 are kept as well.
+
+The same task adds the R3 reverse differential on the host (8.2 R3, status of
+24 November 2026); its hosted run remains open with the forward cross-check.
+
+**Owner decision package 2 (24 November 2026).** The project owner then
+decided O1–O3 and O5–O10, added detail to O4 (a), (b), O12 and O13, and
+confirmed O14–O18, D1–D6, the restore-fidelity decisions, the independent
+kernel and the Security Floor unchanged. Each decision is recorded in 8.1
+under "Decided on 24 November 2026 (package 2)" or "Package 2 additions".
+Ownership for the work that follows: S holds the storage contract, the
+destination service, backup, restore and the integration of the S09 chain; B
+holds user keys, metadata, encryption, authenticity and its security review;
+the owner of the user and session facilities holds trusted profile identity,
+session limits and recovery of owner rights; UI/UX holds the shared system
+screens; the integration coordinator holds shared kernel interfaces,
+protected policy files, ADR integration and workflow changes.
+
+The ADR text that records these decisions in `docs/DECISIONS.md`, which is
+lead-owned, is proposed to the integration coordinator in the pull request
+that carries this note; until it lands, this note is the S-owned record.
+
 **Evidence labels used below.** *[main]* means present on `main` at `035b44e5`.
 Most such claims were checked by review 1 or by the verification of it for this
 revision; the `sdk/task-grant-core` and `services/net-broker` claims of 3.3 and
@@ -176,11 +229,10 @@ Not in scope and not changed:
 - **Encrypted NAS and provider destinations (D5).** Per the ADR they require
   the existing key-management and client-side encryption contracts
   ([ENCRYPTED-OBJECT-STORAGE.md](ENCRYPTED-OBJECT-STORAGE.md)). This design
-  covers only local, user-owned block devices or, if the owner permits it,
-  partitions; the service refuses any other destination kind by construction,
-  because it only accepts a block capability. Whether a partition may serve as
-  a destination, and under which condition, is open: section 2.1 proposes a
-  separate device *[proposed; owner decision O11]*.
+  covers only local, user-owned block devices; the service refuses any other
+  destination kind by construction, because it only accepts a block
+  capability. A partition on the source device is not a destination: section
+  2.1 requires a separate device *[decided: O11, 24 November 2026]*.
 
 ## 2. Destination service interface (D1 (b))
 
@@ -188,7 +240,7 @@ Not in scope and not changed:
 
 The destination service is a userspace system service *[design]*. At boot the
 manifest gives it exactly one block capability on the whole destination device
-(or, if O11 permits it, a partition): `create_block_device_with_rights(service, scope, BLOCK_READ |
+(O11): `create_block_device_with_rights(service, scope, BLOCK_READ |
 BLOCK_WRITE | BLOCK_FLUSH)`. The legacy `create_block_device` constructor must
 not be used, because its default `BLOCK_READ_RIGHTS` includes DERIVE, TRANSFER
 and REVOKE *[main]*; with them the service could pass raw device authority on.
@@ -210,8 +262,8 @@ The absence of TRANSFER does not stop kernel profile code from creating a new
 grant. On `main`, the M5 profile's `bind_service` creates a new block object
 with `create_block_device` on every kernel-driven restart of its service
 (`kernel/src/m2/m3/m5.rs:260-279`, called from `poll` at `:784-794`, at most
-three restarts) *[main]*. **Once-per-boot grant rule** *[proposed; owner
-decision O13]*: the destination profile creates the destination block object
+three restarts) *[main]*. **Once-per-boot grant rule** *[decided: kept under
+O13, 24 November 2026, in addition to the kernel write latch]*: the destination profile creates the destination block object
 exactly once per boot, at profile start, and after profile start no kernel
 path (restart, rebind or poll) creates a block object whose scope intersects
 the destination scope or delegates a handle on one. The rule is stated by
@@ -221,22 +273,22 @@ N32 is its test. Consequence, under this rule only: no instance in the same
 boot can regain destination block authority after the service exits, and
 recovery from the failed-mount state (2.6) and from the read-only safe path
 (2.7) is a reboot. No in-boot restart route is specified (section 8, O8). The
-alternative for the owner is a kernel write latch in the per-device broker
-(O13).
+owner decided (O13) that this profile rule alone is not the carrier of the
+safe path: the kernel write latch of 2.7 is required in addition, so that a
+grant re-created despite the rule still cannot write the destination scope.
 
-**Device rule** *[proposed; owner decision O11]*. In v1 the destination scope is
+**Device rule** *[decided: O11, 24 November 2026]*. In v1 the destination scope is
 on a block device of its own: `scope.device` differs from that of every other
 block scope in the profile. `archive_grant` compares scopes with `check_block`
 for the fixture (`kernel/src/m2/m3/volume.rs:749-753`) *[main]*; this is a
 precedent for the comparison, not an existing different-device rule (those
 lines check that the volume service's own block handle is a different object on
-device 0). The alternative for the owner
-is a partition whose scope is disjoint from every other block scope; such a
-partition shares the device's reset and FLUSH with the source, so a source
-fault can stop the destination and the reverse, and it is not an independent
-copy against loss of that device. Until O11 is decided, every stage uses a
-separate device (disk 1), and N18 asserts at least that the destination scope is
-disjoint from every other block scope.
+device 0). A partition on the source device is not a v1 destination: it
+shares the device's reset and FLUSH with the source, so a source fault can
+stop the destination and the reverse, and it is not an independent copy
+against loss of that device. Every stage uses a separate device (disk 1), and
+N18 asserts that the destination scope is disjoint from every other block
+scope and on another device.
 
 ### 2.2 Message framing
 
@@ -1210,17 +1262,24 @@ cold boot the late write cannot occur only under the power-cycle assumption
 below; reuse of E2's sectors by an export in the next boot is safe only
 under that assumption, and O9 remains a blocking open assumption.
 
-**Carrier of the read-only state** *[proposed; owner decision O13]*. The
+**Carrier of the read-only state** *[decided: O13, 24 November 2026; kernel
+latch not yet implemented]*. The
 read-only state is a latch in the memory of the single service instance. That
 latch is sufficient only if no other instance in the same boot can write. The
 missing TRANSFER right (2.1, N18) prevents a user process from passing the
 grant on, but kernel profile code can create a new grant on a restart, as the
 M5 profile does on `main` (2.1). The latch is therefore a sufficient carrier
-only under the once-per-boot grant rule of 2.1, which N32 tests. The
-alternative for the owner is a kernel write latch in the per-device broker
-(an extension of K5): after the trigger, the broker refuses every write to the
-destination scope for the rest of the boot, whatever process submits it. Under
-the proposed rule the latch ends only with the boot. Every destination runner
+only under the once-per-boot grant rule of 2.1, which N32 tests. The owner
+decided that this is not sufficient: a **kernel write latch** in the
+per-device broker (an extension of K5) is required. After the trigger, the
+broker refuses every write to the destination scope for the rest of the boot,
+whatever process or handle submits it; a service restart, a rebind or a newly
+granted block capability on the scope does not clear it, because the latch is
+held per device scope in the broker and not per object or handle. The
+service's in-memory latch and N32 remain as additional layers. The trigger and
+the interface by which the service sets the latch are specified before
+implementation; the latch and its own native test are R8 preconditions (8.2).
+The latch ends only with the boot. Every destination runner
 must pass `-no-reboot` to QEMU, as `tools/run_volume.py:309` already does
 *[main]*, so that each guest reboot ends the QEMU process and every boot in the
 gates is a new QEMU process; warm reboot of a product, which a guest cannot
@@ -1307,7 +1366,8 @@ collection counts), the destination (device label, capacity, free space, the
 number of existing backups, and whether it is already a Baryon OS destination),
 the statement that the backup is not encrypted and is suitable only for the
 user's own local device, and an action button "Back up". An option "Remember
-this destination for future backups" is shown unchecked. Errors are reported in
+this destination" is shown unchecked; it stores a user preference only and
+grants no export right (O1, decided 24 November 2026). Errors are reported in
 plain words (destination full, destination not found, destination damaged).
 
 For verify: the selected backup (label, entry ID, size) and the result.
@@ -1330,18 +1390,21 @@ incarnation and an object revision, with durations `UntilClose` and `Session`
 only; `services/net-broker` binds grants with an instance, slot and generation
 *[main]*. Neither has a persisted grant. This design therefore uses two levels:
 
-1. **Remembered permission** *[design; needs O1]*: a persisted record
-   `{principal = backup portal, destination ID, operations ⊆ {export, verify},
-   revocation generation}` held by the trusted dialog's store. It authorizes the
+1. **Remembered permission** *[design; O1 decided on 24 November 2026]*: a
+   persisted record `{owner, principal = backup portal, destination ID,
+   operations ⊆ {verify}, revocation generation}` held in protected,
+   profile-bound storage of the trusted consent facility. For the unencrypted
+   v1 route only VERIFY may be remembered, the option is unchecked by default,
+   and export, restore, format and destructive management are never
+   remembered; a remembered destination is a preference without rights. It authorizes the
    dialog to issue a new per-operation grant for normal repetition without
    asking again. Revoking it increments the revocation generation and revokes
    every live lane bound to that destination, together with the portal's
    volume-side binding (4.1, 4.2) for each operation on those lanes. The record
    keys on the destination ID, which is not authenticated (5.4): an attacker
    with physical access who presents a clone of the catalog would receive
-   automatic plaintext exports under a remembered export permission. This is an
-   input to O1, not a design change. Restore is not remembered by
-   default; whether it may be is O1. Persisting this record needs a new
+   automatic plaintext exports under a remembered export permission, which is
+   why O1 excludes export from remembered rights. Persisting this record needs a new
    `Duration` and storage in `task-grant-core` or a new store, which is an SDK
    change, not a kernel change. It extends, rather than follows, the existing
    permission model named in D2 (a) (section 8, O1).
@@ -1351,17 +1414,22 @@ only; `services/net-broker` binds grants with an instance, slot and generation
    ends or is revoked; ending or revoking it also ends the portal's volume-side
    binding for that operation (4.1).
 
-**Owner principal** *[proposed; owner decision O12]*. Neither the catalog record
+**Owner principal** *[decided: O12, 24 November 2026; design open]*. Neither the catalog record
 (2.6) nor the archive header ([S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md),
 "Bytes") names an owner, yet [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md)
 requires that profile A cannot open profile B's catalogue. With the dialog's
 LIST of all entries and a restore into "the target domain" (3.2), user B could
-restore user A's plaintext backup. Proposed for v1: the destination service is
-single-profile, and the dialog refuses every destination operation while more
-than one profile exists, until an owner principal is bound per destination or
-per entry. The alternative for the owner is to bind that principal now, which
-needs a catalog field and a format decision. R7 and the R8 activation are
-blocked until O12 is decided; the test-only stages of R5 and R6 run in a
+restore user A's plaintext backup. The owner decided against disabling
+backups in general once a second profile exists: the product binds an owner
+per backup registration. Still to be designed, and checked against
+[PROFILES-AND-USERS.md](PROFILES-AND-USERS.md), the key contracts and
+[ENCRYPTED-OBJECT-STORAGE.md](ENCRYPTED-OBJECT-STORAGE.md) before R7: the
+catalog version that carries the binding, the trusted identity it names and
+who attests it, the access checks of LIST, RESTORE and VERIFY per profile, and
+the recovery route when the owner profile is lost. An owner field in the
+catalog is an access-control input, not evidence of encryption or of
+confidentiality against a party that reads the device directly. R7 and the R8
+activation wait for that design; the test-only stages of R5 and R6 run in a
 single-profile fixture and do not depend on it.
 
 ## 4. Operation-specific capabilities (D3)
@@ -1700,13 +1768,14 @@ destination ID. Two ways out, both test-profile matters and not K4:
 (a) a test-profile kernel change: virtio-rng at another PCI slot, accepted by
 the kernel's device discovery (unchecked), plus an `Entropy` object and handle
 for the destination service in the test-only destination profile; or (b)
-*[proposed; owner decision O4 (c)]* a **deterministic test destination ID**:
+*[decided: O4 (c), 24 November 2026; test profile only]* a **deterministic test destination ID**:
 under a test-only service feature, FORMAT writes a fixed 16-byte ID instead of
 drawing one, the service holds no `Entropy` handle, and every FORMAT evidence
 line carries the label `DEST:ID:TEST-ONLY`. Option (b) is non-product: it
 never builds without the test feature, and it leaves FORMAT's entropy draw
 without native evidence, which then comes only with the first product profile
-under K4 (an R8 precondition) or earlier with option (a). Stages that need a
+under K4 or earlier with option (a); the owner requires that native evidence
+before R8. Stages that need a
 second destination ID (N14 `dest-foreign`) use an image whose catalog the
 harness writes with another ID. R5 does not start before one option is in
 place.
@@ -1816,11 +1885,41 @@ hosted gate runs. No human audit.
   under D2. Input for the decision: the record keys on the unauthenticated
   destination ID (3.3, 5.4), so a cloned catalog could receive automatic
   plaintext exports under a remembered export permission.
+  **Decided on 24 November 2026 (package 2):** for the unencrypted v1 route only VERIFY may be
+  remembered, and the option is unchecked by default. A chosen destination may
+  be remembered as a user preference that grants no export, restore, erase or
+  format right. Every new plaintext backup needs explicit consent for that
+  operation; a copied destination ID receives no automatic export. A
+  remembered right lives in protected, profile-bound storage of the trusted
+  consent facility, bound to owner, portal, destination, permitted operation
+  and revocation generation; revoking it also ends the live bindings and
+  volume-side rights (4.1). RESTORE, FORMAT and destructive management are
+  never remembered. Automatic backups remain a product goal, to be designed
+  with B under the key and encryption contracts with a proven recipient and
+  owner binding; a destination ID or FNV check is not authentication, and no
+  unattended plaintext export is activated as a stand-in.
 - **O2** Formatting: whether a non-blank device may ever be erased into a
   destination (proposed: no in v1; blank devices only).
+  **Decided on 24 November 2026 (package 2):** FORMAT accepts only a scope that passes the full
+  blank check of 2.6; a zero header or some zero sectors do not prove a blank
+  scope. A non-blank device is never erased automatically or taken as a new
+  medium. For the product, a separate trusted preparation flow is approved as a
+  development direction (trusted target selection, visible device identity and
+  capacity, a check against the source and system disk, explicit confirmation
+  of data loss), designed and tested separately. This grants no permission to
+  erase real disks during development.
 - **O3** Retention: v1 has no deletion, so `Full` is terminal for a destination.
   Deleting or rotating old entries needs a decision, a catalog operation and its
   own crash tests.
+  **Decided on 24 November 2026 (package 2):** v1 stays append-only: no deletion, no reuse of
+  freed space, no automatic rotation; at `Full` a new backup stops with a clear
+  message and existing backups stay intact. For the product, controlled
+  deletion of a user's own backups and optional, explicitly configured
+  retention are decided; automatic deletion is off by default, and no default
+  period or count is invented without product grounds. It is a separate,
+  versioned extension with catalog, mount, restore, ownership and revocation
+  rules and crash tests, and a retention policy must never silently delete a
+  user's last proven restorable backup.
 - **O4** (a) Approval of kernel changes K1–K5 as needed (K4 and K5 are required
   for any product profile; K1–K3 can wait). Revision 2 widens K5 from one
   `Policy` per device to per-device broker state (4.3), because only that
@@ -1843,15 +1942,60 @@ hosted gate runs. No human audit.
   test-only destination profile) be made before R5? R5 does not start before
   this is decided; either way FORMAT's entropy draw needs native evidence
   before R8.
+  **Decided on 24 November 2026:** (a) K4 and K5 approved for targeted
+  implementation; K5 keeps all relevant broker state and buffers per device,
+  including the further-poll rule of property 3; K5 is an R5 precondition, K4
+  a product-profile precondition; K1–K3 do not block R5; attaching a backup
+  device during use stays product work. (b) B3 and B5 amended for R5: the
+  destination service holds disk 1 exclusively with READ, WRITE and FLUSH,
+  and a scripted test dialog is permitted; disposable images only, no product
+  activation, no real host disks. (c) The deterministic ID is permitted only
+  in the explicit test profile with `DEST:ID:TEST-ONLY`; product builds must
+  not use it; the real entropy route needs native evidence before R8.
+  **Package 2 additions (24 November 2026):** K5 separates per device at
+  least the `Policy`, the reset state, the reset deadline, the error state, the
+  active request and the data buffer, so that a fault on the destination disk
+  does not needlessly block the source disk; K5 comes first for R5, and the O13
+  kernel write latch belongs to the further K5 work. K4 is built for the
+  product profile. "Present at boot" must not become a permanent product
+  limit; hot-plug stays product work. Quotas and concurrency limits are not
+  raised without shown need. Under (b) the block handle carries no DERIVE,
+  TRANSFER or REVOKE and the portal gets no raw disk rights; bounded devices
+  and DMA remain.
 - **O5** Time display: whether any wall-clock time is shown for an entry. The
   catalog stores none, and v1 object times are a per-domain logical clock,
   not wall-clock time ([S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md)).
+  **Decided on 24 November 2026 (package 2):** no date or time is invented, and a logical
+  counter is never shown as wall-clock time. Existing v1 entries show label,
+  order, size and, where needed, "date unknown". New product metadata carries
+  a usable backup date and time in the versioned catalog extension, taken from
+  the trusted system clock with a stated meaning and shown in the local time
+  zone; uncertain or missing clock time is shown as such. Wall-clock time
+  replaces no monotonic deadline, generation or other security or recovery
+  rule.
 - **O6** (lead-owned) workflow stage-count pins for new destination stages, or a
   separate gate.
+  **Decided on 24 November 2026 (package 2):** a separately recognisable destination acceptance
+  gate for the new native destination stages, beside the existing applicable
+  volume regression tests. The CI owner changes the protected workflows and any
+  stage-count pins, with expectations derived from the actual test plans, not
+  copied historical counts. The hosted R3 cross-check, the reverse
+  differential and the P10 lint of the `no_std` library must actually run as
+  specified; which gate belongs to which change and milestone is recorded. The
+  acceptance-hold and exact-head procedures apply; a skipped, running or
+  unexecuted relevant test is not a passed acceptance.
 - **O7** Whether the dialog may hold the lane issuing roots (section 4.3) or
   D4 (a) requires them in the portal. With the sender check of 4.3 the dialog's
   residual authority on an operation lane is to bind, transfer and revoke, not
   to perform an operation.
+  **Decided on 24 November 2026 (package 2):** the proposed separation is kept: the trusted
+  dialog holds the issuing roots and the control lane, the portal receives only
+  the temporary SEND rights for the permitted operation, and the destination
+  service checks the kernel-stamped sender, binding and generation. Negative
+  tests must show that the dialog cannot perform backup operations as a
+  portal with its remaining rights. Identity must not rest on an unproven
+  assumption about process-ID reuse: the needed invariant is proven, or a
+  reviewed incarnation or generation contract is used.
 - **O8** (withdrawn in revision 1) In-boot restart after the failed-mount
   state. Revision 0 named a service restart as a recovery route. Under the
   proposed once-per-boot grant rule (2.1, O13), no instance in the same boot
@@ -1862,6 +2006,12 @@ hosted gate runs. No human audit.
   per-device broker become owner decisions together; neither is assumed here.
   How the portal reports "reboot required" to the user remains a UI detail of
   R7.
+  **Decided on 24 November 2026 (package 2):** the withdrawal of the in-boot restart route is
+  kept; a service restart never clears the safe state or the write latch or
+  regains write rights. A safe automatic restart may be designed later, keeping
+  kernel state, revocation and recovery rules; until it is shown, the current
+  recovery route applies and the UI states honestly when further recovery is
+  needed.
 - **O9** Completion fence (2.7): whether a write that the device accepted
   before an acknowledged reset can still reach the backing medium after the
   reset and the remount FLUSH, for QEMU and its host storage stack; whether the
@@ -1917,11 +2067,28 @@ hosted gate runs. No human audit.
     version, backend or options other than the runner's; any claim about
     physical media. The K4/K5 broker fence still needs its own native timeout
     fixture (R5). N24 and E1/E2 are planned tests, not evidence.
+  **Decided on 24 November 2026 (package 2):** the empirical E1 and E2 trials and the matching
+  native broker trials are approved for scheduling and execution once the
+  implementation and markers exist, with the exact recorded QEMU and backend
+  configurations and isolated disposable images only; host and guest
+  observations are kept and conclusions are reported per tested configuration.
+  The approval proves no completion fence, safe warm reboot or physical-media
+  behaviour. Until fitting evidence exists the fail-closed rules and the
+  bounded safe path stay, and O17 is not changed on assumptions. If a result
+  refutes a security contract, the affected route stops and its correction is
+  worked out.
 - **O10** `Corrupt` after an interrupted FORMAT (2.6, N25): the policy by
   which a product distinguishes a FORMAT interrupted before its first copy
   was durable from a damaged existing destination, and whether any recovery
   other than external re-zeroing of a disposable image is offered. Not
   specified; until decided the service never formats a `Corrupt` scope.
+  **Decided on 24 November 2026 (package 2):** a `Corrupt` destination is never reformatted,
+  repaired or treated as "probably blank" automatically. In v1 the operation
+  stays refused and the medium is kept; a test harness may only recreate its
+  own disposable image. A product diagnosis and recovery route is to be
+  designed: recovery rests only on provably valid data and the current owner
+  rights; erase and re-preparation fall under the explicit O2 flow and are
+  never presented as data recovery.
 - **O11** (new in revision 1) **Owner question:** must a v1 destination be a
   block device of its own (proposed, 2.1), or may it be a partition whose
   scope is disjoint from every other block scope, accepting that it shares
@@ -1930,6 +2097,8 @@ hosted gate runs. No human audit.
   that section 1 stated in revision 0 ("device or partition"). The exact-rights
   part of N18 does not depend on this decision. R8 activation is blocked until
   O11 is decided; the test stages use disk 1 and satisfy both options.
+  **Decided on 24 November 2026:** a separate storage device; a partition on
+  the source device is not an independent recovery copy.
 - **O12** (new in revision 1) **Owner question:** is the v1 destination
   service single-profile, with the dialog refusing every destination operation
   while more than one profile exists (proposed, 3.3), or is an owner principal
@@ -1939,6 +2108,21 @@ hosted gate runs. No human audit.
   [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). R7 and the R8 activation are
   blocked until O12 is decided; the test-only R5 and R6 stages run in a
   single-profile fixture.
+  **Decided on 24 November 2026:** owner binding per backup registration;
+  no general disabling of backups with a second profile; catalog version,
+  trusted identity, access checks and recovery route to be designed and
+  checked against the profile, key and encryption contracts (3.3); R5 and R6
+  may use one profile; an owner field is not evidence of encryption.
+  **Package 2 additions (24 November 2026):** the owner identity comes
+  from the trusted user and session facility, never from an app-supplied name
+  or ID. Showing backups and metadata, reading, VERIFY, export, restore and
+  management are checked against owner rights. A reissued account ID does not
+  inherit old backup rights. Recovery without the original source disk or
+  computer is designed so that the rightful owner regains access through the
+  current recovery facility and no other user does. Product privacy, including
+  protection of names and metadata, follows the key and encryption contracts
+  with B. The archive-v1 payload is not changed silently; a new format gets an
+  explicit version, compatibility rules and tests.
 - **O13** (new in revision 2) **Owner question:** is the in-memory latch of the
   single service instance accepted as the carrier of the read-only safe path,
   on the condition of the proposed once-per-boot grant rule (2.1: the
@@ -1954,6 +2138,17 @@ hosted gate runs. No human audit.
   compatible with either answer; R8 activation is blocked until O13 is decided,
   and if the owner chooses the kernel latch, it and its own native test are
   added before R8.
+  **Decided on 24 November 2026:** the kernel write latch, which a restart,
+  rebind or newly granted capability does not bypass; implemented and tested
+  natively before R8; the once-per-boot rule and N32 are kept (2.1, 2.7).
+  **Package 2 additions (24 November 2026):** after the trigger the
+  kernel refuses new WRITE requests to that destination scope for the rest of
+  the boot, whatever service restart, rebind, new block object or new handle;
+  it is limited to that destination and keeps READ and the remount FLUSH as the
+  recovery protocol needs them, so it does not silently become a ban on all
+  I/O. N32 stays and the latch gets its own native test. O17 stays: a digest
+  mismatch alone does not set the latch without a new decision based on O9
+  evidence.
 - **O14** (new in revision 3) **Owner question:** does the copy validator of
   2.6 apply `valid_name` (2.3) in full to every record's label at mount
   (proposed), so that one label with invalid UTF-8, a control character, `/`,
@@ -2097,13 +2292,13 @@ Each step is one reviewable draft PR; none activates a production boundary.
 | Step | Content | Acceptance check |
 |---|---|---|
 | R1 | This specification; independent security review of it | review findings recorded and resolved in this file (reviews 1–3 and the revision-3 ledger: section 9). **Status (revision 3):** review 3 approved revision 2; review 4 (SPEC-REVIEW-4) returned REQUEST_CHANGES on revision 3; review 5 (SPEC-REVIEW-5) found its findings resolved and returned REQUEST_CHANGES with two required findings, answered in this text (section 9) and not re-reviewed. **Status (revision 4):** owner items O14, O15 and O16 decided on 23 November 2026; O4 (b), O4 (c) and O11–O13 open; O17 and O18 proposed in revision 4 and open; review 6 (SPEC-REVIEW-6) approved revision 4 (P1–P13, section 9) with no required finding and confirmed RQ5-1 and RQ5-2 (P13); its nine optional findings were applied by the lead and checked by one read-only verifier, whose two wording corrections were applied and not re-reviewed. **Status (revision 5):** owner items O17 and O18 decided on 23 November 2026 (O14–O18 decided; O4 (a)–(c) and O11–O13 open; the other items of 8.1 remain open as stated there); review 6 approved revision 4; the owner-decision commit `a769bc65`, which relabelled the O17 and O18 markers, and the review-6 corrections of revision 4 were covered by reviews 7 and 8, which returned REQUEST_CHANGES on other findings, and first approved by review 9; review 7 (SPEC-REVIEW-7) returned REQUEST_CHANGES on revision 5 (Q1–Q13, section 9), and the lead applied its nine findings; review 8 (SPEC-REVIEW-8) returned REQUEST_CHANGES on the result with four required and six optional findings, which the lead applied (RQ8-2 is a commit action; section 9, "Review 8"); review 9 (SPEC-REVIEW-9) approved revision 5 (with those fixes), `a769bc65` and the review-6 corrections, with no required finding and nine optional findings (OPT9-1–OPT9-9), which the lead dispositioned in a separate fix pass (section 9, "Review 9"); review 10 (SPEC-REVIEW-10) returned REQUEST_CHANGES on that pass with two required and eight optional findings (RQ10-1, RQ10-2, OPT10-1–OPT10-8), which the lead applied in a further fix pass (section 9, "Review 10"), to be checked by review 11 (SPEC-REVIEW-11), which approved it with no required finding; its nine optional findings are deferred to the next revision |
-| R2 | Host crate for the service core: catalog codec, mount rule, state machine, wire codec, write path; simulated disk with cache loss | host tests for N3–N15, N17 and N21–N31 (simulated disk with late completion for N24, broker stub for N26; N5 and N6 with the capability-core `Engine`), each with a killing mutation; flush-order and cache-loss acceptance for N11, N12 and N25 is established here, not natively; Clippy, fmt, `cargo test --locked` per the CI workflow commands. Revision 3 adds: N33–N36; the reset-dependent rows under both reset models (section 6); a simulated disk that meets the K5 broker contract (2.7). **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited). Open against this revision: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; at `37b7bd0c` the revision-3 rows and the code changes they imply (section 9) were not yet made. Revision 4 adds: Clippy with `-D warnings` on the library as built without any test-only feature, for `x86_64-unknown-none`, run by the hosted gate (a lead-owned workflow change), because that is the build a native profile links and so far it is only type-checked (P10); and a host test of the simulated disk alone, under both reset models, for each property of the broker contract of 2.7, including for property 3 that a result already returned is not returned by a further poll, also for a request ended by a reset (P12); N37 (a) and (b) (P1; O17 (a) decided on 23 November 2026). **Status (revision 4):** the revision-3 rows and the O14 and O16 changes are implemented on draft PR #413 (`4f1edb9c`, `e52cb865`), unmerged, host only, AI-reviewed, not human-audited. Still open: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; the CODE-DELTA of section 9 (revision 4); the two items above. Revision 5 adds: for properties 4 and 5 of the broker contract, an opt-in deadline mode of the simulated disk (a request past its deadline answered -16 if mutating and -13 otherwise by the model itself, then the reset) and quarantine and offline held as device state until a simulated reboot, each with a host test under both reset models, without relaxing the contract or this check (2.7; Q4); a stray-poll counter in the simulated disk, asserted zero in every service-driven host test (2.7 poll rule; Q6); N37 (d) (Q9); optionally, the N35 sub-case that pins the checked step-4 copy (Q5). **Status (revision 5):** at `f993a1a3` *[PR #413]* (unmerged, host only, AI-reviewed in CODE-REVIEW-O17-O18, not human-audited) the R2 core implements O17 (a) in the running form and O18; N26 (d) asserts that no catalog sector is written in the cache-dropped model; N33 (iii) and N37 (a), (b) are negative tests under both reset models; N37 (d) pins that only APPENDs answered `Ok` are hashed (corrected after review 7, OPT7-3); N35 (e) asserts the failed-mount state; one host test per broker-contract property exists (`p12_1`–`p12_5`), and the claim that the simulated disk meets the contract is partial for properties 4 and 5. The code review reports 76 tests passing with Rust 1.100.0 (all suites also pass with 1.90.0), Clippy and fmt, a check for `x86_64-unknown-none`, and 14 of 16 mutants killed, with M8 surviving as equivalent and M7 as equivalent in every build without `test-hooks`. These gates and mutants ran on the uncommitted diff over `8f387ea1`; the lead then applied the review's OPT-1, OPT-2 and OPT-4 as comment-only edits (the review's provenance note; `service.rs` at `f993a1a3` differs from the reviewed hash) before committing `f993a1a3`, and no review or gate run covers those edits. Nothing was re-run for this revision; the test count was checked here only by counting test attributes. The P10 lint of the non-test build ran locally with exit 0 (Rust 1.90.0) and is still not a hosted gate. Still open: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; the P10 hosted gate; the revision-5 items above; for property 3, a device-state snapshot before and after each further poll, because `p12_3_answered_exactly_once` checks "changes nothing" only on the caller's buffer after the further read poll (review 7, RQ7-2); the open rows of the CODE-DELTA (revision 5) |
-| R3 | `tools/destination_disk.py` independent oracle | Python unit tests: parses valid copies, refuses each invalid rule; a test-only encoder for crafted images (N14's second destination ID, N4, N30), whose output the oracle's own parser accepts or refuses as intended. Revision 3 adds: the oracle decisions of section 7 (scope, image read errors, extents); the record rules of 2.6 (N34); a cross-check of images written by the R2 core, run by a hosted gate (a lead-owned workflow change); and a reverse differential, in which the oracle's crafted invalid images are mounted by the R2 core and the two verdicts compared; both are required before R5. **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited); at `37b7bd0c` the cross-check had run only locally (7 images, agreement) and was skipped in hosted CI, and the reverse differential did not exist. Revision 4 states the limit of both comparisons: mount state, header and records, not the refusing rule (section 7, "Cross-check limit"; P11). **Status (revision 4):** at `e52cb865` *[PR #413]* the cross-check agrees on 30 images, locally only; it is still not run in hosted CI; the reverse differential still does not exist. **Status (revision 5):** at `f993a1a3` the oracle is unchanged by the O17 (a)/O18 round (the content check and the remount rule are protocol rules, not image rules); CODE-REVIEW-O17-O18 reports the cross-check agreeing on 30 images, run locally only *[PR #413]*; there is still no hosted cross-check and no reverse differential |
+| R2 | Host crate for the service core: catalog codec, mount rule, state machine, wire codec, write path; simulated disk with cache loss | host tests for N3–N15, N17 and N21–N31 (simulated disk with late completion for N24, broker stub for N26; N5 and N6 with the capability-core `Engine`), each with a killing mutation; flush-order and cache-loss acceptance for N11, N12 and N25 is established here, not natively; Clippy, fmt, `cargo test --locked` per the CI workflow commands. Revision 3 adds: N33–N36; the reset-dependent rows under both reset models (section 6); a simulated disk that meets the K5 broker contract (2.7). **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited). Open against this revision: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; at `37b7bd0c` the revision-3 rows and the code changes they imply (section 9) were not yet made. Revision 4 adds: Clippy with `-D warnings` on the library as built without any test-only feature, for `x86_64-unknown-none`, run by the hosted gate (a lead-owned workflow change), because that is the build a native profile links and so far it is only type-checked (P10); and a host test of the simulated disk alone, under both reset models, for each property of the broker contract of 2.7, including for property 3 that a result already returned is not returned by a further poll, also for a request ended by a reset (P12); N37 (a) and (b) (P1; O17 (a) decided on 23 November 2026). **Status (revision 4):** the revision-3 rows and the O14 and O16 changes are implemented on draft PR #413 (`4f1edb9c`, `e52cb865`), unmerged, host only, AI-reviewed, not human-audited. Still open: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; the CODE-DELTA of section 9 (revision 4); the two items above. Revision 5 adds: for properties 4 and 5 of the broker contract, an opt-in deadline mode of the simulated disk (a request past its deadline answered -16 if mutating and -13 otherwise by the model itself, then the reset) and quarantine and offline held as device state until a simulated reboot, each with a host test under both reset models, without relaxing the contract or this check (2.7; Q4); a stray-poll counter in the simulated disk, asserted zero in every service-driven host test (2.7 poll rule; Q6); N37 (d) (Q9); optionally, the N35 sub-case that pins the checked step-4 copy (Q5). **Status (revision 5):** at `f993a1a3` *[PR #413]* (unmerged, host only, AI-reviewed in CODE-REVIEW-O17-O18, not human-audited) the R2 core implements O17 (a) in the running form and O18; N26 (d) asserts that no catalog sector is written in the cache-dropped model; N33 (iii) and N37 (a), (b) are negative tests under both reset models; N37 (d) pins that only APPENDs answered `Ok` are hashed (corrected after review 7, OPT7-3); N35 (e) asserts the failed-mount state; one host test per broker-contract property exists (`p12_1`–`p12_5`), and the claim that the simulated disk meets the contract is partial for properties 4 and 5. The code review reports 76 tests passing with Rust 1.100.0 (all suites also pass with 1.90.0), Clippy and fmt, a check for `x86_64-unknown-none`, and 14 of 16 mutants killed, with M8 surviving as equivalent and M7 as equivalent in every build without `test-hooks`. These gates and mutants ran on the uncommitted diff over `8f387ea1`; the lead then applied the review's OPT-1, OPT-2 and OPT-4 as comment-only edits (the review's provenance note; `service.rs` at `f993a1a3` differs from the reviewed hash) before committing `f993a1a3`, and no review or gate run covers those edits. Nothing was re-run for this revision; the test count was checked here only by counting test attributes. The P10 lint of the non-test build ran locally with exit 0 (Rust 1.90.0) and is still not a hosted gate. Still open: the archive verifier is a test stand-in, so N7, N10, N11 and N12 are partial; N24 (b) is recorded, not a pass; the P10 hosted gate; the revision-5 items above; for property 3, a device-state snapshot before and after each further poll, because `p12_3_answered_exactly_once` checks "changes nothing" only on the caller's buffer after the further read poll (review 7, RQ7-2); the open rows of the CODE-DELTA (revision 5) **Status (24 November 2026, read at main `9dfff70c`, task S-20261124-6):** the revision-5 items are implemented on `main`: the property-4 deadline mode and property-5 quarantine and offline state of `SimDisk` (`p12_4_deadline_answers_and_resets`, `p12_4_deadline_decided_by_ready_time`, `p12_5_quarantine_and_offline_until_reboot`); the stray-poll counter with its tripwire (`stray_poll_tripwire`, `q6_extra_poll_after_result_is_counted`); the device-state snapshot before and after each further poll (`further_poll` in `tests/sim_contract.rs`, RQ7-2); the optional U+009F and U+00A0 label cases (`tests/catalog.rs`); the optional N35 sub-case that pins the checked step-4 copy (`n35_sealed_resolution_uses_checked_copy`); the production archive verifier for N7 and N10 (`tests/real_verifier.rs`, PR #505). `sim_contract` (16 tests) and `broker` (11 tests) pass locally with Rust 1.100.0. Still open: N33 (ii) (optional; no zero-byte variant found), the hosted P10 lint (local run exit 0; coordinator request C3), N24 (b) as recorded, not a pass; the CODE-DELTA (revision 5) table below is the historical record at `f993a1a3` |
+| R3 | `tools/destination_disk.py` independent oracle | Python unit tests: parses valid copies, refuses each invalid rule; a test-only encoder for crafted images (N14's second destination ID, N4, N30), whose output the oracle's own parser accepts or refuses as intended. Revision 3 adds: the oracle decisions of section 7 (scope, image read errors, extents); the record rules of 2.6 (N34); a cross-check of images written by the R2 core, run by a hosted gate (a lead-owned workflow change); and a reverse differential, in which the oracle's crafted invalid images are mounted by the R2 core and the two verdicts compared; both are required before R5. **Status (revision 3):** implemented on draft PR #413, unmerged *[PR #413]* (host only; AI-reviewed, not human-audited); at `37b7bd0c` the cross-check had run only locally (7 images, agreement) and was skipped in hosted CI, and the reverse differential did not exist. Revision 4 states the limit of both comparisons: mount state, header and records, not the refusing rule (section 7, "Cross-check limit"; P11). **Status (revision 4):** at `e52cb865` *[PR #413]* the cross-check agrees on 30 images, locally only; it is still not run in hosted CI; the reverse differential still does not exist. **Status (revision 5):** at `f993a1a3` the oracle is unchanged by the O17 (a)/O18 round (the content check and the remount rule are protocol rules, not image rules); CODE-REVIEW-O17-O18 reports the cross-check agreeing on 30 images, run locally only *[PR #413]*; there is still no hosted cross-check and no reverse differential **Status (24 November 2026, task S-20261124-6):** the reverse differential exists, host only: `ReverseDifferential` in `tests/test_volume_destination_disk.py` builds 182 crafted images (each single-rule invalid copy of 2.6, N4 and N34 twice, and beside a valid copy in each slot order; the blank, reserved-sector, N8, N14, N25 and N30 mount cases) and, with `DEST_REVERSE_OUT` set, writes each with the oracle's verdict; `services/destination/tests/reverse_differential.rs` (`DEST_REVERSE_IN`) cold-boots the R2 core on every image and requires the same state, header and records (section 7, "Cross-check limit"). Locally all 182 agree and the 30-image forward cross-check agrees; a changed oracle verdict and a core mutation that drops the header-padding rule are both detected. Neither direction runs in a hosted gate yet: that is a lead-owned workflow change and stays an R5 precondition |
 | R4 | Volume service read-only and create-only endpoint bindings (separate spec) | N19, N20 host tests; existing volume and archive host tests unchanged |
-| R5 | Preconditions: O4 (a) approves K5 as per-device broker state (K4 is not needed for R5); the owner amends ADR-S09-DUALDISK-20261119 B3 and B5 (O4 (b)); O4 (c) is decided and its option is in place (section 7); the test profile enables `monotonic-clock` for the -8 bound (2.7; feature combination unchecked); (revision 3) the service links `volume_core::archive::verify` (2.3, "Archive verifier"); test hooks such as N29's exist only behind a test-only build feature that no native or product profile enables; the R3 reverse differential exists and the R3 cross-check runs in a hosted gate (review 4 OP-7); the per-device broker meets the broker contract of 2.7, including the K5 delta of property 3: a further poll after a read ended by a reset returns -1 (4.3 K5; review 9, OPT9-3; review 10, RQ10-2). Content: per-device broker state, destination service binary in a test-only profile on disk 1 that follows the once-per-boot grant rule (2.1), and a scripted test-only dialog driver for the control lane that sends FORMAT and BIND and transfers lane SEND to the portal (4.3) | native stages `dest-format`, `dest-export`, `dest-export-2`, `dest-restore` and `dest-grant-once`, each lane bound by BIND with the destination ID that INFO reports after `dest-format`; N1, N2, N16, N18 counted and rights-probed (the driver's handles, including its control-reply RECV, as the dialog's in 5.1); N27 natively with `DEST:HANDLES=`; N32 natively with `DEST:GRANT:*`; at run time each lane handle transferred to the portal is SEND only (`check_endpoint`); every runner with `-no-reboot`; `dest-restore` is test-only and does not wait for R4; the per-device broker admits no disk-1 request between a disk-1 timeout and the acknowledged reset (2.7 completion fence), and a disk-1 submission is admitted while a disk-0 request is in flight, both shown by native timeout fixtures |
+| R5 | Preconditions: O4 (a) approves K5 as per-device broker state (K4 is not needed for R5); the owner amends ADR-S09-DUALDISK-20261119 B3 and B5 (O4 (b)); O4 (c) is decided and its option is in place (section 7); the test profile enables `monotonic-clock` for the -8 bound (2.7; feature combination unchecked); (revision 3) the service links `volume_core::archive::verify` (2.3, "Archive verifier"); test hooks such as N29's exist only behind a test-only build feature that no native or product profile enables; the R3 reverse differential exists and the R3 cross-check runs in a hosted gate (review 4 OP-7); the per-device broker meets the broker contract of 2.7, including the K5 delta of property 3: a further poll after a read ended by a reset returns -1 (4.3 K5; review 9, OPT9-3; review 10, RQ10-2). Content: per-device broker state, destination service binary in a test-only profile on disk 1 that follows the once-per-boot grant rule (2.1), and a scripted test-only dialog driver for the control lane that sends FORMAT and BIND and transfers lane SEND to the portal (4.3) | native stages `dest-format`, `dest-export`, `dest-export-2`, `dest-restore` and `dest-grant-once`, each lane bound by BIND with the destination ID that INFO reports after `dest-format`; N1, N2, N16, N18 counted and rights-probed (the driver's handles, including its control-reply RECV, as the dialog's in 5.1); N27 natively with `DEST:HANDLES=`; N32 natively with `DEST:GRANT:*`; at run time each lane handle transferred to the portal is SEND only (`check_endpoint`); every runner with `-no-reboot`; `dest-restore` is test-only and does not wait for R4; the per-device broker admits no disk-1 request between a disk-1 timeout and the acknowledged reset (2.7 completion fence), and a disk-1 submission is admitted while a disk-0 request is in flight, both shown by native timeout fixtures **Status (24 November 2026):** O4 (a)–(c) decided by the owner (section 8.1); the production archive verifier is linked on the host (PR #505); still open: the hosted run of the R3 cross-check and reverse differential (both exist on the host, PR #509), native K5 timeout fixtures, the `monotonic-clock` test profile and every native destination stage. **K5 step 1 (24 November 2026, PR #509, `04b06de2`):** per-device `Policy`, error, reset flag and deadline, completion buffer and publication time in the volume broker, and the property-3 further-poll rule; independent AI security review K5-REVIEW-1 returned REQUEST_CHANGES with one required finding (S3 quiescence with an absent lane), fixed in `04b06de2`; a later CodeRabbit finding (property 3 after a failed reset) fixed in `1a3924de`; with `1a3924de` the native volume gate passed 32 of 32 stages and the H05 power gate 12 of 12 stages (S3, S3 re-initialisation and held completion included), run locally. Not yet shown natively: a disk-1 request admitted while disk 0 is in flight, and no disk-1 request admitted between a disk-1 timeout and the acknowledged reset; these need a new stage and a pin change by the CI owner (C4, C5) |
 | R6 | UNBIND, revocation and rebinding through the scripted test-only dialog driver of R5 | QEMU levels of N3, N5, N6, N7, N8, N10, N14, N15, N17 and N22 with stages `dest-revoke`, `dest-foreign`, `dest-full`, `dest-replay`, `dest-corrupt`, `dest-scope`, `dest-sender` and `dest-nonarchive`; crash stages `dest-cut-append`, `dest-cut-seal`, `dest-cut-mirror` and `dest-after-cut` (N11, N12) at QEMU level as process kills without cache loss, with the kernel-counted flush count and order asserted at each cut marker (section 7) |
 | R7 | Trusted dialog surface and remembered permission (after O1 and O12; O14, O15 and O17 decided on 23 November 2026) | UI checks per `ui/AGENTS.md`; revocation of a remembered permission revokes live lanes and their volume-side bindings; the portal's trailer comparison of the decided O17 (b), including how it keeps the exported trailer across a reboot (2.7; N37 (c)); every label rendered in an isolated bidirectional context (first-strong isolate) and visibly delimited from trusted text, because 2.3 allows format characters such as U+200E, U+200F and U+061C (review 6 OPT6-2). **Status (revision 5):** not started; PR #413 has no portal, so the O17 (b) check and N37 (c) are open here, not on PR #413 |
-| R8 | After R4 and O11–O13 (O14–O18 decided on 23 November 2026; the O4 items are R5 preconditions): independent security review of the implementation, then an owner activation decision | all matrix rows pass natively where marked QEMU; N19 and N20 pass natively, not only on the host; FORMAT's entropy draw has native evidence (section 7); under O13, either the once-per-boot rule (N32) is accepted or the kernel latch passes its own native test; the decided O17 (b) portal check is implemented (R7) and N37 (c) passes with the portal, so that activation cannot skip the second check (revision 5, review 7 OPT7-6); review closed. **Status (revision 5):** not started; the activation no longer waits on the O17 or O18 decision, but it requires the R7 implementation of O17 (b) above |
+| R8 | After R4 and O11–O13 (O14–O18 decided on 23 November 2026; the O4 items are R5 preconditions): independent security review of the implementation, then an owner activation decision | all matrix rows pass natively where marked QEMU; N19 and N20 pass natively, not only on the host; FORMAT's entropy draw has native evidence (section 7); under O13 (decided on 24 November 2026), both the once-per-boot rule passes N32 and the kernel write latch passes its own native test; the decided O17 (b) portal check is implemented (R7) and N37 (c) passes with the portal, so that activation cannot skip the second check (revision 5, review 7 OPT7-6); review closed. **Status (revision 5):** not started; the activation no longer waits on the O17 or O18 decision, but it requires the R7 implementation of O17 (b) above **Status (24 November 2026):** O11–O13 decided; R8 now also requires the O12 owner-binding design checked against the profile, key and encryption contracts, the O13 kernel write latch with its own native test, and native evidence of the real entropy route (O4 (c)) |
 
 Until R8, every grant remains test-only and S09 remains open; this document
 changes no score.
