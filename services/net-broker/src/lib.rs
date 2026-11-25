@@ -30,6 +30,8 @@ use smoltcp::wire::{
     TcpPacket,
 };
 
+pub mod durable;
+
 pub const MAX_GRANTS: usize = 8;
 pub const MAX_TIMEOUT_TICKS: u64 = 6000;
 
