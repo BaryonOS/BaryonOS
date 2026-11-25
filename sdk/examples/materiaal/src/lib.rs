@@ -76,6 +76,30 @@ fn digest(bytes: &[u8]) -> u64 {
     hash
 }
 
+/// Render one surface tile into its canonical little-endian bytes.
+fn render(
+    frame: &Frame,
+    rectangle: nieuw_os_surface_protocol::Rectangle,
+    bytes: &mut [u8; 1024],
+) -> Result<(), Error> {
+    let mut pixels = [0; TILE_PIXELS];
+    let rendered = frame
+        .render_tile(rectangle.x, rectangle.y, &mut pixels)
+        .map_err(|_| Error::Binding)?;
+    if rendered.width != u32::from(rectangle.width)
+        || rendered.height != u32::from(rectangle.height)
+    {
+        return Err(Error::Binding);
+    }
+    for (p, chunk) in pixels
+        .iter()
+        .zip(bytes[..rectangle.bytes()].as_chunks_mut::<4>().0.iter_mut())
+    {
+        chunk.copy_from_slice(&p.to_le_bytes());
+    }
+    Ok(())
+}
+
 fn increment(value: &mut u64) -> Result<(), Error> {
     *value = value.checked_add(1).ok_or(Error::CounterExhausted)?;
     Ok(())
@@ -100,6 +124,10 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     /// a complete frame in this epoch. `None` keeps full repaints.
     damage: Option<&'a mut [u64]>,
     damage_valid: bool,
+    /// Retained mode: tiles blitted since the compositor's last complete
+    /// base frame. The receiver rejects RETAIN for these, so they never join
+    /// a digest-proven retain run.
+    written: [u64; DAMAGE_TILES.div_ceil(64)],
 }
 impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// `geometry` must be the actual authenticated INFO response from this
@@ -138,6 +166,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             retained_enabled: false,
             damage: None,
             damage_valid: false,
+            written: [0; DAMAGE_TILES.div_ceil(64)],
         })
     }
     /// Like `new`, but after the first complete frame only changed tiles (and
@@ -496,8 +525,10 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             view.can_save = false;
         }
         let damage = self.controller.paint_damage();
+        let frame = Frame::new(view);
         let mut retained = 0;
         if self.retained_enabled && self.surface.retained_base().is_some() && !self.input_failed {
+            let mut rendered = 0;
             while retained < nieuw_os_surface_protocol::MAX_RETAIN_TILES {
                 let index = self
                     .next_tile
@@ -513,7 +544,28 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                     u32::from(rectangle.width),
                     u32::from(rectangle.height),
                 ) {
-                    break;
+                    // Controller damage is conservative (often the whole
+                    // viewport). A damaged tile is still retained when its
+                    // freshly rendered bytes match the digest of the unchanged
+                    // base backing; every tile is rendered, so no visual change
+                    // (focus ring, banner, theme) can be skipped.
+                    // shortcut: the first differing tile is rendered again by
+                    // the blit path below; carry its bytes over if render cost
+                    // ever dominates.
+                    let i = index as usize;
+                    if !self.damage_valid
+                        || rendered == SCAN_LIMIT
+                        || self.written[i / 64] & (1u64 << (i % 64)) != 0
+                    {
+                        break;
+                    }
+                    let mut bytes = [0; 1024];
+                    render(&frame, rectangle, &mut bytes)?;
+                    rendered += 1;
+                    let hash = digest(&bytes[..rectangle.bytes()]);
+                    if self.damage.as_deref().map(|cache| cache[i]) != Some(hash) {
+                        break;
+                    }
                 }
                 retained += 1;
             }
@@ -522,7 +574,6 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         let result = if retained != 0 {
             self.surface.retain(self.frame, self.next_tile, retained)
         } else {
-            let frame = Frame::new(view);
             let last = self.geometry.tiles() - 1;
             let mut scanned = 0;
             let mut bytes = [0; 1024];
@@ -531,22 +582,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                     .geometry
                     .rectangle(self.next_tile)
                     .map_err(|_| Error::Binding)?;
-                let mut pixels = [0; TILE_PIXELS];
-                let rendered = frame
-                    .render_tile(rectangle.x, rectangle.y, &mut pixels)
-                    .map_err(|_| Error::Binding)?;
-                if rendered.width != u32::from(rectangle.width)
-                    || rendered.height != u32::from(rectangle.height)
-                {
-                    return Err(Error::Binding);
-                }
-                for (p, chunk) in pixels
-                    .iter()
-                    .zip(bytes[..rectangle.bytes()].as_chunks_mut::<4>().0.iter_mut())
-                {
-                    chunk.copy_from_slice(&p.to_le_bytes());
-                }
-                let hash = if !self.retained_enabled && self.damage.is_some() {
+                render(&frame, rectangle, &mut bytes)?;
+                let hash = if self.damage.is_some() {
                     digest(&bytes[..rectangle.bytes()])
                 } else {
                     0
@@ -568,8 +605,14 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                     return Ok(());
                 }
             };
-            if !self.retained_enabled {
+            if self.damage.is_some() {
                 accepted_digest = Some(hash);
+            }
+            if self.retained_enabled {
+                let i = self.next_tile as usize;
+                if let Some(word) = self.written.get_mut(i / 64) {
+                    *word |= 1u64 << (i % 64);
+                }
             }
             self.surface.blit(
                 self.frame,
@@ -597,7 +640,10 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             .checked_add(u64::from(retained.max(1)))
             .ok_or(Error::Binding)?;
         if self.next_tile == self.geometry.tiles() {
-            self.damage_valid = self.damage.is_some() && !self.retained_enabled;
+            // The cache now describes the complete base backing; the receiver
+            // clears its changed-since-base bitmap at this same point.
+            self.damage_valid = self.damage.is_some();
+            self.written = [0; DAMAGE_TILES.div_ceil(64)];
             if !self.controller.presented(self.frame, self.geometry.epoch) {
                 return Err(Error::Binding);
             }
@@ -709,6 +755,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         // A replacement compositor has no backing pixels from the old epoch.
         // Repaint it densely even if document and geometry are unchanged.
         self.damage_valid = false;
+        self.written = [0; DAMAGE_TILES.div_ceil(64)];
         if self
             .damage
             .as_ref()
