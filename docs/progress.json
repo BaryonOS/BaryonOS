@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "d436a595ac05b2c8fe2a0e51a53659001fa21742",
-    "assessment_basis": "reviewed_main_commit",
-    "branch": "claude/brave-feynman-jbiz6x",
-    "task": "S09 follow-up: reverse-corpus fixture fixes from the PR #509 review; handoff after the merge",
+    "source_commit": "8acf1deaaf0c9d9ab79f904850a56015910ba093",
+    "assessment_basis": "parent_commit",
+    "branch": "claude/ui-u-notifications-panel-20261125",
+    "task": "UI-U-C5-20261125 U04: Alt+N panel as the single notification centre (keyboard, mouse and clock routes)",
     "previous_score": 43,
-    "summary": "43/100, unchanged: PR #509 (owner decisions O1-O13, the R3 reverse differential on the host, K5 per-device broker state) landed on main as ad55e019 with every hosted gate green on its head. This follow-up adds a genuine formatted-count-below-scope case to the reverse corpus (185 images) and makes the Rust side require a verdict for every image. S09 stays open: no native destination stage, native K5 fixture, O13 kernel latch, O12 owner-binding design, hosted R3 run or human audit exists yet. Main d436a595 (B05-T6 #512 and U04 Space activation, both 43/100 unchanged) is merged into the branch; source commit is main d436a595."
+    "summary": "43/100 unchanged. Per the owner decision of 25 November 2026 (ADR-UI-NOTIFICATIONS-20261125) the Alt+N panel is the only notification surface: the header clock and status band open it, the pointer-only shell Notifications page is removed, and host tests pin Alt+N/band/clock parity, wrapping Tab order, Enter/Space pointer parity, Escape focus retention and held-key single activation. The last ignored U04 keyboard-only test is gone. U04 stays open: native keyboard evidence, the screen-reader chain and human trials are missing; evidence is host tests only."
   },
   "tracks": [
     {
