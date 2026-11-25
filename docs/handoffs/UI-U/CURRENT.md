@@ -33,8 +33,10 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
   removed (owner decision, ADR-UI-NOTIFICATIONS-20261125).
 - **branch:** `claude/ui-u-notifications-panel-20261125` (based on `main`).
 - **PR:** recorded in the PR itself and in its HANDOFF comment after merge.
-- **Evidence scope:** host tests (`keyboard_only.rs`) and hosted native window
-  gates. No native keyboard run, screen reader or human trial.
+- **Evidence scope:** host tests (`keyboard_only.rs`, `shell.rs` header
+  zones) passed locally; hosted gates including the native window gates are
+  pending until the PR's HANDOFF comment records them. No native keyboard run,
+  screen reader or human trial.
 
 ## Previous cycles
 
