@@ -227,6 +227,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         raise ValueError("signed-policy-probe-test requires native-update-policy-probe")
     elif image_version is not None:
         raise ValueError("--image-version applies to update kernels only")
+    if loader_feature == "tpm-loader-probe-test" and kernel_feature != "native-tpm-crb":
+        raise ValueError("tpm-loader-probe-test requires the native-tpm-crb kernel")
     extra_env = None
     sdk_selection = os.environ.get("NOS_SDK_RUNTIME", "0")
     if sdk_selection not in ("0", "1"):
@@ -507,7 +509,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff", "hw-inventory"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff", "hw-inventory", "tpm-loader-probe-test"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()

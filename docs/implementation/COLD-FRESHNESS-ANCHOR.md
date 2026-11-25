@@ -377,7 +377,9 @@ Listed in REL-05 section 14; the host model assumes them, S5 must prove them.
   lockoutAuth set, `TPM2_Clear(lockout)` with empty auth fails. U23 is
   therefore load-bearing.
 - U25 OVMF provides `EFI_RNG_PROTOCOL` in the loader phase (entropy for
-  `HAUTH`).
+  `HAUTH`). *Observed absent under the current TEST QEMU line (`-cpu qemu64`,
+  no RNG device; loader probe of 25 November 2026), so provisioning halts
+  there until the profile supplies an entropy source.*
 - U27 ACPI S3 resume in the TPM-bearing TEST QEMU configuration: whether
   OVMF falls back to `Startup(CLEAR)` after a missing `TPM2_Shutdown(STATE)`
   and so resets PCR 13. Required: disable S3 there, or prove the firmware

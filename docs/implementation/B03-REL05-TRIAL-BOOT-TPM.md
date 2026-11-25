@@ -730,7 +730,8 @@ named marker (TEST hook markers emitted before each write in a test feature).
 - U18 Kernel-to-health-service interface for H1/H3 observations.
 - U19 Whether the pinned `r-efi` 7.2.0 defines `EFI_TCG2_PROTOCOL`; otherwise
   the loader needs its own `repr(C)` definition from the TCG EFI protocol
-  specification.
+  specification. *Answered: it does not; the loader's own definition works
+  natively (loader probe below).*
 - U20 Whether TPM 2.0 is accepted as the D3 backend beyond this TEST profile
   (owner decision open).
 - U21 That the first `NV_Extend` of a freshly defined `TPM_NT_EXTEND` index
@@ -752,6 +753,8 @@ named marker (TEST hook markers emitted before each write in a test feature).
   `EFI_RNG_PROTOCOL` (UEFI 2.10, section 37.5) with its default algorithm in
   the loader phase. It is the entropy source of the M1-HAUTH secrets; when it
   is absent, provisioning halts (no fallback, no derivation from records).
+  *Observed absent under `-cpu qemu64` without an RNG device (loader probe
+  below); the profile needs an entropy source before provisioning can run.*
 - U26 Design of the M1-HAUTH loader record that binds `SHA-256(HAUTH)` and
   names the anchored instances (policy-written at PCR 13 = 0³²; handle, size,
   per-domain layout and public-area check open; see
@@ -768,3 +771,17 @@ policy-session HMAC must be empty (non-empty gives `TPM_RC_BAD_AUTH`), every
 active PCR bank must be extended consistently (U5: four banks active under
 OVMF), OVMF sets a random platform auth before handover (U8), and a session
 whose authorisation failed stays loaded and must be flushed.
+
+### Loader probe results (25 November 2026, S6 step 1)
+
+Native TEST probe, not acceptance evidence:
+[b03-rel05-loader-probe-20261125](../verification/b03-rel05-loader-probe-20261125/README.md).
+Before `ExitBootServices` the `tpm-loader-probe-test` loader located
+`EFI_TCG2_PROTOCOL` through its own `repr(C)` table (U19), read the active
+banks (`0xf`: SHA-1, SHA-256, SHA-384, SHA-512) and sent `GetCapability`
+(`TPM_PT_PERMANENT` = `0x400`, no hierarchy authorisation set) and
+`PCR_Read(13)` (SHA-256 value zero) through `SubmitCommand` with the tpm-crb
+codec. The `native-tpm-crb` kernel then completed its CRB property query, so
+the loader's TCG2 use leaves the CRB usable (part of U2). `EFI_RNG_PROTOCOL`
+was absent (U25). Still open for U2: `HashLogExtendEvent`, extension of every
+bank and PCR 13 after the loader.

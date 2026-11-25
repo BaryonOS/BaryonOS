@@ -18,14 +18,19 @@ from common import BUILD, LOCAL, ROOT, environment, save_json, sha256, source_ha
 import run_ipc_wait
 from run import run_guest
 
-FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent"}
+FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
+            "loader-probe": "native-tpm-crb"}
+# B03 REL-05 S6 step 1: firmware TCG2/RNG before EBS, then the normal kernel case.
+LOADER = {"loader-probe": "tpm-loader-probe-test"}
+LOADER_MARKERS = ("LOADER-TPM:TCG2:PRESENT", "LOADER-TPM:PCR13:ZERO", "LOADER-TPM:PASS")
 COMMON = ("M2:PASS", "TPMCRB:BOUNDS:PASS", "TPMCRB:MAPPING:PASS",
           "IPCWAIT:MANIFEST:PASS", "IPCWAIT:REVOKED_FULL_QUEUE:PASS")
 
 
 def markers(case):
-    final = ("TPMCRB:RELEASED:PASS", "TPMCRB:PASS") if case == "normal" else ("TPMCRB:ABSENT:PASS",)
-    return COMMON + final + run_ipc_wait.MARKERS[3:]
+    final = ("TPMCRB:ABSENT:PASS",) if case == "absent" else ("TPMCRB:RELEASED:PASS", "TPMCRB:PASS")
+    # run.is_success matches in serial order: the loader prints before EBS.
+    return (LOADER_MARKERS if case in LOADER else ()) + COMMON + final + run_ipc_wait.MARKERS[3:]
 
 
 def evaluate(stdout, case):
@@ -35,6 +40,11 @@ def evaluate(stdout, case):
     for marker in markers(case):
         if stdout.splitlines().count(marker) != 1:
             raise ValueError(f"Expected exactly one {marker}")
+    if case in LOADER:
+        result.update(loader_observations(stdout))
+        case = "normal"
+    elif "LOADER-TPM:" in stdout:
+        raise ValueError("Loader TPM probe output in a kernel-only case")
     for name in ("WRITES", "BOUNDS_REJECTED", "QUARANTINED", "FAMILY"):
         values = re.findall(rf"^TPMCRB:{name}:([0-9]{{20}})$", stdout, re.M)
         expected = 0 if case == "absent" and name == "FAMILY" else 1
@@ -52,6 +62,20 @@ def evaluate(stdout, case):
     elif result["WRITES"] != 0 or result["QUARANTINED"] != 1 or "TPMCRB:PASS" in stdout:
         raise ValueError("Missing TPM must be quarantined without any hardware write")
     return result
+
+
+def loader_observations(stdout):
+    """Facts the probe loader printed; RNG presence is recorded, not required (U25)."""
+    found = {}
+    for name, pattern in (("BANKS", "[0-9a-f]{16}"), ("PERMANENT", "[0-9a-f]{16}"),
+                          ("RNG", "PASS|ABSENT")):
+        values = re.findall(rf"^LOADER-TPM:{name}:({pattern})$", stdout, re.M)
+        if len(values) != 1 or len(re.findall(rf"^LOADER-TPM:{name}:", stdout, re.M)) != 1:
+            raise ValueError(f"Invalid loader TPM {name} observation")
+        found[f"LOADER_{name}"] = values[0] if name == "RNG" else int(values[0], 16)
+    if not found["LOADER_BANKS"] & 0x2:
+        raise ValueError("Loader TPM probe needs an active SHA-256 bank")
+    return found
 
 
 @contextmanager
@@ -122,18 +146,20 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; no product keys or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS; no product keys or antirollback"}
     save_json(destination, report)
     try:
-        manifest = build(None, FEATURES[case], FEATURES[case])
+        manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
         if (manifest["kernel_feature"] != FEATURES[case]
+                or manifest["loader_feature"] != LOADER.get(case)
                 or manifest["source_sha256"] != frozen or source_hash() != frozen):
             raise ValueError("TPM build source/profile changed")
 
         def guest(control=None):
             report["guest"] = run_guest(
                 f"tpm-{case}", required_markers=markers(case), tpm_socket=control,
-                forbidden_markers=("TPMCRB:FAIL:", "IPCWAIT:FAIL:", "PANIC", "M3:FAIL:"),
+                forbidden_markers=("TPMCRB:FAIL:", "IPCWAIT:FAIL:", "PANIC", "M3:FAIL:",
+                                   "LOADER-TPM:FAIL:"),
                 expected_kernel_sha256=manifest["kernel"]["sha256"],
                 expected_loader_sha256=manifest["loader"]["sha256"],
             )
@@ -141,7 +167,7 @@ def run(case):
                 raise ValueError("Native TPM guest failed; inspect retained serial/stderr")
             report["observed"] = evaluate(report["guest"]["stdout"], case)
 
-        if case == "normal":
+        if case != "absent":
             with backend(report) as control:
                 guest(control)
         else:

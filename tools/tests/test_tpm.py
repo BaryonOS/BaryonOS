@@ -10,7 +10,13 @@ from tools.tests import test_ipc_wait
 
 
 class NativeTpmTranscriptTests(unittest.TestCase):
+    LOADER = ("LOADER-TPM:TCG2:PRESENT\nLOADER-TPM:BANKS:000000000000000f\n"
+              "LOADER-TPM:PERMANENT:0000000000000400\nLOADER-TPM:PCR13:ZERO\n"
+              "LOADER-TPM:PASS\nLOADER-TPM:RNG:ABSENT\n")
+
     def transcript(self, case):
+        if case == "loader-probe":
+            return self.LOADER + self.transcript("normal")
         text = test_ipc_wait.NativeWaitTranscriptTests().transcript()
         values = {"WRITES": 12000 if case == "normal" else 0,
                   "BOUNDS_REJECTED": 7, "QUARANTINED": int(case == "absent")}
@@ -25,8 +31,40 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         for case in probe.FEATURES:
             self.assertEqual(probe.evaluate(self.transcript(case), case)["BOUNDS_REJECTED"], 7)
 
+    def test_loader_probe_records_firmware_facts_and_rejects_gaps(self):
+        good = self.transcript("loader-probe")
+        result = probe.evaluate(good, "loader-probe")
+        self.assertEqual((result["LOADER_BANKS"], result["LOADER_PERMANENT"], result["LOADER_RNG"]),
+                         (0xF, 0x400, "ABSENT"))
+        self.assertEqual(probe.evaluate(good.replace("RNG:ABSENT", "RNG:PASS"),
+                                        "loader-probe")["LOADER_RNG"], "PASS")
+        for bad in (
+            self.transcript("normal"),
+            good.replace("LOADER-TPM:TCG2:PRESENT", "LOADER-TPM:TCG2:ABSENT"),
+            good.replace("PCR13:ZERO", "PCR13:NONZERO"),
+            good.replace("LOADER-TPM:PASS\n", ""),
+            good.replace("RNG:ABSENT", "RNG:FAIL"),
+            good + "LOADER-TPM:RNG:PASS\n",
+            good.replace("BANKS:000000000000000f", "BANKS:000000000000000d"),
+            good.replace("PERMANENT:0000000000000400", "PERMANENT:400"),
+            good.replace("TPMCRB:PASS\n", ""),
+        ):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                probe.evaluate(bad, "loader-probe")
+        with self.assertRaises(ValueError):
+            probe.evaluate(good, "normal")
+
+    def test_probe_loader_pairs_only_with_the_native_tpm_kernel(self):
+        import build
+        with patch.object(build, "ensure_lockfile"), \
+                patch.object(build, "source_hash", return_value="s"):
+            for kernel in (None, "milestone-m2", "test-tpm-crb-absent"):
+                with self.subTest(kernel=kernel), \
+                        self.assertRaisesRegex(ValueError, "tpm-loader-probe-test"):
+                    build.build("tpm-loader-probe-test", kernel)
+
     def test_case_substitution_and_malformed_evidence_are_rejected(self):
-        for case in probe.FEATURES:
+        for case in ("normal", "absent"):
             other = "absent" if case == "normal" else "normal"
             good = self.transcript(case)
             for bad in (
