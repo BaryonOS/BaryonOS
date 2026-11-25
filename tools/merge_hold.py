@@ -398,6 +398,20 @@ def expected_gates(plan):
             and row.get("blocked_by_filter") is not True]
 
 
+def hidden_input_rows(plan):
+    """Selected core and rwa gates whose own path filter hides a registered, non-metadata input."""
+    return [row for row in plan["selected"]
+            if row["class"] in SELECTABLE and row["workflow"] != GATE_WORKFLOW
+            and row.get("blocked_by_filter") is True and row.get("filter_hidden_inputs")]
+
+
+def hidden_listing(paths, limit=5):
+    # Paths come from the pull request: ASCII-escape them so no control character reaches the log,
+    # and escape % because the runner decodes %0A in ::error:: data (the step summary shows %25).
+    shown = ", ".join(json.dumps(path, ensure_ascii=True).replace("%", "%25") for path in paths[:limit])
+    return shown + (f" and {len(paths) - limit} more" if len(paths) > limit else "")
+
+
 def fetch_listing(token, url, key):
     """Every item of a paginated Actions listing ({total_count, <key>: [...]}), by id."""
     items, page, total = {}, 1, None
@@ -520,7 +534,11 @@ def gate_report(token, repo, pull, head_sha, plan):
             order = run_order(run)  # every counted run must be orderable
             if path not in newest or order > run_order(newest[path]):
                 newest[path] = run
-    passed, pending, failed = [], [], []
+    passed, pending = [], []
+    # Fail closed: a path filter may hide only metadata, never a registered input.
+    failed = [f"{row['check_name']}: its path filter hides registered input(s) "
+              f"{hidden_listing(row['filter_hidden_inputs'])}, so the gate did not run"
+              for row in hidden_input_rows(plan)]
     for workflow in workflows:
         wanted = [row for row in expected if row["workflow"] == workflow]
         run = newest.get(workflow)
@@ -617,7 +635,8 @@ def pull_request_gates(token, repo, number, head_sha):
         # A new attempt may start and finish during the next report: allow one refresh again.
         fresh = False
     skipped = [f"{row['check_name']}: not applicable (path filter)" for row in plan["selected"]
-               if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True]
+               if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True
+               and not row.get("filter_hidden_inputs")]
     lines.append(f"{len(passed)} applicable gate(s) passed; {len(skipped)} filtered out; "
                  f"{len(pending)} pending; {len(failed)} failed.")
     prefix = "::error::" if enforce else "::warning::(shadow, not blocking) "

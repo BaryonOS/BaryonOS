@@ -31,6 +31,9 @@ CACHE_ACTION_SHA = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
 ACTIONLINT_VERSION = "1.7.12"
 ACTIONLINT_SHA256 = "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
 ACTIONLINT_TAG_COMMIT = "914e7df21a07ef503a81201c76d2b11c789d3fca"
+CARGO_LLVM_COV_VERSION = "0.9.1"
+CARGO_LLVM_COV_SHA256 = "b3f68e625481fed9b16444174f3fa5ebcdbde4a1878803a35eabe2dcefcdc41a"
+CARGO_LLVM_COV_TAG_COMMIT = "0dc905679ae6b4740b186f6e2c2ef1ab78fb76d7"
 # Non-required workflows skip only documentation and project metadata. The
 # required ci.yml gates stay unfiltered (see test_required_gates_...).
 METADATA_PATHS_IGNORE = [
@@ -854,6 +857,79 @@ class WorkflowContractTests(unittest.TestCase):
             with self.subTest(fixture=reference):
                 self.assertEqual(uses_reference_is_pinned(reference), expected)
 
+    def test_cargo_llvm_cov_is_a_checksum_pinned_release_binary(self):
+        """#494 B3: the required host gate verifies the upstream archive before extracting it."""
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        step, = [step for step in steps if step.get("name") == "Coverage tooling (cargo-llvm-cov, coverage.py, c8)"]
+        self.assertNotIn("if", step)
+        self.assertEqual(step.get("continue-on-error", "false"), "false")
+        self.assertEqual(step["env"], {"CARGO_LLVM_COV_VERSION": CARGO_LLVM_COV_VERSION,
+                                       "CARGO_LLVM_COV_SHA256": CARGO_LLVM_COV_SHA256})
+        command = step["run"]
+        self.assertTrue(command.startswith("set -euo pipefail\n"))
+        self.assertNotIn("install cargo-llvm-cov", command)
+        self.assertNotIn("|| true", command)
+        self.assertIn("https://github.com/taiki-e/cargo-llvm-cov/releases/download/"
+                      "v${CARGO_LLVM_COV_VERSION}/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz", command)
+        checksum = command.index("sha256sum --check --strict")
+        extraction = command.index("tar --extract")
+        self.assertLess(checksum, extraction)
+        self.assertIn("${CARGO_LLVM_COV_SHA256}", command[:checksum])
+        self.assertLess(extraction, command.index('llvm-cov --version | grep -F "${CARGO_LLVM_COV_VERSION}"'))
+        self.assertLess(steps.index(step), min(index for index, candidate in enumerate(steps)
+                                               if "llvm-cov --locked" in candidate.get("run", "")))
+        evidence = (ROOT / "docs/CI-EVIDENCE.md").read_text(encoding="utf-8")
+        for fact in (CARGO_LLVM_COV_SHA256, CARGO_LLVM_COV_TAG_COMMIT, f"v{CARGO_LLVM_COV_VERSION}"):
+            self.assertIn(fact, evidence)
+        restore, = [step for step in steps if step.get("id") == "host-build-cache"]
+        self.assertIn("target/llvm-cov-target", restore["with"]["path"].split())
+        self.assertTrue(restore["with"]["key"].startswith("host-rust-v4-"))
+
+    def test_cargo_llvm_cov_step_fails_closed(self):
+        """#494 B3: a bad checksum installs nothing and a wrong version fails the step."""
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        step, = [step for step in steps if step.get("name") == "Coverage tooling (cargo-llvm-cov, coverage.py, c8)"]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive_path = root / "cargo-llvm-cov-fixture.tar.gz"
+            binary = b'#!/usr/bin/env bash\necho "cargo-llvm-cov ${FAKE_LLVM_COV_VERSION}"\n'
+            with tarfile.open(archive_path, "w:gz") as archive:
+                entry = tarfile.TarInfo("cargo-llvm-cov")
+                entry.mode = 0o755
+                entry.size = len(binary)
+                archive.addfile(entry, io.BytesIO(binary))
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            fakes = {
+                "curl": 'while (( $# )); do [[ "$1" == --output ]] && output="$2"; shift; done\n'
+                        'cp -- "$LLVM_COV_FIXTURE" "$output"\n',
+                # cargo +toolchain llvm-cov --version runs the extracted subcommand binary.
+                "cargo": 'exec "$HOME/.cargo/bin/cargo-$2" "${@:3}"\n',
+                "python3": "exit 0\n",
+                "npm": "exit 0\n",
+            }
+            for name, body in fakes.items():
+                (fake_bin / name).write_text("#!/usr/bin/env bash\nset -euo pipefail\n" + body, encoding="utf-8")
+                (fake_bin / name).chmod(0o755)
+            good_hash = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+
+            def run(label, checksum, version):
+                home = root / label
+                (home / "temp").mkdir(parents=True)
+                environment = dict(os.environ, PATH=f"{fake_bin}{os.pathsep}{os.environ['PATH']}", HOME=str(home),
+                                   RUNNER_TEMP=str(home / "temp"), LLVM_COV_FIXTURE=str(archive_path),
+                                   CARGO_LLVM_COV_VERSION=CARGO_LLVM_COV_VERSION, CARGO_LLVM_COV_SHA256=checksum,
+                                   FAKE_LLVM_COV_VERSION=version)
+                result = subprocess.run(["bash", "-c", step["run"]], cwd=ROOT, env=environment,
+                                        capture_output=True, text=True, check=False)
+                return result.returncode, (home / ".cargo/bin/cargo-llvm-cov").exists()
+
+            self.assertEqual(run("success", good_hash, CARGO_LLVM_COV_VERSION), (0, True))
+            code, installed = run("bad-checksum", "0" * 64, CARGO_LLVM_COV_VERSION)
+            self.assertNotEqual(code, 0)
+            self.assertFalse(installed)
+            self.assertNotEqual(run("wrong-version", good_hash, "0.0.1")[0], 0)
+
     def test_actionlint_is_pinned_in_required_host_gate(self):
         """Workflow validation is required, checksum-pinned and narrowly scoped."""
         workflow = self.workflows[".github/workflows/ci.yml"]
@@ -994,6 +1070,60 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
             actionlint_failure = run("bad-actionlint", expected_hash, 23)
             self.assertEqual(actionlint_failure.returncode, 23)
 
+    def test_host_build_cache_is_saved_only_by_a_successful_push_to_main(self):
+        """#494 B2: PR and merge-queue saves are unreadable by other PRs and only evict main's entries."""
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        self.assertFalse([step for step in steps if step.get("uses", "").startswith("actions/cache@")
+                          and "host-rust" in json.dumps(step)])
+        restore, = [step for step in steps if step.get("id") == "host-build-cache"]
+        self.assertTrue(restore["uses"].startswith("actions/cache/restore@"))
+        self.assertNotIn("if", restore)
+        save, = [step for step in steps if step.get("uses", "").startswith("actions/cache/save@")]
+        self.assertEqual(save["if"], "${{ github.event_name == 'push' && github.ref == 'refs/heads/main' "
+                                     "&& steps.host-build-cache.outputs.cache-hit != 'true' }}")
+        self.assertNotIn("always()", save["if"])
+        self.assertEqual(save["with"]["path"], restore["with"]["path"])
+        self.assertEqual(save["with"]["key"], "${{ steps.host-build-cache.outputs.cache-primary-key }}")
+        self.assertIn("${{ github.sha }}", restore["with"]["key"])
+        self.assertLess(max(index for index, step in enumerate(steps) if "run" in step
+                            and "cargo" in step["run"]), steps.index(save))
+        diagnostics, = [step for step in steps if step.get("name") == "Cache diagnostics (not test evidence)"]
+        self.assertEqual(diagnostics["if"], "${{ always() }}")
+        self.assertEqual(diagnostics["env"]["HOST_BUILD_HIT"], "${{ steps.host-build-cache.outputs.cache-hit }}")
+        # #494 B1: a later merge must not cancel main's running push run, or the save never happens.
+        self.assertEqual(self.workflows[".github/workflows/ci.yml"]["concurrency"]["cancel-in-progress"],
+                         "${{ github.event_name == 'pull_request' }}")
+
+    def test_native_jobs_leave_shared_format_and_clippy_to_host_quality(self):
+        """#494 B5: host-quality runs on every pull request, merge group and main push with the same
+        toolchain, so native jobs do not repeat its root format check or clippy of these packages."""
+        ci = self.workflows[".github/workflows/ci.yml"]
+        for event in ("pull_request", "merge_group"):
+            self.assertFalse({"paths", "paths-ignore", "branches", "branches-ignore"} & set(ci["on"][event]), event)
+        self.assertFalse({"paths", "paths-ignore"} & set(ci["on"]["push"]))
+        self.assertNotIn("if", ci["jobs"]["host-quality"])
+        covering = [step for step in ci["jobs"]["host-quality"]["steps"] if step.get("name") in
+                    ("Root Rust host tests", "SDK tests and lint", "User allocator and RTC core")]
+        self.assertEqual(len(covering), 3)
+        for step in covering:
+            self.assertFalse({"if", "continue-on-error"} & set(step), step["name"])
+        host = "\n".join(step["run"] for step in covering)
+        clippy, = [line for line in host.splitlines() if "cargo +1.100.0 clippy --locked -p boot-protocol " in line]
+        self.assertTrue(clippy.rstrip().endswith(" --all-targets -- -D warnings"))
+        for package in ("boot-protocol", "kernel-core", "pci-core", "keyring-core"):
+            self.assertIn(f" -p {package} ", clippy)
+        for covered in ("cargo +1.100.0 fmt --all -- --check",
+                        "cargo +1.100.0 fmt --manifest-path sdk/Cargo.toml --all -- --check",
+                        "cargo +1.100.0 clippy --locked --manifest-path drivers/rtc/Cargo.toml "
+                        "--all-targets -- -D warnings"):
+            self.assertIn(covered, host)
+        for name in ("native-foundation", "native-hw-inventory", "native-power", "native-rtc",
+                     "native-smp", "native-xhci"):
+            text = (ROOT / ".github/workflows" / f"{name}.yml").read_text(encoding="utf-8")
+            self.assertIsNone(re.search(r"fmt --all -- --check|fmt --manifest-path sdk/Cargo\.toml|clippy [^\n]*"
+                                        r"(-p (boot-protocol|kernel-core|pci-core|keyring-core)\b|drivers/rtc/Cargo\.toml)",
+                                        text), name)
+
     def test_cache_action_matches_documented_provenance(self):
         """Every cache use must match its reviewed pin, version and policy source."""
         references = [
@@ -1056,6 +1186,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                        "upload-coverage-javascript"):
             with self.subTest(job=job_id):
                 self.assertIn("github.event_name != 'merge_group'", workflow["jobs"][job_id]["if"])
+                self.assertEqual(workflow["jobs"][job_id]["timeout-minutes"], "10")
         for job_id in ("host-quality", "qemu-smoke"):
             job = workflow["jobs"][job_id]
             with self.subTest(job=job_id):

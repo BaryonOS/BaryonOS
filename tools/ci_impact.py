@@ -990,7 +990,7 @@ class Planner:
         self.catalogue, self.catalogue_blob, self.catalogue_source = None, None, None
         self.merge_base, self.changed = None, None
         self.reasons = []  # [(code, detail)], first one is the fallback
-        self.hits, self.manual = {}, False
+        self.hits, self.manual, self.classified = {}, False, False
         self.policy_mode = None
         self.filter_uncertain = False
         self.blobs = {}  # (sha, path) -> manifest bytes or None, owned by this planner
@@ -1078,6 +1078,7 @@ class Planner:
         self.execs = executions(self.catalogue)
         attach_globs(self.catalogue, self.execs, readers)
         always, self.hits, unknown = classify(changed, policy, self.execs)
+        self.classified = True
         if always:
             self.full("always-full", [f"{pattern}: {path}" for pattern, path in always])
         if unknown:
@@ -1172,6 +1173,14 @@ class Planner:
                 row["reasons"] = [list(hit) for hit in hits[:MAX_REASONS]]
                 row["reason_count"] = len(hits)
                 row["blocked_by_filter"] = self.blocked(execution, changed, policy)
+                # A filter may hide only metadata: merge-hold fails a blocked row that hides
+                # a registered input (#494, phase 5 C1). Metadata stays a documented limit.
+                # A fallback before classification leaves no hits: then every changed
+                # non-metadata path counts as a possibly hidden input, so the row fails closed.
+                hidden = hits if self.classified else [(None, path) for path in changed]
+                row["filter_hidden_inputs"] = sorted(
+                    {path for _, path in hidden if not first_match(policy.get("inert", []), path)}
+                ) if row["blocked_by_filter"] is True else []
                 selected_rows.append(row)
             else:
                 reason = "manual-event" if mode == "manual" else self.exclusion(execution) or "no-input-match"

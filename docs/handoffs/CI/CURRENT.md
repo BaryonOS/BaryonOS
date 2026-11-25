@@ -20,12 +20,14 @@ this file.
   - Policy, register and security files need the project owner's review on the pull request.
 - **Phase 5 (owner, 25 November 2026):** a permanent cycle of integrated CI
   optimisation. It minimises the time from a verified change to its landing
-  on `main`, with the least necessary runner use and no loss of quality.
+  on `main`, with the least necessary runner use and no loss of quality,
+  security, functional acceptance or reliability.
   - Work areas: A, selective native tests; B, less duplicate work;
     C, the critical path, with a KVM pilot alongside Specialist R; D, the merge flow.
-  - Selection stays fail-closed. An unknown dependency means a full run. A
-    central change runs every applicable gate. A PR never shrinks its own
-    required set, and a skipped gate is never acceptance evidence.
+  - The KVM pilot does not replace TCG acceptance without evidence.
+  - Selection stays fail-closed. An unknown or incomplete dependency means a
+    full run. A central change runs every applicable gate. A PR never shrinks
+    its own required set, and a skipped gate is never acceptance evidence.
   - Every gain is measured, with its sample size and uncertainty. No timeout,
     sleep, test duration or criterion is shortened.
 - **Never:** bypass protections, weaken gates or tests, change a ruleset or

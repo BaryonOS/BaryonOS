@@ -438,8 +438,17 @@ class SelectionTests(FixtureTestCase):
         rows = {row["id"]: row for row in plan["selected"]}
         self.assertTrue(rows["storage#s"]["blocked_by_filter"])
         self.assertFalse(rows["net#native"]["blocked_by_filter"])
+        # #494 C1: the blocked row names the registered input its filter hides.
+        self.assertEqual(rows["storage#s"]["filter_hidden_inputs"], ["tools/native/run.py"])
+        self.assertEqual(rows["net#native"]["filter_hidden_inputs"], [])
         plan = self.plan(self.branch({"kernel/main.rs": "// k\n"}, message="kernel"))
         self.assertFalse({r["id"]: r for r in plan["selected"]}["storage#s"]["blocked_by_filter"])
+
+    def test_filter_hiding_only_metadata_lists_no_hidden_input(self):
+        plan = self.plan(self.branch({"tools/native/NOTES.md": "notes\n"}, message="notes"))
+        rows = {row["id"]: row for row in plan["selected"]}
+        self.assertTrue(rows["storage#s"]["blocked_by_filter"])
+        self.assertEqual(rows["storage#s"]["filter_hidden_inputs"], [])
 
     def test_blocked_by_filter_is_unknown_beyond_the_filter_limit(self):
         # GitHub does not document filter results past 300 files, so no definite answer
@@ -643,6 +652,17 @@ class FallbackTests(FixtureTestCase):
         plan = self.plan(self.branch({"apps/solo/Cargo.toml": manifest(
             "solo", extra='\n[patch.crates-io]\nx = { path = "../../crates/codec" }\n')}))
         self.assertFull(plan, "cargo-patch-unresolved")
+
+    def test_fallback_before_classification_hides_every_changed_input(self):
+        # #544 review: without hits a blocked row must not read as "hides only metadata".
+        plan = self.plan(self.branch({"tools/native/run.py": "# changed\n",
+                                      "apps/solo/Cargo.toml": manifest(
+            "solo", extra='\n[patch.crates-io]\nx = { path = "../../crates/codec" }\n')}))
+        self.assertFull(plan, "cargo-patch-unresolved")
+        rows = {row["id"]: row for row in plan["selected"]}
+        self.assertTrue(rows["storage#s"]["blocked_by_filter"])
+        self.assertEqual(rows["storage#s"]["filter_hidden_inputs"],
+                         ["apps/solo/Cargo.toml", "tools/native/run.py"])
 
     def test_explicit_package_workspace_is_not_guessed(self):
         # The workspace root lies outside the ancestor walk; a change to it alone would be missed.
@@ -903,6 +923,38 @@ class CatalogueValidationTests(TestCase):
         self.assertEqual(ci_impact.validate(valid_catalogue()), [])
         with REAL_CATALOGUE.open("rb") as handle:
             self.assertEqual(ci_impact.validate(tomllib.load(handle)), [])
+
+    def test_real_catalogue_registers_the_token_guard_script_for_its_native_users(self):
+        # #494 C1 (D-2): tools/tokenguard.py runs this core_only script in both workflows.
+        with REAL_CATALOGUE.open("rb") as handle:
+            catalogue = tomllib.load(handle)
+        execs = ci_impact.executions(catalogue)
+        for execution in execs:  # static inputs suffice: the script is no Cargo source
+            execution["globs"] = sorted(ci_impact.execution_static_globs(execution, catalogue))
+        _, hits, unknown = ci_impact.classify(
+            ["plugins/token-guard/skills/token-guard/scripts/tokenguard.py"], catalogue["policy"], execs)
+        self.assertEqual(unknown, [])
+        workflows = {x["workflow"]["path"] for x in execs if x["id"] in hits}
+        self.assertEqual(workflows, {".github/workflows/native-hid-input.yml",
+                                     ".github/workflows/native-xhci.yml"})
+        users = {path.name for path in (TOOLS.parent / ".github" / "workflows").glob("*.yml")
+                 if "tools/tokenguard.py" in path.read_text(encoding="utf-8")} - {"ci.yml"}
+        self.assertEqual(users, {"native-hid-input.yml", "native-xhci.yml"})
+
+    def test_real_allowlist_filters_cover_their_native_inputs(self):
+        # #494 C1 (D-1): an allowlist may not hide a registered input of its own gates.
+        with REAL_CATALOGUE.open("rb") as handle:
+            catalogue = tomllib.load(handle)
+        native = catalogue["input_sets"]["native"]
+        checked = 0
+        for workflow in catalogue["workflow"]:
+            paths = workflow.get("trigger", {}).get("pull_request", {}).get("paths")
+            if paths is None or not any("native" in job.get("input_sets", []) for job in workflow["job"]):
+                continue
+            checked += 1
+            with self.subTest(workflow=workflow["path"]):
+                self.assertEqual([glob for glob in native if glob not in paths], [])
+        self.assertEqual(checked, 2)
 
     def test_cli_validate_exit_codes(self):
         with contextlib.redirect_stdout(io.StringIO()):

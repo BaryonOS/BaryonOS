@@ -276,7 +276,10 @@ ASCII escapes (control characters in paths never reach logs raw):
   `paths` (at most 1000);
 - `selected`: `id`, `workflow`, `job`, `variant`, `check_name`, `class`,
   `reasons` (at most three `[glob, path]` pairs), `reason_count`,
-  `blocked_by_filter` (`true`, `false` or `null` for unknown);
+  `blocked_by_filter` (`true`, `false` or `null` for unknown),
+  `filter_hidden_inputs` (the sorted non-metadata hit paths of a row whose own
+  filter blocks it; every changed non-metadata path when a fallback stopped the
+  plan before classification; `[]` otherwise);
 - `excluded`: `id`, `class`, `workflow`, `job`, `check_name`, `reason` (class
   name, `not-automatic`, `event-not-applicable`, `condition-false`,
   `no-input-match` or `manual-event`);
@@ -490,7 +493,24 @@ jobs) are never trusted; merge-hold's own recomputation is the reference.
 itself whose `blocked_by_filter` is not `true`. In full mode that is every
 automatic `core` and `rwa` gate whose workflow applies. `blocked_by_filter =
 null` (filter result unknown, more than 300 changed files) keeps the gate
-expected: fail closed.
+expected: fail closed. A path filter may hide only metadata: a row with
+`blocked_by_filter = true` and a non-empty `filter_hidden_inputs` is a
+failure ("its path filter hides registered input(s)"), never "not
+applicable" (#494, phase 5 C1). A row whose hidden hits are all metadata
+(`policy.inert`) stays "Not a pass … (path filter)"; that is a documented
+limit, for example a compiled vendored `README.md`. Central (`always_full`)
+paths are never hits, so a full plan still does not expect a gate whose own
+filter excludes the central path. When a fallback stops the plan before
+classification (for example `cargo-patch-unresolved`), no hits exist: every
+changed non-metadata path then counts as a possibly hidden input, central and
+unregistered paths included, so a blocked row fails unless only metadata
+changed. A pull request that introduces such a Cargo construct therefore needs
+the gate to run or the construct to be modelled; a transient read failure
+clears on a re-run. The two allowlist workflows without a push
+backstop (`storage-resilience`, `volume-acceptance`) keep their `paths` list,
+because the 2026-11-08 verification reads it; central paths outside that list and
+new top-level paths therefore still do not start them. Closing that needs a push
+backstop or a filter change with its own verification (#494).
 
 **Results.** merge-hold lists the Actions runs for the pull request head
 (`/actions/runs?head_sha=<head>&event=pull_request`, every page, by id, with a
