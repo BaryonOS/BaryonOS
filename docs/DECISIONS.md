@@ -44,7 +44,8 @@ session's context must rotate were only in issue comments.
    and mandate once and holds no live SHAs or volatile state. Live checkpoints
    stay in the pull request description and the workstream's handoff issue
    comment.
-5. **Context rotation:**
+5. **Context rotation.** These thresholds apply only to the executing
+   specialists (A, B, CI, H, L, N, P, R, S and U):
    - 65% context use is a moment to assess, not a stop;
    - from about 60%, the session updates its durable checkpoint and finishes
      the current phase;
@@ -52,6 +53,9 @@ session's context must rotate were only in issue comments.
    - by 80–85% at the latest, a verified handoff is ready;
    - ownership of a subtask continues across rotations;
    - no replacement chat is started.
+
+   The PR guard does not follow these thresholds. It rotates its own context
+   only at the project owner's explicit request.
 6. **Product priority.** The product is a general-purpose OS with European data
    sovereignty. Conventional PCs and laptops come first, then server and
    business use. It aims at broad consumer and professional compatibility.
