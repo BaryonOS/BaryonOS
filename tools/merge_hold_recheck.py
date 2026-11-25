@@ -135,11 +135,13 @@ def rerun(post, repo, run):
 
 
 def open_gates(runs, trigger, watched, repo):
-    """Gate runs of this head, other than the trigger, that have not completed."""
-    # Workflow names come from the pull request branch: JSON-escape them so no line of the
-    # log starts with a workflow command or carries a control character.
+    """Gate runs of this head, other than the triggering attempt, that have not completed."""
+    # The listing may still show the finished triggering attempt as open; a re-run keeps the
+    # run id with a new attempt, which must still count. Workflow names come from the pull
+    # request branch: JSON-escape them so no log line starts with a workflow command.
+    finished = (trigger["id"], trigger.get("run_attempt"))
     return sorted(f"{json.dumps(run.get('name'))} (run {run['id']}, {run.get('status')})" for run in runs
-                  if run.get("path") in watched and run["id"] != trigger["id"]
+                  if run.get("path") in watched and (run["id"], run.get("run_attempt")) != finished
                   and (run.get("head_repository") or {}).get("full_name") == repo
                   and run.get("status") != "completed")
 

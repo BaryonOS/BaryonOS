@@ -38,7 +38,8 @@ def run(run_id, path, status="completed", conclusion="success", started=BEFORE, 
 
 
 def event(trigger_id=1, kind="pull_request", head_repo=REPO, numbers=(7,), sha=HEAD):
-    return {"workflow_run": {"id": trigger_id, "name": "CI", "event": kind, "head_sha": sha,
+    return {"workflow_run": {"id": trigger_id, "run_attempt": 1, "name": "CI", "event": kind,
+                             "head_sha": sha,
                              "updated_at": FINISHED, "repository": {"full_name": REPO},
                              "head_repository": {"full_name": head_repo},
                              "pull_requests": [{"number": number} for number in numbers]}}
@@ -184,6 +185,14 @@ class RecheckTests(TestCase):
         self.assertEqual((len(api.sleeps), api.posts), (1, []))
         self.assertIn("gate runs open again after the wait", lines[-1])
         self.assertIn("(run 2, in_progress)", lines[-1])
+
+    def test_no_rerun_when_the_triggering_run_is_rerun_during_the_wait(self):
+        # CodeRabbit on #550: a re-run keeps the run id, so only the finished attempt is exempt.
+        reopened = [run(1, CI, status="queued", attempt=2), run(3, HOLD, conclusion="failure")]
+        api, lines = decide([run(1, CI), run(3, HOLD, status="in_progress")], later=[reopened])
+        self.assertEqual((len(api.sleeps), api.posts), (1, []))
+        self.assertIn("gate runs open again after the wait", lines[-1])
+        self.assertIn("(run 1, queued)", lines[-1])
 
     def test_the_wait_for_a_running_merge_hold_is_bounded(self):
         api, lines = decide([run(1, CI), run(3, HOLD, status="in_progress")])

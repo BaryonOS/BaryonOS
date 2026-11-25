@@ -639,8 +639,9 @@ base catalogue does not know, leaves merge-hold at "Pending". Its script,
 `tools/merge_hold_recheck.py`, re-runs the newest merge-hold run of each listed
 pull request whose current head is still the run's head, but only when
 
-- no run of a gate workflow is still open for the head (the triggering run
-  counts as finished even if the listing lags). Each open one normally starts
+- no run of a gate workflow is still open for the head (the triggering attempt
+  counts as finished even if the listing lags; a new attempt of the same run,
+  which keeps the run id, still counts as open). Each open one normally starts
   another re-check when it completes (see Limits for the exceptions). Open runs
   of the other workflows do not hold merge-hold, so the re-check does not wait
   for them; one that ends later starts its own re-check;
