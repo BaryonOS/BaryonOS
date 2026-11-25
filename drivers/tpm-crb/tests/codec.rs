@@ -372,8 +372,7 @@ fn nv_define_space_public_area_equals_update_core_nvspec() {
         trial_tpm::NV_GEN,
     ];
     for d in 0..trial_tpm::ANCHOR_DOMAINS {
-        let (counter, slot) = trial_tpm::anchor_domain(d).unwrap();
-        specs.extend([counter, slot]);
+        specs.push(trial_tpm::anchor_domain(d).unwrap());
     }
     for spec in &specs {
         for owner in [&[][..], &[0x11; 32][..]] {
@@ -407,7 +406,9 @@ fn nv_define_space_rejects_bad_type_or_size_before_writing() {
         (trial_tpm::ATTR_UPDATE_COUNTER, 64),
         (trial_tpm::ATTR_UPDATE_COUNTER, 7),
         (2 << 4, 8), // bit field
-        (4 << 4, 8), // extend
+        (4 << 4, 8), // extend, not a SHA-256 digest
+        (4 << 4, 31),
+        (4 << 4, 33),
         (8 << 4, 8), // pin fail
     ] {
         assert_eq!(
@@ -653,15 +654,10 @@ fn public_rsp(spec: &trial_tpm::NvSpec, attributes: u32) -> Vec<u8> {
 
 #[test]
 fn nv_read_public_area_decodes_type_attributes_size_and_policy() {
-    let (anchor_counter, anchor_slot) = trial_tpm::anchor_domain(0).unwrap();
+    let anchor = trial_tpm::anchor_domain(0).unwrap();
     let mut name = [0xeeu8; 34];
     name[..2].copy_from_slice(&[0, 0x0b]);
-    for spec in [
-        trial_tpm::NV_TRIAL,
-        trial_tpm::NV_GEN,
-        anchor_counter,
-        anchor_slot,
-    ] {
+    for spec in [trial_tpm::NV_TRIAL, trial_tpm::NV_GEN, anchor] {
         let req = || Request::NvReadPublicArea {
             index: NvIndex::new(spec.handle).unwrap(),
         };
@@ -675,8 +671,7 @@ fn nv_read_public_area_decodes_type_attributes_size_and_policy() {
         assert_eq!(area.attributes, written);
         assert_eq!(area.size, spec.size);
         assert_eq!(area.name, name);
-        let counter = spec.attributes & trial_tpm::TPM_NT_COUNTER != 0;
-        assert_eq!(area.nv_type(), u32::from(counter));
+        assert_eq!(area.nv_type(), (spec.attributes >> 4) & 0xf);
         // The loader's fail-closed comparison accepts exactly the decoded fields.
         assert!(spec.matches(0x000b, area.attributes, area.auth_policy(), area.size));
         truncations_fail(req, &good);

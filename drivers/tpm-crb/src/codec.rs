@@ -19,6 +19,7 @@ const RH_OWNER: u32 = 0x4000_0001;
 const SE_POLICY: u8 = 0x01;
 const NT_ORDINARY: u32 = 0;
 const NT_COUNTER: u32 = 1;
+const NT_EXTEND: u32 = 4;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     Input,
@@ -97,7 +98,8 @@ impl Auth<'_> {
 }
 /// `TPMS_NV_PUBLIC` input for `NV_DefineSpace` (nameAlg SHA-256, empty index
 /// authValue). Type comes from the TPM_NT field of `attributes`: ordinary
-/// (1..=64 bytes) or counter (exactly 8); anything else is refused.
+/// (1..=64 bytes), counter (exactly 8) or extend (exactly the SHA-256 digest);
+/// anything else is refused.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct NvDefinition<'a> {
     pub index: NvIndex,
@@ -368,6 +370,7 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
             let size_ok = match (public.attributes >> 4) & 0xf {
                 NT_ORDINARY => (1..=MAX_NV_DATA as u16).contains(&public.size),
                 NT_COUNTER => public.size == 8,
+                NT_EXTEND => public.size == DIGEST as u16,
                 _ => false,
             };
             if !size_ok {

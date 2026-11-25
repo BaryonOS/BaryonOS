@@ -14,6 +14,7 @@ use ml_dsa::{
 };
 use sha2::{Digest, Sha256};
 
+pub mod anchor;
 pub mod policy;
 #[cfg(feature = "experimental-policy-test")]
 pub mod policy_anchor;

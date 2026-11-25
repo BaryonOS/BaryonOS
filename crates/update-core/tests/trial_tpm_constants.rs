@@ -90,13 +90,14 @@ fn attributes_match_spec_6_1() {
         assert_ne!(spec.attributes & TPMA_NV_POLICYWRITE, 0);
         assert_eq!(spec.attributes & forbidden, 0);
     }
-    for (c, s) in (0..ANCHOR_DOMAINS).map(|d| anchor_domain(d).unwrap()) {
-        assert_eq!((c.attributes | s.attributes) & forbidden, 0);
+    for a in (0..ANCHOR_DOMAINS).map(|d| anchor_domain(d).unwrap()) {
+        assert_eq!(a.attributes & forbidden, 0);
+        assert_eq!(a.attributes & (0xf << 4), TPM_NT_EXTEND);
+        assert_eq!(a.size, 32, "extend index holds one SHA-256 digest");
     }
     assert_eq!(ATTR_UPDATE_ORDINARY, 0x0204_1008);
     assert_eq!(ATTR_UPDATE_COUNTER, 0x0204_0018);
-    assert_eq!(ATTR_ANCHOR_COUNTER, 0x0204_0014);
-    assert_eq!(ATTR_ANCHOR_SLOT, 0x0204_1004);
+    assert_eq!(ATTR_ANCHOR_CHAIN, 0x0204_0044);
 }
 
 #[test]
@@ -122,24 +123,30 @@ fn nv_names_frozen() {
     for (spec, n) in expect {
         assert_eq!(name(&spec), n, "{:#x}", spec.handle);
     }
-    let (c, s) = anchor_domain(0).unwrap();
+    // The Name hashes the current attributes, WRITTEN included, so the
+    // anchor index has a different Name after its genesis extend.
+    let a = anchor_domain(0).unwrap();
     assert_eq!(
-        name(&c),
-        "000b7fedf269bced1bf936970265f7fc5ce8301d1e419fbb921e4a0959e0cf82b1fc"
+        name(&a),
+        "000b4626434643c485b98e9e38ab863cccd989faa890fe6067f7fd820ca3a2c84db9"
     );
+    let written = NvSpec {
+        attributes: a.attributes | TPMA_NV_WRITTEN,
+        ..a
+    };
     assert_eq!(
-        name(&s),
-        "000bf15be6867f6bdc9e6df31de29fec2c08afd6762c4ca336bc006ae040e994d974"
+        name(&written),
+        "000b442b22e4b54d200b29adf9ce099a389754078300340bdcb3764d0b51608d1f6d"
     );
 }
 
 #[test]
 fn anchor_handles() {
-    let pair = |d| anchor_domain(d).map(|(c, s)| (c.handle, s.handle));
-    assert_eq!(pair(0), Some((0x0100_B310, 0x0100_B311)));
-    assert_eq!(pair(1), Some((0x0100_B312, 0x0100_B313)));
-    assert_eq!(pair(7), Some((0x0100_B31E, 0x0100_B31F)));
-    assert_eq!(pair(ANCHOR_DOMAINS), None);
+    let handle = |d| anchor_domain(d).map(|a| a.handle);
+    assert_eq!(handle(0), Some(0x0100_B310));
+    assert_eq!(handle(1), Some(0x0100_B311));
+    assert_eq!(handle(7), Some(0x0100_B317));
+    assert_eq!(handle(ANCHOR_DOMAINS), None);
     let update = [
         NV_TRIAL.handle,
         NV_CONFIRM.handle,
@@ -147,11 +154,9 @@ fn anchor_handles() {
         NV_GEN.handle,
     ];
     for d in 0..ANCHOR_DOMAINS {
-        let (c, s) = anchor_domain(d).unwrap();
-        for h in [c.handle, s.handle] {
-            assert!((0x0100_B300..=0x0100_B31F).contains(&h));
-            assert!(!update.contains(&h));
-        }
+        let h = anchor_domain(d).unwrap().handle;
+        assert!((0x0100_B300..=0x0100_B31F).contains(&h));
+        assert!(!update.contains(&h));
     }
 }
 
@@ -167,7 +172,13 @@ fn matches_is_fail_closed() {
     assert!(!s.matches(TPM_ALG_SHA256, s.attributes, &p[..31], 64));
     assert!(!s.matches(TPM_ALG_SHA256, s.attributes, &[], 64));
     assert!(!s.matches(TPM_ALG_SHA256, s.attributes, &p, 63));
-    let (a, _) = anchor_domain(0).unwrap();
-    assert!(a.matches(TPM_ALG_SHA256, a.attributes, &[], 8));
-    assert!(!a.matches(TPM_ALG_SHA256, a.attributes, &p, 8));
+    let a = anchor_domain(0).unwrap();
+    assert!(a.matches(TPM_ALG_SHA256, a.attributes, &[], 32));
+    assert!(a.matches(TPM_ALG_SHA256, a.attributes | TPMA_NV_WRITTEN, &[], 32));
+    assert!(!a.matches(TPM_ALG_SHA256, a.attributes, &p, 32));
+    assert!(!a.matches(TPM_ALG_SHA256, a.attributes, &[], 8));
+    // A counter or ordinary index squatting the handle is refused.
+    let squat = a.attributes & !(0xf << 4);
+    assert!(!a.matches(TPM_ALG_SHA256, squat | TPM_NT_COUNTER, &[], 32));
+    assert!(!a.matches(TPM_ALG_SHA256, squat, &[], 32));
 }

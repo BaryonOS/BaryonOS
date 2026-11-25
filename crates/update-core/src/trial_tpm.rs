@@ -37,6 +37,7 @@ pub const P_CLOSED: [u8; 32] =
 // TPM 2.0 Part 2 constants used below.
 pub const TPM_ALG_SHA256: u16 = 0x000B;
 pub const TPM_CC_NV_INCREMENT: u32 = 0x0000_0134;
+pub const TPM_CC_NV_EXTEND: u32 = 0x0000_0136;
 pub const TPM_CC_NV_WRITE: u32 = 0x0000_0137;
 pub const TPM_CC_POLICY_COMMAND_CODE: u32 = 0x0000_016C;
 pub const TPM_CC_POLICY_PCR: u32 = 0x0000_017F;
@@ -47,6 +48,8 @@ pub const PCR_SELECTION_PHASE: [u8; 10] = [0, 0, 0, 1, 0x00, 0x0B, 3, 0x00, 0x20
 pub const TPMA_NV_AUTHWRITE: u32 = 1 << 2;
 pub const TPMA_NV_POLICYWRITE: u32 = 1 << 3;
 pub const TPM_NT_COUNTER: u32 = 1 << 4;
+/// `TPM_NT_EXTEND` (type field bits 7:4 = 4).
+pub const TPM_NT_EXTEND: u32 = 4 << 4;
 pub const TPMA_NV_WRITEALL: u32 = 1 << 12;
 pub const TPMA_NV_AUTHREAD: u32 = 1 << 18;
 pub const TPMA_NV_NO_DA: u32 = 1 << 25;
@@ -59,12 +62,11 @@ pub const ATTR_UPDATE_ORDINARY: u32 =
 /// Policy-incremented counter `GEN`.
 pub const ATTR_UPDATE_COUNTER: u32 =
     TPM_NT_COUNTER | TPMA_NV_POLICYWRITE | TPMA_NV_AUTHREAD | TPMA_NV_NO_DA;
-/// Cold-freshness anchor counter (empty `authValue`, not phase-bound).
-pub const ATTR_ANCHOR_COUNTER: u32 =
-    TPM_NT_COUNTER | TPMA_NV_AUTHWRITE | TPMA_NV_AUTHREAD | TPMA_NV_NO_DA;
-/// Cold-freshness anchor slot.
-pub const ATTR_ANCHOR_SLOT: u32 =
-    TPMA_NV_AUTHWRITE | TPMA_NV_WRITEALL | TPMA_NV_AUTHREAD | TPMA_NV_NO_DA;
+/// Cold-freshness anchor chain (M1 protected slot): one extend index per
+/// domain, empty `authValue`, not phase-bound. Protection comes from the hash
+/// chain, not from write authority (COLD-FRESHNESS-ANCHOR.md).
+pub const ATTR_ANCHOR_CHAIN: u32 =
+    TPM_NT_EXTEND | TPMA_NV_AUTHWRITE | TPMA_NV_AUTHREAD | TPMA_NV_NO_DA;
 
 /// `PolicyPCR(13 = 0³²) + PolicyCommandCode(NV_Write)`; shared by `TRIAL` and
 /// `FLOOR` (both loader-only, so sharing grants no other writer).
@@ -157,26 +159,18 @@ pub const NV_GEN: NvSpec = NvSpec {
 pub const ANCHOR_DOMAINS: u8 = 8;
 pub const ANCHOR_BASE: u32 = 0x0100_B310;
 
-/// Counter and slot spec of anchor domain `d`, or `None` outside 0..8.
-pub const fn anchor_domain(d: u8) -> Option<(NvSpec, NvSpec)> {
+/// Extend-chain spec of anchor domain `d` (handle `ANCHOR_BASE + d`), or `None`
+/// outside 0..8. `0x0100B318`–`0x0100B31F` stay unused.
+pub const fn anchor_domain(d: u8) -> Option<NvSpec> {
     if d >= ANCHOR_DOMAINS {
         return None;
     }
-    let counter = ANCHOR_BASE + 2 * d as u32;
-    Some((
-        NvSpec {
-            handle: counter,
-            attributes: ATTR_ANCHOR_COUNTER,
-            auth_policy: None,
-            size: 8,
-        },
-        NvSpec {
-            handle: counter + 1,
-            attributes: ATTR_ANCHOR_SLOT,
-            auth_policy: None,
-            size: 64,
-        },
-    ))
+    Some(NvSpec {
+        handle: ANCHOR_BASE + d as u32,
+        attributes: ATTR_ANCHOR_CHAIN,
+        auth_policy: None,
+        size: 32,
+    })
 }
 
 /// Compile-time hex decoder for the frozen digests.
