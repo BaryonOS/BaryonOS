@@ -191,6 +191,8 @@ class MergeGroupTests(TestCase):
             if "/check-runs?" in url:
                 queue = polls.get(url.split("/commits/")[1].split("/")[0], polls[None])
                 answer_ = queue.pop(0) if len(queue) > 1 else queue[0]
+                if callable(answer_):  # an answer that depends on the URL, e.g. its page
+                    answer_ = answer_(url)
                 if isinstance(answer_, Exception):
                     raise answer_
                 return answer_
@@ -238,7 +240,7 @@ class MergeGroupTests(TestCase):
         one = [entry(1, 8, GROUP, OTHER)]
         code, out, _ = self.run_group(one, trees={GROUP: "1" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 1)
-        self.assertIn("do not run on merge_group", out)
+        self.assertIn("does not yet judge the gates on merge_group", out)
         for runs_, why in (([], "no run"), ([gate_run(OTHER, "failure")], "failed"),
                            ([gate_run(OTHER, run_id=1), gate_run(OTHER, "failure", run_id=2)], "newer failed"),
                            ([gate_run(OTHER, None, status="in_progress")], "running"),
@@ -318,7 +320,7 @@ class MergeGroupTests(TestCase):
             trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 0, out)
         # Phase 3: PR 8's gates ran on its own head. If its entry lands another tree
-        # (PR 7's change on top), the selected workflows never tested that tree.
+        # (PR 7's change on top), no gate verdict that merge-hold judges covers that tree.
         code, out, _ = self.run_group(
             queue,
             labels={7: [merge_hold.LABEL]},
@@ -357,6 +359,27 @@ class MergeGroupTests(TestCase):
         poll = calls[polls[0]]
         self.assertIn(f"/commits/{GROUP}/check-runs?", poll)
         self.assertIn(f"app_id={merge_hold.ACTIONS_APP_ID}", poll)
+
+    def test_required_checks_beyond_the_first_page_are_read_in_the_same_poll(self):
+        # With every gate workflow on merge_group a queue commit can carry more than
+        # 100 check runs; a required check on page 2 must not make the group wait.
+        filler = {"check_runs": [{"name": f"filler {index}", "status": "in_progress",
+                                  "conclusion": None} for index in range(100)]}
+        # host-quality completes on page 1 and qemu-smoke on page 2: both pages must count.
+        first = {"check_runs": filler["check_runs"][:99] + DONE["check_runs"][:1]}
+        second = {"check_runs": DONE["check_runs"][1:]}
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=[lambda url: second if url.endswith("&page=2") else first])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 0)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual([url.rsplit("&", 1)[1] for url in polls], ["page=1", "page=2"])
+        # Past MAX_PAGES full pages the read fails and the group fails closed at the deadline.
+        code, out, calls = self.run_group(self.QUEUE, checks=[lambda url: filler])
+        self.assertEqual(code, 1, out)
+        self.assertIn("Too many pages", out)
+        self.assertEqual(len([url for url in calls if f"/commits/{GROUP}/check-runs?" in url
+                              and url.endswith("&page=1")]), calls.count("sleep") + 1)
 
     def assertLabelsReadAfterWait(self, calls):
         last_poll = max(i for i, url in enumerate(calls) if "/check-runs?" in url)

@@ -1225,6 +1225,28 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                 self.assertEqual(job.get("continue-on-error", "false"), "false")
                 self.assertTrue(any("run" in step for step in job["steps"]))
 
+    def test_every_automatic_gate_workflow_reports_on_the_queue_commit(self):
+        """A merge-queue commit starts every automatic gate unfiltered (#494 D1 step 1)."""
+        catalogue = tomllib.loads((ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8"))
+        gated = [workflow["path"] for workflow in catalogue["workflow"]
+                 if any(job["class"] in ("core", "rwa") and job["activation"] == "automatic"
+                        for job in workflow.get("job", []))]
+        self.assertGreaterEqual(len(gated), 25)
+        for path in gated:
+            with self.subTest(path=path):
+                # Exactly this mapping: no paths, paths-ignore or branches filter.
+                self.assertEqual(self.workflows[path]["on"]["merge_group"],
+                                 {"types": ["checks_requested"]})
+
+    def test_waited_queue_check_names_are_unique_on_the_queue_commit(self):
+        """merge-hold keys queue-commit check runs by name, so each waited name has one producer."""
+        names = [job.get("name", job_id) for workflow in self.workflows.values()
+                 if isinstance(workflow.get("on"), dict) and "merge_group" in workflow["on"]
+                 for job_id, job in workflow["jobs"].items()]
+        for name in ("host-quality", "qemu-smoke", "merge-hold"):
+            with self.subTest(name=name):
+                self.assertEqual(names.count(name), 1)
+
     def test_paths_ignore_skips_only_metadata_or_tooling_metadata_with_a_main_backstop(self):
         """Metadata-only changes must not start native matrices; code still must.
 

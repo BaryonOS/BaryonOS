@@ -667,13 +667,16 @@ inside a run that concludes success. This stays well inside the 1,000 requests
 per hour per repository of `GITHUB_TOKEN` for several open pull requests at
 once.
 
-**merge_group.** The merge queue is not active on `main`, and only `ci.yml`,
-`codeql.yml` and `merge-hold.yml` have a `merge_group` trigger; the selected
-workflows do not run on a queue commit. So each queue member needs, besides
-its hold decision, a successful newest `pull_request` merge-hold run on its own
-head and a queue entry whose tree equals that head tree. This makes a queue
-with more than one pull request ahead fail closed. Activating the queue, with
-`merge_group` triggers on the selected workflows, is outside #494.
+**merge_group.** The merge queue is not active on `main`; enabling it needs the
+project owner's explicit confirmation at that moment (D1). Every workflow with
+an automatic `core` or `rwa` job has an unfiltered `merge_group` trigger (D1
+step 1), so the selected gates also report on a queue commit, at full scope.
+merge-hold on `merge_group` still waits only for `host-quality` and
+`qemu-smoke` and does not judge those gates there; that is D1 step 2. So each
+queue member needs, besides its hold decision, a successful newest
+`pull_request` merge-hold run on its own head and a queue entry whose tree
+equals that head tree. This makes a queue with more than one pull request
+ahead fail closed. merge-hold reads every page of a queue commit's check runs.
 
 **Bootstrap.** The pull request that introduces this enforcement is judged by
 the base copy that predates it, so its own merge-hold checks only the

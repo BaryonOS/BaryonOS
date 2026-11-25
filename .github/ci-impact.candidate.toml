@@ -28,7 +28,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 13
+revision = 14
 
 [policy]
 mode = "select"
@@ -197,10 +197,11 @@ evidence = ["tools/update-tool/tests/roundtrip.rs:305"]
 path = ".github/workflows/app-management-quality.yml"
 owner = "ci-owner"
 granularity = "job"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 # Phase 4: renders the trusted base plan into this workflow's run-* and matrix-* outputs.
@@ -226,10 +227,11 @@ evidence = []
 path = ".github/workflows/artifact-store-quality.yml"
 owner = "ci-owner"
 granularity = "job"
-events = ["pull_request", "push", "workflow_dispatch"]
-obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1537", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
+events = ["pull_request", "merge_group", "push", "workflow_dispatch"]
+obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1559", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
 trigger.push = { branches = ["main"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "artifact-store-core"
@@ -349,10 +351,11 @@ variant = [
 path = ".github/workflows/component-leaves.yml"
 owner = "ci-owner"
 granularity = "variant"
-events = ["pull_request", "push", "workflow_dispatch"]
-obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1529", anchor = "leaves = next(wf for wf in catalogue[\"workflow\"] if wf[\"path\"] == \".github/workflows/component-leaves.yml\")" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+events = ["pull_request", "merge_group", "push", "workflow_dispatch"]
+obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1551", anchor = "leaves = next(wf for wf in catalogue[\"workflow\"] if wf[\"path\"] == \".github/workflows/component-leaves.yml\")" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 # Phase 4: renders the trusted base plan into this workflow's run-* and matrix-* outputs.
@@ -507,10 +510,11 @@ evidence = []
 path = ".github/workflows/entropy-keys.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:121", anchor = "Entropy and key management**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "b01-native-supervisor"
@@ -546,7 +550,7 @@ path = ".github/workflows/materiaal-probe.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "pull_request"]
-obligation = [{ cite = "tests/test_ci_workflows.py:1475", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:1497", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
 trigger.pull_request = { types = ["opened", "reopened", "synchronize", "labeled", "ready_for_review"], branches = ["main"] }
 
 [[workflow.job]]
@@ -596,10 +600,11 @@ evidence = []
 path = ".github/workflows/nas-core.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:421", anchor = "| Native client and NAS roles pair with verified identity |" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "nas-workspace"
@@ -629,10 +634,11 @@ evidence = ["nas-native-normal-cold-evidence"]
 path = ".github/workflows/native-display-input.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1538", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1560", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "native-display-input"
@@ -646,10 +652,11 @@ evidence = ["native-display-input-evidence"]
 path = ".github/workflows/native-foundation.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "kernel/AGENTS.md:7", anchor = "native gate is the workflow job that builds its feature" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "native-foundation"
@@ -663,10 +670,11 @@ evidence = ["native-foundation-evidence"]
 path = ".github/workflows/native-hid-input.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:91", anchor = "Keyboard, mouse, and USB**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "native-hid-input"
@@ -682,10 +690,11 @@ evidence = ["native-hid-input-evidence"]
 path = ".github/workflows/native-hw-inventory.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:95", anchor = "Physical support matrix**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "native-hw-inventory"
@@ -699,10 +708,11 @@ evidence = ["native-hw-inventory-evidence"]
 path = ".github/workflows/native-power.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "docs/PROGRESS.md:94", anchor = "Power management and sleep/wake**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "native-power"
@@ -724,10 +734,11 @@ evidence = ["power-system-gate-report"]
 path = ".github/workflows/native-rtc.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "native-rtc"
@@ -741,10 +752,11 @@ evidence = ["native-rtc-evidence"]
 path = ".github/workflows/native-smp.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:69", anchor = "Multiple processor cores**" }, { cite = "userspace/AGENTS.md:4", anchor = "runs in `native-smp.yml`" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "artifact-download-contract"
@@ -948,10 +960,11 @@ evidence = ["experimental-smp-evidence"]
 path = ".github/workflows/native-system.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "tests/test_ci_workflows.py:772", anchor = "system = self.workflows[\".github/workflows/native-system.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "native-system"
@@ -965,10 +978,11 @@ evidence = ["native-system-evidence"]
 path = ".github/workflows/native-window-session.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:244", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1452", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:244", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1474", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "host-checks"
@@ -1020,10 +1034,11 @@ variant = [
 path = ".github/workflows/native-xhci.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:91", anchor = "Keyboard, mouse, and USB**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "native-xhci"
@@ -1039,10 +1054,11 @@ evidence = ["native-xhci-evidence"]
 path = ".github/workflows/net-broker-quality.yml"
 owner = "ci-owner"
 granularity = "job"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "docs/PROGRESS.md:112", anchor = "Native packet and transport stack**" }, { cite = "tests/test_ci_workflows.py:748", anchor = "service = self.workflows[\".github/workflows/net-broker-quality.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "net-broker-quality"
@@ -1083,10 +1099,11 @@ evidence = ["native-network-slirp-evidence"]
 path = ".github/workflows/net-tls-quality.yml"
 owner = "ci-owner"
 granularity = "job"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:114", anchor = "Native authenticated transport**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 # Phase 4: renders the trusted base plan into this workflow's run-* and matrix-* outputs.
@@ -1127,10 +1144,11 @@ evidence = []
 path = ".github/workflows/process-management.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:68", anchor = "General process and service management**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "k05-native-supervisor"
@@ -1159,9 +1177,10 @@ evidence = []
 path = ".github/workflows/resource-pressure.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request"]
+events = ["workflow_dispatch", "pull_request", "merge_group"]
 obligation = [{ cite = "docs/PROGRESS.md:70", anchor = "Resource management under pressure**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "k07-native"
@@ -1191,10 +1210,11 @@ evidence = []
 path = ".github/workflows/signed-updates.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request", "push"]
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
 obligation = [{ cite = "docs/PROGRESS.md:123", anchor = "Signed updates and rollback**" }, { cite = "crates/AGENTS.md:4", anchor = "(`signed-updates.yml` for update policy)" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "b03-native-update"
@@ -1209,9 +1229,10 @@ evidence = ["b03-update-reports"]
 path = ".github/workflows/storage-resilience.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request"]
+events = ["workflow_dispatch", "pull_request", "merge_group"]
 obligation = [{ cite = "docs/PROGRESS.md:83", anchor = "General storage recovery after failures**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "ui/**", "experiments/**", "tests/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/storage-resilience.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "s08"
@@ -1226,9 +1247,10 @@ evidence = ["s08-storage-resilience-report"]
 path = ".github/workflows/volume-acceptance.yml"
 owner = "ci-owner"
 granularity = "workflow"
-events = ["workflow_dispatch", "pull_request"]
+events = ["workflow_dispatch", "pull_request", "merge_group"]
 obligation = [{ cite = "docs/PROGRESS.md:79", anchor = "Space reuse and scalable volumes**" }, { cite = "tests/test_ci_workflows.py:700", anchor = "self.workflows[\".github/workflows/volume-acceptance.yml\"][\"jobs\"][\"m6e\"]" }]
 trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "ui/**", "experiments/**", "tests/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/volume-acceptance.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
+trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
 id = "m6e"
