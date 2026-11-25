@@ -1,3 +1,4 @@
+import hashlib
 import os
 import re
 import shutil
@@ -32,8 +33,8 @@ class NativeTpmTranscriptTests(unittest.TestCase):
                     + f"LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:{0x400 | bits:016x}\n"
                     + "".join(f"{step}\n" for step in steps))
         if case in probe.PROVISIONED:
-            mode, lockout = probe.HAUTH_MODE[boot]
-            hauth = self.HAUTH.format(permanent=0x405 if boot else 0x400, mode=mode, lockout=lockout,
+            mode, lockout, bits = probe.hauth_mode(case, boot)
+            hauth = self.HAUTH.format(permanent=0x400 | bits, mode=mode, lockout=lockout,
                                       da=int(case in probe.DA_SEEDED))
             return self.LOADER.replace("RNG:ABSENT", "RNG:PASS") + hauth + self.transcript("normal")
         if case == "loader-probe":
@@ -192,6 +193,26 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         self.assertEqual(probe.markers("loader-hauth-unbound", 1)[-1], "LOADER-HAUTH:FAIL:UNBOUND:0000000000000000")
         self.assertEqual(probe.markers("loader-hauth-unbound", 0), probe.markers("loader-hauth", 0))
 
+    def test_lockout_cut_only_sets_lockout_auth_then_verifies_like_loader_hauth(self):
+        case = "loader-hauth-lockout-cut"
+        repaired = self.transcript(case)
+        result = probe.evaluate(repaired, case)
+        self.assertEqual((result["HAUTH_PERMANENT"], result["HAUTH_DA_COUNTER"]), (0x401, 0))
+        self.assertEqual(probe.evaluate(self.transcript(case, 1), case, 1)["HAUTH_PERMANENT"], 0x405)
+        self.assertEqual(probe.markers(case, 1), probe.markers("loader-hauth", 1))
+        self.assertEqual(set(probe.markers(case)) - set(probe.markers("loader-hauth")), {probe.EXISTING})
+        for bad, other, boot in (
+            (self.transcript("loader-hauth"), case, 0),
+            (self.transcript("loader-hauth", 1), case, 0),
+            (repaired, "loader-hauth", 0), (repaired, "loader-hauth", 1), (repaired, case, 1),
+            (repaired.replace(probe.SET, probe.KEPT), case, 0),
+            (repaired + probe.KEPT + "\n", case, 0),
+            *((repaired.replace("HAUTH:PERMANENT:0000000000000401", f"HAUTH:PERMANENT:{value:016x}"), case, 0)
+              for value in (0x400, 0x405)),
+        ):
+            with self.subTest(other=other, boot=boot, bad=bad), self.assertRaises(ValueError):
+                probe.evaluate(bad, other, boot)
+
     def test_virtio_rng_is_a_boolean_opt_in_of_the_tpm_fixture_only(self):
         import run
         for kwargs in ({"virtio_rng": True}, {"virtio_rng": 1, "tpm_socket": "x"},
@@ -318,6 +339,20 @@ class TpmSeedTests(unittest.TestCase):
                     self.assertEqual(state["hauth"], {"rc": 0x18B})
                 else:
                     self.assertNotIn(state["hauth"]["name"], self.names.values())
+
+    def test_lockout_cut_leaves_a_bound_record_under_ownerauth_only(self):
+        source = (Path(__file__).resolve().parents[2] / "crates/update-core/src/trial.rs").read_text()
+        self.assertIn(f'LREC_MAGIC: [u8; 8] = *b"{tpm_seed.LREC_MAGIC.decode()}";', source)
+        self.assertIn(f"LREC_BINDING_LEN: usize = {tpm_seed.LREC_BINDING_LEN};", source)
+        self.assertIn("sha256(hauth)[..LREC_BINDING_LEN]", source)
+        state = tpm_seed.seed(*self.tool, self.directory, "lockout-cut")
+        self.assertEqual((state["permanent"] & 0x5, state["lockout_counter"]), (1, 0))
+        self.assertEqual((state["hauth"]["name"], state["lrec"]["name"]),
+                         (self.names["NAME_HAUTH_WRITTEN"], self.names["NAME_LREC_WRITTEN"]))
+        with tpm_seed.server(*self.tool, self.directory) as tpm:
+            record = tpm.lrec()
+        self.assertEqual(record[:48], tpm_seed.LREC_MAGIC + bytes(40))
+        self.assertEqual(state["lrec"]["sha256"], hashlib.sha256(record).hexdigest())
 
 
 if __name__ == "__main__":

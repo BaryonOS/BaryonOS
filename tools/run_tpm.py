@@ -28,7 +28,7 @@ import tpm_seed
 SEED = {"loader-hauth-squat": (0, "squat"), "loader-hauth-foreign-owner": (0, "foreign-owner"),
         "loader-hauth-owner-squat": (0, "owner-squat"), "loader-hauth-unbound": (1, "unbound"),
         "loader-hauth-cut": (0, "cut"), "loader-hauth-owner-squat-empty": (0, "owner-squat-empty"),
-        "loader-hauth-da-counted": (0, "da-counted")}
+        "loader-hauth-da-counted": (0, "da-counted"), "loader-hauth-lockout-cut": (0, "lockout-cut")}
 FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
             "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb",
             "loader-hauth": "native-tpm-crb", "loader-hauth-no-rng": "native-tpm-crb",
@@ -39,13 +39,14 @@ FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
 LOADER = {"loader-probe": "tpm-loader-probe-test", "loader-rng": "tpm-loader-probe-test",
           **dict.fromkeys(("loader-hauth", "loader-hauth-no-rng", *SEED), "tpm-hauth-provision-test")}
 BOOTS = {"loader-hauth": 2, "loader-hauth-unbound": 2, "loader-hauth-cut": 2,
-         "loader-hauth-owner-squat-empty": 2}
-# Cases whose non-halt boots must provision or verify exactly like loader-hauth.
+         "loader-hauth-owner-squat-empty": 2, "loader-hauth-lockout-cut": 2}
+# Cases whose non-halt boots must provision or verify exactly like loader-hauth (or as REPAIRED).
 PROVISIONED = ("loader-hauth", "loader-hauth-unbound", "loader-hauth-cut",
-               "loader-hauth-owner-squat-empty", "loader-hauth-da-counted")
+               "loader-hauth-owner-squat-empty", "loader-hauth-da-counted", "loader-hauth-lockout-cut")
 # The only case whose seed leaves a nonzero DA lockout counter; every other reads 0.
 DA_SEEDED = ("loader-hauth-da-counted",)
 PROVISION, EXISTING = "LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:MODE:EXISTING"
+SET, KEPT = "LOADER-HAUTH:LOCKOUT:SET", "LOADER-HAUTH:LOCKOUT:KEPT"
 CLOSED = "LOADER-HAUTH:HALT:PCR13:CLOSED"
 # Halt boots, (case, boot) -> (TPMA_PERMANENT ownerAuthSet | lockoutAuthSet, the loader lines
 # after BEGIN and PERMANENT): the loader extends CLOSED, then stops before the kernel.
@@ -62,12 +63,18 @@ HALT_EXIT = 35  # loader serial::exit(0x11), as tools/test.py pins for M1:FAIL
 LOADER_RNG = {"loader-probe": "ABSENT", "loader-rng": "PASS", "loader-hauth": "PASS",
               "loader-hauth-no-rng": "ABSENT", **dict.fromkeys(SEED, "PASS")}
 LOADER_MARKERS = ("LOADER-TPM:TCG2:PRESENT", "LOADER-TPM:PCR13:ZERO", "LOADER-TPM:PASS")
-HAUTH_MODE = (("LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:LOCKOUT:SET"),
-              ("LOADER-HAUTH:MODE:EXISTING", "LOADER-HAUTH:LOCKOUT:KEPT"))
+# Provisioned boots: (mode, lockout step, TPMA_PERMANENT ownerAuthSet | lockoutAuthSet).
+HAUTH_MODE = ((PROVISION, SET, 0), (EXISTING, KEPT, 5))
+# The seeded cut between the ownerAuth and lockoutAuth changes: the loader only sets lockoutAuth.
+REPAIRED = {("loader-hauth-lockout-cut", 0): (EXISTING, SET, 1)}
 
 
-def hauth_markers(boot):
-    mode, lockout = HAUTH_MODE[boot]
+def hauth_mode(case, boot):
+    return REPAIRED.get((case, boot), HAUTH_MODE[boot])
+
+
+def hauth_markers(case, boot):
+    mode, lockout, _ = hauth_mode(case, boot)
     return ("LOADER-HAUTH:BEGIN", mode, "LOADER-HAUTH:BOUND", lockout, "LOADER-HAUTH:PCR13:CLOSED",
             "LOADER-HAUTH:READ:REFUSED", "LOADER-HAUTH:OWNER:REFUSED",
             "LOADER-HAUTH:RESIDUE:NONE", "LOADER-HAUTH:PASS")
@@ -99,7 +106,7 @@ def markers(case, boot=0):
     if (case, boot) in HALT:
         return LOADER_MARKERS + ("LOADER-HAUTH:BEGIN",) + HALT[case, boot][1]
     final = ("TPMCRB:ABSENT:PASS",) if case == "absent" else ("TPMCRB:RELEASED:PASS", "TPMCRB:PASS")
-    hauth = hauth_markers(boot) if case in PROVISIONED else ()
+    hauth = hauth_markers(case, boot) if case in PROVISIONED else ()
     # run.is_success matches in serial order: the loader prints before EBS.
     return ((LOADER_MARKERS if case in LOADER else ()) + hauth + COMMON + final
             + run_ipc_wait.MARKERS[3:])
@@ -115,10 +122,11 @@ def evaluate(stdout, case, boot=0):
         if stdout.splitlines().count(marker) != 1:
             raise ValueError(f"Expected exactly one {marker}")
     if case in PROVISIONED:
-        if set(HAUTH_MODE[1 - boot]) & set(stdout.splitlines()):
+        mode, lockout, bits = hauth_mode(case, boot)
+        if ({PROVISION, EXISTING, SET, KEPT} - {mode, lockout}) & set(stdout.splitlines()):
             raise ValueError("HAUTH boot mode does not match the swtpm state")
         permanent = re.findall(r"^LOADER-HAUTH:PERMANENT:([0-9a-f]{16})$", stdout, re.M)
-        if len(permanent) != 1 or (int(permanent[0], 16) & 0x5) != (0 if boot == 0 else 0x5):
+        if len(permanent) != 1 or (int(permanent[0], 16) & 0x5) != bits:
             raise ValueError("Invalid HAUTH ownerAuth/lockoutAuth state")
         result["HAUTH_PERMANENT"] = int(permanent[0], 16)
         # The refused owner command must leave the DA lockout counter (0x20E) unchanged.
@@ -275,7 +283,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power-cut leftovers) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power-cut leftovers, a cut between the ownerAuth and lockoutAuth changes) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
@@ -319,6 +327,10 @@ def run(case):
                     entry["after"] = tpm_seed.snapshot(*swtpm(), directory)
                     if (case, boot) in HALT and entry["after"] != entry["seeded"]:
                         raise ValueError("The loader changed the seeded TPM state before halting")
+                    # A repair sets lockoutAuth only: same HAUTH and LREC, no re-provisioning.
+                    if (case, boot) in REPAIRED and entry["after"] != entry["seeded"] | {
+                            "permanent": entry["seeded"]["permanent"] | 0x4}:
+                        raise ValueError("The loader changed more than lockoutAuth on the cut state")
                 report["boots"].append(entry | {key: report.pop(key) for key in ("backend", "guest", "observed")})
         else:
             with backend(report) as control:

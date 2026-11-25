@@ -3,9 +3,9 @@
 Raw TPM 2.0 commands over a short-lived swtpm `--server` socket on a state
 directory under the build tree, while PCR 13 is at its reset value (the
 boot-path position of threat T5, out of scope until B04). No command or
-response bytes are printed or stored: the foreign ownerAuth and the scratch
-authValue are fresh TEST values that are discarded. `observe` reads back only
-public facts.
+response bytes are printed or stored: the foreign ownerAuth, the scratch
+authValue and the HAUTH secret of the lockout cut are fresh TEST values that
+are discarded. `observe` reads back only public facts.
 """
 from __future__ import annotations
 
@@ -19,6 +19,8 @@ import subprocess
 import time
 
 HAUTH, LREC = 0x0100B304, 0x0100B305
+# LoaderRecord BOUND (crates/update-core/src/trial.rs): magic, 40 zero bytes, SHA-256(HAUTH)[:16].
+LREC_MAGIC, LREC_BINDING_LEN = b"NOSLRC01", 16
 # TEST scratch index for the DA seed; defined and undefined within that seed.
 SCRATCH = 0x0100B3DA
 RH_OWNER, RH_NULL, RS_PW, RH_PLATFORM = 0x40000001, 0x40000007, 0x40000009, 0x4000000C
@@ -155,17 +157,26 @@ def unbound(tpm):
     tpm.write_lrec(bytes(record))
 
 
-def cut(tpm):
+def cut(tpm, secret=None):
     """Power cut after defining LREC: written HAUTH leftover, unwritten LREC, no hierarchy auth."""
     tpm.define(RH_OWNER, HAUTH, ATTR_HAUTH, POLICY_READ)
     tpm.ok("NV_Write", struct.pack(">II", RH_OWNER, HAUTH), password(),
-           b2(os.urandom(64)) + struct.pack(">H", 0))
+           b2(secret or os.urandom(64)) + struct.pack(">H", 0))
     tpm.define(RH_OWNER, LREC, ATTR_LREC, POLICY_WRITE)
+
+
+def lockout_cut(tpm):
+    """Power cut between the ownerAuth and lockoutAuth changes of a provisioning boot: HAUTH and
+    a BOUND LREC written, ownerAuth = HAUTH[:32], lockoutAuth still empty."""
+    secret = os.urandom(64)
+    cut(tpm, secret)
+    tpm.write_lrec(LREC_MAGIC + bytes(40) + hashlib.sha256(secret).digest()[:LREC_BINDING_LEN])
+    tpm.ok("HierarchyChangeAuth", struct.pack(">I", RH_OWNER), password(), b2(secret[:32]))
 
 
 SEEDS = {"squat": squat, "foreign-owner": foreign_owner, "owner-squat": owner_squat,
          "owner-squat-empty": owner_squat_empty, "da-counted": da_counted,
-         "unbound": unbound, "cut": cut}
+         "unbound": unbound, "cut": cut, "lockout-cut": lockout_cut}
 
 
 def observe(tpm):
