@@ -494,9 +494,12 @@ def runs_open(token, repo, pull, head_sha, plan):
     except (OSError, ValueError, TypeError) as error:
         print(f"::warning::merge-hold wait poll failed ({error}); still waiting", file=sys.stderr)
         return True
-    started = {run["path"] for run in runs}
-    return (any(run.get("status") != "completed" for run in runs)
-            or any(row["workflow"] not in started for row in expected_gates(plan)))
+    newest = {}
+    for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
+        if run["path"] not in newest or run_order(run) > run_order(newest[run["path"]]):
+            newest[run["path"]] = run
+    return (any(run.get("status") != "completed" for run in newest.values())
+            or any(row["workflow"] not in newest for row in expected_gates(plan)))
 
 
 def gate_report(token, repo, pull, head_sha, plan):
@@ -591,18 +594,24 @@ def pull_request_gates(token, repo, number, head_sha):
             "test the tree that would merge. Update the branch; the new head is checked again."]
     budget = min(int((plan.get("budgets") or {}).get("pull_request_wait_minutes", 0)) * 60, MAX_WAIT_SECONDS)
     deadline = time.monotonic() + budget
+    fresh = False  # the last report was made after the runs were seen closed
     while True:
         passed, pending, failed = gate_report(token, repo, pull, head_sha, plan)
         if failed or not pending or time.monotonic() >= deadline:
             break
-        # Pending with nothing left running (a gate never started, or a run changed while
-        # it was read and already finished): waiting cannot help, so decide now.
         if not runs_open(token, repo, pull, head_sha, plan):
-            break
+            # A gate may have finished during the report: decide once more. Pending again
+            # with nothing left running (a run changed while read and finished) cannot
+            # resolve by waiting, so decide now.
+            if fresh:
+                break
+            fresh = True
+            continue
         while time.monotonic() < deadline:
             time.sleep(POLL_SECONDS)
             if not runs_open(token, repo, pull, head_sha, plan):
                 break
+        fresh = True
     skipped = [f"{row['check_name']}: not applicable (path filter)" for row in plan["selected"]
                if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True]
     lines.append(f"{len(passed)} applicable gate(s) passed; {len(skipped)} filtered out; "
