@@ -2342,7 +2342,7 @@
       "status": "active",
       "title": "Native per-port refusal of out-of-profile USB devices (QEMU)",
       "goal": "An out-of-profile device on one root port (hub, HID without a boot interface, high-speed keyboard, storage) is refused with a reason-specific marker; its slot is disabled and its DCBAA entry cleared when one was allocated, the port stays unenabled, and the in-profile device on the other port still enumerates and delivers reports. Today every refusal ends the whole controller run (xhci.rs result.expect after stop).",
-      "invariant": "A refused device never receives SET_CONFIGURATION, an endpoint context, a Session or an input path; refusal never stops service of the other in-profile port.",
+      "invariant": "A refused device never receives SET_CONFIGURATION, an interrupt/input endpoint context, a Session or an input path. Only the temporary EP0 control context needed to read its descriptors before Session::new may exist; refusal cleanup disables that slot and clears its DCBAA entry. Refusal never stops service of the other in-profile port.",
       "deps": [
         "H02-T4"
       ],

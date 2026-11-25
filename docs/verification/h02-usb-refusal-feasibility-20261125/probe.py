@@ -3,7 +3,7 @@ import sys, re, pathlib
 root = pathlib.Path(sys.argv[1]); label = sys.argv[2]
 sys.path.insert(0, str(root / "tools"))
 import run_usb_hid
-build = pathlib.Path(__import__("os").environ["NOS_BUILD_DIR"])
+build = pathlib.Path(run_usb_hid.BUILD)  # honours NOS_BUILD_DIR, defaults to <checkout>/build
 disk = build / "run" / "probe-disk.img"
 disk.parent.mkdir(parents=True, exist_ok=True); disk.write_bytes(b"\0" * (1 << 20))
 REPL = {

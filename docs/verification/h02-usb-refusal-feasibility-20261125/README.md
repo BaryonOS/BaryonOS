@@ -29,9 +29,12 @@ the rest of the `native-usb-hid-probe` profile are unchanged.
    whole controller run: `usb::execute` returns `Err`, `xhci.rs` halts the
    controller and then `result.expect("xHCI contained DMA gate")` panics
    (`M2:PANIC_LINE:0000000565`, observed for storage; the runner kills QEMU on the
-   first `USB-DIAG:REJECT` line, so the panic line is not always captured). This
-   is a deliberate fail-closed terminal path with bus mastering cleared, not a
-   device-reachable crash, but the in-profile mouse on port 2 is never served.
+   first `USB-DIAG:REJECT` line, so the panic line is not always captured). In
+   this fixture a device on port 1 can therefore end the whole run: the refusal
+   returns `Err` and the deliberate `result.expect(...)` terminates after bus
+   mastering is cleared. Clearing bus mastering contains DMA; it does not prevent
+   this device-triggered termination, and the in-profile mouse on port 2 is never
+   served. This record claims no memory-safety defect and no physical behaviour.
 2. Hub and tablet are indistinguishable: `map_err(|_| bad(14))` collapses every
    `boot_interface::Error` variant. H02-T5 needs reason-specific markers.
 3. Code 8 fires after the port reset but before Enable Slot; code 14 fires after
