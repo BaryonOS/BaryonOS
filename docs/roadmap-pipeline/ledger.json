@@ -2339,7 +2339,7 @@
       "criterion": "H02",
       "milestone": "M9",
       "executor": "lead",
-      "status": "active",
+      "status": "verified",
       "title": "Native per-port refusal of out-of-profile USB devices (QEMU)",
       "goal": "An out-of-profile device on one root port (hub, HID without a boot interface, high-speed keyboard, storage) is refused with a reason-specific marker; its slot is disabled and its DCBAA entry cleared when one was allocated, the port stays unenabled, and the in-profile device on the other port still enumerates and delivers reports. Previous behaviour: every refusal ended the whole controller run (xhci.rs result.expect after stop).",
       "invariant": "A refused device never receives SET_CONFIGURATION, an interrupt/input endpoint context, a Session or an input path. Only the temporary EP0 control context needed to read its descriptors before Session::new may exist; refusal cleanup disables that slot and clears its DCBAA entry. Refusal never stops service of the other in-profile port.",
@@ -2380,15 +2380,21 @@
       "non_claimable": "QEMU only. Storage reaches only the speed refusal: QEMU usb-storage attaches at high speed on the USB2-only fixture controller, so a class-level storage refusal is not exercised. No hub support, physical hotplug or H02 acceptance.",
       "risk": "medium",
       "size": "M",
-      "evidence_level": "native QEMU/TCG (QEMU 10.2.1, pc-q35-8.2): four refusal cases and four regression cases raw 33, six mutants fail; hosted native-xhci pending",
-      "next": "Hosted native-xhci and merge-hold green on the final head, squash-merge #515, then set H02-T5 verified.",
+      "evidence_level": "native QEMU/TCG (QEMU 10.2.1, pc-q35-8.2): four refusal cases and four regression cases raw 33, six mutants fail; hosted native-xhci green on the merged head 33b1d7be",
+      "next": "H05-T5c virtio-blk re-initialisation after an S3 wake (slice 1 local, waits for S #539); physical USB devices, hubs and hotplug wait for the owner decisions OD-HW-*.",
       "history": [
         {
           "event": "active",
           "at": "2026-11-25",
           "reason": "Local H session cycle h02-t5-20261125 from main ad55e019. Feasibility probe: hub and tablet reject at Session (code 14, indistinguishable), high-speed keyboard and storage at speed (code 8); identical on default q35 and pc-q35-8.2 with QEMU 10.2.1."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-25",
+          "reason": "PR #515 squash-merged as 744f1b75; tested head 33b1d7be (main 0fe66b51 merged, H hunks identical to 729c4158) passed all applicable hosted gates including native-xhci and merge-hold; native evidence bound to source f8662109."
         }
-      ]
+      ],
+      "source_commit": "744f1b75b68dc45dd2ab4d150a65cc827402e381"
     },
     {
       "id": "H03-T3",
