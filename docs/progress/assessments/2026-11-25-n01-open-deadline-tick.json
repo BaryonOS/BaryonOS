@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "3b9a94c52bb4d3ada5a9c6499817560b71d0e4d0",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/n01-open-deadline-tick-20261125",
+  "task": "N01 guard: OpenTcp deadline sampled after the receive (helper-case flake, raw exit 35 at client check 36); N02 progress-entry consistency",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The network service now samples its tick after receiving an app request, so an OpenTcp deadline never starts before the app's own clock reading; this removes a one-tick edge in the native Timeout case (observed one failure, run 45520606634 attempt 1). N01 stays accepted on fresh native runs of every network-service profile; N02 entries now cite PR #502 and keep timeout, truncation and stale-response against a real resolver open. No criterion changes."
+}
