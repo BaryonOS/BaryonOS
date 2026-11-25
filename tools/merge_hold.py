@@ -31,13 +31,34 @@ every entry ahead of it that has not merged yet (a merged one is already on
 SHA. A released hold additionally requires the tree of that pull request's own
 queue entry commit (the commit `main` moves to when it merges) to equal the
 released head tree, so acceptance never carries over to a tree it did not run on.
+
+Applicable gates (phase 3 of issue #494, docs/CI-CONTRACT.md "Enforcement").
+On `pull_request` the check also recomputes the CI impact plan with the copy
+of `tools/ci_impact.py` that sits next to this file; merge-hold.yml extracts
+both files from the base commit, so a pull request cannot change how its own
+gates are chosen or judged. Every selected `core` or `rwa` gate whose workflow
+GitHub starts for the change must have concluded `success` in the newest
+`pull_request` run of its workflow for the pull request head, with matching
+repository, head repository, branch, event and workflow path. Missing,
+running, failed, cancelled, timed-out or skipped results block; a failed
+`core` or `rwa` job that the plan did not expect blocks too. "Not applicable"
+(filtered, other branch, condition false) is reported, never counted as a pass.
+With `policy.budgets.pull_request_wait_minutes = 0` it decides at once and
+lists what it still waits for; re-run the merge-hold job once those gates have
+finished. `policy.mode = "shadow"` in the base catalogue reports gates without
+blocking on them. On `merge_group`, where the selected workflows do not run,
+each member needs a successful `pull_request` merge-hold on its own head and
+a queue entry tree equal to that head tree.
 """
 
 import json
 import os
 import re
+import subprocess
 import sys
+import tempfile
 import time
+import tomllib
 from urllib import request
 
 LABEL = "acceptance-pending"
@@ -72,6 +93,20 @@ QUEUE_QUERY = """query($owner: String!, $name: String!) {
     }
   }
 }"""
+
+
+GATE_WORKFLOW = ".github/workflows/merge-hold.yml"
+CATALOGUE = ".github/ci-impact.toml"
+SELECTABLE = ("core", "rwa")
+# Fallbacks whose listing can be incomplete or that do not describe this pull request.
+UNUSABLE_FALLBACKS = ("unknown-event", "invalid-sha", "fetch-failed", "merge-ref-mismatch",
+                      "bootstrap-no-base-catalogue", "invalid-trusted-catalogue", "no-trusted-base")
+# A gate that ended like this did not pass; "skipped" also blocks an expected gate.
+BLOCKING_CONCLUSIONS = ("failure", "cancelled", "timed_out", "startup_failure", "action_required", "stale")
+SELECTOR_TIMEOUT = 600
+MAX_WAIT_SECONDS = 45 * 60
+PLAN_ID = re.compile(r"sha256:[0-9a-f]{64}")
+EXPRESSION = re.compile(r"\$\{\{.*?\}\}")
 
 
 def decide(labels, comments, head_sha):
@@ -279,7 +314,7 @@ def still_running(token, repo, sha, number):
     return []
 
 
-def wait_for_checks(token, repo, sha, number):
+def wait_for_checks(token, repo, sha, number, budget=WAIT_SECONDS):
     """Block until this group's checks and the entries ahead have finished; raise at the deadline.
 
     Only the timing depends on this: the decision afterwards reads the queue,
@@ -290,7 +325,7 @@ def wait_for_checks(token, repo, sha, number):
     queue fail at once; any other poll in between resets that count, because a
     single read may lag behind the queue.
     """
-    deadline = time.monotonic() + WAIT_SECONDS
+    deadline = time.monotonic() + budget
     absent = 0
     while True:
         try:
@@ -311,6 +346,265 @@ def wait_for_checks(token, repo, sha, number):
         time.sleep(POLL_SECONDS)
 
 
+def git(*args):
+    """Run git in the checkout; return (returncode, stripped stdout)."""
+    result = subprocess.run(["git", *args], capture_output=True, text=True, timeout=120, check=False)
+    return result.returncode, result.stdout.strip()
+
+
+def recompute_plan(base, head, tested, ref, repo_dir="."):
+    """Run the selector next to this file (the base copy in CI) and return its plan."""
+    selector = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ci_impact.py")
+    if not os.path.isfile(selector):
+        raise ValueError("no tools/ci_impact.py next to merge_hold.py; the applicable gates are unknown")
+    with tempfile.TemporaryDirectory() as tmp:
+        out = os.path.join(tmp, "plan.json")
+        result = subprocess.run(
+            [sys.executable, "-B", "-I", selector, "plan", "--event=pull_request", f"--base-sha={base}",
+             f"--head-sha={head}", f"--tested-sha={tested}", f"--base-ref={ref}", f"--repo={repo_dir}",
+             f"--out={out}"],
+            capture_output=True, text=True, timeout=SELECTOR_TIMEOUT, check=False)
+        if result.returncode != 0:
+            raise ValueError(f"the selector exited {result.returncode}: {result.stderr.strip()[-400:]}")
+        with open(out, encoding="ascii") as handle:
+            return json.load(handle)
+
+
+def check_plan(plan, base, head, tested, ref):
+    """Raise unless the plan is a trusted, complete plan for exactly this pull request."""
+    shas = plan.get("shas") or {}
+    if (plan.get("event"), plan.get("ref"), shas.get("base"), shas.get("head"), shas.get("tested")) != (
+            "pull_request", ref, base, head, tested):
+        raise ValueError("the recomputed plan does not describe this pull request's base, head and merge commit")
+    catalogue = plan.get("catalogue") or {}
+    if not (plan.get("selector") or {}).get("trusted") or catalogue.get("source_sha") != base \
+            or not catalogue.get("blob"):
+        raise ValueError("the plan was not computed by the base selector from the base catalogue")
+    code = (plan.get("fallback") or {}).get("code") or ""
+    if code in UNUSABLE_FALLBACKS or code.startswith(("selector-error:", "output-error:")):
+        raise ValueError(f"the plan fell back with {code}, so its gate listing may be incomplete")
+    if plan.get("mode") not in ("select", "full") or not PLAN_ID.fullmatch(plan.get("plan_id") or ""):
+        raise ValueError("the plan has no usable mode or plan_id")
+    if not any(row.get("class") == "core" for row in plan.get("selected", [])):
+        raise ValueError("the plan selects no core gate")
+
+
+def expected_gates(plan):
+    """Selected core and rwa gates that GitHub starts for this change (merge-hold itself excluded)."""
+    return [row for row in plan["selected"]
+            if row["class"] in SELECTABLE and row["workflow"] != GATE_WORKFLOW
+            and row.get("blocked_by_filter") is not True]
+
+
+def fetch_listing(token, url, key):
+    """Every item of a paginated Actions listing ({total_count, <key>: [...]}), by id."""
+    items, page, total = {}, 1, None
+    while True:
+        answer = call(token, f"{url}&per_page=100&page={page}")
+        batch = answer[key]
+        if not isinstance(batch, list) or not isinstance(answer["total_count"], int):
+            raise TypeError("Unexpected API response")
+        total = answer["total_count"]
+        for item in batch:
+            items[item["id"]] = item
+        if len(batch) < 100:
+            break
+        page += 1
+        if page > MAX_PAGES:
+            raise ValueError("Too many pages")
+    if len(items) < total:
+        raise ValueError(f"listed {len(items)} of {total} items; the listing changed while paging")
+    return list(items.values())
+
+
+def run_matches(run, repo, pull, head_sha):
+    """Provenance of a workflow run: this repository, this pull request head, the pull_request event.
+
+    The run must list this pull request (number and base branch) among its pull
+    requests. GitHub fills that list for same-repository heads; a fork run has an
+    empty list, cannot be bound to a base, and therefore never counts (fail closed:
+    push the fork's commits to a repository branch, docs/CI-CONTRACT.md).
+    """
+    head = pull["head"]
+    head_repo = (head.get("repo") or {}).get("full_name")
+    pulls = run.get("pull_requests") or []
+    return (run.get("event") == "pull_request" and run.get("head_sha") == head_sha
+            and run.get("head_branch") == head["ref"]
+            and (run.get("repository") or {}).get("full_name") == repo
+            and (run.get("head_repository") or {}).get("full_name") == head_repo
+            and lists_pull(pulls, pull.get("number"), pull["base"]["ref"]))
+
+
+def lists_pull(pulls, number, base_ref):
+    """Does a run's pull request list name this pull request and base? An empty list never does."""
+    return any(item.get("number") == number and (item.get("base") or {}).get("ref") == base_ref
+               for item in pulls)
+
+
+def run_order(run):
+    """Newest first by the start of the latest attempt, then id: a later re-run of an older run counts.
+
+    Without a start time the creation time is used; without both the run cannot be ordered.
+    """
+    started = run.get("run_started_at") or run.get("created_at")
+    if not isinstance(started, str) or not started:
+        raise ValueError(f"run {run.get('id')} has no start or creation time")
+    return (started, run["id"])
+
+
+def job_matches(row, job):
+    # Runtime matrix: the check name is a template (excluded rows carry no variant field).
+    if row.get("variant") == "*" or EXPRESSION.search(row.get("check_name") or ""):
+        pattern = "".join(".+" if EXPRESSION.fullmatch(part) else re.escape(part)
+                          for part in re.split(r"(\$\{\{.*?\}\})", row["check_name"]))
+        return re.fullmatch(pattern, job.get("name") or "") is not None
+    return job.get("name") == row["check_name"]
+
+
+def gate_report(token, repo, pull, head_sha, plan):
+    """Return (passed, pending, failed) lines for the applicable gates of this head."""
+    expected = expected_gates(plan)
+    rows = plan["selected"] + plan["excluded"]
+    # Workflows with a gate GitHub may start: a running run of one must finish, because jobs
+    # waiting on `needs` or a runtime matrix may not be listed yet.
+    gated = {row["workflow"] for row in rows if row.get("class") in SELECTABLE
+             and row.get("reason") not in ("event-not-applicable", "condition-false")}
+    workflows = sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW})
+    url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request"
+    newest = {}
+    for run in fetch_listing(token, url, "workflow_runs"):
+        path = run.get("path")
+        if path in workflows and run_matches(run, repo, pull, head_sha):
+            # The newest run decides: an older success never masks a newer run.
+            order = run_order(run)  # every counted run must be orderable
+            if path not in newest or order > run_order(newest[path]):
+                newest[path] = run
+    passed, pending, failed = [], [], []
+    for workflow in workflows:
+        wanted = [row for row in expected if row["workflow"] == workflow]
+        run = newest.get(workflow)
+        if run is None:
+            pending += [f"{row['check_name']}: no {workflow} run for {head_sha} yet" for row in wanted]
+            continue
+        where = f"run {run['id']} attempt {run.get('run_attempt')}"
+        running = run.get("status") != "completed"
+        if not running and not wanted and run.get("conclusion") == "success":
+            continue  # no expected gate and nothing failed in it
+        # A running run is listed too: a gate GitHub started must finish even when
+        # the plan did not select it, or its later failure would go unseen.
+        jobs = [job for job in fetch_listing(
+            token, f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
+            if job.get("run_id") == run["id"]]
+        # A re-run between the two reads would pair this run state with another attempt's jobs.
+        again = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
+        if (again.get("run_attempt"), again.get("status")) != (run.get("run_attempt"), run.get("status")):
+            pending.append(f"{workflow}: {where} changed while it was read (now attempt "
+                           f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
+            continue
+        if running and workflow in gated:
+            pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
+                           "including jobs GitHub has not created yet")
+        claimed = set()
+        for row in wanted:
+            found = [job for job in jobs if job_matches(row, job)]
+            claimed.update(job["id"] for job in found)
+            if not found and running:
+                pending.append(f"{row['check_name']}: not started yet in {where}, which is {run.get('status')}")
+            elif not found:
+                failed.append(f"{row['check_name']}: missing from {where} ({workflow})")
+            elif any(job.get("status") != "completed" for job in found):
+                pending.append(f"{row['check_name']}: still running in {where}")
+            elif all(job.get("conclusion") == "success" for job in found) and (
+                    len(found) == 1 or (row.get("variant") == "*" and not running)):
+                passed.append(f"{row['check_name']}: success in {where}")
+            else:
+                outcome = ", ".join(sorted({str(job.get("conclusion")) for job in found}))
+                failed.append(f"{row['check_name']}: {outcome} in {where} ({workflow})")
+        for job in jobs:
+            # A rendered runtime-matrix name inherits its template row's class.
+            klass = next((row["class"] for row in rows if row.get("workflow") == workflow
+                          and row.get("check_name") and job_matches(row, job)), "unregistered")
+            if job["id"] in claimed or klass not in SELECTABLE + ("unregistered",):
+                continue
+            if job.get("status") != "completed":
+                pending.append(f"{job.get('name')}: {job.get('status')} in {where} ({workflow}); "
+                               "not expected by the plan, but a started gate must finish")
+            elif job.get("conclusion") in BLOCKING_CONCLUSIONS:
+                failed.append(f"{job.get('name')}: {job.get('conclusion')} in {where} ({workflow}); "
+                              "not expected by the plan, but a failed gate is never ignored")
+    return passed, pending, failed
+
+
+def pull_request_gates(token, repo, number, head_sha):
+    """Return (passed, lines) for the applicable gates of one pull request head."""
+    pull = call(token, f"{API}/repos/{repo}/pulls/{number}")
+    if pull["head"]["sha"] != head_sha:
+        raise ValueError(f"the pull request head moved to {pull['head']['sha']}; its own run decides")
+    base, tested, ref = os.environ["BASE_SHA"], os.environ["TESTED_SHA"], pull["base"]["ref"]
+    for label, sha in (("base", base), ("tested", tested)):
+        if not SHA.fullmatch(sha):
+            raise ValueError(f"{label} SHA is missing or malformed")
+    plan = recompute_plan(base, head_sha, tested, ref)
+    check_plan(plan, base, head_sha, tested, ref)
+    enforce = plan.get("policy_mode") != "shadow"
+    lines = [f"Plan {plan['plan_id']}: mode {plan['mode']}"
+             + (f", fallback {plan['fallback']['code']}" if plan.get("fallback") else "")
+             + f", base {base}, head {head_sha}, merge commit {tested}, target {ref}."]
+    if git("merge-base", "--is-ancestor", base, head_sha)[0] != 0:
+        return False, lines + [
+            f"::error::The head {head_sha} does not contain the base tip {base}, so the gate runs did not "
+            "test the tree that would merge. Update the branch; the new head is checked again."]
+    budget = min(int((plan.get("budgets") or {}).get("pull_request_wait_minutes", 0)) * 60, MAX_WAIT_SECONDS)
+    deadline = time.monotonic() + budget
+    while True:
+        passed, pending, failed = gate_report(token, repo, pull, head_sha, plan)
+        if failed or not pending or time.monotonic() >= deadline:
+            break
+        time.sleep(POLL_SECONDS)
+    skipped = [f"{row['check_name']}: not applicable (path filter)" for row in plan["selected"]
+               if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True]
+    lines.append(f"{len(passed)} applicable gate(s) passed; {len(skipped)} filtered out; "
+                 f"{len(pending)} pending; {len(failed)} failed.")
+    prefix = "::error::" if enforce else "::warning::(shadow, not blocking) "
+    lines += [prefix + "Failed: " + line for line in failed]
+    lines += [prefix + "Pending: " + line for line in pending]
+    if pending and not failed:
+        run = os.environ.get("GITHUB_RUN_ID", "<run id>")
+        lines.append(f"{prefix}Re-run this merge-hold job after the pending gates finish "
+                     f"(gh run rerun {run} --failed).")
+    lines += ["Passed: " + line for line in passed] + ["Not a pass: " + line for line in skipped]
+    return (not failed and not pending) or not enforce, lines
+
+
+def base_wait_seconds(base_sha):
+    """merge_group wait budget from the base catalogue; the fixed maximum when it is unreadable."""
+    code, text = git("cat-file", "blob", f"{base_sha}:{CATALOGUE}")
+    try:
+        minutes = tomllib.loads(text)["policy"]["budgets"]["merge_group_wait_minutes"] if code == 0 else None
+    except (tomllib.TOMLDecodeError, KeyError, TypeError):
+        minutes = None
+    if not isinstance(minutes, int) or isinstance(minutes, bool) or not 0 <= minutes * 60 <= MAX_WAIT_SECONDS:
+        return WAIT_SECONDS
+    return minutes * 60
+
+
+def pull_request_gates_passed(token, repo, pr_head, number, base_ref="main"):
+    """True when the newest pull_request merge-hold run of this pull request on pr_head succeeded.
+
+    Used for merge_group members. The run must list this pull request's number
+    and base branch, as in run_matches; an empty list (a fork head) never counts.
+    """
+    url = f"{API}/repos/{repo}/actions/runs?head_sha={pr_head}&event=pull_request"
+    runs = [run for run in fetch_listing(token, url, "workflow_runs")
+            if run.get("path") == GATE_WORKFLOW and run.get("head_sha") == pr_head
+            and (run.get("repository") or {}).get("full_name") == repo
+            and lists_pull(run.get("pull_requests") or [], number, base_ref)]
+    if not runs:
+        return False
+    newest = max(runs, key=run_order)
+    return newest.get("status") == "completed" and newest.get("conclusion") == "success"
+
+
 def merge_group_hold(token, repo):
     """Return (passed, lines) for every pull request in the merge group."""
     head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
@@ -322,7 +616,9 @@ def merge_group_hold(token, repo):
         raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
     # Decide last: labels and comments are read only after this group's checks
     # and every entry ahead (which merge first) have finished.
-    wait_for_checks(token, repo, head_sha, int(match.group(1)))
+    base_sha = os.environ.get("MERGE_GROUP_BASE_SHA", "")
+    budget = base_wait_seconds(base_sha) if SHA.fullmatch(base_sha) else WAIT_SECONDS
+    wait_for_checks(token, repo, head_sha, int(match.group(1)), budget)
     members = group_members(token, repo, head_ref, head_sha)
     ok, lines = True, []
     for node in members:
@@ -330,12 +626,22 @@ def merge_group_hold(token, repo):
         number, pr_head = pull["number"], pull["headRefOid"]
         passed, message, labels = pull_request_hold(token, repo, number, pr_head)
         # Compare with this PR's own queue entry: that commit is what main
-        # becomes when it merges, and its own group checks that tree.
-        if passed and LABEL in labels and tree(token, repo, entry_commit) != tree(token, repo, pr_head):
+        # becomes when it merges, and its own group checks that tree. The
+        # selected gates run only on pull_request, so their verdict on the PR
+        # head (its merge-hold) covers the entry only when the trees are equal.
+        same_tree = tree(token, repo, entry_commit) == tree(token, repo, pr_head)
+        if passed and LABEL in labels and not same_tree:
             passed, message = False, (
                 f"Acceptance for {pr_head} covers its own tree, but its queue entry "
                 f"{entry_commit} lands a different tree. Update the branch and re-release, "
                 "or let the pull requests ahead merge first.")
+        elif passed and not same_tree:
+            passed, message = False, (
+                f"The applicable gates ran on {pr_head}, but its queue entry {entry_commit} lands a "
+                "different tree, and the selected workflows do not run on merge_group. Update the branch.")
+        elif passed and not pull_request_gates_passed(token, repo, pr_head, number):
+            passed, message = False, (
+                f"No successful pull_request merge-hold verified the applicable gates on {pr_head}.")
         ok = ok and passed
         lines.append(f"#{number}: " + (message if passed else "::error::" + message))
     return ok, lines
@@ -350,14 +656,22 @@ def main():
             number = int(os.environ["PR_NUMBER"])
             passed, message, _ = pull_request_hold(token, repo, number, os.environ["HEAD_SHA"])
             lines = [message if passed else "::error::" + message]
+            gates_passed, gate_lines = pull_request_gates(token, repo, number, os.environ["HEAD_SHA"])
+            passed = passed and gates_passed
+            lines += gate_lines
         elif event == "merge_group":
             passed, lines = merge_group_hold(token, repo)
         else:
             raise ValueError(f"unsupported event {event!r}")
-    except (KeyError, IndexError, ValueError, TypeError, AttributeError, OSError) as exc:
-        print(f"::error::merge-hold could not read the pull request ({exc}); failing closed.")
+    except (KeyError, IndexError, ValueError, TypeError, AttributeError, OSError,
+            subprocess.SubprocessError, json.JSONDecodeError) as exc:
+        print(f"::error::merge-hold could not decide ({exc}); failing closed.")
         return 1
     print("\n".join(lines))
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a", encoding="utf-8") as handle:
+            handle.write("## merge-hold\n\n" + "".join(f"- {line}\n" for line in lines))
     return 0 if passed else 1
 
 
