@@ -31,6 +31,7 @@ pub enum Op {
     UsageAt = 12,
     Close = 13,
     Cancel = 14,
+    Head = 15,
 }
 
 impl Op {
@@ -50,6 +51,7 @@ impl Op {
             12 => Ok(Self::UsageAt),
             13 => Ok(Self::Close),
             14 => Ok(Self::Cancel),
+            15 => Ok(Self::Head),
             _ => Err(Error::Invalid),
         }
     }
@@ -153,14 +155,16 @@ impl Frame {
     fn validate_request(&self) -> Result<(), Error> {
         use Op::*;
         let namespace = matches!(self.op, Accept | Open | Usage | SetQuota | Revoke | Evict);
-        let session = matches!(self.op, Stage | Commit | Read | Close | Cancel);
+        let session = matches!(self.op, Stage | Commit | Read | Close | Cancel | Head);
         let upload = matches!(self.op, Commit | Cancel);
         if (self.namespace != [0; 32]) != namespace
             || (self.session != [0; TOKEN_BYTES]) != session
             || (self.upload != [0; TOKEN_BYTES]) != upload
             || (!matches!(self.op, Stage | Read) && self.revision != 0)
-            || (!matches!(self.op, Invite | Accept | Stage | Read | SetQuota | UsageAt)
-                && self.value != 0)
+            || (!matches!(
+                self.op,
+                Invite | Accept | Stage | Read | SetQuota | UsageAt | Head
+            ) && self.value != 0)
             || match self.op {
                 Accept => self.length != 32,
                 Stage => self.length == 0,
@@ -196,7 +200,8 @@ impl Frame {
         if (self.namespace != [0; 32]) != matches!(self.op, Invite | Usage | UsageAt)
             || (self.session != [0; TOKEN_BYTES]) != (self.op == Open)
             || (self.upload != [0; TOKEN_BYTES]) != (self.op == Stage)
-            || (self.revision != 0) != matches!(self.op, Commit | Usage | UsageAt)
+            || (self.op != Head
+                && (self.revision != 0) != matches!(self.op, Commit | Usage | UsageAt))
             || (self.value != 0) != matches!(self.op, Invite | Usage | UsageAt)
             || match self.op {
                 Invite => self.length != 32 || self.data[..32] == [0; 32],
@@ -376,6 +381,15 @@ pub fn dispatch<S: Storage>(
                 Session::from_bytes(&request.session)?,
                 Upload::from_bytes(&request.upload)?,
             )?,
+            // Read-only: latest committed revision through the core's session
+            // authority; zero means never published, staging stays invisible.
+            Op::Head => {
+                reply.revision = service.head(
+                    caller,
+                    Session::from_bytes(&request.session)?,
+                    usize::try_from(request.value).map_err(|_| Error::Invalid)?,
+                )?;
+            }
             Op::Shutdown => {
                 // Check the core's administrator authority even if there is
                 // no namespace yet; NotFound does not authorize a guest.

@@ -122,7 +122,7 @@ NAS or volume authority.
 |---|---|
 | 0..4 | `NASP` |
 | 4..6 | version 1 |
-| 6..8 | opcode 1..14; only a reply sets bit `0x8000` |
+| 6..8 | opcode 1..15; only a reply sets bit `0x8000` |
 | 8..16 | non-zero request correlation, not a capability |
 | 16..20 | status: 0 or fixed negative error code; requests always 0 |
 | 20..22 | payload length 0..104 |
@@ -135,13 +135,22 @@ NAS or volume authority.
 | 152..256 | payload; all bytes after the length zero |
 
 Opcodes: 1 Invite, 2 Accept, 3 Open, 4 Stage, 5 Commit, 6 Read, 7 Usage,
-8 SetQuota, 9 Revoke, 10 Evict, 11 Shutdown, 12 UsageAt, 13 Close, 14 Cancel.
+8 SetQuota, 9 Revoke, 10 Evict, 11 Shutdown, 12 UsageAt, 13 Close, 14 Cancel,
+15 Head.
 The parser also checks **unused fields per opcode**, token form,
 reply form and empty error replies. Session decoding grants no rights:
 the core re-checks caller, live handle, namespace and epoch.
 Cancel requires only the live session and upload fields; its namespace, revision,
 value and payload are zero. It delegates to the existing core cancellation with
 the same authenticated caller and returns an empty success or canonical error.
+Head requires only the live session field and an object index in the value
+field; namespace, upload, revision and payload are zero. It delegates to the
+existing read-only `Service::head` with the same authenticated caller and
+returns the latest committed revision in the revision field, zero for an object
+that was never published. Staged uploads stay invisible, a session used by
+another caller is `Stale`, and an object index outside the namespace is
+`Invalid`. Head writes nothing and grants no rights; reconciliation still
+re-reads through the existing expected-revision checks.
 No principal, key, mutable client buffer or capability in the wire.
 
 The 104-byte payload and one selected guest are visible probe limits,
