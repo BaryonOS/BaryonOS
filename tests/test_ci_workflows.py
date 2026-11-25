@@ -997,9 +997,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
     def test_host_build_cache_is_saved_only_by_a_successful_push_to_main(self):
         """#494 B2: PR and merge-queue saves are unreadable by other PRs and only evict main's entries."""
         steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
-        uses = [step.get("uses", "") for step in steps]
-        self.assertFalse([use for use in uses if use.startswith("actions/cache@")
-                          and "host-rust" in json.dumps(steps[uses.index(use)])])
+        self.assertFalse([step for step in steps if step.get("uses", "").startswith("actions/cache@")
+                          and "host-rust" in json.dumps(step)])
         restore, = [step for step in steps if step.get("id") == "host-build-cache"]
         self.assertTrue(restore["uses"].startswith("actions/cache/restore@"))
         self.assertNotIn("if", restore)
@@ -1012,7 +1011,10 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertIn("${{ github.sha }}", restore["with"]["key"])
         self.assertLess(max(index for index, step in enumerate(steps) if "run" in step
                             and "cargo" in step["run"]), steps.index(save))
-        # #494 B1: a later merge must not cancel main's push run, or the save never happens.
+        diagnostics, = [step for step in steps if step.get("name") == "Cache diagnostics (not test evidence)"]
+        self.assertEqual(diagnostics["if"], "${{ always() }}")
+        self.assertEqual(diagnostics["env"]["HOST_BUILD_HIT"], "${{ steps.host-build-cache.outputs.cache-hit }}")
+        # #494 B1: a later merge must not cancel main's running push run, or the save never happens.
         self.assertEqual(self.workflows[".github/workflows/ci.yml"]["concurrency"]["cancel-in-progress"],
                          "${{ github.event_name == 'pull_request' }}")
 

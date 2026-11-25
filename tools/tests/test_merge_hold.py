@@ -808,6 +808,7 @@ class GateTests(TestCase):
         listed = merge_hold.hidden_listing(["tests/a\n::error::spoof.py", "tests/\udcff.py"])
         self.assertNotIn("\n", listed)
         listed.encode("ascii")
+        self.assertEqual(merge_hold.hidden_listing(["tests/a%0A::error::x.py"]), '"tests/a%250A::error::x.py"')
 
     def test_missing_or_running_runs_are_pending_and_block(self):
         for runs_, fragment in (([wf_run(1, CI)], "no .github/workflows/leaves.yml run"),

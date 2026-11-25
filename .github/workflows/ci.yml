@@ -21,8 +21,9 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  # Only superseded PR heads are cancelled: a main push run completes, so main keeps its
-  # post-merge evidence and its host cache save (#494 B1, B2).
+  # Only superseded PR heads are cancelled: a running main push run completes, so main keeps
+  # its post-merge evidence and host cache save (#494 B1, B2). GitHub keeps one pending run
+  # per group, so a newer push still replaces a main run that has not started.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
