@@ -65,12 +65,25 @@ controller damage is unchanged and may cover the last tile.
   `5cd55d1c` (full repaint after a supersede) and 0.64–0.66 s at `a155749c`
   (everything below the superseded position); `c3721894` re-sends only the
   hull of tiles that frame blitted.
-- One B run at `a155749c` timed out in `calculator-restored` (Calculator
-  `EVALUATIONS` stayed 2, compositor `FOCUSED` 0, guest still running). Over
-  all local batches: base 30/30 passes, fix heads 21/22. Not reproduced in
-  the ten runs at `c3721894`. Cause not established; it is a Calculator
-  focus/input step, but a timing effect of the faster Materiaal paint is not
-  excluded. Kept open.
+- One B run at `a155749c` timed out in `calculator-restored`. Its serial log
+  ([`calc-gap.py`](calc-gap.py) against the run's `serial.txt`, which stays
+  local) shows the Calculator in the expected state: focus 1, `EVALUATIONS`
+  2 and answer 5 000 000 000, the same values with which passing runs leave
+  this wait. The compositor had reached its final commit count (2443, as in
+  two passing runs), but its last sample still showed the Calculator frame
+  incomplete. The kernel probe reporter
+  (`kernel/src/m2/m3/window_session.rs::snapshots`) emits a compositor
+  sample only when an activity word changes, or when commits change at least
+  100 ticks after the previous sample. The completed-frame words 464
+  (Material) and 480 (Calculator) are not activity words, and the
+  compositor answers RETAIN without counting a commit. A frame that
+  completes on a RETAIN after the last sampled commit is therefore never
+  reported, and the harness waits until its timeout. The log is consistent
+  with this observation gap (pre-existing on `main`, outside this change);
+  a guest stall after the final commit is not excluded by the log alone. An
+  earlier note that compositor focus stayed 0 was wrong. Over all local
+  batches: base 30/30 passes, fix heads 21/22; not reproduced at `c3721894`
+  or later heads. Reported to U, who owns the window-session probe.
 - Evidence limit: the tile digest is FNV-1a, which is not collision-resistant.
   A document crafted so that a changed tile's bytes collide with the cached
   digest of the tile on screen would leave that tile stale (this app's own
