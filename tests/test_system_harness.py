@@ -729,7 +729,7 @@ class PostWakeLatchStructure(unittest.TestCase):
     # Reachable after the S3 wake in the system profile (broker ticks,
     # submission syscalls, owner teardown): latched and counted.
     REACHABLE = {"keyring.rs": {"call", "advance", "quarantine_pending"},
-                 "volume.rs": {"device_call", "reset", "advance"}}
+                 "volume.rs": {"device_call", "reset", "advance_lane"}}
     LATCH = {"keyring.rs": "device_lost()", "volume.rs": "system::resumed()"}
     # The validated re-init path (test-system-s3-reinit only): accounted.
     REINIT = {"keyring.rs": {"reinit_poll", "reinit_fail"}, "volume.rs": set()}
@@ -815,7 +815,7 @@ class PostWakeLatchStructure(unittest.TestCase):
         self.assertEqual([line.split("//")[0].strip() for _, line in quarantine if "r.device" in line], [bind])
         self.assertEqual(following(volume["reset"], "if super::system::resumed() {")[:2],
                          ["super::system::device_access_suppressed();", "return;"])
-        self.assertEqual(following(volume["advance"], "if super::system::resumed() {")[0], "return;")
+        self.assertEqual(following(volume["advance_lane"], "if super::system::resumed() {")[0], "return;")
         self.assertEqual(following(volume["device_call"], "if super::system::resumed() {")[0], "return Err(-14);")
         # Re-init: no MMIO before `rediscover` validated the BARs.
         fail = keyring["reinit_fail"]
@@ -864,7 +864,11 @@ class PostWakeLatchStructure(unittest.TestCase):
                                                "sleep::suspend(", "p.io_at_wake = io;")]
         self.assertEqual(order, sorted(order))
         quiescent = "\n".join(line for _, line in functions(KERNEL / "m3/volume.rs")["sleep_quiescent"])
-        self.assertIn("r.policy.request().is_none()", quiescent)
+        # K5: every lane must hold no request; only a lane without a device
+        # may stay Offline (it never admitted one).
+        self.assertIn("r.lanes.iter().all(|lane| {", quiescent)
+        self.assertIn("lane.policy.request().is_none()", quiescent)
+        self.assertIn("lane.device.is_none() && lane.policy.phase() == Phase::Offline", quiescent)
         finish = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["finish"])
         for term in ("&& keyring_at_wake > 0", "&& volume_at_wake > 0", "&& io_after == 0",
                      "&& p.suppressed == suppressed"):

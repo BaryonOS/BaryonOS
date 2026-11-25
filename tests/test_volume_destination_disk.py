@@ -4,7 +4,10 @@ Requirement: docs/implementation/S09-DESTINATION-SERVICE.md 2.6 (copy validity,
 mount rule) and 8.2 R3. Every refusal test changes one field, recomputes the
 FNV-64 and asserts the rule the oracle names, so a pass cannot come from the
 checksum alone. The cross-check class reads images written by the Rust host
-core (services/destination/tests/oracle_images.rs) when DEST_ORACLE_OUT is set.
+core (services/destination/tests/oracle_images.rs) when DEST_ORACLE_OUT is set;
+the ReverseDifferential class writes the oracle's crafted images and verdicts
+for the Rust core (services/destination/tests/reverse_differential.rs) when
+DEST_REVERSE_OUT is set.
 """
 from __future__ import annotations
 import json
@@ -457,6 +460,170 @@ class ImageFiles(unittest.TestCase):
                                  capture_output=True, text=True, check=False)
             self.assertEqual(run.returncode, 0, run.stderr)
             self.assertEqual(json.loads(run.stdout)["state"], "mounted")
+
+
+def single_rule_copies() -> dict[str, tuple[bytearray, int]]:
+    """One crafted copy per refusal rule (2.6, N4, N34), each valid except for
+    that rule, with the scope it is judged against. Scopes below 16 sectors
+    are left out: such an image has no complete catalog area."""
+    base = copy(records(700))
+    two = copy(records(700, 1100))
+    out: dict[str, tuple[bytearray, int]] = {
+        "magic": (patched(base, 7, "<B", 2), SECTORS),
+        "version": (patched(base, 8, "<H", 2), SECTORS),
+        "count 17": (patched(base, 10, "<B", 17), SECTORS),
+        "header padding": (patched(base, 12, "<B", 1), SECTORS),
+        "sequence 0": (patched(copy([]), 32, "<Q", 0), SECTORS),
+        "unused record": (patched(base, rec(1, 0), "<Q", 9), SECTORS),
+        "tail byte": (patched(base, 1500, "<B", 1), SECTORS),
+        "count 0 with a record": (patched(base, 10, "<B", 0), SECTORS),
+        "record padding": (patched(base, rec(0, 44), "<B", 1), SECTORS),
+        "label padding": (patched(base, rec(0, 48 + 6), "<B", ord("x")), SECTORS),
+        "label length 33 field": (patched(base, rec(0, 40), "<B", 33), SECTORS),
+        "entry length 79": (patched(base, rec(0, 16), "<Q", 79), SECTORS),
+        "entry ID 0": (patched(two, rec(0, 0), "<Q", 0), SECTORS),
+        "label length 0": (RecordAndCopyValidity.label_length_0(two), SECTORS),
+        "sealing sequence 1": (patched(two, rec(0, 32), "<Q", 1), SECTORS),
+        "sealing sequence above the copy's": (patched(two, rec(1, 32), "<Q", 4), SECTORS),
+        "equal sealing sequences": (patched(two, rec(1, 32), "<Q", 2), SECTORS),
+        "next_free not the extent end": (copy(records(700), next_free=19), SECTORS),
+        "next_free 17 without entries": (copy([], next_free=17), SECTORS),
+        "next entry 0": (patched(copy([]), 40, "<Q", 0), SECTORS),
+        "formatted count above scope": (copy(records(700), sectors=SECTORS + 1), SECTORS),
+        "formatted count below scope": (copy(records(700)), SECTORS - 1),
+        "next_free above formatted": (copy(records(dd.SECTOR * 20), sectors=30), 30),
+        "entry length above maximum": (patched(copy(records(dd.MAX_ARCHIVE), sectors=2048),
+                                               rec(0, 16), "<Q", dd.MAX_ARCHIVE + 1), 2048),
+    }
+    damaged = bytearray(base)
+    damaged[100] ^= 1
+    out["checksum"] = (damaged, SECTORS)
+    for value in (0, 8, 15):
+        out[f"next_free {value} without entries"] = (copy([], next_free=value), SECTORS)
+    entries = records(700, 700)
+    entries[1]["id"] = 1
+    out["equal entry IDs"] = (copy(entries, next_entry=3), SECTORS)
+    entries = records(700, 700)
+    entries[0]["id"], entries[1]["id"] = 2, 1
+    out["descending entry IDs"] = (copy(entries, next_entry=3), SECTORS)
+    entries = records(700, 700)
+    entries[1]["first"] = entries[0]["first"]
+    out["equal first sectors"] = (copy(entries, next_free=entries[1]["first"] + 2), SECTORS)
+    entries = records(700)
+    entries[0]["first"] = 17
+    out["gap before the first extent"] = (copy(entries, next_free=19), SECTORS)
+    entries = records(700, 700)
+    entries[1]["first"] += 1
+    out["gap between extents"] = (copy(entries, next_free=entries[1]["first"] + 2), SECTORS)
+    # IDs 1 and 2 stay ascending, so only the next-entry bound is broken.
+    out["entry ID not below next entry"] = (copy(records(700, 1100), next_entry=2), SECTORS)
+    for name, (raw, _) in RecordAndCopyValidity().crafted().items():
+        out.setdefault(f"N34 {name}", (raw, SECTORS))
+    return out
+
+
+def reverse_corpus() -> dict[str, bytearray]:
+    """Crafted images for the reverse differential (spec 8.2 R3): every
+    single-rule copy in both slots, beside a valid copy in each order, and the
+    mount-rule cases (blank, reserved sectors, N25, N30, extension, equal
+    sequences, N14). Scope = the image size."""
+    valid = copy(records(700))
+    corpus: dict[str, bytearray] = {}
+    for name, (raw, sectors) in single_rule_copies().items():
+        key = name.replace(" ", "-").replace("'", "").replace("/", "slash").replace("\\", "bs")
+        if sectors == SECTORS:
+            corpus[f"twice-{key}"] = image(raw, raw)
+            corpus[f"bad-a-{key}"] = image(raw, valid, records(700))
+            corpus[f"bad-b-{key}"] = image(valid, raw, records(700))
+        else:
+            corpus[f"twice-{key}"] = dd.build_image(sectors, raw, raw)
+    zero = bytes(dd.COPY)
+    corpus["blank"] = image(zero, zero)
+    reserved = image(zero, zero)
+    reserved[12 * dd.SECTOR + 5] = 1
+    corpus["blank-reserved-nonzero"] = reserved
+    corpus["blank-with-stale-entry"] = image(zero, zero, records(700))
+    fresh = copy([])
+    sector_0 = bytearray(dd.COPY)
+    sector_0[:dd.SECTOR] = fresh[:dd.SECTOR]
+    corpus["n25-sector-0-only"] = image(sector_0, zero)
+    middle = bytearray(dd.COPY)
+    middle[dd.SECTOR:3 * dd.SECTOR] = fresh[dd.SECTOR:3 * dd.SECTOR]
+    corpus["n25-middle-sectors-only"] = image(middle, zero)
+    corpus["n25-copy-a-only"] = image(fresh, zero)
+    two = copy(records(700, 1100))
+    corpus["identical"] = image(two, two, records(700, 1100))
+    old, new = copy(records(700), sequence=2), copy(records(700, 1100), sequence=3)
+    corpus["higher-a"] = image(new, old, records(700, 1100))
+    corpus["higher-b"] = image(old, new, records(700, 1100))
+    corpus["extension-by-two"] = image(old, copy(records(700, 1100, 300), sequence=5), records(700, 1100, 300))
+    corpus["equal-sequence-different-bytes"] = image(copy(records(700), sequence=3), copy(records(700, 1100), sequence=3))
+    low = copy(records(700, 1100), sequence=3, next_entry=5)
+    highs = {
+        "record-missing": copy(records(700), sequence=4, next_entry=5),
+        "record-changed": patched(copy(records(700, 1100, 300), sequence=4, next_entry=5), rec(0, 24), "<Q", 1),
+        "other-id": copy(records(700, 1100, 300), sequence=4, ident=Y, next_entry=5),
+        "next-entry-lower": copy(records(700, 1100), sequence=4, next_entry=4),
+    }
+    for name, high in highs.items():
+        corpus[f"n30-{name}-a"] = image(high, low)
+        corpus[f"n30-{name}-b"] = image(low, high)
+    y = copy(records(700), ident=Y)
+    corpus["n14-other-id"] = image(y, y, records(700))
+    return corpus
+
+
+def oracle_verdict(path: Path) -> str:
+    """The oracle's verdict on an image file, in the `.expect` line format
+    that services/destination/tests/common/mod.rs `cold_verdict` writes."""
+    result = dd.analyse(path)
+    lines = [f"state={result['state']}"]
+    if result["state"] == "mounted":
+        c = result["catalog"]
+        lines += [f"id={c['destination_id']}", f"sequence={c['sequence']}",
+                  f"next_entry={c['next_entry_id']}", f"next_free={c['next_free']}",
+                  f"formatted={c['formatted_sectors']}"]
+        lines += [f"record={r['id']},{r['first']},{r['length']},{r['trailer']},{r['sealed_sequence']},{r['label']}"
+                  for r in c["entries"]]
+    return "\n".join(lines) + "\n"
+
+
+class ReverseDifferential(unittest.TestCase):
+    """Spec 8.2 R3 reverse differential, oracle side: the crafted corpus is
+    judged by the oracle and, with DEST_REVERSE_OUT set, written as
+    `<name>.img` plus `<name>.expect` for the Rust host core
+    (services/destination/tests/reverse_differential.rs, DEST_REVERSE_IN).
+    Like the cross-check it compares state, header and records, not the
+    refusing rule (spec 7, "Cross-check limit")."""
+
+    def test_every_single_rule_copy_is_refused(self):
+        for name, (raw, sectors) in single_rule_copies().items():
+            with self.subTest(name):
+                self.assertIsNotNone(dd.check_copy(bytes(raw), sectors)[1])
+
+    def test_corpus_has_both_outcomes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            states = {}
+            for name, data in reverse_corpus().items():
+                path = Path(directory) / f"{name}.img"
+                path.write_bytes(data)
+                states[name] = oracle_verdict(path).split("\n", 1)[0]
+        self.assertGreaterEqual(len(states), 100)
+        for name, state in states.items():
+            with self.subTest(name):
+                if name.startswith("twice-"):
+                    self.assertEqual(state, "state=corrupt")
+                elif name.startswith(("bad-a-", "bad-b-")):
+                    self.assertEqual(state, "state=mounted")
+
+    @unittest.skipUnless(os.environ.get("DEST_REVERSE_OUT"), "DEST_REVERSE_OUT not set (reverse differential)")
+    def test_write_corpus(self):
+        directory = Path(os.environ["DEST_REVERSE_OUT"])
+        directory.mkdir(parents=True, exist_ok=True)
+        for name, data in reverse_corpus().items():
+            path = directory / f"{name}.img"
+            path.write_bytes(data)
+            (directory / f"{name}.expect").write_text(oracle_verdict(path), encoding="utf-8")
 
 
 def expectations(path: Path) -> dict:

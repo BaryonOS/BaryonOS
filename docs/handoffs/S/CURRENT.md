@@ -20,20 +20,24 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261124-5 (cloud session; took over from the local S
-  writer after `HANDOFF S S-20261124-4`, state CLEAR_READY, on PR #498).
-- **Task:** R5 precondition of `docs/implementation/S09-DESTINATION-SERVICE.md`
-  (2.3, "Archive verifier"): the production archive verifier. The
-  `volume-verifier` feature of `destination-core` adds
-  `archive_verifier::VolumeVerifier` over `volume_core::archive::verify`;
-  host tests in `services/destination/tests/real_verifier.rs` run N7 and N10
-  through the service on real v1 archives. Host only; no native stage.
-- **Branch:** `claude/brave-feynman-jbiz6x`.
-- **PR and tested head:** recorded in the pull request.
-- **Pins:** unchanged (32 volume stages); no workflow change.
-- **Blockers:** none for this step. R5 itself still waits for owner
-  decisions O4 (a)–(c), a hosted R3 cross-check and reverse differential
-  (lead-owned workflow change) and the K5 broker.
+- **cycle_id:** S-20261124-6 (cloud session).
+- **Owner decisions:** packages 1 and 2 of 24 November 2026 (O1–O13; O14–O18
+  confirmed) are recorded in `docs/implementation/S09-DESTINATION-SERVICE.md`
+  (header note, 8.1). ADR text and CI/K5 needs: `COORDINATOR-REQUEST-20261124.md`
+  (C1–C5) beside this file.
+- **Branch / PR:** `claude/brave-feynman-jbiz6x`, PR #509 (draft until the
+  required checks pass on its head). Contents: decisions, R3 reverse
+  differential (host), R2 status, K5 step 1 (`kernel/src/m2/m3/volume.rs`).
+- **Evidence on `1a3924de` (local):** native volume gate 32/32 and H05
+  power gate 12/12 (`build/k5d-*`); earlier on `04b06de2`: native volume gate 32/32
+  (`build/k5c-volume.log`), H05 power gate 12/12 with S3, S3 re-init and
+  held completion (`build/k5c-power/power-system-gate.json`); destination
+  tests, oracle suite, reverse differential 182 and forward 30 images.
+- **Review:** K5-REVIEW-1 (independent AI security review) REQUEST_CHANGES,
+  R1 (S3 quiescence with an absent lane) fixed in `04b06de2`; O1–O3 applied;
+  O4 (tickets restart per lane) noted, no consumer found.
+- **Hosted:** `native-hw-inventory` failed once on `409614d4` with "Missing
+  QMP greeting" in the plain boot (doc-only head; not attributed; commented).
 
 ## Lessons
 
@@ -44,9 +48,12 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    invoking shell command; it kills the caller.
 3. `App::meta` reports `step` and `step + 1`, and `App::write` reports
    `step` to `step + 3`; leave a gap after every such step id.
-4. The broker serves one block request at a time across both disks. A portal
-   must reach a READY service (any client call) before its first archive
-   read, or the service's recovery read can fail with `Protocol`.
+4. Since K5 (PR #509) the broker serves at most one block request at a time
+   per disk; requests on different disks progress independently. Before K5
+   one request was served across both disks, and a portal had to reach a
+   READY service before its first archive read or the service's recovery
+   read could fail with `Protocol`; keep that order in existing flows until
+   a native fixture shows the per-disk admission.
 5. A native gate failure in one stage can be reproduced alone: copy the
    parent's `volume-image-*` directory and run `tools/run_volume.py --case
    <stage> --volume <copy>`. The parent check binds the source fingerprint,
@@ -63,20 +70,25 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    with `volume_core` (`Service`, `Client`, `archive::export`) over an
    in-memory `Disk`; the harness switches verifiers with `AnyVerifier`.
 
+9. The reverse differential is two-step: the Python test writes the corpus
+   (`DEST_REVERSE_OUT=build/<dir>`), then the Rust test reads it
+   (`DEST_REVERSE_IN`, absolute path). Without the variable the Rust test
+   passes vacuously; the Python corpus checks always run.
+
 ## Next executable task
 
-Disjoint S-owned host steps toward R5 that need no owner decision: the R3
-reverse differential (the oracle's crafted invalid images mounted by the R2
-core, verdicts compared; spec 8.2 R3), and the open R2 items of spec 8.2
-(property-3 device-state snapshot, CODE-DELTA revision 5). The hosted R3
-cross-check is a workflow change for the integration coordinator.
+1. PR #509: confirm `host-quality`, `qemu-smoke`, `merge-hold` (and
+   `native-hw-inventory`) on the head, then squash-merge with the expected
+   head and confirm on `main`.
+2. Native K5 fixtures (new test stage; pins by the CI owner, C4/C5):
+   disk-1 admitted while disk 0 is in flight; no disk-1 request between a
+   disk-1 timeout and the acknowledged reset.
+3. O13 kernel write latch in the per-device broker (trigger and service
+   interface first, then a native test; keeps READ and remount FLUSH).
+4. O12 owner-binding design (catalog version, trusted identity, access
+   checks, recovery without the original disk) with B and the user/session
+   owner; O1 remembered-VERIFY store; O3/O5 catalog extension.
+5. R5: destination service binary in the test profile on disk 1 with the
+   deterministic `DEST:ID:TEST-ONLY` ID and a scripted dialog.
 
-Also open (S09 stays open): the review-2 hardening
-items in section 10 (host check pins the interrupted slot and chunk count,
-object 4's appended chunks, collection never-used test) are a small native
-follow-up. Pick the next S09 gap from
-`docs/progress.json` (`delivery_review`, criterion S09): the user-facing
-production copy/restore/export chain (production destination service,
-trusted selection/portal and per-operation enforcement), or the open items
-in section 10 of `docs/implementation/S09-L2-NATIVE-EXPORT.md`. Owner
-decisions D1–D5 and a human audit remain outside S's authority.
+Owner decisions D1–D5 and a human audit remain outside S's authority.

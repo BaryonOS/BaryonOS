@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "bd31a78ba30f28e7d668df1e56bb9b5a276a2d82",
+    "source_commit": "ad55e019ccdcff44f947a51b45f3caf0fd7df54b",
     "assessment_basis": "parent_commit",
     "branch": "claude/b05-virtio-caps-20261123",
     "task": "B05-T6 oracle-checked bounded enumeration of the virtio PCI capability walk (with B05-T5 from #511)",
