@@ -23,6 +23,11 @@ pub(super) fn run(info: &BootInfo, discovery: &Discovery) -> ! {
     if cfg!(feature = "test-hwinv-fail") {
         halt(b"HWINV:FAIL:FIXTURE\n");
     }
+    #[cfg(feature = "test-hwinv-serial-timeout")]
+    {
+        serial::write(b"HWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n");
+        serial::inject_timeout();
+    }
     let Some(vendor) = cpu_vendor() else {
         halt(b"HWINV:FAIL:CPUID\n")
     };

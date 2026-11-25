@@ -69,10 +69,10 @@ jobs:
         run: python3 -B tools/run_hw_inventory.py --case all --run-root "$NOS_BUILD_DIR/runs"
       - name: Missing-kernel loader failure halts without port 0xF4
         run: python3 -B tools/run_hw_inventory.py --case missing-kernel --run-root "$NOS_BUILD_DIR/runs"
-      - name: Panic, M2 exception and HWINV:FAIL fixtures halt without port 0xF4
+      - name: Panic, M2 exception, HWINV:FAIL and serial-timeout fixtures halt without port 0xF4
         run: |
           base="$NOS_BUILD_DIR"
-          for pair in panic:test-hwinv-panic m2-fault:test-hwinv-m2-fault hwinv-fail:test-hwinv-fail; do
+          for pair in panic:test-hwinv-panic m2-fault:test-hwinv-m2-fault hwinv-fail:test-hwinv-fail serial-timeout:test-hwinv-serial-timeout; do
             fixture="${pair%%:*}"
             export NOS_BUILD_DIR="$base/fixture-$fixture"
             python3 -B tools/build.py --kernel-feature "${pair#*:}"

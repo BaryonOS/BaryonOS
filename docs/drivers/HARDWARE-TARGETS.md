@@ -119,6 +119,10 @@ H06-T5 every terminal path of the pair (panic, M1/M2 failure, M2 exception,
 `HWINV:FAIL`, serial timeout, loader `M1:FAIL` and the loader handoff return)
 halts without writing port `0xF4`; QEMU fixtures in
 [h06-halt-terminals-20261124](../verification/h06-halt-terminals-20261124/README.md).
+H06-T7 adds the serial-timeout fixture (a labelled injection makes the UART
+report busy, so the bounded wait expires and the kernel halts silently; the
+truncated block is rejected) and checks `HLT=1` for every terminal fixture:
+[h06-serial-timeout-20261124](../verification/h06-serial-timeout-20261124/README.md).
 
 `python3 -B tools/hw_inventory.py --log <serial> --out <inventory.json>` turns
 one complete, passing `HWINV:` block into the schema-2 inventory JSON consumed
