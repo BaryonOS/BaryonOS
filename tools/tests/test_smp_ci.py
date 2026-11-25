@@ -234,8 +234,17 @@ class SmpCiAggregationTests(unittest.TestCase):
                 self.assertEqual(download[key], aggregate_download[key])
         self.assertNotIn("if", downloads[0])
         self.assertEqual(downloads[1]["if"], "${{ steps.listing.outputs.complete != 'true' }}")
-        create, listing, check = [s["run"] for s in contract if "run" in s]
-        self.assertEqual([s.get("id") for s in contract if "run" in s][1], "listing")
+        create, settle, listing, check = [s["run"] for s in contract if "run" in s]
+        self.assertEqual([s.get("id") for s in contract if "run" in s][2], "listing")
+        # #421: a bounded settle delay runs after the last upload and before the first download.
+        names = [s.get("name") for s in contract]
+        settle_step = contract[names.index("Let the artifact service settle after the uploads")]
+        self.assertEqual(settle.strip(), 'sleep "${ARTIFACT_SETTLE_SECONDS}"')
+        self.assertTrue(0 < int(settle_step["env"]["ARTIFACT_SETTLE_SECONDS"]) <= 60)
+        uploads = [i for i, s in enumerate(contract) if s.get("uses", "").startswith("actions/upload-artifact@")]
+        first_download = contract.index(downloads[0])
+        self.assertLess(max(uploads), contract.index(settle_step))
+        self.assertLess(contract.index(settle_step), first_download)
         for mutation in (None, "bytes", "layout", "nonmatching", "missing"):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
