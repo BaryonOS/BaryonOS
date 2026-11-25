@@ -48,9 +48,11 @@ review findings remain, and how can this change be safely reverted?
 
 Affected criterion/FR ID (or none), previous → new score and justification:
 
-The integrator updates the assessment in `docs/progress.json` and the associated
-progress displays **for every task, even when the score is unchanged**.
-Record `python3 tools/progress.py --write` and `python3 tools/progress.py --check`
-and their results in the verification table. Only fully satisfied criteria with
+Record an assessment **for every task, even when the score is unchanged**. An
+unchanged score adds a new `docs/progress/assessments/<YYYY-MM-DD>-<slug>.json` and
+leaves `docs/progress.json` and the generated displays untouched; only a score change
+updates the `assessment` object and regenerates the displays
+(ADR-PROGRESS-ASSESSMENTS-20261125). Record `python3 tools/progress.py --check`
+(plus `--write` for a score change) and the results in the verification table. Only fully satisfied criteria with
 appropriately stored evidence justify new points; record the actual handover
 and remaining limits in `docs/PROJECT-STATE.md`.
