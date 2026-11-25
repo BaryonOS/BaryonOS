@@ -23,7 +23,7 @@ quota is exhausted or repeatedly retry external failures.
 Keep hooks enabled. Legacy local Graphify indexing hooks conflict with hosted-only policy;
 record that conflict and preserve required validation hooks when using a safe hook path.
 Do not silently disable validation hooks or run a forbidden local index.
-Update the existing compact checkpoint and progress assessment; commit/push coherent work
+Update the existing compact checkpoint and record the progress assessment (a new `docs/progress/assessments/` file when the score is unchanged); commit/push coherent work
 and open/update a draft PR. Manual squash requires actual mandatory checks and owner
 mandate (the six workstreams hold it for their own PRs under ADR-MERGE-DELEGATION-20261123).
 Use the guarded squash/auto-merge procedure in AGENTS.md; disable auto-merge before
