@@ -663,3 +663,219 @@ fn m6_mutation_epoch_exhaustion_retains_unknown_and_ticket_never_wraps() {
     );
     assert_eq!(p, before);
 }
+
+// O13 kernel write latch (S09 2.7): table, L1 hook, L1b rule and 0x44 rule.
+fn latch_policy(entries: &[(u64, u64)]) -> Policy {
+    let mut p = Policy::new();
+    p.reset_completed(true).unwrap();
+    for &(first, count) in entries {
+        p.register_latch(first, count).unwrap();
+    }
+    p
+}
+fn published(p: &mut Policy, operation: Operation) -> Request {
+    let r = p.prepare(binding(), operation, 1 << 20, 0, 10).unwrap();
+    p.publish(r.epoch, r.ticket).unwrap();
+    r
+}
+fn latched(p: &Policy) -> [bool; LATCH_ENTRIES] {
+    p.latches().map(|e| e.is_some_and(|e| e.latched))
+}
+const W100: Operation = Operation::Write { sector: 100 };
+
+#[test]
+fn o13_register_is_add_only_and_bounded() {
+    let mut p = latch_policy(&[]);
+    assert_eq!(p.register_latch(5, 0), Err(Error::Range));
+    assert_eq!(p.register_latch(u64::MAX, 2), Err(Error::Range));
+    for i in 0..LATCH_ENTRIES as u64 {
+        p.register_latch(i * 10, 10).unwrap();
+    }
+    let before = p.latches();
+    assert_eq!(p.register_latch(100, 1), Err(Error::Exhausted));
+    assert_eq!(p.latches(), before);
+    assert!(before.iter().all(|e| e.is_some_and(|e| !e.latched)));
+}
+
+#[test]
+fn o13_empty_table_changes_nothing() {
+    let mut p = latch_policy(&[]);
+    let r = published(&mut p, W100);
+    p.complete(r.epoch, r.ticket, Completion::Io).unwrap();
+    assert_eq!(p.latches(), [None; LATCH_ENTRIES]);
+    assert!(!p.write_latched(100));
+}
+
+#[test]
+fn o13_complete_error_latches_intersecting_write_entries_only() {
+    let mut p = latch_policy(&[(90, 20), (200, 10), (100, 1)]);
+    let r = published(&mut p, W100);
+    p.complete(r.epoch, r.ticket, Completion::Io).unwrap();
+    assert_eq!(latched(&p), [true, false, true, false]);
+    assert!(p.write_latched(90) && p.write_latched(109));
+    assert!(!p.write_latched(89) && !p.write_latched(110) && !p.write_latched(200));
+}
+
+#[test]
+fn o13_successful_mutations_do_not_latch() {
+    let mut p = latch_policy(&[(0, 1 << 10)]);
+    for op in [W100, Operation::Flush] {
+        let r = published(&mut p, op);
+        p.complete(r.epoch, r.ticket, Completion::Success).unwrap();
+        p.consume(binding(), r.ticket).unwrap();
+    }
+    assert_eq!(latched(&p), [false; LATCH_ENTRIES]);
+}
+
+#[test]
+fn o13_flush_unknown_latches_whole_device_not_sector_zero() {
+    let mut p = latch_policy(&[(100, 10), (200, 10)]);
+    let r = published(&mut p, Operation::Flush);
+    p.complete(r.epoch, r.ticket, Completion::Io).unwrap();
+    assert_eq!(latched(&p), [true, true, false, false]);
+}
+
+#[test]
+fn o13_read_outcomes_never_latch() {
+    let read = Operation::Read {
+        sector: 100,
+        offset: 0,
+        length: 128,
+    };
+    let mut p = latch_policy(&[(0, 1 << 10)]);
+    let r = published(&mut p, read);
+    p.complete(r.epoch, r.ticket, Completion::Io).unwrap();
+    p.consume(binding(), r.ticket).unwrap();
+    let r = published(&mut p, read);
+    assert!(p.timeout(r.deadline));
+    p.reset_completed(true).unwrap();
+    published(&mut p, read);
+    p.exit(binding().pid).unwrap();
+    p.reset_completed(true).unwrap();
+    // A caller-passed Unknown on a READ is stored but still never latches.
+    let r = published(&mut p, read);
+    p.complete(r.epoch, r.ticket, Completion::Unknown).unwrap();
+    p.latch_operation(read);
+    assert_eq!(latched(&p), [false; LATCH_ENTRIES]);
+}
+
+#[test]
+fn o13_flush_latches_whole_device_at_every_unknown_site() {
+    let entries = [(100, 10), (200, 10)];
+    let mut p = latch_policy(&entries);
+    published(&mut p, Operation::Flush);
+    p.start_reset().unwrap();
+    assert_eq!(latched(&p), [true, true, false, false]);
+    let mut p = latch_policy(&entries);
+    let r = published(&mut p, Operation::Flush);
+    assert!(p.timeout(r.deadline));
+    assert_eq!(latched(&p), [true, true, false, false]);
+    let mut p = latch_policy(&entries);
+    published(&mut p, Operation::Flush);
+    p.exit(binding().pid).unwrap();
+    assert_eq!(latched(&p), [true, true, false, false]);
+}
+
+#[test]
+fn o13_direct_start_reset_latches_published_write() {
+    let mut p = latch_policy(&[(100, 1)]);
+    published(&mut p, W100);
+    p.start_reset().unwrap();
+    assert!(p.write_latched(100));
+}
+
+#[test]
+fn o13_timeout_latches_published_write() {
+    let mut p = latch_policy(&[(100, 1)]);
+    let r = published(&mut p, W100);
+    assert!(!p.timeout(r.deadline - 1));
+    assert!(!p.write_latched(100));
+    assert!(p.timeout(r.deadline));
+    assert!(p.write_latched(100));
+}
+
+#[test]
+fn o13_owner_exit_latches_published_uncompleted_write() {
+    let mut p = latch_policy(&[(100, 1)]);
+    published(&mut p, W100);
+    assert_eq!(p.exit(binding().pid + 1), None);
+    assert!(!p.write_latched(100));
+    p.exit(binding().pid).unwrap();
+    assert!(p.write_latched(100));
+}
+
+#[test]
+fn o13_unpublished_or_rejected_writes_do_not_latch() {
+    let mut p = latch_policy(&[(100, 1)]);
+    let r = p.prepare(binding(), W100, 1 << 20, 0, 10).unwrap();
+    p.reject_prepared(binding(), r.ticket).unwrap();
+    p.prepare(binding(), W100, 1 << 20, 0, 10).unwrap();
+    p.start_reset().unwrap();
+    p.reset_completed(true).unwrap();
+    p.prepare(binding(), W100, 1 << 20, 0, 10).unwrap();
+    p.exit(binding().pid).unwrap();
+    assert!(!p.write_latched(100));
+}
+
+#[test]
+fn o13_latch_survives_consume_reset_exit_and_quarantine() {
+    let mut p = latch_policy(&[(100, 1)]);
+    let r = published(&mut p, W100);
+    p.complete(r.epoch, r.ticket, Completion::Io).unwrap();
+    p.consume(binding(), r.ticket).unwrap();
+    p.start_reset().unwrap();
+    p.reset_completed(true).unwrap();
+    published(&mut p, Operation::Flush);
+    p.exit(binding().pid).unwrap();
+    let _ = p.reset_completed(false);
+    p.register_latch(300, 1).unwrap();
+    assert!(p.write_latched(100));
+}
+
+#[test]
+fn o13_scope_latch_requires_whole_entries() {
+    let mut p = latch_policy(&[(0, 10), (10, 10)]);
+    assert_eq!(p.latch_scope(5, 10), Err(Error::Range));
+    assert_eq!(p.latch_scope(30, 10), Err(Error::Range));
+    assert_eq!(p.latch_scope(u64::MAX, 2), Err(Error::Range));
+    assert_eq!(p.latch_scope(0, 0), Err(Error::Range));
+    assert_eq!(latched(&p), [false; LATCH_ENTRIES]);
+    assert_eq!(p.latch_scope(0, 15), Ok(()));
+    assert_eq!(latched(&p), [true, false, false, false]);
+    assert!(p.write_latched(9) && !p.write_latched(10));
+    assert_eq!(p.latch_scope(0, 15), Ok(()));
+    assert_eq!(p.latch_scope(10, 10), Ok(()));
+    assert_eq!(latched(&p), [true, true, false, false]);
+}
+
+#[test]
+fn o13_scope_latch_ignores_lane_state() {
+    let mut p = latch_policy(&[(100, 1)]);
+    published(&mut p, W100);
+    p.start_reset().unwrap();
+    let _ = p.reset_completed(false);
+    assert_eq!(p.phase(), Phase::Quarantined);
+    let mut q = latch_policy(&[(200, 1)]);
+    published(
+        &mut q,
+        Operation::Read {
+            sector: 0,
+            offset: 0,
+            length: 1,
+        },
+    );
+    q.start_reset().unwrap();
+    assert_eq!(q.latch_scope(200, 1), Ok(()));
+    assert!(q.write_latched(200));
+}
+
+#[test]
+fn o13_refusal_rule_matches_l1() {
+    let mut p = latch_policy(&[(100, 1), (200, 1)]);
+    p.latch_operation(Operation::Write { sector: 150 });
+    assert_eq!(latched(&p), [false; LATCH_ENTRIES]);
+    p.latch_operation(W100);
+    assert_eq!(latched(&p), [true, false, false, false]);
+    p.latch_operation(Operation::Flush);
+    assert_eq!(latched(&p), [true, true, false, false]);
+}

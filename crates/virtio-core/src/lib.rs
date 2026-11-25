@@ -527,12 +527,31 @@ pub enum Phase {
     Resetting,
     Quarantined,
 }
+/// Capacity of the per-device write latch table (S09 2.7, O13).
+pub const LATCH_ENTRIES: usize = 4;
+/// One destination range of the O13 kernel write latch, in absolute sectors.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LatchEntry {
+    /// First absolute sector of the destination range.
+    pub first: u64,
+    /// Number of sectors; registration guarantees `first + count` fits.
+    pub count: u64,
+    /// Open (`false`) or latched (`true`); only ever goes to `true`.
+    pub latched: bool,
+}
+impl LatchEntry {
+    const fn contains(self, sector: u64) -> bool {
+        sector >= self.first && sector - self.first < self.count
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Policy {
     phase: Phase,
     epoch: u64,
     next_ticket: u64,
     pending: Option<Request>,
+    // Add-only O13 table; no method clears an entry or a latched bit.
+    latches: [Option<LatchEntry>; LATCH_ENTRIES],
 }
 impl Default for Policy {
     fn default() -> Self {
@@ -546,6 +565,69 @@ impl Policy {
             epoch: 0,
             next_ticket: 1,
             pending: None,
+            latches: [None; LATCH_ENTRIES],
+        }
+    }
+    /// Registers an open destination range at profile creation. Add-only: a
+    /// full table, an empty or overflowing range fails and changes nothing.
+    pub fn register_latch(&mut self, first: u64, count: u64) -> Result<(), Error> {
+        if count == 0 || first.checked_add(count).is_none() {
+            return Err(Error::Range);
+        }
+        let slot = self
+            .latches
+            .iter_mut()
+            .find(|e| e.is_none())
+            .ok_or(Error::Exhausted)?;
+        *slot = Some(LatchEntry {
+            first,
+            count,
+            latched: false,
+        });
+        Ok(())
+    }
+    /// Snapshot of the latch table for markers and tests.
+    #[must_use]
+    pub const fn latches(&self) -> [Option<LatchEntry>; LATCH_ENTRIES] {
+        self.latches
+    }
+    /// True when a WRITE to this absolute sector must be refused (`Access`).
+    #[must_use]
+    pub fn write_latched(&self, sector: u64) -> bool {
+        self.latches
+            .iter()
+            .flatten()
+            .any(|e| e.latched && e.contains(sector))
+    }
+    /// L1/L1b rule: a WRITE latches the entries its sector lies in; a FLUSH
+    /// latches every entry of this device, as it carries no sector. A READ
+    /// never latches. Decided on the operation, never on `sector()`.
+    pub fn latch_operation(&mut self, operation: Operation) {
+        for e in self.latches.iter_mut().flatten() {
+            match operation {
+                Operation::Write { sector } if e.contains(sector) => e.latched = true,
+                Operation::Flush => e.latched = true,
+                _ => {}
+            }
+        }
+    }
+    /// Syscall 0x44 rule: latches every entry wholly inside the caller's
+    /// scope. With no such entry nothing changes and `Range` is returned, so a
+    /// partial holder cannot deny writes to sectors outside its right.
+    pub fn latch_scope(&mut self, first: u64, count: u64) -> Result<(), Error> {
+        let end = first.checked_add(count).ok_or(Error::Range)?;
+        let mut any = false;
+        for e in self.latches.iter_mut().flatten() {
+            // Registration checked first + count for overflow.
+            if e.first >= first && e.first + e.count <= end {
+                e.latched = true;
+                any = true;
+            }
+        }
+        if any {
+            Ok(())
+        } else {
+            Err(Error::Range)
         }
     }
     pub const fn phase(&self) -> Phase {
@@ -720,13 +802,15 @@ impl Policy {
         if !matches!(self.phase, Phase::Pending | Phase::Published) {
             return Err(Error::Offline);
         }
-        r.completion = Some(
-            if r.operation.is_mutating() && outcome != Completion::Success {
-                Completion::Unknown
-            } else {
-                outcome
-            },
-        );
+        let completion = if r.operation.is_mutating() && outcome != Completion::Success {
+            Completion::Unknown
+        } else {
+            outcome
+        };
+        r.completion = Some(completion);
+        if completion == Completion::Unknown {
+            self.latch_operation(r.operation);
+        }
         self.pending = Some(r);
         self.phase = Phase::Complete;
         Ok(())
@@ -760,11 +844,15 @@ impl Policy {
     }
     pub fn start_reset(&mut self) -> Result<(), Error> {
         if self.phase == Phase::Quarantined {
+            // No latch is missed here: a published uncompleted mutation was
+            // marked Unknown (and latched) on the way into Resetting.
             return Err(Error::Offline);
         }
         if let Some(r) = &mut self.pending {
             if r.published && r.operation.is_mutating() && r.completion.is_none() {
                 r.completion = Some(Completion::Unknown);
+                let operation = r.operation;
+                self.latch_operation(operation);
             }
         }
         self.phase = Phase::Resetting;
@@ -791,6 +879,7 @@ impl Policy {
         if r.published && r.completion.is_none() {
             if r.operation.is_mutating() {
                 r.completion = Some(Completion::Unknown);
+                self.latch_operation(r.operation);
             }
             if self.phase != Phase::Quarantined {
                 self.phase = Phase::Resetting;
