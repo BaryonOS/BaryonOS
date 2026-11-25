@@ -45,12 +45,17 @@ running, failed, cancelled, timed-out or skipped results block; a failed
 (filtered, other branch, condition false) is reported, never counted as a pass.
 With a positive `policy.budgets.pull_request_wait_minutes` it waits for running
 gates, polling with one run listing per minute, and decides once none is open or
-the budget ends; with 0 it decides at once. Gates still pending at the decision
-are listed; re-run the merge-hold job once they have finished.
+the budget ends; with 0 (the catalogue value since #494 B9) it decides at once
+and holds no runner while gates run. Gates still pending at the decision are
+listed and fail the check. merge-hold-recheck.yml (tools/merge_hold_recheck.py)
+re-runs this job once every gate run of the head has finished; a manual re-run
+remains the fallback.
 `policy.mode = "shadow"` in the base catalogue reports gates without blocking on
-them. On `merge_group`, where the selected workflows do not run,
-each member needs a successful `pull_request` merge-hold on its own head and
-a queue entry tree equal to that head tree.
+them. On `merge_group` the selected workflows also run on the queue commit,
+but this hold waits there only for host-quality and qemu-smoke and does not
+judge their gates (until D1 step 2), so each member still needs a successful
+`pull_request` merge-hold on its own head and a queue entry tree equal to that
+head tree.
 """
 
 import json
@@ -268,13 +273,22 @@ def tree(token, repo, sha):
 
 
 def completed_runs(token, repo, sha):
-    """The completed check runs on sha by name (absent or running counts as not done)."""
-    # shortcut: one page of 100 check runs; a commit with more runs waits until
-    # the deadline and fails closed. Page through if the workflows ever grow that far.
+    """The completed check runs on sha by name (absent or running counts as not done).
+
+    Every page is read: a queue commit runs every gate workflow. A run that shifts
+    between pages while paging only counts as not done, so the wait never ends early.
+    """
     url = (f"{API}/repos/{repo}/commits/{sha}/check-runs"
            f"?app_id={ACTIONS_APP_ID}&filter=latest&per_page=100")
-    return {run["name"]: run for run in call(token, url)["check_runs"]
-            if run["status"] == "completed"}
+    done, page = {}, 1
+    while True:
+        batch = call(token, f"{url}&page={page}")["check_runs"]
+        done.update({run["name"]: run for run in batch if run["status"] == "completed"})
+        if len(batch) < 100:
+            return done
+        page += 1
+        if page > MAX_PAGES:
+            raise ValueError("Too many pages")
 
 
 def unfinished(token, repo, sha, names):
@@ -291,8 +305,8 @@ def still_running(token, repo, sha, number):
     went through this same wait, so every entry ahead of it had finished. A
     `merge-hold` that ended otherwise (failed early, cancelled, runner lost)
     proves nothing about the entries ahead of it, so the walk continues. Each
-    run makes one REST request per entry walked plus one GraphQL query per
-    poll; usually that is the nearest entry only. "The rate limit for
+    run makes one REST request per check-run page of each entry walked plus one
+    GraphQL query per poll; usually that is one page of the nearest entry only. "The rate limit for
     GITHUB_TOKEN is 1,000 requests per hour per repository"
     (https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api);
     beyond it reads fail, are retried and, at the deadline, fail closed.
@@ -398,6 +412,20 @@ def expected_gates(plan):
             and row.get("blocked_by_filter") is not True]
 
 
+def hidden_input_rows(plan):
+    """Selected core and rwa gates whose own path filter hides a registered, non-metadata input."""
+    return [row for row in plan["selected"]
+            if row["class"] in SELECTABLE and row["workflow"] != GATE_WORKFLOW
+            and row.get("blocked_by_filter") is True and row.get("filter_hidden_inputs")]
+
+
+def hidden_listing(paths, limit=5):
+    # Paths come from the pull request: ASCII-escape them so no control character reaches the log,
+    # and escape % because the runner decodes %0A in ::error:: data (the step summary shows %25).
+    shown = ", ".join(json.dumps(path, ensure_ascii=True).replace("%", "%25") for path in paths[:limit])
+    return shown + (f" and {len(paths) - limit} more" if len(paths) > limit else "")
+
+
 def fetch_listing(token, url, key):
     """Every item of a paginated Actions listing ({total_count, <key>: [...]}), by id."""
     items, page, total = {}, 1, None
@@ -491,13 +519,16 @@ def runs_open(token, repo, pull, head_sha, plan):
     try:
         runs = [run for run in fetch_listing(token, url, "workflow_runs")
                 if run.get("path") in workflows and run_matches(run, repo, pull, head_sha)]
+        newest = {}
+        for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
+            order = run_order(run)  # every counted run must be orderable, the first one too
+            if run["path"] not in newest or order > run_order(newest[run["path"]]):
+                newest[run["path"]] = run
     except (OSError, ValueError, TypeError) as error:
+        # A run without a start or creation time also lands here: the wait goes on and the
+        # next full report (at the latest at the deadline) fails closed on it.
         print(f"::warning::merge-hold wait poll failed ({error}); still waiting", file=sys.stderr)
         return True
-    newest = {}
-    for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
-        if run["path"] not in newest or run_order(run) > run_order(newest[run["path"]]):
-            newest[run["path"]] = run
     return (any(run.get("status") != "completed" for run in newest.values())
             or any(row["workflow"] not in newest for row in expected_gates(plan)))
 
@@ -517,7 +548,11 @@ def gate_report(token, repo, pull, head_sha, plan):
             order = run_order(run)  # every counted run must be orderable
             if path not in newest or order > run_order(newest[path]):
                 newest[path] = run
-    passed, pending, failed = [], [], []
+    passed, pending = [], []
+    # Fail closed: a path filter may hide only metadata, never a registered input.
+    failed = [f"{row['check_name']}: its path filter hides registered input(s) "
+              f"{hidden_listing(row['filter_hidden_inputs'])}, so the gate did not run"
+              for row in hidden_input_rows(plan)]
     for workflow in workflows:
         wanted = [row for row in expected if row["workflow"] == workflow]
         run = newest.get(workflow)
@@ -614,7 +649,8 @@ def pull_request_gates(token, repo, number, head_sha):
         # A new attempt may start and finish during the next report: allow one refresh again.
         fresh = False
     skipped = [f"{row['check_name']}: not applicable (path filter)" for row in plan["selected"]
-               if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True]
+               if row["class"] in SELECTABLE and row.get("blocked_by_filter") is True
+               and not row.get("filter_hidden_inputs")]
     lines.append(f"{len(passed)} applicable gate(s) passed; {len(skipped)} filtered out; "
                  f"{len(pending)} pending; {len(failed)} failed.")
     prefix = "::error::" if enforce else "::warning::(shadow, not blocking) "
@@ -622,7 +658,10 @@ def pull_request_gates(token, repo, number, head_sha):
     lines += [prefix + "Pending: " + line for line in pending]
     if pending and not failed:
         run = os.environ.get("GITHUB_RUN_ID", "<run id>")
-        lines.append(f"{prefix}Re-run this merge-hold job after the pending gates finish "
+        lines.append(f"{prefix}For a pull request from this repository the merge-hold re-check "
+                     "(merge-hold-recheck.yml) usually re-runs this job when the pending gates "
+                     "finish; a failure with only Pending lines needs no fix. If it is not re-run, "
+                     "re-run it once the gates have finished "
                      f"(gh run rerun {run} --failed).")
     lines += ["Passed: " + line for line in passed] + ["Not a pass: " + line for line in skipped]
     return (not failed and not pending) or not enforce, lines
@@ -679,8 +718,9 @@ def merge_group_hold(token, repo):
         passed, message, labels = pull_request_hold(token, repo, number, pr_head)
         # Compare with this PR's own queue entry: that commit is what main
         # becomes when it merges, and its own group checks that tree. The
-        # selected gates run only on pull_request, so their verdict on the PR
-        # head (its merge-hold) covers the entry only when the trees are equal.
+        # selected gates also run on the queue commit, but only their
+        # pull_request verdict on the PR head (its merge-hold) is judged, and it
+        # covers the entry only when the trees are equal.
         same_tree = tree(token, repo, entry_commit) == tree(token, repo, pr_head)
         if passed and LABEL in labels and not same_tree:
             passed, message = False, (
@@ -690,7 +730,7 @@ def merge_group_hold(token, repo):
         elif passed and not same_tree:
             passed, message = False, (
                 f"The applicable gates ran on {pr_head}, but its queue entry {entry_commit} lands a "
-                "different tree, and the selected workflows do not run on merge_group. Update the branch.")
+                "different tree, and merge-hold does not yet judge the gates on merge_group. Update the branch.")
         elif passed and not pull_request_gates_passed(token, repo, pr_head, number):
             passed, message = False, (
                 f"No successful pull_request merge-hold verified the applicable gates on {pr_head}.")

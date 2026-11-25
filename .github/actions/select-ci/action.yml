@@ -23,6 +23,14 @@ inputs:
       Target branch of a pull_request or merge_group, or the pushed branch
       (--base-ref, phase 3 selector). Empty leaves branch filters unknown.
     default: ''
+  catalogue:
+    description: >-
+      Repository-relative catalogue the base selector reads from the base commit
+      (.github/<name>.toml). Empty means the enforced .github/ci-impact.toml.
+    default: ''
+  out:
+    description: Plan path, build/ci-impact/<name>.json. Empty means build/ci-impact/plan.json.
+    default: ''
 outputs:
   plan-id:
     description: The plan's plan_id.
@@ -45,6 +53,8 @@ runs:
         HEAD_SHA: ${{ inputs.head-sha }}
         BASE_SHA: ${{ inputs.base-sha }}
         BASE_REF: ${{ inputs.base-ref }}
+        CATALOGUE: ${{ inputs.catalogue }}
+        OUT: ${{ inputs.out }}
       run: |
         set -euo pipefail
         sha_re='^[0-9a-f]{40}$'
@@ -63,14 +73,22 @@ runs:
           git cat-file blob "${BASE_SHA}:tools/ci_impact.py" > "$selector"
           source=base
         fi
-        plan_path=build/ci-impact/plan.json
+        plan_path="${OUT:-build/ci-impact/plan.json}"
+        # Advisory callers (the C3 candidate shadow) name another catalogue and plan file.
+        catalogue_args=()
+        if [[ -n "${CATALOGUE:-}" ]]; then catalogue_args=(--catalogue="$CATALOGUE"); fi
+        if [[ ! "$plan_path" =~ ^build/ci-impact/[A-Za-z0-9_-]+\.json$ ]] \
+            || [[ -n "${CATALOGUE:-}" && ! "$CATALOGUE" =~ ^\.github/[A-Za-z0-9_.-]+\.toml$ ]]; then
+          echo "ci-impact: out must be build/ci-impact/<name>.json and catalogue .github/<name>.toml" >&2
+          exit 2
+        fi
         # --base-ref only when set, so a caller without one keeps the phase-2 command line.
         ref_args=()
         if [[ -n "${BASE_REF:-}" ]]; then ref_args=(--base-ref="$BASE_REF"); fi
         # `--flag=value`: a value starting with '-' must not parse as an option (exit 2).
         python3 -B -I "$selector" plan --repo "$GITHUB_WORKSPACE" --event="$EVENT_NAME" \
           --base-sha="$BASE_SHA" --head-sha="$HEAD_SHA" --tested-sha="$TESTED_SHA" \
-          "${ref_args[@]}" --out "$plan_path" --summary "$GITHUB_STEP_SUMMARY"
+          "${ref_args[@]}" "${catalogue_args[@]}" --out "$plan_path" --summary "$GITHUB_STEP_SUMMARY"
         printf '\nSelector source: `%s`. merge-hold recomputes and enforces its own plan.\n' \
           "$source" >> "$GITHUB_STEP_SUMMARY"
         python3 -B -I - "$plan_path" "$source" >> "$GITHUB_OUTPUT" <<'PY'

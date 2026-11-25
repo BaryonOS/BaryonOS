@@ -36,6 +36,18 @@ runs:
         path: build/action-contract-input/unrelated/
         if-no-files-found: error
         retention-days: 1
+    # The artifact service resolves a freshly uploaded artifact by ID only after a short
+    # lag (#421: on PR #491 the download listed artifact B 1 s after its upload, then failed
+    # with "No artifacts found for ID"). A failed download ends this composite, so the
+    # retry below cannot cover that case; a settle delay before the first attempt does.
+    # shortcut: a fixed delay, not a readiness probe; raise it or add a probe if the hard
+    # error recurs with the delay in place.
+    - name: Let the artifact service settle after the uploads
+      env:
+        ARTIFACT_SETTLE_SECONDS: '15'
+      shell: bash
+      run: |
+        sleep "${ARTIFACT_SETTLE_SECONDS}"
     - name: Download matching artifacts with aggregate inputs
       uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
       with:

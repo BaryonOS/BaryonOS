@@ -1,0 +1,1278 @@
+# CI impact CANDIDATE catalogue (advisory; #494 phase 5 C3). Contract: docs/CI-CONTRACT.md.
+#
+# ci.yml#ci-impact-shadow plans the base commit's copy of this file with the base
+# selector and preserves build/ci-impact/plan-candidate.json. No selection or
+# enforcement step reads it: merge-hold, the select jobs and the validate and
+# coverage steps of host-quality ignore it. A host-quality unit test does validate
+# it, so an invalid candidate fails host-quality, and as a .github/** path every
+# edit makes the plan full. It starts as a copy of
+# .github/ci-impact.toml; later increments put their candidate selection data here and
+# activate it only on counterexample-free shadow evidence.
+# Validate this file with `python3 -B tools/ci_impact.py validate
+# .github/ci-impact.candidate.toml`; the validate and coverage commands in the
+# copied header below check the enforced catalogue.
+#
+# CI impact catalogue (schema 1). Contract: docs/CI-CONTRACT.md.
+#
+# Phase 2b: the advisory ci-impact-shadow job in ci.yml records a plan from
+# the base copy of this file; nothing consumes the plan, so it does not change
+# which CI runs.
+# `python3 -B tools/ci_impact.py validate .github/ci-impact.toml` checks its
+# structure; `python3 -B tools/ci_impact.py coverage` reports drift against the
+# workflows and the tracked paths.
+#
+# Execution id: <workflow stem>#<job id>[/<variant id>]. Classes: core, rwa
+# (required when affected), advisory, manual, operational, publication. Full
+# mode selects only automatic core and rwa executions.
+# Structural fields (events, trigger, name, condition, needs, timeout_minutes,
+# max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
+
+schema_version = 1
+revision = 14
+
+[policy]
+mode = "select"
+# Highest precedence: any change here forces a full plan.
+always_full = [
+  ".github/**",
+  ".github/ci-impact.toml",
+  "tools/ci_impact.py",
+  "Cargo.lock",
+  "**/Cargo.lock",
+  "Cargo.toml",
+  "sdk/Cargo.toml",
+  "rust-toolchain.toml",
+  ".cargo/**",
+  "**/.cargo/**",
+  "rust-toolchain*",
+  "**/rust-toolchain*",
+  "rustfmt.toml",
+  "**/rustfmt.toml",
+  ".rustfmt.toml",
+  "**/.rustfmt.toml",
+  "clippy.toml",
+  "**/clippy.toml",
+  ".clippy.toml",
+  "**/.clippy.toml",
+  ".gitattributes",
+  # git status cleanliness checks in host-quality and native workflows read it (#494 C2).
+  ".gitignore",
+  "tools/build.py",
+  "tools/build_users.py",
+  "tools/common.py",
+  "tools/preflight.py",
+  "tools/ci_evidence.py",
+  "tools/merge_hold.py",
+]
+# Lowest precedence: a path matching any execution input is never inert, for
+# example the compiled services/keyring/vendor/*/README.md files. Equal to the
+# metadata paths-ignore of the workflows ("@metadata").
+inert = [
+  "docs/**",
+  "**.md",
+  ".github/ISSUE_TEMPLATE/**",
+  ".github/DISCUSSION_TEMPLATE/**",
+  ".github/workflows/project-classification.yml",
+  "tools/project_classification.py",
+  "tests/test_project_classification.py",
+]
+# Read only by the always-running core gates (host-quality, CodeQL). The pull_request
+# trigger of a native workflow with a @metadata push backstop may ignore inert plus these
+# paths ("@nonnative"); validate rejects a pattern here that names an always_full path.
+core_only = [
+  ".agents/**",
+  ".claude/**",
+  ".claude-plugin/**",
+  ".codex/**",
+  "plugins/**",
+  ".c8rc.json",
+  ".coveragerc",
+  ".coderabbit.yaml",
+  "LICENSE",
+  "MPL-2.0-FILES.txt",
+]
+
+[policy.events]
+pull_request = "select"
+merge_group = "full"
+push = "full"
+schedule = "full"
+workflow_dispatch = "manual"
+
+# merge-hold wait budgets (minutes), read from the trusted base. On pull_request
+# merge-hold decides at once (0) and fails with "Pending" while gates run, so it
+# holds no runner while it waits; merge-hold-recheck.yml re-runs it once the gate
+# runs of the head have finished (#494 B9, docs/CI-CONTRACT.md "Waiting"). On
+# merge_group it still waits. Both stay below the 50-minute job timeout.
+[policy.budgets]
+pull_request_wait_minutes = 0
+merge_group_wait_minutes = 45
+
+[input_sets]
+# Integrated QEMU suites: relations to individual sources are not provable, so
+# they are selected broadly (issue #494, design risk R6).
+native = [
+  "kernel/**",
+  "boot/**",
+  "crates/**",
+  "drivers/**",
+  "services/**",
+  "sdk/**",
+  "ui/**",
+  "userspace/**",
+  "experiments/**",
+  "tools/**",
+  "tests/**",
+]
+
+# Sources compiled into a crate from outside its own directory. Cargo path
+# dependencies and manifest target paths are derived by the selector; only
+# #[path], include_str!/include_bytes! and runtime CARGO_MANIFEST_DIR joins with a
+# '..' segment are registered here (coverage reports unregistered ones).
+# when = "always": the escape is compiled whenever the crate is in a closure.
+# when = "root": only when the crate is the gate's own root. Allowed only for
+# origins under tests/, benches/, examples/, src/bin/, src/main.rs or a declared
+# bin/test/example/bench target; library source needs "always" (coverage
+# reports escape-scope-mismatch otherwise).
+
+[[crate_escape]]
+crate = "sdk/examples/calculator"
+when = "always"
+inputs = ["ui/native/src/design.rs", "ui/prototype/tokens.css"]
+evidence = ["sdk/examples/calculator/src/render.rs:9", "ui/native/src/design.rs:3"]
+
+[[crate_escape]]
+crate = "sdk/examples/calculator"
+when = "root"
+inputs = ["sdk/examples/system/src/support.rs", "sdk/examples/window-session/src/probe.rs"]
+evidence = ["sdk/examples/calculator/src/main.rs:6", "sdk/examples/calculator/src/main.rs:8"]
+
+[[crate_escape]]
+crate = "sdk/examples/image-viewer"
+when = "root"
+inputs = ["services/image-codec/fixtures/**"]
+evidence = ["sdk/examples/image-viewer/tests/viewer.rs:7", "sdk/examples/image-viewer/tests/viewer.rs:8"]
+
+[[crate_escape]]
+crate = "sdk/examples/image-export"
+when = "root"
+inputs = ["services/image-codec/fixtures/**"]
+evidence = ["sdk/examples/image-export/tests/cli.rs:7", "sdk/examples/image-export/tests/export.rs:4"]
+
+[[crate_escape]]
+crate = "services/image-codec/vendor/zune-jpeg-0.5.16-rc3"
+# The includes sit in #[cfg(test)] modules of library source. `coverage` cannot see
+# cfg(test), so the registration is "always": dependents over-select, never under-select.
+when = "always"
+inputs = ["services/image-codec/test-images/**"]
+evidence = ["services/image-codec/vendor/zune-jpeg-0.5.16-rc3/src/decoder.rs:3666"]
+
+[[crate_escape]]
+crate = "crates/capability-core"
+when = "root"
+inputs = ["kernel/src/m2/m3/window_retirement.rs", "kernel/src/m2/m3/wait.rs"]
+evidence = ["crates/capability-core/tests/window_retirement.rs:3", "crates/capability-core/tests/native_wait.rs:3"]
+
+[[crate_escape]]
+crate = "services/net-stack"
+when = "root"
+inputs = ["sdk/examples/tcp-probe/src/contract.rs"]
+evidence = ["services/net-stack/tests/conversation.rs:3"]
+
+# Runtime CARGO_MANIFEST_DIR joins (phase 3, limit K5). Both crates are covered by the
+# native input set today; the registrations keep them selected if a cargo closure adds them.
+[[crate_escape]]
+crate = "services/nas/native-volume"
+when = "root"
+inputs = ["services/nas/native-probe/tests/check_volume_fixture.py"]
+evidence = ["services/nas/native-volume/tests/volume.rs:207"]
+
+[[crate_escape]]
+crate = "tools/update-tool"
+when = "root"
+inputs = ["tools/update-keys/**"]
+evidence = ["tools/update-tool/tests/roundtrip.rs:305"]
+
+[[workflow]]
+path = ".github/workflows/app-management-quality.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+# Phase 4: renders the trusted base plan into this workflow's run-* and matrix-* outputs.
+id = "select"
+name = "app-management-quality select"
+class = "core"
+activation = "automatic"
+timeout_minutes = 10
+evidence = []
+
+[[workflow.job]]
+id = "app-package-quality"
+needs = ["select"]
+condition = "${{ needs.select.outputs.run-app-package-quality == 'true' }}"
+name = "app-package-core and app-management host/target quality"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 30
+cargo = ["crates/app-package-core/Cargo.toml", "sdk/app-management/Cargo.toml"]
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/artifact-store-quality.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["pull_request", "merge_group", "push", "workflow_dispatch"]
+obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1559", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
+trigger.push = { branches = ["main"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "artifact-store-core"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 15
+cargo = ["crates/artifact-store-core/Cargo.toml"]
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/ci.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "AGENTS.md:104", anchor = "define the actual hosted gates" }, { cite = "docs/CI.md:45", anchor = "`ci.yml` deliberately has no path filters" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"] }
+trigger.push = { branches = ["main"] }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "host-quality"
+name = "host-quality"
+class = "core"
+activation = "automatic"
+timeout_minutes = 30
+ruleset_required = true
+evidence = ["coverage-report-javascript", "coverage-report-python", "coverage-report-rust"]
+
+[[workflow.job]]
+id = "qemu-smoke"
+name = "qemu-smoke"
+class = "core"
+activation = "automatic"
+timeout_minutes = 30
+ruleset_required = true
+evidence = ["qemu-smoke-evidence"]
+
+[[workflow.job]]
+id = "upload-coverage-rust"
+name = "upload-coverage-rust"
+class = "publication"
+activation = "automatic"
+condition = "${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}"
+needs = ["host-quality"]
+timeout_minutes = 10
+evidence = []
+
+[[workflow.job]]
+id = "upload-coverage-python"
+name = "upload-coverage-python"
+class = "publication"
+activation = "automatic"
+condition = "${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}"
+needs = ["host-quality"]
+timeout_minutes = 10
+evidence = []
+
+[[workflow.job]]
+id = "upload-coverage-javascript"
+name = "upload-coverage-javascript"
+class = "publication"
+activation = "automatic"
+condition = "${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}"
+needs = ["host-quality"]
+timeout_minutes = 10
+evidence = []
+
+[[workflow.job]]
+id = "ci-impact-shadow"
+name = "ci-impact-shadow"
+class = "advisory"
+activation = "automatic"
+timeout_minutes = 10
+evidence = ["ci-impact-plan"]
+
+[[workflow]]
+path = ".github/workflows/clear-stale-actions.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["push"]
+obligation = [{ cite = "tests/test_ci_workflows.py:815", anchor = "\".github/workflows/clear-stale-actions.yml\", \"cancel-orphans\"" }]
+trigger.push = { branches = ["maintenance/clear-stale-actions-20261109"], paths = [".github/workflows/clear-stale-actions.yml"] }
+
+[[workflow.job]]
+id = "cancel-orphans"
+class = "operational"
+activation = "push-branch:maintenance/clear-stale-actions-20261109"
+timeout_minutes = 15
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/codeql.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["push", "pull_request", "merge_group", "workflow_dispatch", "schedule"]
+obligation = [{ cite = "tests/test_ci_workflows.py:805", anchor = "(\".github/workflows/codeql.yml\", \"analyze\")" }]
+trigger.pull_request = { branches = ["main"] }
+trigger.push = { branches = ["main"] }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "analyze"
+name = "Analyze (${{ matrix.language }})"
+class = "core"
+activation = "automatic"
+timeout_minutes = 60
+ruleset_required = true
+evidence = []
+variant = [
+  { id = "actions", check_name = "Analyze (actions)", matrix = { language = "actions" }, evidence = [] },
+  { id = "javascript-typescript", check_name = "Analyze (javascript-typescript)", matrix = { language = "javascript-typescript" }, evidence = [] },
+  { id = "python", check_name = "Analyze (python)", matrix = { language = "python" }, evidence = [] },
+  { id = "rust", check_name = "Analyze (rust)", matrix = { language = "rust" }, evidence = [] },
+]
+
+[[workflow]]
+path = ".github/workflows/component-leaves.yml"
+owner = "ci-owner"
+granularity = "variant"
+events = ["pull_request", "merge_group", "push", "workflow_dispatch"]
+obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1551", anchor = "leaves = next(wf for wf in catalogue[\"workflow\"] if wf[\"path\"] == \".github/workflows/component-leaves.yml\")" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+# Phase 4: renders the trusted base plan into this workflow's run-* and matrix-* outputs.
+id = "select"
+name = "component-leaves select"
+class = "core"
+activation = "automatic"
+timeout_minutes = 10
+evidence = []
+
+[[workflow.job]]
+id = "component-quality"
+needs = ["select"]
+condition = "${{ needs.select.outputs.run-component-quality == 'true' }}"
+name = "component-quality (${{ matrix.component }})"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 15
+max_parallel = 4
+evidence = []
+
+[[workflow.job.variant]]
+id = "ai-model-reader"
+check_name = "component-quality (ai-model-reader)"
+matrix = { component = "ai-model-reader", manifest = "experiments/ai/model-store-contract/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["experiments/ai/model-store-contract/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "ai-reference-forward"
+check_name = "component-quality (ai-reference-forward)"
+matrix = { component = "ai-reference-forward", manifest = "experiments/ai/reference-forward/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["experiments/ai/reference-forward/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "image-viewer"
+check_name = "component-quality (image-viewer)"
+matrix = { component = "image-viewer", manifest = "sdk/examples/image-viewer/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["sdk/examples/image-viewer/Cargo.toml"]
+inputs = ["services/image-codec/fixtures/**"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "virtio-snd"
+check_name = "component-quality (virtio-snd)"
+matrix = { component = "virtio-snd", manifest = "drivers/virtio-snd/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["drivers/virtio-snd/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "power-lifecycle-core"
+check_name = "component-quality (power-lifecycle-core)"
+matrix = { component = "power-lifecycle-core", manifest = "crates/power-lifecycle-core/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["crates/power-lifecycle-core/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "acpi-power"
+check_name = "component-quality (acpi-power)"
+matrix = { component = "acpi-power", manifest = "drivers/acpi-power/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["drivers/acpi-power/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "usb"
+check_name = "component-quality (usb)"
+matrix = { component = "usb", manifest = "drivers/usb/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["drivers/usb/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "document-import"
+check_name = "component-quality (document-import)"
+matrix = { component = "document-import", manifest = "sdk/examples/document-import/Cargo.toml", toolchain = "1.100.0", features = "--features host-cli" }
+cargo = ["sdk/examples/document-import/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "document-export"
+check_name = "component-quality (document-export)"
+matrix = { component = "document-export", manifest = "sdk/examples/document-export/Cargo.toml", toolchain = "1.100.0", features = "--features host-cli" }
+cargo = ["sdk/examples/document-export/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "image-crop"
+check_name = "component-quality (image-crop)"
+matrix = { component = "image-crop", manifest = "sdk/examples/image-crop/Cargo.toml", toolchain = "1.100.0", features = "--features host-cli" }
+cargo = ["sdk/examples/image-crop/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "image-export"
+check_name = "component-quality (image-export)"
+matrix = { component = "image-export", manifest = "sdk/examples/image-export/Cargo.toml", toolchain = "1.100.0", features = "--features host-cli" }
+cargo = ["sdk/examples/image-export/Cargo.toml"]
+inputs = ["services/image-codec/fixtures/**"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "audio-clip"
+check_name = "component-quality (audio-clip)"
+matrix = { component = "audio-clip", manifest = "sdk/examples/audio-clip/Cargo.toml", toolchain = "1.100.0", features = "--features host-cli" }
+cargo = ["sdk/examples/audio-clip/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "presentation"
+check_name = "component-quality (presentation)"
+matrix = { component = "presentation", manifest = "sdk/examples/presentation/Cargo.toml", toolchain = "1.100.0", features = "--features host-cli" }
+cargo = ["sdk/examples/presentation/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "spreadsheet"
+check_name = "component-quality (spreadsheet)"
+matrix = { component = "spreadsheet", manifest = "sdk/examples/spreadsheet/Cargo.toml", toolchain = "1.100.0", features = "--features host-cli" }
+cargo = ["sdk/examples/spreadsheet/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "table-editor"
+check_name = "component-quality (table-editor)"
+matrix = { component = "table-editor", manifest = "sdk/examples/table-editor/Cargo.toml", toolchain = "1.100.0", features = "--features host-cli" }
+cargo = ["sdk/examples/table-editor/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
+id = "net-config"
+check_name = "component-quality (net-config)"
+matrix = { component = "net-config", manifest = "services/net-config/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["services/net-config/Cargo.toml"]
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/copilot-setup-steps.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request"]
+obligation = [{ cite = "docs/CI.md:168", anchor = "The required job ID is `copilot-setup-steps`" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths = [".github/workflows/copilot-setup-steps.yml", ".github/actions/setup-python/**", ".github/actions/setup-qemu/**", "rust-toolchain.toml"] }
+
+[[workflow.job]]
+id = "copilot-setup-steps"
+class = "advisory"
+activation = "automatic"
+timeout_minutes = 30
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/entropy-keys.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:121", anchor = "Entropy and key management**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "b01-native-supervisor"
+name = "b01-native-supervisor"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 40
+input_sets = ["native"]
+evidence = ["b01-supervisor-reports"]
+
+[[workflow]]
+path = ".github/workflows/kvm-pilot.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch"]
+obligation = [{ cite = "tests/test_ci_workflows.py:696", anchor = "self.workflows[\".github/workflows/kvm-pilot.yml\"][\"jobs\"][\"kvm-pilot\"]" }]
+
+[[workflow.job]]
+id = "kvm-pilot"
+name = "kvm-pilot-${{ matrix.gate }}"
+class = "manual"
+activation = "dispatch"
+timeout_minutes = 75
+evidence = []
+variant = [
+  { id = "system", check_name = "kvm-pilot-system", matrix = { gate = "system" }, evidence = ["kvm-pilot-system"] },
+  { id = "volume", check_name = "kvm-pilot-volume", matrix = { gate = "volume" }, evidence = ["kvm-pilot-volume"] },
+  { id = "window", check_name = "kvm-pilot-window", matrix = { gate = "window" }, evidence = ["kvm-pilot-window"] },
+]
+
+[[workflow]]
+path = ".github/workflows/materiaal-probe.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request"]
+obligation = [{ cite = "tests/test_ci_workflows.py:1497", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
+trigger.pull_request = { types = ["opened", "reopened", "synchronize", "labeled", "ready_for_review"], branches = ["main"] }
+
+[[workflow.job]]
+id = "materiaal-probe"
+class = "manual"
+activation = "label:acceptance-materiaal-probe"
+condition = "${{ github.event_name == 'workflow_dispatch' ||\n    contains(github.event.pull_request.labels.*.name, 'acceptance-materiaal-probe') }}"
+timeout_minutes = 40
+evidence = ["materiaal-probe-evidence"]
+
+[[workflow]]
+# Re-runs a failed or cancelled merge-hold once the gate runs of its head have
+# finished (#494 B9); never a gate, never selected.
+path = ".github/workflows/merge-hold-recheck.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_run"]
+obligation = []
+
+[[workflow.job]]
+id = "recheck"
+class = "operational"
+activation = "workflow-run"
+condition = "github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository.full_name == github.repository"
+timeout_minutes = 5
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/merge-hold.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["pull_request", "merge_group"]
+obligation = [{ cite = "docs/DECISIONS.md:1693", anchor = "`.github/workflows/merge-hold.yml` runs `tools/merge_hold.py`" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened", "labeled", "unlabeled"] }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "merge-hold"
+name = "merge-hold"
+class = "core"
+activation = "automatic"
+timeout_minutes = 50
+ruleset_required = true
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/nas-core.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:421", anchor = "| Native client and NAS roles pair with verified identity |" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "nas-workspace"
+name = "nas-${{ matrix.crate }}-host-target"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 10
+input_sets = ["native"]
+evidence = []
+variant = [
+  { id = "native-core", check_name = "nas-native-core-host-target", matrix = { crate = "native-core" }, evidence = [] },
+  { id = "native-volume", check_name = "nas-native-volume-host-target", matrix = { crate = "native-volume" }, evidence = [] },
+  { id = "native-probe", check_name = "nas-native-probe-host-target", matrix = { crate = "native-probe" }, evidence = [] },
+  { id = "native-client", check_name = "nas-native-client-host-target", matrix = { crate = "native-client" }, evidence = [] },
+]
+
+[[workflow.job]]
+id = "nas-native-normal-cold"
+name = "nas-native-normal-cold"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 20
+input_sets = ["native"]
+evidence = ["nas-native-normal-cold-evidence"]
+
+[[workflow]]
+path = ".github/workflows/native-display-input.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1560", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "native-display-input"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 30
+input_sets = ["native"]
+evidence = ["native-display-input-evidence"]
+
+[[workflow]]
+path = ".github/workflows/native-foundation.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "kernel/AGENTS.md:7", anchor = "native gate is the workflow job that builds its feature" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "native-foundation"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 40
+input_sets = ["native"]
+evidence = ["native-foundation-evidence"]
+
+[[workflow]]
+path = ".github/workflows/native-hid-input.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:91", anchor = "Keyboard, mouse, and USB**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "native-hid-input"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 20
+input_sets = ["native"]
+# tools/tokenguard.py runs this core_only script for the builds and boots (#494 C1, D-2).
+inputs = ["plugins/token-guard/skills/token-guard/scripts/**"]
+evidence = ["native-hid-input-evidence"]
+
+[[workflow]]
+path = ".github/workflows/native-hw-inventory.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:95", anchor = "Physical support matrix**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "native-hw-inventory"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 25
+input_sets = ["native"]
+evidence = ["native-hw-inventory-evidence"]
+
+[[workflow]]
+path = ".github/workflows/native-power.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "docs/PROGRESS.md:94", anchor = "Power management and sleep/wake**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "native-power"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 15
+input_sets = ["native"]
+evidence = ["native-power-evidence"]
+
+[[workflow.job]]
+id = "power-system-gate"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 45
+input_sets = ["native"]
+evidence = ["power-system-gate-report"]
+
+[[workflow]]
+path = ".github/workflows/native-rtc.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "native-rtc"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 15
+input_sets = ["native"]
+evidence = ["native-rtc-evidence"]
+
+[[workflow]]
+path = ".github/workflows/native-smp.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:69", anchor = "Multiple processor cores**" }, { cite = "userspace/AGENTS.md:4", anchor = "runs in `native-smp.yml`" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "artifact-download-contract"
+name = "Artifact download contract (fixtures only)"
+class = "rwa"
+activation = "automatic"
+condition = "${{ github.event_name != 'workflow_dispatch' }}"
+timeout_minutes = 5
+input_sets = ["native"]
+evidence = []
+
+[[workflow.job]]
+id = "native-smp"
+class = "rwa"
+activation = "automatic"
+condition = "${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}"
+timeout_minutes = 30
+input_sets = ["native"]
+evidence = ["native-smp-evidence"]
+
+[[workflow.job]]
+id = "smp-environment-probe"
+name = "SMP Ubuntu 26.04 and K07 probe"
+class = "manual"
+activation = "dispatch"
+condition = "${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}"
+timeout_minutes = 30
+evidence = ["runner-environment-probe"]
+
+[[workflow.job]]
+id = "smp-case-50"
+name = "SMP 50/50 (${{ matrix.case }})"
+class = "manual"
+activation = "dispatch"
+condition = "${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}"
+needs = ["smp-environment-probe"]
+timeout_minutes = 330
+max_parallel = 10
+evidence = []
+variant = [
+  { id = "one", check_name = "SMP 50/50 (one)", matrix = { case = "one" }, evidence = ["smp-case-one"] },
+  { id = "two-single", check_name = "SMP 50/50 (two-single)", matrix = { case = "two-single" }, evidence = ["smp-case-two-single"] },
+  { id = "four", check_name = "SMP 50/50 (four)", matrix = { case = "four" }, evidence = ["smp-case-four"] },
+  { id = "eight", check_name = "SMP 50/50 (eight)", matrix = { case = "eight" }, evidence = ["smp-case-eight"] },
+  { id = "nine-capacity", check_name = "SMP 50/50 (nine-capacity)", matrix = { case = "nine-capacity" }, evidence = ["smp-case-nine-capacity"] },
+  { id = "duplicate-madt", check_name = "SMP 50/50 (duplicate-madt)", matrix = { case = "duplicate-madt" }, evidence = ["smp-case-duplicate-madt"] },
+  { id = "ap-stall", check_name = "SMP 50/50 (ap-stall)", matrix = { case = "ap-stall" }, evidence = ["smp-case-ap-stall"] },
+  { id = "ap-mismatch", check_name = "SMP 50/50 (ap-mismatch)", matrix = { case = "ap-mismatch" }, evidence = ["smp-case-ap-mismatch"] },
+  { id = "ap-ipi-deaf", check_name = "SMP 50/50 (ap-ipi-deaf)", matrix = { case = "ap-ipi-deaf" }, evidence = ["smp-case-ap-ipi-deaf"] },
+  { id = "ap-nmi-ist", check_name = "SMP 50/50 (ap-nmi-ist)", matrix = { case = "ap-nmi-ist" }, evidence = ["smp-case-ap-nmi-ist"] },
+  { id = "ap-double-fault-ist", check_name = "SMP 50/50 (ap-double-fault-ist)", matrix = { case = "ap-double-fault-ist" }, evidence = ["smp-case-ap-double-fault-ist"] },
+  { id = "ap-shootdown-deaf", check_name = "SMP 50/50 (ap-shootdown-deaf)", matrix = { case = "ap-shootdown-deaf" }, evidence = ["smp-case-ap-shootdown-deaf"] },
+  { id = "shootdown-skipped-control", check_name = "SMP 50/50 (shootdown-skipped-control)", matrix = { case = "shootdown-skipped-control" }, evidence = ["smp-case-shootdown-skipped-control"] },
+  { id = "ap-timer-dead", check_name = "SMP 50/50 (ap-timer-dead)", matrix = { case = "ap-timer-dead" }, evidence = ["smp-case-ap-timer-dead"] },
+  { id = "lockdep-order", check_name = "SMP 50/50 (lockdep-order)", matrix = { case = "lockdep-order" }, evidence = ["smp-case-lockdep-order"] },
+  { id = "spin-irq-off-control", check_name = "SMP 50/50 (spin-irq-off-control)", matrix = { case = "spin-irq-off-control" }, evidence = ["smp-case-spin-irq-off-control"] },
+  { id = "held-across-switch", check_name = "SMP 50/50 (held-across-switch)", matrix = { case = "held-across-switch" }, evidence = ["smp-case-held-across-switch"] },
+  { id = "double-run", check_name = "SMP 50/50 (double-run)", matrix = { case = "double-run" }, evidence = ["smp-case-double-run"] },
+  { id = "gs-user", check_name = "SMP 50/50 (gs-user)", matrix = { case = "gs-user" }, evidence = ["smp-case-gs-user"] },
+  { id = "gs-iret-fault", check_name = "SMP 50/50 (gs-iret-fault)", matrix = { case = "gs-iret-fault" }, evidence = ["smp-case-gs-iret-fault"] },
+  { id = "gs-nmi-user", check_name = "SMP 50/50 (gs-nmi-user)", matrix = { case = "gs-nmi-user" }, evidence = ["smp-case-gs-nmi-user"] },
+  { id = "shared-scratch", check_name = "SMP 50/50 (shared-scratch)", matrix = { case = "shared-scratch" }, evidence = ["smp-case-shared-scratch"] },
+  { id = "lock-in-handler", check_name = "SMP 50/50 (lock-in-handler)", matrix = { case = "lock-in-handler" }, evidence = ["smp-case-lock-in-handler"] },
+  { id = "lockpair-order", check_name = "SMP 50/50 (lockpair-order)", matrix = { case = "lockpair-order" }, evidence = ["smp-case-lockpair-order"] },
+  { id = "resched-deaf", check_name = "SMP 50/50 (resched-deaf)", matrix = { case = "resched-deaf" }, evidence = ["smp-case-resched-deaf"] },
+  { id = "icr-race-control", check_name = "SMP 50/50 (icr-race-control)", matrix = { case = "icr-race-control" }, evidence = ["smp-case-icr-race-control"] },
+  { id = "quarantine-lock-held", check_name = "SMP 50/50 (quarantine-lock-held)", matrix = { case = "quarantine-lock-held" }, evidence = ["smp-case-quarantine-lock-held"] },
+  { id = "quarantine-lock-pending", check_name = "SMP 50/50 (quarantine-lock-pending)", matrix = { case = "quarantine-lock-pending" }, evidence = ["smp-case-quarantine-lock-pending"] },
+  { id = "quarantine-sched-busy", check_name = "SMP 50/50 (quarantine-sched-busy)", matrix = { case = "quarantine-sched-busy" }, evidence = ["smp-case-quarantine-sched-busy"] },
+  { id = "bsp-spin-irq-off-control", check_name = "SMP 50/50 (bsp-spin-irq-off-control)", matrix = { case = "bsp-spin-irq-off-control" }, evidence = ["smp-case-bsp-spin-irq-off-control"] },
+  { id = "proc-shootdown-deaf", check_name = "SMP 50/50 (proc-shootdown-deaf)", matrix = { case = "proc-shootdown-deaf" }, evidence = ["smp-case-proc-shootdown-deaf"] },
+  { id = "proc-no-shootdown-control", check_name = "SMP 50/50 (proc-no-shootdown-control)", matrix = { case = "proc-no-shootdown-control" }, evidence = ["smp-case-proc-no-shootdown-control"] },
+  { id = "lock-stuck", check_name = "SMP 50/50 (lock-stuck)", matrix = { case = "lock-stuck" }, evidence = ["smp-case-lock-stuck"] },
+  { id = "sync-stall", check_name = "SMP 50/50 (sync-stall)", matrix = { case = "sync-stall" }, evidence = ["smp-case-sync-stall"] },
+  { id = "sync-slow", check_name = "SMP 50/50 (sync-slow)", matrix = { case = "sync-slow" }, evidence = ["smp-case-sync-slow"] },
+  { id = "sync-lost-update", check_name = "SMP 50/50 (sync-lost-update)", matrix = { case = "sync-lost-update" }, evidence = ["smp-case-sync-lost-update"] },
+  { id = "clock-masked", check_name = "SMP 50/50 (clock-masked)", matrix = { case = "clock-masked" }, evidence = ["smp-case-clock-masked"] },
+  { id = "clock-divisor", check_name = "SMP 50/50 (clock-divisor)", matrix = { case = "clock-divisor" }, evidence = ["smp-case-clock-divisor"] },
+  { id = "clock-other-cpu", check_name = "SMP 50/50 (clock-other-cpu)", matrix = { case = "clock-other-cpu" }, evidence = ["smp-case-clock-other-cpu"] },
+  { id = "scratch-stall", check_name = "SMP 50/50 (scratch-stall)", matrix = { case = "scratch-stall" }, evidence = ["smp-case-scratch-stall"] },
+  { id = "scratch-slow", check_name = "SMP 50/50 (scratch-slow)", matrix = { case = "scratch-slow" }, evidence = ["smp-case-scratch-slow"] },
+  { id = "m3-one", check_name = "SMP 50/50 (m3-one)", matrix = { case = "m3-one" }, evidence = ["smp-case-m3-one"] },
+  { id = "m3-one-multi", check_name = "SMP 50/50 (m3-one-multi)", matrix = { case = "m3-one-multi" }, evidence = ["smp-case-m3-one-multi"] },
+  { id = "m3-two-single", check_name = "SMP 50/50 (m3-two-single)", matrix = { case = "m3-two-single" }, evidence = ["smp-case-m3-two-single"] },
+  { id = "m3-two", check_name = "SMP 50/50 (m3-two)", matrix = { case = "m3-two" }, evidence = ["smp-case-m3-two"] },
+  { id = "m3-four-single", check_name = "SMP 50/50 (m3-four-single)", matrix = { case = "m3-four-single" }, evidence = ["smp-case-m3-four-single"] },
+  { id = "m3-four", check_name = "SMP 50/50 (m3-four)", matrix = { case = "m3-four" }, evidence = ["smp-case-m3-four"] },
+  { id = "m3-eight-single", check_name = "SMP 50/50 (m3-eight-single)", matrix = { case = "m3-eight-single" }, evidence = ["smp-case-m3-eight-single"] },
+  { id = "m3-eight", check_name = "SMP 50/50 (m3-eight)", matrix = { case = "m3-eight" }, evidence = ["smp-case-m3-eight"] },
+  { id = "m3-ipc-four-single", check_name = "SMP 50/50 (m3-ipc-four-single)", matrix = { case = "m3-ipc-four-single" }, evidence = ["smp-case-m3-ipc-four-single"] },
+  { id = "m3-ipc-four", check_name = "SMP 50/50 (m3-ipc-four)", matrix = { case = "m3-ipc-four" }, evidence = ["smp-case-m3-ipc-four"] },
+  { id = "m3-migrate-four-single", check_name = "SMP 50/50 (m3-migrate-four-single)", matrix = { case = "m3-migrate-four-single" }, evidence = ["smp-case-m3-migrate-four-single"] },
+  { id = "m3-migrate-four", check_name = "SMP 50/50 (m3-migrate-four)", matrix = { case = "m3-migrate-four" }, evidence = ["smp-case-m3-migrate-four"] },
+  { id = "m3-migrate-eight-single", check_name = "SMP 50/50 (m3-migrate-eight-single)", matrix = { case = "m3-migrate-eight-single" }, evidence = ["smp-case-m3-migrate-eight-single"] },
+  { id = "m3-migrate-eight", check_name = "SMP 50/50 (m3-migrate-eight)", matrix = { case = "m3-migrate-eight" }, evidence = ["smp-case-m3-migrate-eight"] },
+  { id = "m3-canary-control", check_name = "SMP 50/50 (m3-canary-control)", matrix = { case = "m3-canary-control" }, evidence = ["smp-case-m3-canary-control"] },
+  { id = "m3-fault-ap2", check_name = "SMP 50/50 (m3-fault-ap2)", matrix = { case = "m3-fault-ap2" }, evidence = ["smp-case-m3-fault-ap2"] },
+  { id = "m3-fpu-skip-control", check_name = "SMP 50/50 (m3-fpu-skip-control)", matrix = { case = "m3-fpu-skip-control" }, evidence = ["smp-case-m3-fpu-skip-control"] },
+  { id = "serial-unlocked-control", check_name = "SMP 50/50 (serial-unlocked-control)", matrix = { case = "serial-unlocked-control" }, evidence = ["smp-case-serial-unlocked-control"] },
+  { id = "m3-load-one", check_name = "SMP 50/50 (m3-load-one)", matrix = { case = "m3-load-one" }, evidence = ["smp-case-m3-load-one"] },
+  { id = "m3-load-one-multi", check_name = "SMP 50/50 (m3-load-one-multi)", matrix = { case = "m3-load-one-multi" }, evidence = ["smp-case-m3-load-one-multi"] },
+  { id = "m3-load-two-single", check_name = "SMP 50/50 (m3-load-two-single)", matrix = { case = "m3-load-two-single" }, evidence = ["smp-case-m3-load-two-single"] },
+  { id = "m3-load-two", check_name = "SMP 50/50 (m3-load-two)", matrix = { case = "m3-load-two" }, evidence = ["smp-case-m3-load-two"] },
+  { id = "m3-load-four-single", check_name = "SMP 50/50 (m3-load-four-single)", matrix = { case = "m3-load-four-single" }, evidence = ["smp-case-m3-load-four-single"] },
+  { id = "m3-load-four", check_name = "SMP 50/50 (m3-load-four)", matrix = { case = "m3-load-four" }, evidence = ["smp-case-m3-load-four"] },
+  { id = "m3-load-eight-single", check_name = "SMP 50/50 (m3-load-eight-single)", matrix = { case = "m3-load-eight-single" }, evidence = ["smp-case-m3-load-eight-single"] },
+  { id = "m3-load-eight", check_name = "SMP 50/50 (m3-load-eight)", matrix = { case = "m3-load-eight" }, evidence = ["smp-case-m3-load-eight"] },
+  { id = "m4-quotas-four", check_name = "SMP 50/50 (m4-quotas-four)", matrix = { case = "m4-quotas-four" }, evidence = ["smp-case-m4-quotas-four"] },
+  { id = "qsim-four", check_name = "SMP 50/50 (qsim-four)", matrix = { case = "qsim-four" }, evidence = ["smp-case-qsim-four"] },
+  { id = "m3-kill-four", check_name = "SMP 50/50 (m3-kill-four)", matrix = { case = "m3-kill-four" }, evidence = ["smp-case-m3-kill-four"] },
+  { id = "m3-unmap-four", check_name = "SMP 50/50 (m3-unmap-four)", matrix = { case = "m3-unmap-four" }, evidence = ["smp-case-m3-unmap-four"] },
+  { id = "m3-unmap-control", check_name = "SMP 50/50 (m3-unmap-control)", matrix = { case = "m3-unmap-control" }, evidence = ["smp-case-m3-unmap-control"] },
+  { id = "m3-recovery-four", check_name = "SMP 50/50 (m3-recovery-four)", matrix = { case = "m3-recovery-four" }, evidence = ["smp-case-m3-recovery-four"] },
+]
+
+[[workflow.job]]
+id = "diagnostic-margin"
+name = "DIAGNOSTIC margins (${{ matrix.case }})"
+class = "manual"
+activation = "dispatch"
+condition = "${{ github.event_name == 'workflow_dispatch' && inputs.margin_diagnostic }}"
+timeout_minutes = 330
+max_parallel = 10
+evidence = []
+variant = [
+  { id = "*", dynamic = true, check_name = "DIAGNOSTIC margins (${{ matrix.case }})", matrix = { case = "${{ fromJSON(inputs.margin_cases) }}" }, evidence = ["DIAGNOSTIC-NOT-ACCEPTANCE-smp-margin-${{ matrix.case }}-${{ github.run_id }}-${{ github.run_attempt }}"] },
+]
+
+[[workflow.job]]
+id = "diagnostic-gate-rehearsal"
+name = "DIAGNOSTIC final gate rehearsal"
+class = "manual"
+activation = "dispatch"
+condition = "${{ github.event_name == 'workflow_dispatch' && inputs.margin_diagnostic }}"
+timeout_minutes = 360
+evidence = ["DIAGNOSTIC-NOT-ACCEPTANCE-smp-gate-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}"]
+
+[[workflow.job]]
+id = "smp-soak-50"
+name = "SMP soak 5/50 (shard ${{ matrix.shard }})"
+class = "manual"
+activation = "dispatch"
+condition = "${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}"
+needs = ["smp-environment-probe"]
+timeout_minutes = 90
+max_parallel = 10
+evidence = []
+variant = [
+  { id = "0", check_name = "SMP soak 5/50 (shard 0)", matrix = { shard = 0 }, evidence = ["smp-soak-0"] },
+  { id = "1", check_name = "SMP soak 5/50 (shard 1)", matrix = { shard = 1 }, evidence = ["smp-soak-1"] },
+  { id = "2", check_name = "SMP soak 5/50 (shard 2)", matrix = { shard = 2 }, evidence = ["smp-soak-2"] },
+  { id = "3", check_name = "SMP soak 5/50 (shard 3)", matrix = { shard = 3 }, evidence = ["smp-soak-3"] },
+  { id = "4", check_name = "SMP soak 5/50 (shard 4)", matrix = { shard = 4 }, evidence = ["smp-soak-4"] },
+  { id = "5", check_name = "SMP soak 5/50 (shard 5)", matrix = { shard = 5 }, evidence = ["smp-soak-5"] },
+  { id = "6", check_name = "SMP soak 5/50 (shard 6)", matrix = { shard = 6 }, evidence = ["smp-soak-6"] },
+  { id = "7", check_name = "SMP soak 5/50 (shard 7)", matrix = { shard = 7 }, evidence = ["smp-soak-7"] },
+  { id = "8", check_name = "SMP soak 5/50 (shard 8)", matrix = { shard = 8 }, evidence = ["smp-soak-8"] },
+  { id = "9", check_name = "SMP soak 5/50 (shard 9)", matrix = { shard = 9 }, evidence = ["smp-soak-9"] },
+]
+
+[[workflow.job]]
+id = "smp-matrix-aggregate"
+name = "SMP section 9 aggregate 74x50"
+class = "manual"
+activation = "dispatch"
+condition = "${{ always() && github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}"
+needs = ["smp-case-50", "smp-soak-50"]
+timeout_minutes = 30
+evidence = ["smp-section9-matrix-report"]
+
+[[workflow.job]]
+id = "smp-final-gate"
+name = "SMP final repository gate"
+class = "manual"
+activation = "dispatch"
+condition = "${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}"
+needs = ["smp-matrix-aggregate"]
+timeout_minutes = 360
+evidence = ["smp-section9-final-gate"]
+
+[[workflow.job]]
+id = "diagnostic-clock"
+name = "DIAGNOSTIC ONLY — m3-one-multi 50 traced repetitions"
+class = "manual"
+activation = "dispatch"
+condition = "${{ github.event_name == 'workflow_dispatch' && inputs.clock_diagnostic && !inputs.margin_diagnostic }}"
+timeout_minutes = 90
+evidence = ["DIAGNOSTIC-NOT-ACCEPTANCE-smp-clock-${{ github.run_id }}-${{ github.run_attempt }}"]
+
+[[workflow.job]]
+id = "experimental-m3-m4-smp"
+name = "experimental-m3-m4-smp"
+class = "rwa"
+activation = "automatic"
+condition = "${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}"
+timeout_minutes = 45
+input_sets = ["native"]
+evidence = ["experimental-smp-evidence"]
+
+[[workflow]]
+path = ".github/workflows/native-system.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "tests/test_ci_workflows.py:772", anchor = "system = self.workflows[\".github/workflows/native-system.yml\"]" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "native-system"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 55
+input_sets = ["native"]
+evidence = ["native-system-evidence"]
+
+[[workflow]]
+path = ".github/workflows/native-window-session.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:244", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1474", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "host-checks"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 30
+input_sets = ["native"]
+evidence = ["native-window-session-host-checks-evidence"]
+
+[[workflow.job]]
+id = "native-window-session"
+name = "native-window-session (${{ matrix.leg }})"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = "${{ matrix.timeout }}"
+max_parallel = 3
+input_sets = ["native"]
+evidence = []
+variant = [
+  { id = "native-scale1", check_name = "native-window-session (native-scale1)", matrix = { leg = "native-scale1", mode = "native", scale = 1, probe_feature = "native-window-session-probe", proof = "native-window-scale-1-proof", timeout = 45 }, evidence = ["native-window-library-cold-proof", "native-window-scale-1-proof", "native-window-session-native-scale1-evidence"] },
+  { id = "native-scale2", check_name = "native-window-session (native-scale2)", matrix = { leg = "native-scale2", mode = "native", scale = 2, probe_feature = "native-window-session-hidpi-probe", proof = "native-window-scale-2-proof", timeout = 60 }, evidence = ["native-window-library-cold-proof", "native-window-scale-2-proof", "native-window-session-native-scale2-evidence"] },
+  { id = "library", check_name = "native-window-session (library)", matrix = { leg = "library", mode = "library", scale = 1, probe_feature = "native-window-session-probe", proof = "native-window-library-write-proof", timeout = 75 }, evidence = ["native-window-library-cold-proof", "native-window-library-write-proof", "native-window-session-library-evidence"] },
+  { id = "switcher-scale1", check_name = "native-window-session (switcher-scale1)", matrix = { leg = "switcher-scale1", mode = "switcher", scale = 1, probe_feature = "native-window-session-probe", proof = "native-window-switcher-scale1-proof", timeout = 45 }, evidence = ["native-window-library-cold-proof", "native-window-session-switcher-scale1-evidence", "native-window-switcher-scale1-proof"] },
+  { id = "switcher-scale2", check_name = "native-window-session (switcher-scale2)", matrix = { leg = "switcher-scale2", mode = "switcher", scale = 2, probe_feature = "native-window-session-hidpi-probe", proof = "native-window-switcher-scale2-proof", timeout = 45 }, evidence = ["native-window-library-cold-proof", "native-window-session-switcher-scale2-evidence", "native-window-switcher-scale2-proof"] },
+]
+
+[[workflow.job]]
+id = "readonly-compile"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 20
+input_sets = ["native"]
+evidence = ["native-window-session-readonly-compile-evidence"]
+
+[[workflow.job]]
+id = "normal-and-package"
+class = "rwa"
+activation = "automatic"
+needs = ["host-checks", "native-window-session", "readonly-compile"]
+timeout_minutes = 20
+input_sets = ["native"]
+evidence = []
+variant = [
+  { id = "1", check_name = "normal-and-package (1)", matrix = { scale = 1 }, evidence = ["native-window-session-scale-1-evidence-and-windows-bundle"] },
+  { id = "2", check_name = "normal-and-package (2)", matrix = { scale = 2 }, evidence = ["native-window-session-scale-2-evidence-and-windows-bundle"] },
+]
+
+[[workflow]]
+path = ".github/workflows/native-xhci.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:91", anchor = "Keyboard, mouse, and USB**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "native-xhci"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 30
+input_sets = ["native"]
+# tools/tokenguard.py runs this core_only script for the builds and boots (#494 C1, D-2).
+inputs = ["plugins/token-guard/skills/token-guard/scripts/**"]
+evidence = ["native-xhci-evidence"]
+
+[[workflow]]
+path = ".github/workflows/net-broker-quality.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "docs/PROGRESS.md:112", anchor = "Native packet and transport stack**" }, { cite = "tests/test_ci_workflows.py:748", anchor = "service = self.workflows[\".github/workflows/net-broker-quality.yml\"]" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "net-broker-quality"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 15
+cargo = ["services/net-broker/Cargo.toml", "services/net-stack/Cargo.toml", "services/network-service/Cargo.toml"]
+evidence = []
+
+[[workflow.job]]
+id = "native-network-service"
+class = "rwa"
+activation = "automatic"
+needs = ["net-broker-quality"]
+timeout_minutes = 20
+input_sets = ["native"]
+evidence = ["native-network-service-evidence"]
+
+[[workflow.job]]
+id = "native-network-extensions"
+class = "rwa"
+activation = "automatic"
+needs = ["net-broker-quality"]
+timeout_minutes = 20
+input_sets = ["native"]
+evidence = ["native-network-extensions-evidence"]
+
+[[workflow.job]]
+# N02-T6 (#485): depends on the runner's real DNS and internet; non-required by design.
+id = "native-network-slirp"
+class = "advisory"
+activation = "automatic"
+needs = ["net-broker-quality"]
+timeout_minutes = 15
+evidence = ["native-network-slirp-evidence"]
+
+[[workflow]]
+path = ".github/workflows/net-tls-quality.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:114", anchor = "Native authenticated transport**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+# Phase 4: renders the trusted base plan into this workflow's run-* and matrix-* outputs.
+id = "select"
+name = "net-tls-quality select"
+class = "core"
+activation = "automatic"
+timeout_minutes = 10
+evidence = []
+
+[[workflow.job]]
+id = "net-tls-quality"
+needs = ["select"]
+condition = "${{ needs.select.outputs.run-net-tls-quality == 'true' }}"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 15
+cargo = ["services/net-tls/Cargo.toml"]
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/private-publication-audit.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["push"]
+obligation = []
+trigger.push = { branches = ["audit/publication-history-20261108"] }
+
+[[workflow.job]]
+id = "history-audit"
+class = "publication"
+activation = "push-branch:audit/publication-history-20261108"
+condition = "${{ github.event.repository.private == true && github.event_name == 'push' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/process-management.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:68", anchor = "General process and service management**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "k05-native-supervisor"
+name = "k05-native-supervisor"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 40
+input_sets = ["native"]
+evidence = ["k05-supervisor-reports"]
+
+[[workflow]]
+path = ".github/workflows/project-classification.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "schedule"]
+obligation = []
+
+[[workflow.job]]
+id = "classify"
+class = "operational"
+activation = "schedule"
+timeout_minutes = 10
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/resource-pressure.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group"]
+obligation = [{ cite = "docs/PROGRESS.md:70", anchor = "Resource management under pressure**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "k07-native"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 30
+input_sets = ["native"]
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/security-alerts.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "schedule", "pull_request"]
+obligation = [{ cite = "docs/DECISIONS.md:1846", anchor = "**Decision:** `.github/workflows/security-alerts.yml` runs" }]
+trigger.pull_request = { paths = [".github/workflows/security-alerts.yml", ".github/actionlint.yaml", "tools/security_alerts_summary.py", "tests/test_security_alerts_summary.py"] }
+
+[[workflow.job]]
+id = "summarise"
+class = "operational"
+activation = "automatic"
+condition = "github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository"
+timeout_minutes = 5
+evidence = []
+
+[[workflow]]
+path = ".github/workflows/signed-updates.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
+obligation = [{ cite = "docs/PROGRESS.md:123", anchor = "Signed updates and rollback**" }, { cite = "crates/AGENTS.md:4", anchor = "(`signed-updates.yml` for update policy)" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "b03-native-update"
+name = "b03-native-update"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 60
+input_sets = ["native"]
+evidence = ["b03-update-reports"]
+
+[[workflow]]
+path = ".github/workflows/storage-resilience.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group"]
+obligation = [{ cite = "docs/PROGRESS.md:83", anchor = "General storage recovery after failures**" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "ui/**", "experiments/**", "tests/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/storage-resilience.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "s08"
+name = "s08-native-resilience"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 30
+input_sets = ["native"]
+evidence = ["s08-storage-resilience-report"]
+
+[[workflow]]
+path = ".github/workflows/volume-acceptance.yml"
+owner = "ci-owner"
+granularity = "workflow"
+events = ["workflow_dispatch", "pull_request", "merge_group"]
+obligation = [{ cite = "docs/PROGRESS.md:79", anchor = "Space reuse and scalable volumes**" }, { cite = "tests/test_ci_workflows.py:700", anchor = "self.workflows[\".github/workflows/volume-acceptance.yml\"][\"jobs\"][\"m6e\"]" }]
+trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "ui/**", "experiments/**", "tests/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/volume-acceptance.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
+trigger.merge_group = { types = ["checks_requested"] }
+
+[[workflow.job]]
+id = "m6e"
+name = "m6e-native-volume"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 40
+input_sets = ["native"]
+evidence = ["m6e-volume-reports"]
+
+[[workflow]]
+path = ".github/workflows/windows-qemu-test-version.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["workflow_dispatch", "pull_request", "push"]
+obligation = [{ cite = "docs/CI-EVIDENCE.md:103", anchor = "`windows-qemu-test-version.yml` and" }]
+trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+
+[[workflow.job]]
+id = "package-and-verify"
+class = "advisory"
+activation = "automatic"
+timeout_minutes = 30
+evidence = ["nieuw-os-windows-qemu-test-version"]
