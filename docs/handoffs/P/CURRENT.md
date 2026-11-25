@@ -83,6 +83,53 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   - evidence limit: host dispatch tests plus a native regression run; slice 1
     makes no native Head call and no offline reconcile in QEMU.
 
+## P02-T3 slice 2 scope (proposal, no code yet)
+
+Finding: `native-client` drives `Service<S>` in-process (`prepare`, `commit`,
+`cancel`, `reconcile`, `reconcile_latest` take `&mut Service` and a
+`Principal`); it cannot run in the guest over NASP as is. The native probe has
+no in-boot NAS restart; only the separate `native-supervisor` profile
+restarts processes.
+
+- 2a (host, P-owned crates): a `Remote` trait in `native-client` covering
+  open/stage/commit/cancel/close/read/head. `Service` plus the trusted caller
+  implements it with unchanged behaviour and tests; `native-probe` adds a NASP
+  adapter over a caller-supplied request/reply function. Host tests drive the
+  client through encoded frames and `dispatch`.
+  - write set: `services/nas/native-client/src/lib.rs` and its tests;
+    `services/nas/native-probe/{src/lib.rs,tests/ipc.rs,Cargo.toml,Cargo.lock}`
+    (local path dependency on `nieuw-os-nas-client`, no external crate);
+    `services/nas/native-probe/CONTRACT.md`.
+  - invariants: a Commit whose request was sent but whose reply is missing or
+    malformed is `Unknown`, never `Io` or success (same rule as the volume
+    transport); no replay of an uncertain commit; payloads above the 104-byte
+    probe limit fail `Invalid` before sending; the caller principal never
+    travels in the frame.
+  - acceptance: nas-workspace steps on 1.100.0 for native-client and
+    native-probe, including a lost-Commit-reply regression.
+- 2b (native): new root stage `resume` (startup word 112 = 4, feature
+  `test-system-nas-resume`, fresh disk). The guest commits revision 1, the NAS
+  process exits at a coordinated point, the guest queues an offline edit
+  (prepare fails, edit stays `NeedsReconcile`), the fixture kernel observes the
+  NAS exit and starts a fresh NAS instance with the same role grants, which
+  runs `Service::recover`. The guest's old session is `Stale`; it reopens,
+  reconciles via Head and commits revision 2; the admin checks usage and the
+  disk oracle checks the generations.
+  - write set: `services/nas/native-probe/src/main.rs`,
+    `kernel/src/m2/m3/nas.rs` (feature-gated fixture only), the build profile
+    in `tools/build.py` and the kernel feature list, `tools/test_nas.py`,
+    `services/nas/native-probe/disk_oracle.py` and its tests,
+    `tests/test_nas_build.py` and `tests/test_nas_runner.py`, and
+    `nas-core.yml`, which is protected (CI owner D2 pin change).
+  - design choice: an in-boot NAS restart (recommended; models the NAS going
+    down while the client device stays up) versus a cross-boot restart that
+    would carry the guest edit through a harness handoff. That handoff is
+    test-only state, and real client persistence stays slice 3, an OWNER
+    question.
+  - evidence limit: local QEMU IPC and process restart with the volume
+    service alive; not real transport, identity, power loss or client
+    persistence.
+
 ## Next
 
 1. Wait for the PR guard's lane signal for #533. Then merge main into the
@@ -90,5 +137,5 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
    NOS_BUILD_DIR must lie inside the checkout, e.g. `build/<name>`, or
    `private_path` refuses it), and make one push. Rerun only infra failures,
    then squash with `--match-head-commit <new head>`.
-2. Locally: P02-T3 slice 2 (native offline edit, NAS cold restart, reconcile
-   via Head) on the stacked branch.
+2. Locally: P02-T3 slice 2a (host `Remote` trait and NASP adapter) on the
+   stacked branch; 2b after the restart-model choice above.
