@@ -276,10 +276,11 @@ provisioning nonce, hence a new `instance`) plus N04 rejecting its old store
 chain value across; old network grants are not restored and need explicit
 re-confirmation (agreed with N, 25 November 2026). Torn-A1 recovery of the
 previous store (review C143) is a binding requirement of this contract on
-the N04 store (implemented by N in N04-T3): A1 is an atomic replacement or
-retains a recoverable authenticated copy of the previous store, so a torn A1
-yields the crash outcome above; a torn A1 with no recoverable copy is
-denial.
+the N04 store (agreed with N, 25 November 2026; implemented by N in N04-T3,
+#529, with a host test that cuts the write at every byte boundary): A1 is an
+atomic replacement or retains a recoverable authenticated copy of the
+previous store, so a torn A1 yields the crash outcome above; a torn A1 with
+no recoverable copy is denial, never acceptance.
 
 ## Threat model
 
