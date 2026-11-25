@@ -184,6 +184,7 @@ def main() -> int:
     template = firmware()[1]
     summary = dict(schema_version=1, characterization=LABEL, finding="REL-05", criterion="B03 / FR-B03",
                    source_fingerprint_version=3, source_sha256=frozen, observed=False, boots=[])
+    restore_error = None
     try:
         files = prepare(env)
         summary["artifacts"] = {name: disk.sha256(data) for name, data in files.items()}
@@ -218,9 +219,12 @@ def main() -> int:
         from build import build
         try:
             build()  # restore the normal artifacts, as tools/test.py does
-        except Exception as exc:  # keep the original error and the saved summary visible
-            print(f"warning: restoring normal artifacts failed: {exc}", file=sys.stderr)
+        except Exception as exc:  # keep the original error visible; never report success afterwards
+            restore_error = exc
+            print(f"error: restoring normal artifacts failed: {exc}", file=sys.stderr)
     print(f"REL-05 hazard observed={summary['observed']} boots={len(summary['boots'])} {OUT / 'summary.json'}")
+    if restore_error is not None:
+        return 2  # the shared ESP may still hold the signed TEST loader
     return 0 if summary["observed"] else 1
 
 
