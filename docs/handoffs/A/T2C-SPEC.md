@@ -22,7 +22,8 @@ A task's IPC causes a volume READ of object O only while the broker holds a live
 task-grant-core grant with actor = kernel-supplied sender PID, object (O, rev)
 where rev is O's current volume revision, and right READ. Apps hold no volume
 ingress handle and no block right. The broker constructs every volume request
-itself (READ only, selector 0) and never relays app bytes; denial happens before
+itself (STAT at startup and after Stale, READ selector 0; nothing else) and
+never relays app bytes; denial happens before
 any volume message is sent.
 
 ## Design
@@ -59,8 +60,9 @@ that pin request shapes remain as defence in depth.
 T2c-2 native cases: VOLUME_READ_OK, UNGRANTED_OBJECT_DENIED (0 volume
 requests), FORGED_ACTOR_DENIED, FORGED_GRANT_DENIED, NO_VOLUME_HANDLE,
 CLOSE_THEN_READ_DENIED, EXIT_RETIRES + READ_AFTER_RETIREMENT_DENIED, optional
-STALE_REVISION_DENIED; counters: volume requests == authorised READs, volume
-`rejected` == 0; mutations (skip authorise, skip retire) must fail the gate.
+STALE_REVISION_DENIED; counters: volume READ requests > 0 only after an authorised READ and 0 for
+every denied case (startup STATs, the post-Stale re-STAT and multi-READ objects
+over 160 B make 'requests == authorised READs' false), volume `rejected` == 0; mutations (skip authorise, skip retire) must fail the gate.
 Regression: `native-task-grant` normal/denied and `native-system-nas-probe`.
 CI job addition is a `.github` change for the CI owner.
 
