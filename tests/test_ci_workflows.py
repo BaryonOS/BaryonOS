@@ -1231,12 +1231,44 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         gated = [workflow["path"] for workflow in catalogue["workflow"]
                  if any(job["class"] in ("core", "rwa") and job["activation"] == "automatic"
                         for job in workflow.get("job", []))]
-        self.assertGreaterEqual(len(gated), 25)
+        # #494: exact, so adding or removing a gated workflow is a deliberate edit; no other
+        # workflow runs on the queue commit.
+        self.assertEqual(len(gated), 25)
+        self.assertEqual({path for path, workflow in self.workflows.items()
+                          if isinstance(workflow.get("on"), dict) and "merge_group" in workflow["on"]},
+                         set(gated))
         for path in gated:
             with self.subTest(path=path):
                 # Exactly this mapping: no paths, paths-ignore or branches filter.
                 self.assertEqual(self.workflows[path]["on"]["merge_group"],
                                  {"types": ["checks_requested"]})
+                # A queue ref is refs/heads/gh-readonly-queue/..., so its group never cancels a
+                # pull_request or main run. The fallback form resolves to github.ref on a queue commit.
+                group = self.workflows[path]["concurrency"]["group"]
+                self.assertTrue("${{ github.ref }}" in group or (
+                    "${{ github.event_name }}" in group
+                    and "${{ github.event.pull_request.number || github.ref }}" in group), group)
+
+    def test_select_steps_plan_a_queue_commit_from_its_own_head_and_base(self):
+        """#494: every select-ci step and BASE_REF use ci.yml's exact pull_request, merge_group and push values."""
+        head = "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}"
+        base = "${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}"
+        ref = "${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref_name }}"
+        steps = [(path, job_id, step) for path, job_id, step in self.steps() if path in self.workflows]
+        selects = [(path, job_id, step) for path, job_id, step in steps
+                   if step.get("uses") == "./.github/actions/select-ci"]
+        base_refs = [(path, job_id, step["env"]["BASE_REF"]) for path, job_id, step in steps
+                     if "BASE_REF" in step.get("env", {})]
+        # ci.yml has two select steps (enforced and candidate); the three select jobs one each.
+        self.assertEqual((len(selects), len(base_refs)), (5, 3))
+        for path, job_id, step in selects:
+            with self.subTest(path=path, job=job_id, step=step.get("name")):
+                self.assertEqual((step["with"]["head-sha"], step["with"]["base-sha"]), (head, base))
+                # ci.yml passes no base-ref; where one is passed it is exactly this.
+                self.assertEqual(step["with"].get("base-ref", ref), ref)
+        for path, job_id, value in base_refs:
+            with self.subTest(path=path, job=job_id):
+                self.assertEqual(value, ref)
 
     def test_waited_queue_check_names_are_unique_on_the_queue_commit(self):
         """merge-hold keys queue-commit check runs by name, so each waited name has one producer."""
