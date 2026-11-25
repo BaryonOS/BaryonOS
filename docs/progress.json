@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "ea38dcc692de657f7b3c025b223033e3af2b0bb8",
+    "source_commit": "d436a595ac05b2c8fe2a0e51a53659001fa21742",
     "assessment_basis": "parent_commit",
     "branch": "claude/n01-open-deadline-tick-20261125",
     "task": "N01 guard: OpenTcp deadline sampled after the receive (helper-case flake, raw exit 35 at client check 36); N02 progress-entry consistency",
