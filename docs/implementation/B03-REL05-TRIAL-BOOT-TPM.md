@@ -903,6 +903,9 @@ each boot. On that basis the loader:
   refused with `TPM_RC_NV_AUTHORIZATION` (`0x149`);
 - halts on a foreign ownerAuth with nothing provisioned, because
   `NV_ReadPublic(HAUTH)` returns `0x18B`;
+- halts `PUBLIC` on an owner-created `HAUTH` (`AUTHWRITE | AUTHREAD`, probe S1)
+  kept under a foreign ownerAuth, because its Name is not the frozen written
+  Name;
 - after a real provisioning boot, halts `UNBOUND` on an `LREC` with one
   flipped binding byte;
 - removes power-cut leftovers (written `HAUTH`, unwritten `LREC`) and
