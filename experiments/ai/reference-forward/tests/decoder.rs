@@ -297,3 +297,12 @@ fn pinned_qwen_shape_fits_the_approved_budgets() {
     // Per-layer scratch at that context, in f32.
     assert_eq!(qwen.scratch_len(1024).map(|n| n * 4), Some(73_216));
 }
+
+#[test]
+fn scratch_len_refuses_kv_width_overflow() {
+    let bad = LayerConfig {
+        kv_heads: usize::MAX / 2 + 1,
+        ..CONFIG
+    };
+    assert_eq!(bad.scratch_len(1), None);
+}

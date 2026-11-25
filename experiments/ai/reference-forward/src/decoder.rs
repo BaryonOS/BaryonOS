@@ -109,7 +109,7 @@ impl LayerConfig {
     pub fn scratch_len(&self, tokens: usize) -> Option<usize> {
         self.hidden
             .checked_mul(8)?
-            .checked_add(self.kv_width().checked_mul(3)?)?
+            .checked_add(self.kv_heads.checked_mul(self.head_dim)?.checked_mul(3)?)?
             .checked_add(self.intermediate.checked_mul(2)?)?
             .checked_add(tokens)
     }

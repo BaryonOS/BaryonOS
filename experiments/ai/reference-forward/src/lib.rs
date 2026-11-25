@@ -449,6 +449,7 @@ pub fn attention(
     let scale = 1.0 / libm::sqrtf(dim as f32);
     let (scores, accum) = scratch.split_at_mut(tokens);
     for head in 0..heads {
+        budget.charge(0)?;
         let q = &query[head * dim..(head + 1) * dim];
         let offset = (head / group) * dim;
         let mut max = f32::NEG_INFINITY;

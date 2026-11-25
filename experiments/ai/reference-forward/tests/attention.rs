@@ -233,3 +233,32 @@ fn attention_observes_cancellation_before_work() {
     );
     assert_eq!(out, [7.; 2]);
 }
+
+#[test]
+fn attention_observes_cancellation_between_heads() {
+    // Not cancelled at the up-front reservation, cancelled at the first head poll.
+    struct Later(core::cell::Cell<u32>);
+    impl Cancel for Later {
+        fn cancelled(&self) -> bool {
+            self.0.set(self.0.get() + 1);
+            self.0.get() > 1
+        }
+    }
+    let (mut k, mut v) = ([0.; 2], [0.; 2]);
+    let mut cache = KvCache::new(1, 2, &mut k, &mut v).unwrap();
+    cache.append(&[1., 0.], &[1., 0.]).unwrap();
+    let mut out = [7.; 2];
+    let later = Later(core::cell::Cell::new(0));
+    assert_eq!(
+        attention(
+            &[1., 1.],
+            1,
+            &cache,
+            &mut [0.; 3],
+            &mut out,
+            &mut Budget::new(100, &later)
+        ),
+        Err(Error::Cancelled)
+    );
+    assert_eq!(out, [7.; 2]);
+}
