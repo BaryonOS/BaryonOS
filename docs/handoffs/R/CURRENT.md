@@ -82,25 +82,45 @@ ERRORS 1, SAVE_ACKS 0); (4) A/B on the same host in a new verification
 directory. Request U review (UI/a11y); U does not merge. R updates
 `docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md`.
 
-## Fix in progress (25 Nov 2026)
+## Fix in progress (25 Nov 2026, checkpoint 12:30Z)
 
 - Branch `claude/r02-dirty-repaint-20261125` (worktree
-  `~/projects/BaryonOS-worktrees/r-dirty`), head `5cd55d1c`, not pushed.
-- Root cause: with `enable_retained`, the sparse digest skip was disabled,
-  so the conservative whole-viewport damage re-sent every tile. The fix
-  RETAINs digest-proven unchanged runs from the existing scan loop; a
-  superseded partial frame disables this until the next complete frame
-  (the receiver refuses RETAIN for tiles changed since base).
-- Native `.text` 0x27e73 under the 0x28000 linker assertion (base 0x27ee3);
-  a separate probe renderer overflowed it, so do not reintroduce one.
-- Host: `tests/retained_digest.rs` passes; against `origin/main` `lib.rs`
-  the edit test fails with 1608 tiles sent (mutation control). Host suite,
-  clippy and fmt green.
-- Running: `~/projects/BaryonOS-scratch/r/ab2.sh` (materiaal-probe normal
-  and recover, then five interleaved A/B window runs; output in `r/ab2/`).
+  `~/projects/BaryonOS-worktrees/r-dirty`), head `cceeb461`, not pushed.
+  Base `3b9a94c5` (identical Materiaal `lib.rs` to `origin/main`).
+- Change: in retained mode the existing sparse scan RETAINs runs of tiles
+  whose rendered bytes match the digest cache (render every tile, RETAIN on
+  match; no separate full-repaint trigger). Gates: complete frame
+  (`damage_valid`), retained base present, never the last tile; a
+  superseded partial frame disables it until the next complete frame. Blits
+  are acknowledged within the same step, so no in-flight tile escapes that
+  check. Native `.text` stays under the 0x28000 assertion; do not add a
+  separate probe renderer (it overflowed by 99 bytes).
+- Host: suite, clippy, fmt green; `tests/retained_digest.rs` fails on the
+  base `lib.rs` (1608 tiles for a one-character edit) and passes on the fix.
+- Local KVM A/B (`~/projects/BaryonOS-scratch/r/ab2/`, head `5cd55d1c`,
+  load average 3.3–9.3, host-side latencies on the 0.2 s retry grid):
+  10/10 window sessions pass raw 33; duration A 26.55–28.16 s (median 26.83),
+  B 21.83–22.99 s (median 22.74). Many phases drop from ~0.85 s to ~0.25 s
+  (summary in `r/ab2/summary.txt`). No QEMU CPU figure in these reports.
+- Materiaal probe normal: raw 33 on the fix.
+
+## Open items (block the U acceptance claim)
+
+1. `document-menu-cancelled`: A ≈0.03 s (5/5), B 0.44–0.66 s in 4/5 runs.
+   Materiaal `GEN` is unchanged around this phase on both sides; the cause
+   (legitimate intermediate frame vs. wrong pixels presented) is not yet
+   established. Next: per-phase compositor commit/retain counters from the
+   serial logs, then the first mismatching screendump of one B run.
+2. Materiaal recover probe fails identically on base `3b9a94c5` and the fix
+   (raw 35, `MATERIAAL:FAIL:TIMEOUT` after the snapshot, KEYS 0), using the
+   contract invocation with a normal parent in the same build directory.
+   Not yet compared with the passing invocations in
+   `docs/verification/native-test-version/gui-recover-evidence.json`. Ask U
+   whether normal-only is acceptable if it stays failing.
 
 ## Next action
 
-Check probe exit 33 and A/B results, write evidence to a new
-`docs/verification/` directory, update `VM-HARDWARE-AND-PERFORMANCE.md`,
-then push and open the draft PR (merge `main` once after #523 lands).
+Resolve open item 1, compare item 2 with the recorded passing invocation,
+then write evidence to a new `docs/verification/` directory, update
+`VM-HARDWARE-AND-PERFORMANCE.md`, push and open the draft PR (merge `main`
+once after #523; re-measure `.text`, rerun host suite and normal probe).
