@@ -27,15 +27,18 @@ views in `docs/progress.json`, `README.md`, `docs/PROGRESS.md` and the SVG.
 The fixed criteria register and the rubric stay central and unchanged.
 
 `tools/progress.py --check` applies every existing assessment rule to the
-header and to each file, unchanged. It adds checks for each file:
+header and to each file, unchanged, and checks `assessment_basis` wherever it
+is present. It adds checks for each file:
 
-- an exact field set;
-- a plain, non-symlinked file;
+- an exact field set, with duplicate keys rejected;
+- a plain, non-symlinked file of at most 16 KiB;
 - a file name whose date matches the recorded date;
-- an integer score;
-- a file dated after the header must record the current score.
+- an integer score.
 
-Files never change the score or the generated views.
+Files never change the score or the generated views. Like the header's
+`previous_score`, a file's score is the recorded value and is not recomputed.
+Tying it to the current score would turn `main` red whenever a score change
+merges after a task file with a newer date.
 
 **D2 (amends ADR-MERGE-DELEGATION-20261123):**
 

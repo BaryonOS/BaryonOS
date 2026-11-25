@@ -17,6 +17,7 @@ DATA = ROOT / "docs/progress.json"
 # parallel pull requests add distinct files instead of rewriting the shared assessment object.
 ASSESSMENTS = "docs/progress/assessments"
 ASSESSMENT_FILE = re.compile(r"(\d{4}-\d{2}-\d{2})-[a-z0-9][a-z0-9-]{0,80}\.json")
+ASSESSMENT_MAX_BYTES = 16 * 1024
 ASSESSMENT_KEYS = {"date", "source_commit", "assessment_basis", "branch", "task", "previous_score", "summary"}
 README_MARKERS = ("<!-- OS-PROGRESS:BEGIN -->", "<!-- OS-PROGRESS:END -->")
 RUBRIC_MARKERS = ("<!-- OS-RUBRIC:BEGIN -->", "<!-- OS-RUBRIC:END -->")
@@ -161,36 +162,42 @@ def validate_assessment(assessment: dict, where: str = "") -> None:
         require(label(assessment[key]), f"{where}Invalid assessment field: {key}")
     require(assessment["previous_score"] is None or integer(assessment["previous_score"], 0, 100),
             where + "Invalid previous score")
+    require("assessment_basis" not in assessment or label(assessment["assessment_basis"]),
+            where + "Invalid assessment field: assessment_basis")
+
+
+def unique_keys(pairs: list) -> dict:
+    """Reject duplicate JSON keys instead of silently keeping the last one."""
+    keys = [key for key, _ in pairs]
+    require(len(keys) == len(set(keys)), "Duplicate key in assessment file")
+    return dict(pairs)
 
 
 def load_task_assessments(data: dict) -> list[dict]:
     """Validate docs/progress/assessments/*.json: the header rules, plus file-level traceability.
 
     A task file records a task that left the score unchanged, so its score must be an integer.
-    Files dated after the register header must state the current score: a later score change
-    updates the header instead. Files never change the score or the generated views.
+    Like the header's previous_score it is the recorded value, not recomputed: tying it to the
+    current score would turn main red whenever a score change merges after a newer task file.
+    Files never change the score or the generated views.
     """
     folder = ROOT / ASSESSMENTS
     if not folder.exists() and not folder.is_symlink():
         return []
     require(folder.is_dir() and not folder.is_symlink(), "Assessment directory is not a plain directory")
-    current, header_date = total_score(data), data["assessment"]["date"]
     records = []
     for path in sorted(folder.iterdir()):
         where = f"{path.relative_to(ROOT)}: "
         match = ASSESSMENT_FILE.fullmatch(path.name)
         require(match is not None, where + "name must be YYYY-MM-DD-<lowercase-slug>.json")
         require(path.is_file() and not path.is_symlink(), where + "must be a regular file")
-        record = json.loads(path.read_text(encoding="utf-8"))
+        require(path.stat().st_size <= ASSESSMENT_MAX_BYTES, f"{where}larger than {ASSESSMENT_MAX_BYTES} bytes")
+        record = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_keys)
         require(isinstance(record, dict) and set(record) == ASSESSMENT_KEYS,
                 where + "fields must be exactly " + ", ".join(sorted(ASSESSMENT_KEYS)))
         validate_assessment(record, where)
-        require(label(record["assessment_basis"]), where + "Invalid assessment field: assessment_basis")
         require(record["date"] == match[1], where + "file name date differs from the assessment date")
         require(integer(record["previous_score"], 0, 100), where + "a task assessment records the unchanged score")
-        require(record["date"] <= header_date or record["previous_score"] == current,
-                f"{where}records {record['previous_score']} after the {header_date} header, "
-                f"but the register scores {current}; a score change updates docs/progress.json instead")
         records.append(record)
     return records
 

@@ -218,7 +218,6 @@ class ProgressReviewTests(unittest.TestCase):
             ({"previous_score": None}, "records the unchanged score"),
             ({"previous_score": 101}, "Invalid previous score"),
             ({"previous_score": True}, "Invalid previous score"),
-            ({"previous_score": 5}, "a score change updates docs/progress.json"),
             ({"date": "2026-11-26"}, "file name date differs"),
             ({"extra": 1}, "fields must be exactly"),
         ]
@@ -234,17 +233,47 @@ class ProgressReviewTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "name must be"):
                     progress.load_progress()
                 path.unlink()
+        folder = self.root / progress.ASSESSMENTS
+        for name, content, fragment in (("2026-11-25-list.json", "[]", "fields must be exactly"),
+                                        ("2026-11-25-dup.json", '{"date": "2026-11-25", "date": "2026-11-25"}',
+                                         "Duplicate key"),
+                                        ("2026-11-25-big.json", " " * (progress.ASSESSMENT_MAX_BYTES + 1), "larger than")):
+            with self.subTest(name=name):
+                (folder / name).write_text(content)
+                with self.assertRaisesRegex(ValueError, fragment):
+                    progress.load_progress()
+                (folder / name).unlink()
+        (folder / "2026-11-25-dir.json").mkdir()
+        with self.assertRaisesRegex(ValueError, "regular file"):
+            progress.load_progress()
+        (folder / "2026-11-25-dir.json").rmdir()
         target = self.task_file("2026-11-25-real.json")
         (target.parent / "2026-11-25-link.json").symlink_to(target)
         with self.assertRaisesRegex(ValueError, "regular file"):
             progress.load_progress()
 
-    def test_older_task_files_keep_their_historical_score(self):
-        """A later score change moves the header; files up to its date keep the score they recorded."""
+    def test_a_later_score_change_never_turns_older_or_newer_task_files_red(self):
+        """Review of #519: a score change merged after a newer task file must keep main green."""
+        self.task_file("2026-11-26-newer.json", date="2026-11-26", previous_score=0)
         self.task_file("2026-11-20-old.json", date="2026-11-20", previous_score=7)
-        self.assertEqual(len(self.load()["task_assessments"]), 1)
-        self.task_file("2026-11-24-same-day.json", date="2026-11-24", previous_score=7)
+        self.data["tracks"][0]["gates"][0].update(status="accepted", evidence=["evidence.txt"])
+        self.data["assessment"].update(previous_score=0)
         self.assertEqual(len(self.load()["task_assessments"]), 2)
+
+    def test_header_keeps_its_rules_and_assessment_basis_is_checked_when_present(self):
+        self.data["assessment"]["assessment_basis"] = "a|b"
+        with self.assertRaisesRegex(ValueError, "^Invalid assessment field: assessment_basis$"):
+            self.load()
+        for key, value, message in (("date", "2026/11/24", None), ("source_commit", "a" * 39, "Full source commit is missing"),
+                                    ("task", " ", "Invalid assessment field: task"), ("previous_score", -1, "Invalid previous score")):
+            with self.subTest(key=key):
+                self.data["assessment"] = {"date": "2026-11-24", "source_commit": "a" * 40, "branch": "test",
+                                           "task": "Test report", "summary": "Synthetic fixture", "previous_score": 0,
+                                           key: value}
+                with self.assertRaises(ValueError) as caught:
+                    self.load()
+                if message:
+                    self.assertEqual(str(caught.exception), message)
 
     def test_zero_svg_means_no_acceptance_not_no_implementation(self):
         rendered = progress.svg(self.load())
