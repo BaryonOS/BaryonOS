@@ -11,8 +11,10 @@ or QEMU test (S5 onwards). *Decided*: owner decision C665 (25 November 2026,
 PR #524): TPM identity binding (U13), with halt until authenticated recovery
 while the binding is not demonstrably reliable (section 10.5); its host model
 and tests exist, its enrollment tool, EK session, recovery and native tests
-C23–C30 are pending (S3b, S5b). *Pending*: anchor finding M1 (with N and the
-owner). Decision record:
+C23–C30 are pending (S3b, S5b). *Decided*: anchor finding M1 (owner, protected
+slot via B, ADR-NET-ISSUER-20261125); B's extend-chain contract and host model
+exist (COLD-FRESHNESS-ANCHOR.md), native tests pending, and the
+undefine/redefine/replay residual awaits an owner decision. Decision record:
 [ADR-B03-REL05-TPM-20261125](../DECISIONS.md#adr-b03-rel05-tpm-20261125--trial-boot-with-tpm-20-health-confirmation-rel-05-option-a).
 Owner decision: issue #41, 25 November 2026 (items O1–O9 below).
 Scope: public TEST keys, disposable QEMU with swtpm only. No production keys,
@@ -158,7 +160,7 @@ SHA-256, `TPMA_NV_POLICYWRITE`, `TPMA_NV_AUTHREAD` with empty `authValue`,
 | `0x0100B301` | `CONFIRM` | ordinary, 64 B | `PolicyPCR(13 = P_OPEN)` + `CC_NV_Write` | kernel (trial boot) |
 | `0x0100B302` | `FLOOR` | ordinary, 64 B | `PolicyPCR(13 = 0³²)` + `CC_NV_Write` | loader |
 | `0x0100B303` | `GEN` | counter, 8 B | `PolicyPCR(13 = 0³²)` + `CC_NV_Increment` | loader |
-| `0x0100B310`–`0x0100B31F` | cold-freshness anchor domains (counter + 64 B slot per domain) | see [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) | exception to the attributes above: `AUTHWRITE`, not phase-bound | kernel on behalf of the domain holder (N04 only) |
+| `0x0100B310`–`0x0100B317` | cold-freshness anchor domains (one `TPM_NT_EXTEND` index, 32 B, per domain; `0x0100B318`–`0x0100B31F` unused) | see [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) | exception to the attributes above: `AUTHWRITE`, not phase-bound; protection comes from the hash chain | kernel on behalf of the domain holder (N04 only) |
 
 `P_OPEN = SHA-256(0³² ‖ SHA-256("BARYON-TRIAL-OPEN-V1"))` in the SHA-256 bank,
 assuming the loader extends through `HashLogExtendEvent`, which hashes the
@@ -408,7 +410,7 @@ specification left open; implementations follow it:
 |---|---|---|
 | Loader (pre-EBS) | Read all indices; write `TRIAL`, `FLOOR`, increment `GEN` (phase 0); UEFI floor writes; extend PCR 13. | Hand over with PCR 13 at zero; lower any floor. |
 | Firmware TCG2 | Transport and event log for the loader. | (in TCB, unchanged) |
-| Kernel (`native-update-trial` profile) | Claim CRB after EBS (existing fixture); one-shot `CONFIRM` write and `SEAL` extend; cold-freshness counters (separate contract). | Parse manifests, hash, choose slots, write loader-only indices (policy prevents it), accept binding bytes from ring-3. |
+| Kernel (`native-update-trial` profile) | Claim CRB after EBS (existing fixture); one-shot `CONFIRM` write and `SEAL` extend; cold-freshness extend chains (separate contract). | Parse manifests, hash, choose slots, write loader-only indices (policy prevents it), accept binding bytes from ring-3. |
 | Health service (ring-3) | Hold capability `TrialConfirm` (one use, this boot only); submit `{list_id, verdict}`. | Supply generation, version, slot or digest. |
 | Update service (ring-3) | Read trial status. | Install while a trial is pending. |
 | Other processes | — | Any TPM access. |
@@ -730,6 +732,16 @@ named marker (TEST hook markers emitted before each write in a test feature).
   specification.
 - U20 Whether TPM 2.0 is accepted as the D3 backend beyond this TEST profile
   (owner decision open).
+- U21 That the first `NV_Extend` of a freshly defined `TPM_NT_EXTEND` index
+  starts from the all-zero value, and that reading it before any extend fails
+  (cold-freshness anchor genesis).
+- U22 That one `NV_Extend` is atomic across power loss on swtpm (either the
+  old or the new chain value survives, never a third value).
+- U23 That the OS can never use platformAuth after OVMF randomises it (U8
+  observes the randomisation, not its unavailability for the whole boot).
+- U24 Whether platform authorisation can undefine an owner-created index
+  (`NV_UndefineSpace`, Part 3 31.4) and whether `TPM2_Clear` with the TEST
+  profile's empty lockoutAuth is reachable by a compromised kernel.
 
 ### Feasibility probe results (25 November 2026, swtpm 0.10.1)
 
