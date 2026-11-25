@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "3b9a94c52bb4d3ada5a9c6499817560b71d0e4d0",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/ui-u-readonly-ctrl-s-20261125",
+  "task": "UI-U-C8-20261125 U03: Ctrl+S on a read-only document shows the ReadOnly refusal again (materiaal recover probe)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Since #210 Ctrl+S on a read-only Materiaal document was a silent no-op, so the native materiaal recover probe timed out in its readonly phase (C7, raw exit 35). The controller now routes read-only Write-tool Ctrl+S to save(), which the SDK refuses with ReadOnly; the Read tool and other disabled states stay silent. A materiaal chain host test (with a mutation control) and local native normal and recover runs at feba6c3b pass with raw exit 33: one error, a new frame, no save ACK and no disk writes or flushes. Hosted gates do not run the recover case. Main 3b9a94c5 (#519) is merged into the branch. U03 stays open: deny copy (U03-T3 part 2), encrypted durable storage and human trials are missing."
+}
