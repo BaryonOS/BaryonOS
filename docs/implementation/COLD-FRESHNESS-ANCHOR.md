@@ -265,14 +265,29 @@ TPM copy, UEFI copy, new ESP record; the anchor genesis is part of accepting
 the record and precedes that sequence, because the TPM copy is the same write
 that marks the genesis done. A cut before it re-runs the genesis under the
 still-fresh record; a cut after it leaves the UEFI copy and the ESP record to
-follow as in section 10.5. The host model takes the staged record as input
-and does not model the ESP record write. Every cut converges on the next boot (host model
+follow as in section 10.5. For a first enrolment the record is already on
+the ESP, so every cut converges on the next boot (host model
 `every_provisioning_cut_converges`, which also fixes the number of writes).
+For a record replacement, section 10.5 writes the ESP record last and does
+not say where the new record resides before that write. The host model
+presents the new record again after every cut and does not model the ESP
+write: under that assumption every cut converges
+(`every_recovery_cut_converges`); when only the old ESP record is presented
+after the TPM copy has advanced, the boot halts (`Halt::NeedsRecovery`,
+section 10.5: denial, never acceptance of the older record). **Open U13c
+item:** the location and durability of a new record between its arrival and
+the ESP write.
 Losing one copy keeps older records refused, and the loader rewrites a lost
 UEFI copy. Losing both (a TPM clear with U23 broken or by firmware, plus a UEFI
 NVRAM reset) lets the old `ENROLL` authorise a second genesis and revives that
-instance's first store: residual `accepted_pair_survives_one_lost_copy`, in
-the boot-path class below, not accepted and reported to the project owner.
+instance's first store: residual `accepted_pair_survives_one_lost_copy`, not
+accepted and reported to the project owner. A TPM clear keeps the endorsement
+primary seed, so the old `ENROLL` still proves the identity (the anchor model
+does not model the EK). This residual is not the "rolling back both copies
+together with the TPM state and the disk" item of section 10.5 (T7), which
+needs a restored snapshot: this one needs only deletion, and section 10.5
+does not define a boot with both copies absent, which looks like a first
+enrolment. **Open U13c item** against C665 and C28.
 
 **Same-TPM recovery** (after a stray extend, P3, agreed with N) is
 `NV_UndefineSpace` authorised by the loader-phase ownerAuth, then provisioning with a **fresh instance**: every
@@ -384,10 +399,10 @@ Listed in REL-05 section 14; the host model assumes them, S5 must prove them.
 
 The anchor inherits the REL-05 threat model: a host administrator who
 snapshots and restores the whole swtpm state together with the store, or a
-boot-path attacker before B04, defeats it. So does an attacker who loses
-both copies of the accepted pair (U13c): the old `ENROLL` then authorises a
-second genesis (`accepted_pair_survives_one_lost_copy`, reported to the
-project owner, not accepted). A chain establishes freshness of
+boot-path attacker before B04, defeats it. So does an attacker who deletes
+both copies of the accepted pair (U13c; no snapshot needed): the old `ENROLL`
+then authorises a second genesis (`accepted_pair_survives_one_lost_copy`,
+open U13c item, reported to the project owner, not accepted). A chain establishes freshness of
 one store per domain; it does not authenticate the store, bind keys or
 replace N04's own grant-generation checks within a boot. Domain isolation is
 enforced by the kernel capability, not by TPM authorisation: a compromised
