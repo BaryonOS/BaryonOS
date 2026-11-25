@@ -586,3 +586,15 @@ named marker (TEST hook markers emitted before each write in a test feature).
   specification.
 - U20 Whether TPM 2.0 is accepted as the D3 backend beyond this TEST profile
   (owner decision open).
+
+### Feasibility probe results (25 November 2026, swtpm 0.10.1)
+
+Feasibility probe, not acceptance evidence:
+[b03-rel05-probe-20261125](../verification/b03-rel05-probe-20261125/README.md).
+U1 and U7 proven on swtpm; U2 presence of TCG2 proven, extend/ExitBootServices
+behaviour deferred to S6. Constraints for S6/S7 derived from the probe:
+`nonceCaller` must be 16 bytes (U3: 0 or 15 bytes give `TPM_RC_SIZE`), the
+policy-session HMAC must be empty (non-empty gives `TPM_RC_BAD_AUTH`), every
+active PCR bank must be extended consistently (U5: four banks active under
+OVMF), OVMF sets a random platform auth before handover (U8), and a session
+whose authorisation failed stays loaded and must be flushed.
