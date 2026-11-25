@@ -994,6 +994,25 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
             actionlint_failure = run("bad-actionlint", expected_hash, 23)
             self.assertEqual(actionlint_failure.returncode, 23)
 
+    def test_host_build_cache_is_saved_only_by_a_successful_push_to_main(self):
+        """#494 B2: PR and merge-queue saves are unreadable by other PRs and only evict main's entries."""
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        uses = [step.get("uses", "") for step in steps]
+        self.assertFalse([use for use in uses if use.startswith("actions/cache@")
+                          and "host-rust" in json.dumps(steps[uses.index(use)])])
+        restore, = [step for step in steps if step.get("id") == "host-build-cache"]
+        self.assertTrue(restore["uses"].startswith("actions/cache/restore@"))
+        self.assertNotIn("if", restore)
+        save, = [step for step in steps if step.get("uses", "").startswith("actions/cache/save@")]
+        self.assertEqual(save["if"], "${{ github.event_name == 'push' && github.ref == 'refs/heads/main' "
+                                     "&& steps.host-build-cache.outputs.cache-hit != 'true' }}")
+        self.assertNotIn("always()", save["if"])
+        self.assertEqual(save["with"]["path"], restore["with"]["path"])
+        self.assertEqual(save["with"]["key"], "${{ steps.host-build-cache.outputs.cache-primary-key }}")
+        self.assertIn("${{ github.sha }}", restore["with"]["key"])
+        self.assertLess(max(index for index, step in enumerate(steps) if "run" in step
+                            and "cargo" in step["run"]), steps.index(save))
+
     def test_cache_action_matches_documented_provenance(self):
         """Every cache use must match its reviewed pin, version and policy source."""
         references = [

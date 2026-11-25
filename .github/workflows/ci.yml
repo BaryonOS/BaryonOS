@@ -88,9 +88,11 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache host Rust build intermediates
+      - name: Restore host Rust build intermediates
         id: host-build-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        # Restore on every event; only a push to main saves (#494 B2): PR and merge-queue
+        # refs are invisible to other pull requests, so their saves only evicted main's entries.
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           # Host-only outputs: never native images, acceptance reports or secrets.
           path: |
@@ -235,6 +237,17 @@ jobs:
           job-status: ${{ job.status }}
           if-no-files-found: error
           path: build/coverage-raw/node/report/cobertura-coverage.xml
+      - name: Save host Rust build intermediates (push to main only)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.host-build-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            target/debug
+            sdk/target/debug
+            services/net-protocol/target/debug
+            experiments/quantum/target/debug
+            experiments/quantum/job-protocol/target/debug
+          key: ${{ steps.host-build-cache.outputs.cache-primary-key }}
       - name: Cache diagnostics (not test evidence)
         if: ${{ always() }}
         shell: bash
