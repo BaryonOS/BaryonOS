@@ -1277,9 +1277,12 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
 
     def test_deduplication_keeps_host_and_scalar_component_coverage(self):
         """Dedicated gates retain existing and new standalone component coverage."""
-        matrix = self.workflows[".github/workflows/component-leaves.yml"]["jobs"][
-            "component-quality"
-        ]["strategy"]["matrix"]["include"]
+        # Phase 4 (#494): the leaves matrix comes from the catalogue through the select job.
+        catalogue = tomllib.loads((ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8"))
+        leaves = next(wf for wf in catalogue["workflow"] if wf["path"] == ".github/workflows/component-leaves.yml")
+        matrix = [variant["matrix"] for job in leaves["job"] if job["id"] == "component-quality"
+                  for variant in job["variant"]]
+        self.assertEqual(len(matrix), 15)
         self.assertTrue({"artifact-store", "materiaal-ui"}.isdisjoint(
             entry["component"] for entry in matrix
         ))
@@ -1757,6 +1760,7 @@ class CiImpactShadowTests(unittest.TestCase):
     def setUpClass(cls):
         load = lambda path: yaml.load((ROOT / path).read_text(encoding="utf-8"),
                                       Loader=UniqueKeyLoader)
+        cls.load = staticmethod(load)
         cls.ci = load(".github/workflows/ci.yml")
         cls.action = load(SELECT_ACTION)
 
@@ -1809,10 +1813,51 @@ class CiImpactShadowTests(unittest.TestCase):
         for key in ("if", "continue-on-error"):
             self.assertNotIn(key, gate)
 
+    def test_phase4_select_jobs_render_the_base_plan_and_gate_their_workflow(self):
+        """Phase 4 (#494): a select job per selected workflow; no gate needs merge-hold."""
+        cases = {"component-leaves": ["component-quality"], "app-management-quality": ["app-package-quality"],
+                 "net-tls-quality": ["net-tls-quality"]}
+        host_checkout = next(step for step in self.ci["jobs"]["host-quality"]["steps"]
+                             if step.get("uses", "").startswith("actions/checkout@"))
+        for stem, gated in cases.items():
+            workflow = self.load(f".github/workflows/{stem}.yml")
+            jobs = workflow["jobs"]
+            select = jobs["select"]
+            with self.subTest(workflow=stem):
+                self.assertEqual(select["name"], f"{stem} select")
+                self.assertEqual(select["permissions"], {"contents": "read"})
+                for key in ("needs", "if", "continue-on-error", "strategy"):
+                    self.assertNotIn(key, select)
+                checkout, python, plan, render = select["steps"]
+                self.assertEqual(checkout["uses"], host_checkout["uses"])
+                self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
+                self.assertEqual(plan["uses"], "./.github/actions/select-ci")
+                self.assertEqual(set(plan["with"]), {"event-name", "tested-sha", "head-sha", "base-sha", "base-ref"})
+                # Only a select-mode plan from select-ci narrows.
+                self.assertEqual(render["env"]["PLAN_MODE"], "${{ steps.plan.outputs.mode }}")
+                self.assertEqual(render["env"]["BASE_REF"], plan["with"]["base-ref"])
+                self.assertIn('--mode="$PLAN_MODE" --base-ref="$BASE_REF"', render["run"])
+                self.assertNotIn("${{", render["run"])
+                self.assertIn(f"--workflow=.github/workflows/{stem}.yml", render["run"])
+                self.assertIn('| tee -a "$GITHUB_OUTPUT"', render["run"])
+                for job_id in gated:
+                    job = jobs[job_id]
+                    self.assertEqual(job["needs"], "select")
+                    self.assertEqual(job["if"], f"${{{{ needs.select.outputs.run-{job_id} == 'true' }}}}")
+                    self.assertEqual(select["outputs"][f"run-{job_id}"],
+                                     f"${{{{ steps.jobs.outputs.run-{job_id} }}}}")
+                for job_id, job in jobs.items():
+                    needs = job.get("needs", [])
+                    self.assertNotIn("merge-hold", [needs] if isinstance(needs, str) else needs)
+        leaves = self.load(".github/workflows/component-leaves.yml")["jobs"]["component-quality"]
+        self.assertEqual(leaves["strategy"]["matrix"],
+                         "${{ fromJSON(needs.select.outputs.matrix-component-quality) }}")
+        self.assertEqual(leaves["strategy"]["max-parallel"], "4")
+
     def test_select_action_passes_expressions_only_through_env(self):
         steps = self.action["runs"]["steps"]
         self.assertEqual(self.action["runs"]["using"], "composite")
-        self.assertEqual(set(self.action["inputs"]), {"event-name", "tested-sha", "head-sha", "base-sha"})
+        self.assertEqual(set(self.action["inputs"]), {"event-name", "tested-sha", "head-sha", "base-sha", "base-ref"})
         self.assertEqual(set(self.action["outputs"]), {"plan-id", "mode", "plan-path"})
         for step in steps:
             with self.subTest(step=step.get("name")):
@@ -1887,6 +1932,15 @@ class CiImpactShadowTests(unittest.TestCase):
             self.assertEqual(plan["shas"], {"base": base, "merge_base": base, "head": head,
                                             "tested": tested})
             self.assertEqual(outputs["plan-id"], plan["plan_id"])
+            self.assertEqual(plan["ref"], "")  # no base-ref: the phase-2 command line
+
+            # Phase 4: the target branch reaches the base selector as --base-ref.
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "pull_request", "TESTED_SHA": tested, "HEAD_SHA": head,
+                "BASE_SHA": "", "BASE_REF": "main"}, "pull-request-ref")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
+            self.assertEqual((outputs["mode"], plan["ref"]), ("select", "main"))
 
             # Without a base, the checkout copy runs and the output is forced to full.
             (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())
