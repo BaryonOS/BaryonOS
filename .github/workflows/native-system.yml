@@ -58,6 +58,7 @@ jobs:
           cargo +1.100.0 fetch --locked --manifest-path services/net-stack/Cargo.toml
           cargo +1.100.0 fetch --locked --manifest-path sdk/examples/memory/Cargo.toml
           cargo +1.100.0 fetch --locked --manifest-path sdk/examples/ipc-wait-probe/Cargo.toml
+          cargo +1.100.0 fetch --locked --manifest-path experiments/ai/native-job/Cargo.toml
       - name: Native IPC queue waits, revocation and resumable PIT idle
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/ipc-wait-ci
@@ -143,6 +144,14 @@ jobs:
           NOS_TARGET_DIR: ${{ github.workspace }}/target/memory-ci
           CARGO_TARGET_DIR: ${{ github.workspace }}/target/memory-ci-host
         run: python3 -B -u tools/test_memory_system.py
+      - name: Actual native SSE2 AI job under preemption, slot reuse and host-oracle equality
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/ci-ai-job
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/ci-ai-job
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/ci-ai-job
+        run: |
+          python3 -B tools/build.py --kernel-feature native-ai-job
+          python3 -B tools/run_ai_job.py
       - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
@@ -210,6 +219,14 @@ jobs:
             build/fpu-ci/run/native-fpu-*/
             build/fpu-ci/esp/
             build/fpu-ci/wait/
+            build/ci-ai-job/manifest.json
+            build/ci-ai-job/native-ai-job-result.json
+            build/ci-ai-job/users/ai-job/build-report.json
+            build/ci-ai-job/users/ai-job/disassembly.stdout.txt
+            build/ci-ai-job/users/ai-job/ai-job-native.elf
+            build/ci-ai-job/run/native-ai-job-*/
+            build/ci-ai-job/esp/
+            build/ci-ai-job/logs/
             build/tcp-ci/tcp-system-gate.json
             build/tcp-ci/manifest.json
             build/tcp-ci/logs/
