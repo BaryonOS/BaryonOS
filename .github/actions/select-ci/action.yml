@@ -18,6 +18,11 @@ inputs:
       Merge-group base or push 'before'. Leave empty on pull_request: the base is
       the tested merge commit's first parent. Empty otherwise means no trusted base.
     default: ''
+  base-ref:
+    description: >-
+      Target branch of a pull_request or merge_group, or the pushed branch
+      (--base-ref, phase 3 selector). Empty leaves branch filters unknown.
+    default: ''
 outputs:
   plan-id:
     description: The plan's plan_id.
@@ -39,6 +44,7 @@ runs:
         TESTED_SHA: ${{ inputs.tested-sha }}
         HEAD_SHA: ${{ inputs.head-sha }}
         BASE_SHA: ${{ inputs.base-sha }}
+        BASE_REF: ${{ inputs.base-ref }}
       run: |
         set -euo pipefail
         sha_re='^[0-9a-f]{40}$'
@@ -58,11 +64,14 @@ runs:
           source=base
         fi
         plan_path=build/ci-impact/plan.json
+        # --base-ref only when set, so a caller without one keeps the phase-2 command line.
+        ref_args=()
+        if [[ -n "${BASE_REF:-}" ]]; then ref_args=(--base-ref="$BASE_REF"); fi
         # `--flag=value`: a value starting with '-' must not parse as an option (exit 2).
         python3 -B -I "$selector" plan --repo "$GITHUB_WORKSPACE" --event="$EVENT_NAME" \
           --base-sha="$BASE_SHA" --head-sha="$HEAD_SHA" --tested-sha="$TESTED_SHA" \
-          --out "$plan_path" --summary "$GITHUB_STEP_SUMMARY"
-        printf '\nSelector source: `%s`. Shadow plan only; it does not change which CI runs.\n' \
+          "${ref_args[@]}" --out "$plan_path" --summary "$GITHUB_STEP_SUMMARY"
+        printf '\nSelector source: `%s`. merge-hold recomputes and enforces its own plan.\n' \
           "$source" >> "$GITHUB_STEP_SUMMARY"
         python3 -B -I - "$plan_path" "$source" >> "$GITHUB_OUTPUT" <<'PY'
         import json
