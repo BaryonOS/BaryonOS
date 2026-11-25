@@ -1121,7 +1121,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(job["name"], "merge-hold")
         self.assertEqual(
             job["permissions"],
-            {"checks": "read", "contents": "read", "issues": "read", "pull-requests": "read"},
+            {"actions": "read", "checks": "read", "contents": "read", "issues": "read",
+             "pull-requests": "read"},
         )
         for key in ("if", "needs", "continue-on-error", "strategy", "defaults",
                     "container", "services"):
@@ -1132,6 +1133,9 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         waited = ast.literal_eval(re.search(r"^WAIT_CHECKS = (.+)$", source, re.M).group(1))
         minutes = re.search(r"^WAIT_SECONDS = ([0-9]+) \* 60$", source, re.M)
         wait_seconds = int(minutes.group(1)) * 60
+        # Phase 3: catalogue budgets are capped by MAX_WAIT_SECONDS, which equals the fixed wait.
+        cap = re.search(r"^MAX_WAIT_SECONDS = ([0-9]+) \* 60$", source, re.M)
+        self.assertEqual(int(cap.group(1)) * 60, wait_seconds)
         ci = self.workflows[".github/workflows/ci.yml"]
         self.assertEqual(set(waited), {"host-quality", "qemu-smoke"})
         for name in waited:
@@ -1145,25 +1149,44 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
         self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
         self.assertLess(int(job["timeout-minutes"]), 60)
-        checkout, decide = job["steps"]
+        checkout, load, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
-        self.assertEqual(checkout["with"], {"persist-credentials": "false"})
-        for step in (checkout, decide):
+        self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
+        for step in (checkout, load, decide):
             for key in ("if", "continue-on-error", "working-directory"):
                 self.assertNotIn(key, step)
+        # Phase 3 (#494): the decision runs the base commit's copies, never the PR's.
+        self.assertNotIn("uses", load)
+        self.assertEqual(load["id"], "base")
+        self.assertNotIn("${{", load["run"])
+        for needle in ('git rev-list --parents -n 1 HEAD', '"$second" != "$HEAD_SHA"',
+                       'git cat-file blob "$base:tools/merge_hold.py"',
+                       'git cat-file blob "$base:tools/ci_impact.py"', 'set -euo pipefail'):
+            self.assertIn(needle.replace('"$second"', '"${second:-}"'), load["run"])
+        self.assertEqual(load["env"], {
+            "EVENT_NAME": "${{ github.event_name }}",
+            "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+            "MERGE_GROUP_BASE_SHA": "${{ github.event.merge_group.base_sha }}",
+        })
         self.assertNotIn("uses", decide)
         self.assertEqual(decide["shell"], "bash")
-        self.assertEqual(decide["run"].strip(), "python3 -B tools/merge_hold.py")
+        self.assertEqual(decide["run"].strip(), 'python3 -B -I "$RUNNER_TEMP/merge-hold-base/merge_hold.py"')
+        # The workflow may add variables but must keep every one an older base copy reads.
         self.assertEqual(decide["env"], {
             "GH_TOKEN": "${{ github.token }}",
             "REPO": "${{ github.repository }}",
             "EVENT_NAME": "${{ github.event_name }}",
             "PR_NUMBER": "${{ github.event.pull_request.number }}",
             "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+            "BASE_SHA": "${{ steps.base.outputs.base-sha }}",
+            "TESTED_SHA": "${{ steps.base.outputs.tested-sha }}",
             "MERGE_GROUP_HEAD_SHA": "${{ github.event.merge_group.head_sha }}",
             "MERGE_GROUP_HEAD_REF": "${{ github.event.merge_group.head_ref }}",
             "MERGE_GROUP_BASE_REF": "${{ github.event.merge_group.base_ref }}",
+            "MERGE_GROUP_BASE_SHA": "${{ github.event.merge_group.base_sha }}",
         })
+        read = set(re.findall(r'os\.environ(?:\.get)?[\[(]"([A-Z_]+)"', source))
+        self.assertLessEqual(read - {"GITHUB_RUN_ID", "GITHUB_STEP_SUMMARY"}, set(decide["env"]))
 
     def test_only_artifact_uploads_can_tolerate_errors(self):
         """Storage failure may be optional; failed builds, tests and collectors are not."""
@@ -1254,9 +1277,12 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
 
     def test_deduplication_keeps_host_and_scalar_component_coverage(self):
         """Dedicated gates retain existing and new standalone component coverage."""
-        matrix = self.workflows[".github/workflows/component-leaves.yml"]["jobs"][
-            "component-quality"
-        ]["strategy"]["matrix"]["include"]
+        # Phase 4 (#494): the leaves matrix comes from the catalogue through the select job.
+        catalogue = tomllib.loads((ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8"))
+        leaves = next(wf for wf in catalogue["workflow"] if wf["path"] == ".github/workflows/component-leaves.yml")
+        matrix = [variant["matrix"] for job in leaves["job"] if job["id"] == "component-quality"
+                  for variant in job["variant"]]
+        self.assertEqual(len(matrix), 15)
         self.assertTrue({"artifact-store", "materiaal-ui"}.isdisjoint(
             entry["component"] for entry in matrix
         ))
@@ -1709,6 +1735,10 @@ push = "full"
 schedule = "full"
 workflow_dispatch = "manual"
 
+[policy.budgets]
+pull_request_wait_minutes = 0
+merge_group_wait_minutes = 45
+
 [[workflow]]
 path = ".github/workflows/ci.yml"
 owner = "ci-owner"
@@ -1730,6 +1760,7 @@ class CiImpactShadowTests(unittest.TestCase):
     def setUpClass(cls):
         load = lambda path: yaml.load((ROOT / path).read_text(encoding="utf-8"),
                                       Loader=UniqueKeyLoader)
+        cls.load = staticmethod(load)
         cls.ci = load(".github/workflows/ci.yml")
         cls.action = load(SELECT_ACTION)
 
@@ -1762,16 +1793,71 @@ class CiImpactShadowTests(unittest.TestCase):
             "if-no-files-found": "error",
             "path": "build/ci-impact/plan.json\nbuild/ci-impact/coverage.json\n",
             "required-paths": "build/ci-impact/plan.json"})
-        # Catalogue coverage is a report in this non-required job, never an assertion in host-quality.
+        # The shadow job keeps a report-only coverage step; host-quality asserts it (phase 3).
         coverage, = [step for step in steps if "ci_impact.py coverage" in step.get("run", "")]
         self.assertNotIn("${{", coverage["run"])
+        self.assertNotIn("--strict", coverage["run"])
         self.assertNotIn("continue-on-error", coverage)
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
+
+    def test_host_quality_fails_on_an_invalid_or_drifted_catalogue(self):
+        """Phase 3 (#494): merge-hold enforces plans, so catalogue drift must fail a required gate."""
+        steps = self.ci["jobs"]["host-quality"]["steps"]
+        names = [step.get("name", step.get("uses", "")) for step in steps]
+        gate = steps[names.index("CI impact catalogue is valid and matches the workflows")]
+        self.assertLess(names.index("Pinned Python"), names.index(gate["name"]))
+        self.assertEqual(steps[names.index("Pinned Python")]["with"], {"host-dependencies": "true"})
+        lines = [line.strip() for line in gate["run"].strip().splitlines()]
+        self.assertEqual(lines, ["python3 -B tools/ci_impact.py validate .github/ci-impact.toml",
+                                 "python3 -B tools/ci_impact.py coverage --strict"])
+        for key in ("if", "continue-on-error"):
+            self.assertNotIn(key, gate)
+
+    def test_phase4_select_jobs_render_the_base_plan_and_gate_their_workflow(self):
+        """Phase 4 (#494): a select job per selected workflow; no gate needs merge-hold."""
+        cases = {"component-leaves": ["component-quality"], "app-management-quality": ["app-package-quality"],
+                 "net-tls-quality": ["net-tls-quality"]}
+        host_checkout = next(step for step in self.ci["jobs"]["host-quality"]["steps"]
+                             if step.get("uses", "").startswith("actions/checkout@"))
+        for stem, gated in cases.items():
+            workflow = self.load(f".github/workflows/{stem}.yml")
+            jobs = workflow["jobs"]
+            select = jobs["select"]
+            with self.subTest(workflow=stem):
+                self.assertEqual(select["name"], f"{stem} select")
+                self.assertEqual(select["permissions"], {"contents": "read"})
+                for key in ("needs", "if", "continue-on-error", "strategy"):
+                    self.assertNotIn(key, select)
+                checkout, python, plan, render = select["steps"]
+                self.assertEqual(checkout["uses"], host_checkout["uses"])
+                self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
+                self.assertEqual(plan["uses"], "./.github/actions/select-ci")
+                self.assertEqual(set(plan["with"]), {"event-name", "tested-sha", "head-sha", "base-sha", "base-ref"})
+                # Only a select-mode plan from select-ci narrows.
+                self.assertEqual(render["env"]["PLAN_MODE"], "${{ steps.plan.outputs.mode }}")
+                self.assertEqual(render["env"]["BASE_REF"], plan["with"]["base-ref"])
+                self.assertIn('--mode="$PLAN_MODE" --base-ref="$BASE_REF"', render["run"])
+                self.assertNotIn("${{", render["run"])
+                self.assertIn(f"--workflow=.github/workflows/{stem}.yml", render["run"])
+                self.assertIn('| tee -a "$GITHUB_OUTPUT"', render["run"])
+                for job_id in gated:
+                    job = jobs[job_id]
+                    self.assertEqual(job["needs"], "select")
+                    self.assertEqual(job["if"], f"${{{{ needs.select.outputs.run-{job_id} == 'true' }}}}")
+                    self.assertEqual(select["outputs"][f"run-{job_id}"],
+                                     f"${{{{ steps.jobs.outputs.run-{job_id} }}}}")
+                for job_id, job in jobs.items():
+                    needs = job.get("needs", [])
+                    self.assertNotIn("merge-hold", [needs] if isinstance(needs, str) else needs)
+        leaves = self.load(".github/workflows/component-leaves.yml")["jobs"]["component-quality"]
+        self.assertEqual(leaves["strategy"]["matrix"],
+                         "${{ fromJSON(needs.select.outputs.matrix-component-quality) }}")
+        self.assertEqual(leaves["strategy"]["max-parallel"], "4")
 
     def test_select_action_passes_expressions_only_through_env(self):
         steps = self.action["runs"]["steps"]
         self.assertEqual(self.action["runs"]["using"], "composite")
-        self.assertEqual(set(self.action["inputs"]), {"event-name", "tested-sha", "head-sha", "base-sha"})
+        self.assertEqual(set(self.action["inputs"]), {"event-name", "tested-sha", "head-sha", "base-sha", "base-ref"})
         self.assertEqual(set(self.action["outputs"]), {"plan-id", "mode", "plan-path"})
         for step in steps:
             with self.subTest(step=step.get("name")):
@@ -1846,6 +1932,15 @@ class CiImpactShadowTests(unittest.TestCase):
             self.assertEqual(plan["shas"], {"base": base, "merge_base": base, "head": head,
                                             "tested": tested})
             self.assertEqual(outputs["plan-id"], plan["plan_id"])
+            self.assertEqual(plan["ref"], "")  # no base-ref: the phase-2 command line
+
+            # Phase 4: the target branch reaches the base selector as --base-ref.
+            result, outputs = self.run_action(repo, {
+                "EVENT_NAME": "pull_request", "TESTED_SHA": tested, "HEAD_SHA": head,
+                "BASE_SHA": "", "BASE_REF": "main"}, "pull-request-ref")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
+            self.assertEqual((outputs["mode"], plan["ref"]), ("select", "main"))
 
             # Without a base, the checkout copy runs and the output is forced to full.
             (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())

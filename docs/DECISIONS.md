@@ -5,6 +5,105 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-SELECTION-20261124 — Targeted pull request selection for component gates
+
+**Status:** accepted under the project owner's CI mandate for issue #494 (phase
+4, 24 November 2026). It builds on ADR-CI-GATE-ENFORCEMENT-20261124.
+
+**Problem:** `component-leaves.yml` ran all 15 leaf variants on every non-metadata
+pull request. App-management and net-tls ran on every such pull request too,
+even when none of their inputs changed.
+
+**Decision:** on `pull_request`, under `policy.mode = "select"`, these three
+workflows run only what the trusted base plan selects:
+
+- component leaves per variant;
+- app-management and net-tls per job.
+
+Each workflow gets a `select` job that renders the plan into job conditions
+and, for the leaves, into the matrix. The catalogue becomes the single source
+of the leaves matrix.
+
+The integrated native suites, CodeQL and `ci.yml` stay unselected. `push`,
+`merge_group`, `schedule` and `workflow_dispatch` always run in full. merge-hold
+remains the decision point: it does not trust the `select` jobs and blocks when
+an expected gate did not pass.
+
+**Consequences:** a pull request that touches no leaf, app-management or net-tls
+input skips those jobs. A pull request that touches one leaf runs that leaf
+only.
+
+**Rollback:** set `policy.mode = "full"` on `main`. All jobs and variants then
+run again, and enforcement continues. Measured results are recorded on #494.
+
+## ADR-CI-GATE-ENFORCEMENT-20261124 — merge-hold enforces the applicable CI gates
+
+**Status:** accepted under the project owner's CI mandate for issue #494 (phases 3
+and 4, 24 November 2026). It extends ADR-MERGE-HOLD-20261113 and does not replace
+it: the acceptance hold, its labels, release comments and merge-queue walk stay
+in force.
+
+**Problem:** the required checks were `host-quality`, `qemu-smoke` and
+`merge-hold`, but merge-hold did not verify that the other applicable gates had
+run and passed. A change could therefore merge while a native or component gate
+was still running, had failed, was cancelled or had been skipped, and a pull
+request could change the scripts that judge it.
+
+**Decision:**
+
+- The required `merge-hold` check decides; no new optional check is added. It
+  runs the base commit's `tools/merge_hold.py` and `tools/ci_impact.py`,
+  extracted from the merge commit's first parent, never the pull request's
+  copies.
+- On `pull_request` it recomputes the impact plan for the exact base tip, head,
+  merge commit and target branch. It requires a successful result for every
+  selected `core` or `rwa` gate that GitHub starts for the change. Results are
+  bound to Actions runs by workflow path, event, head SHA, head branch,
+  repository and head repository. The newest run and the latest attempt decide,
+  and every listing is read through all its pages.
+- Missing, running, failed, cancelled, timed-out and skipped expected gates
+  block, and so does an unexpected failed gate. "Not applicable" is reported
+  separately and is never a pass.
+- The pull request wait budget is 0 (decision Q1 of the handoff): merge-hold
+  lists the pending gates and is re-run after they finish. Job timeouts are
+  unchanged. On `merge_group`, where the selected workflows do not run, each
+  member needs a successful pull_request merge-hold on its own head and an
+  equal tree.
+- `host-quality` fails on an invalid catalogue or on drift between the
+  catalogue, the workflows and the sources.
+- `policy.mode` gains its enforcement meaning: `shadow` reports without
+  blocking; `enforce` blocks; `select` blocks and lets workflows skip
+  unselected executions (phase 4); `full` is the selection rollback and keeps
+  enforcement.
+- `tools/ci_impact.py` and `tools/merge_hold.py` join the Protected files list.
+
+**Consequences:** merges wait for every applicable gate, not only for the three
+required checks. A pull request's first merge-hold run normally fails with a
+pending list and needs one re-run. A merge queue with several entries fails
+closed until the selected workflows gain `merge_group` triggers, which is
+outside #494. A started gate that the plan did not select must still finish
+before merge-hold passes. The introducing pull request is judged by the older
+base copy, so its gates must be verified by hand before its merge. Runs of a fork head
+list no pull request and cannot be bound to a base, so a fork pull request fails
+closed until its commits are pushed to a repository branch; relaxing that is a
+project-owner decision. Under `pull_request`, GitHub still reads workflow files from the
+pull request side, so review of `.github/**` remains the control for workflow
+edits. Details and the remaining limits are in docs/CI-CONTRACT.md
+("Enforcement", "Known limits").
+
+**Revise when:** the merge queue is enabled and the selected workflows gain
+`merge_group` triggers; GitHub changes which workflow files a `pull_request` run
+reads; or `policy.mode = "shadow"` is needed to let a selected gate pass.
+
+**Primary sources:**
+
+- GitHub. (n.d.). [*REST API endpoints for workflow runs*](https://docs.github.com/en/rest/actions/workflow-runs).
+  Retrieved 24 November 2026.
+- GitHub. (n.d.). [*REST API endpoints for workflow jobs*](https://docs.github.com/en/rest/actions/workflow-jobs).
+  Retrieved 24 November 2026.
+- GitHub. (n.d.). [*Events that trigger workflows*](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows).
+  Retrieved 24 November 2026.
+
 ## ADR-PROJECT-LIFECYCLE-20261124 — Preserve specialist status and truthful closure
 
 **Status:** accepted on the project owner's instruction of 24 November 2026.

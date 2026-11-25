@@ -5,13 +5,14 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 | Field | Value |
 |---|---|
-| cycle_id | `h06-t6-20261124` |
-| Task | H06-T6 removable-media HW-INV image (raw GPT/FAT32, QEMU-booted) |
-| Branch | `claude/h06-t6-hwinv-image-20261124` (base main `e5ab3693`) |
-| PR | see the `HANDOFF H h06-t6-20261124` comment |
-| Tested source | `f99b4c58` (after merge with main `68596f82`; source fingerprint `2b72b62e…`), clean checkout; later commits add docs, evidence, ledger and progress only |
-| Evidence | [h06-hwinv-image-20261124](../../verification/h06-hwinv-image-20261124/README.md): image SHA-256 `a4ca34eb…` (64 MiB); `image`, `plain` and `iommu` cases pass; sgdisk, fsck.fat and mtools agree; an image without `kernel.elf` stops at `M1:FAIL:KERNEL_OPEN` |
-| NOT RUN | physical or USB boot; image-hash reproduction (an independent clean clone gave `d716f697…`: same kernel, different loader, until B04 lands); native `SECUREBOOT=0/1`; local `actionlint` |
+| cycle_id | `h06-t8-20261124` |
+| Location | cloud H session (took over from the local session via READY_FOR_CLOUD on #500, comment 7145796849) |
+| Task | H06-T8 exact-line matching for full-line fixture markers (deferred CodeRabbit finding on #500) |
+| Branch | `claude/sweet-franklin-ljra1f` (base main `a2595a3a`) |
+| PR | see the `HANDOFF H h06-t8-20261124` comment |
+| Tested source | `9b24c9d` (source fingerprint `d1cb0845…`), clean tree; later commits add docs, evidence, ledger and progress only |
+| Evidence | [h06-exact-markers-20261124](../../verification/h06-exact-markers-20261124/README.md): full native HW-INV gate on `pc-q35-8.2`, all cases and five terminal fixtures pass; `startswith` mutant fails the new host tests |
+| NOT RUN | physical boot; default/M2 smoke (no kernel or loader change); image-hash reproduction (local hash `7a646569…`, needs B04) |
 | Score | 43/100 unchanged; H06 stays open |
 
 ## Blockers
@@ -31,10 +32,17 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 4. A raw QEMU exit of 35 from an HW-INV fixture means a `0xF4` write (`0x11`); a halted guest ends only through QMP `quit` (raw 0).
 5. Locally, five `test_roadmap_runner.Session` tests also fail on unmodified main (environment); the ledger validity test is the relevant one.
 6. `fsck.fat` drops a boot-sector volume label that has no matching root-directory label entry; the image uses `NO NAME`. `fsck.fat -v` prints "32 bit entries", not "FAT32".
+7. HMP `info cpus` no longer reports `(halted)` in current QEMU; `info registers` still prints `HLT=1`.
+8. A bash gate helper that sets a global `name` clobbers the caller's variable: use `local` in step/mutant functions, or mutant runs silently target the wrong build directory.
+9. `evaluate_fixture` markers that end in `:` are value markers (prefix plus non-empty value); every other fixture marker must be the whole line.
 
 ## Next task
 
-Ledger H06-T6 → `verified` in the next H PR. Then the next eligible H task from
-`docs/roadmap-pipeline/ledger.json`; physical H06 work stays blocked on the owner
-decisions above. Candidates without owner input: a serial-timeout fixture, or
-recording the image hash reproduction once B04 (#493) is merged.
+#500 (H06-T7) merged as `a2595a3a`; ledger H06-T7 is `verified`. Land H06-T8
+(#507). Then H02-T5: native refusal fixtures for out-of-profile USB devices (hub,
+tablet without boot interface, storage, high-speed), after a QEMU feasibility
+check. After that, H05 virtio-blk re-initialisation after an S3 wake (needs a
+security review). H04 in-flight TX at a link-down edge touches
+`kernel/src/m2/m3/network.rs` and needs agreement with workstream N first.
+Physical H02–H06 work stays blocked on the owner decisions above; image-hash
+reproduction once B04 (#493) is merged.

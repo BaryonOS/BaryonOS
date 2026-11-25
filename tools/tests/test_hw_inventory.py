@@ -107,6 +107,60 @@ class FixtureTest(unittest.TestCase):
         self.assertEqual(self.failed("M2:FAULT:KERNEL_UD:PASS\nM2:FAIL_X\n".replace("M2:FAIL_X", "OTHER"), "m2-fault"),
                          {"fixture_markers_in_order", "protocol_failure_recognised"})
 
+    def test_full_line_markers_need_an_exact_line(self):
+        # A longer line that merely starts with a full-line marker must not satisfy it.
+        for good, bad in (("M2:PASS\n", "M2:PASSED\n"), ("HWINV:BEGIN\n", "HWINV:BEGIN_X\n"),
+                          ("HWINV:FAIL:FIXTURE\n", "HWINV:FAIL:FIXTURE2\n")):
+            log = "M2:PASS\nM1:PASS\nHWINV:BEGIN\nHWINV:FAIL:FIXTURE\n".replace(good, bad, 1)
+            self.assertIn("fixture_markers_in_order", self.failed(log, "hwinv-fail"), bad)
+        self.assertIn("fixture_markers_in_order",
+                      self.failed(self.PANIC.replace("BOOTINFO:OK\n", "BOOTINFO:OK_X\n"), "panic"))
+        self.assertIn("fixture_markers_in_order",
+                      self.failed("BdsDxe: loading\nM1:FAIL:KERNEL_OPEN_X\n", "missing-kernel"))
+
+    def test_value_markers_need_a_value(self):
+        self.assertIn("fixture_markers_in_order",
+                      self.failed(self.PANIC.replace("M2:PANIC_LINE:0000000310\n", "M2:PANIC_LINE:\n"), "panic"))
+        self.assertTrue(run_hw_inventory.marker_matches("M2:PANIC_LINE:0000000310", "M2:PANIC_LINE:"))
+        self.assertFalse(run_hw_inventory.marker_matches(" M2:PASS", "M2:PASS"))
+
+
+class SerialTimeoutFixtureTest(unittest.TestCase):
+    """H06-T7: the timed-out write leaves a truncated block that the protocol rejects."""
+    LOG = "M2:PASS\nM1:PASS\nHWINV:BEGIN\nHWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n"
+
+    def failed(self, text, alive=True):
+        return {n for n, ok in run_hw_inventory.evaluate_fixture(text, "serial-timeout", alive).items() if not ok}
+
+    def test_truncated_log_passes(self):
+        self.assertEqual(self.failed(self.LOG), set())
+
+    def test_each_check_detects_its_own_deviation(self):
+        self.assertEqual(self.failed(self.LOG, alive=False), {"halted_without_exit_port"})
+        # The write after the injection reached the UART: the timeout did not fire.
+        self.assertEqual(self.failed(self.LOG + "HWINV:CPUID:VENDOR=AuthenticAMD:HYPERVISOR=0\n"),
+                         {"silent_after_injection"})
+        # A failure marker is not the expected rejection reason for a silent timeout.
+        self.assertEqual(self.failed(self.LOG + "HWINV:FAIL:X\n"),
+                         {"silent_after_injection", "protocol_failure_recognised"})
+        # A repeated armed marker must not hide output that followed the first one.
+        self.assertEqual(self.failed(self.LOG + "HWINV:CPUID:X\nHWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n"),
+                         {"silent_after_injection"})
+        self.assertEqual(self.failed(self.LOG.replace("HWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n", "")),
+                         {"fixture_markers_in_order", "silent_after_injection"})
+
+    def test_cpu_halted_reads_hmp_info_registers(self):
+        class Control:
+            def __init__(self, reply):
+                self.reply = reply
+
+            def command(self, name, arguments=None):
+                assert (name, arguments) == ("human-monitor-command", {"command-line": "info registers"})
+                return self.reply
+
+        self.assertTrue(run_hw_inventory.cpu_halted(Control("EFL=00000006 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=1\r\n")))
+        self.assertFalse(run_hw_inventory.cpu_halted(Control("EFL=00000006 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=0\r\n")))
+
 
 class EvaluateTest(unittest.TestCase):
     def test_captured_iommu_log_passes_every_oracle(self):

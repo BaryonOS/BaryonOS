@@ -23,34 +23,35 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Record real issue–PR, parent/sub and blocked-by links; closing keywords only for the
   scoped issue a PR fully resolves. Merged = Done, other closure = Closed. A merge is not
   criterion acceptance. No schema/permission changes, no artificial issues.
-- Gap on #486: the local gh token lacks `read:project`, so project 5 membership and
+- Gap: neither the local gh token (no `read:project`) nor the cloud session (repository-scoped) can reach project 5, so membership and
   fields are not set; owner action needed.
 
 ## Current cycle
 
-- cycle_id: b02-key1-relay-20261124
-- task: B02-T4 (ledger), native KEY1 key-state commit ingress per ADR-B02-KEY1-RELAY-20261123
-- branch: claude/b02-key1-relay-native-20261124
-- PR: #486 (ready for review; auto-merge off)
-- tested source SHA: recorded in the PR body, not here
-- state: RESUME_REQUIRED. Independent security and evidence verifiers returned MERGE; their
-  low findings and all CodeRabbit findings are fixed (49b1557d, 07a8879f) and confirmed.
-  Main is integrated by merge commits; hosted gates on the current head and the merge remain.
+- Session: cloud (CLOUD-HANDOFF-B, 25 Nov); the local B session is archived and no longer writes.
+- cycle_id: b05-t5-user-abi-20261125 (previous b04-repro-loader-20261124 closed: #493 merged as ae735e2c,
+  verified on main; HANDOFF comment on #493).
+- task: B05-T5 bounded invariant enumeration of the ring-3 user ABI (`crates/kernel-core/src/user.rs`)
+- branch: claude/b05-user-abi-20261123
+- PR: see the HANDOFF comment for the number and expected head
+- state: RESUME_REQUIRED until the PR is squash-merged and verified on main.
+- result: host-only test `crates/kernel-core/tests/bounded_user_abi_invariants.rs` (12 tests). The open verifier
+  finding (`>=` quota mutant survived) is closed by `parse_quota_boundary_is_exact`; a second verifier pass found
+  the same gap at the window end, closed by `parse_window_end_is_exact`. Production source unchanged.
 
 ## Evidence / NOT RUN
 
-- Evidence: `docs/verification/b02-key1-relay-20261124/` (native relay cases and B01 gate re-run at `07a8879f`,
-  host checks at `d4db823e`; see its README):
-  relay, relay-not-committed, relay-timeout pass (raw 33); red relay-leak stops at
-  `SYSTEM:FAIL:APP_COMMIT_HANDLE` (raw 35, disk unchanged); wrong-case control 12/12
-  rejected; `tools/test_system.py` and `tools/test_keyring.py` exit 0.
-- NOT RUN: `agent_gate.py` prefilter (exits 1 at plan resolution: pinned checkout
-  needs a local adapter); hosted CI; run_random/run_images/Materiaal/NAS/TCP/cap-bench
-  regressions; hardware; human audit.
-- Open low items (documented in FR-B02R residuals): native refusal of opcodes 13/14 on the
-  domain endpoint not measured; only one red manifest control; pre-supply wait unbounded
-  (fails closed); relay cold-start RESTORE path depends on B02-T3.
-- progress/PROJECT-STATE untouched; B02 stays open (the ADR grants no credit).
+- Evidence: `docs/security-review/B05-T5-USER-ABI-INVARIANTS.md` (case counts, mutation controls, commands).
+  `cargo test -p kernel-core` (59 unit + 12 integration), clippy, fmt and `tools/b05_scope_check.py` exit 0;
+  quota `>=`, `-31`, `-33`, non-accumulating count and window-end `>=` mutants all exit 101.
+- NOT RUN: `cargo llvm-cov` locally; native QEMU (the change is test-only); hardware; human audit.
+  No B05 credit: AI review is not the external human audit.
+
+## Merge procedure lesson (25 Nov)
+
+- With `pull_request_wait_minutes = 0`, merge-hold fails at once while gates run. After the applicable gates finish
+  (ignore `upload-coverage-*`, `copilot*`, Graphify), re-run the merge-hold job, then squash-merge with the expected
+  head before `main` moves. #493 needed six update rounds; signalled on #503.
 
 ## Blockers (external)
 
@@ -60,11 +61,12 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - B04 hosted Secure Boot job: protected `.github/**` request
   (docs/implementation/B04-SECURE-BOOT-CI-INTEGRATION-REQUEST.md).
 
-## Parked local work (not pushed, not in this cycle)
+## Queued B branches (pushed, merged with main on 24–25 Nov, no PR yet)
 
-- claude/b05-user-abi-20261123 e4e6a9aa — open medium verifier finding (quota off-by-one mutant survives).
-- claude/b05-virtio-caps-20261123 5dc89767 — verifier MERGE.
-- claude/b03-floor-crash-20261123 f18ba29c — verifier MERGE.
+- claude/b05-virtio-caps-20261123 7762e63f — B05-T6, verifier MERGE; virtio-core tests/clippy/fmt/scope exit 0.
+- claude/b03-floor-crash-20261123 — B03-F1 REL-05 characterization (not a fix); 9 host tests pass.
+- REL-05 fix (floor raised before kernel health) needs an owner policy decision (trial boot / health
+  confirmation); B drafts a proposal, no silent change to anti-rollback semantics.
 
 ## Lessons
 
@@ -74,7 +76,5 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- Finish #486: confirm hosted checks green on the current head (integrate main again if it
-  moved), run the SHA-bound acceptance release and let merge-hold revalidate, squash-merge
-  with the expected head, verify on main, then post `HANDOFF B b02-key1-relay-20261124` on #486.
-- After that cycle: B04 build divergence (loader/image_payload) diagnosis without normalising differences away.
+- Finish the B05-T5 PR (gates, merge-hold re-run, expected-head squash merge, verify on main,
+  post `HANDOFF B b05-t5-user-abi-20261125`), then B05-T6, then B03-F1.
