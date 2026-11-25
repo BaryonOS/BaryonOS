@@ -5,15 +5,19 @@
 and S2 frozen TPM constants `crates/update-core/src/trial_tpm.rs`; nothing is wired
 into the loader or the kernel. *Executed tests*: host tests only
 (`tests/trial_state_machine.rs`, `tests/trial_tpm_constants.rs`); no native, swtpm
-or QEMU test (S5 onwards). *Pending*: review round 1 findings and the owner
-decision on C665 (TPM identity binding, U13; PR #524). Decision record:
+or QEMU test (S5 onwards). *Decided*: owner decision C665 (25 November 2026,
+PR #524): TPM identity binding (U13), with halt until authenticated recovery
+while the binding is not demonstrably reliable (section 10.5); its host model
+and tests exist, its enrollment tool, EK session, recovery and native tests
+C23–C30 are pending (S3b, S5b). *Pending*: anchor finding M1 (with N and the
+owner). Decision record:
 [ADR-B03-REL05-TPM-20261125](../DECISIONS.md#adr-b03-rel05-tpm-20261125--trial-boot-with-tpm-20-health-confirmation-rel-05-option-a).
 Owner decision: issue #41, 25 November 2026 (items O1–O9 below).
 Scope: public TEST keys, disposable QEMU with swtpm only. No production keys,
 signing, physical TPM, firmware change, production activation or new trust root.
 
 The document separates four things throughout: **design** (this text),
-**implementation** (S1/S2 host code only), **executed tests** (host only) and **unverified
+**implementation** (S1/S2 and U13 host model only), **executed tests** (host only) and **unverified
 assumptions** (marked *[unverified]* and collected in section 14).
 
 ## 1. Problem (REL-05)
