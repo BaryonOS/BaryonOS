@@ -28,7 +28,7 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: local "BaryonOS - Specialist B [2a403f]" (25 Nov ~20:35Z, resumed from #524 CHECKPOINT 7172322273
+- Session: local "BaryonOS - Specialist B [2a403f]" (25 Nov, checkpoint ~20:00Z; resumed from #524 CHECKPOINT 7172322273
   and this file; registered with the PR guard [a1de4b]; [d5840a] retired).
 - cycle: B03-REL05 trial boot with a TPM anchor, M1-HAUTH under owner decision option 1 (TEST profile,
   QEMU/swtpm only; ADR-B03-REL05-TPM-20261125, C665 identity binding).
@@ -54,9 +54,11 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   squat under a foreign ownerAuth halts `PUBLIC`, unbound `LREC` after a provisioning boot, power-cut leftovers repaired;
   `docs/verification/b03-rel05-hauth-seeded-20261125/`, local commits 4e2eda89, e1c749a3, 38453a5f), the owner squat
   under the empty ownerAuth (removed, boots identical to `loader-hauth`) and DA-counter sensitivity (seeded `0x20E` = 1,
-  loader `DA:1:1`, all other provisioned boots 0; `docs/verification/b03-rel05-hauth-da-squat-20261125/`, local commit 06b7528a).
+  loader `DA:1:1`, all other provisioned boots 0; `docs/verification/b03-rel05-hauth-da-squat-20261125/`, local commit 06b7528a),
+  PCR 13 read-back of every active bank (SHA-1/256/384/512 equal `H(0^n || H(CLOSED))` on OVMF 2025.11;
+  thirteen native cases at source 16ff8409; `docs/verification/b03-rel05-pcr13-banks-20261125/`, local commit 2c9fdec9).
 - NOT RUN: a provisioning-path halt after an NV write (fault injection), a cut between the ownerAuth and lockoutAuth
-  changes, PCR 13 read-back of the SHA-1/384/512 banks (codec reads SHA-256 only), S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
+  changes, the TCG event log for PCR 13, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
   the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
 - Licensing register: `boot/loader/src/tpm_probe.rs`, `tpm_hauth.rs` and `tools/tpm_seed.py` are not listed in
   `MPL-2.0-FILES.txt` (no test enforces it); the register is an owner/lead decision, so it is reported, not changed.
@@ -116,20 +118,21 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   commit. At source 99347dfa: thirteen native cases pass, the eleven earlier ones with unchanged stdout hashes; loader
   `5bbcc2fa…` and kernel `ba349c3b…` unchanged; `tools/tests` 1181 OK (15 skipped); `test_tpm` 10 OK; `compileall`;
   `progress.py --check` 43/100.
-- Next on #524, decision-free: PCR 13 read-back of the SHA-1/384/512 banks. Plan: additive codec variant
-  `PcrReadBank { pcr, alg }` (SHA-1/256/384/512, digest up to 64 bytes) in `drivers/tpm-crb`, loader prints one public
-  `PCR13` line per bank in `after()` before the `0x20E` reads (the residue scan needs that GetCapability last), and
-  `run_tpm` checks the lines against the firmware `BANKS` mask and `H(0^n || H(EVENT_CLOSED))`; halt paths never reach
-  `after()`, so only provisioned boots change their stdout. A cut between the
+- Done locally: 2c9fdec9 PCR 13 bank read-back (codec `PcrReadBank`, loader `LOADER-HAUTH:PCR13:BANK:` lines for the
+  `GetActivePcrBanks` banks before the `0x20E` reads, `run_tpm.closed_banks`), then the evidence/handoff commit. Results
+  and hashes: `docs/verification/b03-rel05-pcr13-banks-20261125/` (thirteen cases pass at source 16ff8409; provisioned
+  boots now `7a4c0d5c…`/`08a3f833…`, da-counted `14145a63…`, all halt/probe/kernel-only hashes unchanged; loader
+  `da716d06…`, kernel `c6cef6ab…`; tpm-crb 1.100.0 test/clippy/fmt/scalar, `tools/tests` 1181 OK, `progress.py --check` 43/100).
+- Next on #524, decision-free: none of the seeded/DA/PCR-bank items is left. A cut between the
   ownerAuth and lockoutAuth changes needs a host HAUTH secret and `LoaderRecord` encoder. Then, only after the owner
   answers (both are in the "reported to the owner, not accepted" list): (b) S3/U27 and the section 7.9 halt; (c) native
   S5 with N's joint tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
   body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the thirteen
-  `run_tpm.py` cases (six + seven seeded) on the merged head, or state in the PR body that the loader evidence is bound to 99347dfa; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
+  `run_tpm.py` cases (six + seven seeded) on the merged head, or state in the PR body that the loader evidence is bound to 16ff8409; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
 
-Lane: owner correction ~18:05Z; origin/main 840c8f32 (#548, CI B9 merge-hold re-check) at 20:55Z, #524 BEHIND by 7 (no overlap with
-the TPM files); no lane grant yet (B [2a403f] registered with the PR guard ~20:35Z). #548 changes merge-hold to decide at once and
+Lane: owner correction ~18:05Z; origin/main 840c8f32 (#548, CI B9 merge-hold re-check) at 19:58Z, #524 BEHIND by 7 (no overlap with
+the TPM files); no lane grant yet (B [2a403f] registered with the PR guard). #548 changes merge-hold to decide at once and
 re-check after the gates finish, so the 25 Nov merge-hold lesson below may be outdated; re-read it before the lane merge. CI keeps priority until every CI batch is resolved, and the main freeze holds after #544.
 #524 (draft, BEHIND main) does not catch up or push until the PR guard grants the lane. Infra reruns on 5e126571
 (runs 45649628744, 45649628788, 45649628817) all succeeded; merge-hold stays red only because the branch is BEHIND.

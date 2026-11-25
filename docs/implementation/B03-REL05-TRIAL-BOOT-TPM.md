@@ -923,3 +923,20 @@ NV write (needs fault injection), and a cut between the ownerAuth and
 lockoutAuth changes. The loader also never checks that the ownerAuth equals
 `HAUTH[..32]`, so a foreign owner that plants a well-formed `HAUTH` and `LREC`
 would bind (reported, not tested).
+
+### Loader M1-HAUTH PCR 13 bank read-back (25 November 2026)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-pcr13-banks-20261125](../verification/b03-rel05-pcr13-banks-20261125/README.md).
+The `drivers/tpm-crb` codec gains `Request::PcrReadBank { pcr, alg }` for
+the SHA-1, SHA-256, SHA-384 and SHA-512 banks (digest up to 64 bytes; any
+other algorithm or an empty answer is refused). After `PCR13:CLOSED` and
+before the `0x20E` reads, the TEST loader asks firmware for its active banks
+(`GetActivePcrBanks`), reads PCR 13 in each active bank and prints one public
+`LOADER-HAUTH:PCR13:BANK:<alg>:<digest>` line per bank, or `INACTIVE`
+without a read for a bank the firmware reports inactive. `run_tpm.py`
+requires, on every provisioned boot, exactly the four lines that
+`H(0ⁿ ‖ H("BARYON-TRIAL-CLOSED-V1"))` gives for the firmware bank mask.
+This extends the U2 observation from the SHA-256 bank to every bank that
+OVMF 2025.11 activates; the hosted OVMF image remains NOT RUN. Halt paths
+never reach the read-back, so they keep their output.
