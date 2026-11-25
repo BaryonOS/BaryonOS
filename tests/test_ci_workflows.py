@@ -7,6 +7,7 @@ native QEMU acceptance.
 """
 
 import ast
+import fnmatch
 import hashlib
 import io
 import json
@@ -45,6 +46,26 @@ METADATA_PATHS_IGNORE = [
     "tools/project_classification.py",
     "tests/test_project_classification.py",
 ]
+# "@nonnative" (#494 phase 5 C2): the pull_request trigger of these native workflows also
+# skips the catalogue's core_only tooling metadata; their @metadata push run on main is the
+# backstop. native-hid-input and native-xhci run plugins/** and stay on METADATA.
+NONNATIVE_PATHS_IGNORE = METADATA_PATHS_IGNORE + [
+    ".agents/**",
+    ".claude/**",
+    ".claude-plugin/**",
+    ".codex/**",
+    "plugins/**",
+    ".c8rc.json",
+    ".coveragerc",
+    ".coderabbit.yaml",
+    "LICENSE",
+    "MPL-2.0-FILES.txt",
+]
+NONNATIVE_WORKFLOWS = {
+    "entropy-keys", "nas-core", "native-display-input", "native-foundation",
+    "native-hw-inventory", "native-power", "native-rtc", "native-smp", "native-system",
+    "native-window-session", "net-broker-quality", "process-management", "signed-updates",
+}
 
 
 def github_path_filter_matches(pattern, path):
@@ -1196,37 +1217,73 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                 self.assertEqual(job.get("continue-on-error", "false"), "false")
                 self.assertTrue(any("run" in step for step in job["steps"]))
 
-    def test_paths_ignore_skips_only_documentation_and_project_metadata(self):
-        """Metadata-only changes must not start native matrices; code still must."""
-        filtered = 0
+    def test_paths_ignore_skips_only_metadata_or_tooling_metadata_with_a_main_backstop(self):
+        """Metadata-only changes must not start native matrices; code still must.
+
+        #494 phase 5 C2 (N12): a pull_request filter is METADATA or, for exactly the
+        backstopped native workflows, NONNATIVE; a push filter is always METADATA."""
+        filtered, nonnative = 0, set()
         for path, workflow in self.workflows.items():
             for event in ("pull_request", "push"):
                 trigger = workflow["on"].get(event)
                 if isinstance(trigger, dict) and "paths-ignore" in trigger:
                     filtered += 1
                     with self.subTest(path=path, event=event):
-                        self.assertEqual(trigger["paths-ignore"], METADATA_PATHS_IGNORE)
+                        if event == "pull_request" and trigger["paths-ignore"] == NONNATIVE_PATHS_IGNORE:
+                            nonnative.add(Path(path).stem)
+                            push = workflow["on"]["push"]
+                            self.assertEqual(push["paths-ignore"], METADATA_PATHS_IGNORE)
+                            self.assertIn("main", push["branches"])
+                        else:
+                            self.assertEqual(trigger["paths-ignore"], METADATA_PATHS_IGNORE)
         self.assertGreater(filtered, 0)
+        self.assertEqual(nonnative, NONNATIVE_WORKFLOWS)
 
-        def ignored(changed):
-            return any(github_path_filter_matches(p, changed)
-                       for p in METADATA_PATHS_IGNORE)
+        # Every native workflow keeps a metadata-only filter, except the two documented
+        # allowlists without a push backstop (#494 C1; their coverage of the native input
+        # set is pinned in tools/tests/test_ci_impact.py).
+        catalogue = tomllib.loads((ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8"))
+        allowlists = set()
+        for entry in catalogue["workflow"]:
+            if not any("native" in job.get("input_sets", []) for job in entry["job"]):
+                continue
+            trigger = self.workflows[entry["path"]]["on"]["pull_request"]
+            with self.subTest(native=entry["path"]):
+                if "paths" in trigger:
+                    allowlists.add(Path(entry["path"]).stem)
+                    self.assertNotIn("push", self.workflows[entry["path"]]["on"])
+                else:
+                    self.assertIn(trigger["paths-ignore"], (METADATA_PATHS_IGNORE, NONNATIVE_PATHS_IGNORE))
+        self.assertEqual(allowlists, {"storage-resilience", "volume-acceptance"})
+
+        def ignored(changed, patterns):
+            return any(github_path_filter_matches(p, changed) for p in patterns)
 
         for changed in ("README.md", "docs/PROJECT-STATE.md", "sdk/README.md",
                         ".github/pull_request_template.md",
                         ".github/ISSUE_TEMPLATE/bug.yml",
                         "tools/project_classification.py"):
             with self.subTest(ignored=changed):
-                self.assertTrue(ignored(changed))
+                self.assertTrue(ignored(changed, METADATA_PATHS_IGNORE))
+                self.assertTrue(ignored(changed, NONNATIVE_PATHS_IGNORE))
+        for changed in (".agents/skills/os-dev/SKILL.json", "plugins/token-guard/x.py", "LICENSE",
+                        ".coderabbit.yaml", ".codex/config.toml"):
+            with self.subTest(tooling=changed):
+                self.assertFalse(ignored(changed, METADATA_PATHS_IGNORE))
+                self.assertTrue(ignored(changed, NONNATIVE_PATHS_IGNORE))
         for changed in ("kernel/src/main.rs", "Cargo.lock", "tools/build.py",
                         "tools/ci_evidence.py", "tests/test_ci_workflows.py",
+                        "tools/ci_impact.py", "tools/merge_hold.py", "tools/tokenguard.py",
+                        ".github/ci-impact.toml", ".github/ci-impact.candidate.toml",
                         ".github/workflows/ci.yml",
                         ".github/workflows/native-smp.yml",
                         ".github/actions/setup-qemu/action.yml",
                         "sdk/examples/window-session/src/main.rs",
-                        "docs.rs", "tools/project_classification.py.orig"):
+                        "docs.rs", "tools/project_classification.py.orig",
+                        "plugins.rs", "kernel/plugins/mod.rs", "LICENSE.rs"):
             with self.subTest(built=changed):
-                self.assertFalse(ignored(changed))
+                self.assertFalse(ignored(changed, METADATA_PATHS_IGNORE))
+                self.assertFalse(ignored(changed, NONNATIVE_PATHS_IGNORE))
 
     def test_merge_hold_is_an_unfiltered_live_read_required_gate(self):
         """The hold must always report, read live state and never be skipped."""
@@ -1844,6 +1901,190 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
 
 
 
+class NativeCoreOnlyClosureTests(unittest.TestCase):
+    """#494 phase 5 C2 (N13): an @nonnative filter may hide only what native gates never run.
+
+    From every pull-request job of a native workflow, follow an over-approximate execution
+    closure over the tracked Python and shell files: imports (a package's imported names
+    too), `-m` and `import_module` names, every `<name>.py`/`<name>.sh` token (subprocess,
+    runpy, path joins) and named discovery globs, each matched by file name in any
+    directory. No reached file may be a core_only path, or name a core_only top-level
+    component as a path component, unless the catalogue registers it as an input of that
+    job. A tool that reads a configuration file by convention (`git status` reads
+    `.gitignore`, `coverage` `.coveragerc`, `c8` `.c8rc.json`) counts as naming that file.
+    Limits: a bare `*`/`**` walk is a data read, not an execution edge; a `*.ext` glob
+    is resolved below its caller's directory; Rust compile inputs are covered by the
+    `include_*!`/`path` scan, not by the closure; other implicit readers are not modelled."""
+
+    WORD = r"(?<![\w.-])({})(?![\w-])"
+    IMPORT = re.compile(r"^\s*(?:from\s+([\w.]+)\s+import\s+([\w, ()]+)|import\s+([\w., ]+))", re.M)
+    MODULE = re.compile(r"(?:-m\s+|import_module\(\s*[\'\"]|spec_from_file_location\(\s*[\'\"])([\w.]+)")
+    FILE = re.compile(r"[\w.-]+\.(?:py|sh)\b")
+    GLOB = re.compile(r"(?<![^\s\'\"=])([\w./-]*\*[\w.*/-]*)(?![^\s\'\"])")
+    LOCAL_ACTION = re.compile(r"\./(\.github/actions/[\w-]+)")
+    IMPLICIT = {".gitignore": re.compile(r"\bgit\W+(?:status|clean|ls-files|check-ignore|add)\b"),
+                ".coveragerc": re.compile(r"\bcoverage\W+(?:run|combine|report|xml|html|json)\b"),
+                ".c8rc.json": re.compile(r"\bc8\b")}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.catalogue = tomllib.loads((ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8"))
+        cls.core_only = cls.catalogue["policy"]["core_only"]
+        components = sorted({pattern.split("/")[0] for pattern in cls.core_only})
+        cls.mention = re.compile(cls.WORD.format("|".join(map(re.escape, components))))
+        tracked = subprocess.run(["git", "-C", str(ROOT), "ls-files", "-z"], capture_output=True,
+                                 check=True).stdout.decode("utf-8").split("\0")
+        cls.tracked = [path for path in tracked if path]
+        cls.pool = [path for path in cls.tracked if path.endswith((".py", ".sh"))]
+        cls.by_name, cls.by_stem = {}, {}
+        for path in cls.pool:
+            cls.by_name.setdefault(Path(path).name, []).append(path)
+            if path.endswith(".py"):
+                cls.by_stem.setdefault(Path(path).stem, []).append(path)
+        cls.edge_cache = {}
+
+    def modules(self, name):
+        return {path for part in name.split(".") for path in self.by_stem.get(part, [])}
+
+    def edges(self, text, here):
+        found = set()
+        for source, names, plain in self.IMPORT.findall(text):
+            wanted = [source] if source else [name.split(" as ")[0].strip() for name in plain.split(",")]
+            if source and not self.by_stem.get(source.rsplit(".", 1)[-1]):
+                # `from package import module`: the names may be modules.
+                wanted += [name.split(" as ")[0].strip()
+                           for name in names.replace("(", "").replace(")", "").split(",")]
+            for name in wanted:
+                found |= self.modules(name)
+        for name in self.MODULE.findall(text):
+            found |= self.modules(name)
+        for name in set(self.FILE.findall(text)):
+            found.update(self.by_name.get(name, []))
+        for pattern in set(self.GLOB.findall(text)):
+            pattern = pattern.rsplit("/", 1)[-1]
+            if not re.search(r"\w", pattern):
+                continue  # a bare directory walk executes nothing by name
+            scope = here if pattern.startswith("*") else ""
+            found.update(path for path in self.pool if path.startswith(scope) and (
+                fnmatch.fnmatchcase(Path(path).name, pattern) or fnmatch.fnmatchcase(Path(path).stem, pattern)))
+        return found
+
+    def mentions(self, text):
+        return set(self.mention.findall(text)) | {path for path, reader in self.IMPLICIT.items()
+                                                  if reader.search(text)}
+
+    def file_edges(self, path):
+        if path not in self.edge_cache:
+            text = (ROOT / path).read_text(encoding="utf-8", errors="replace")
+            self.edge_cache[path] = (self.edges(text, Path(path).parent.as_posix() + "/"),
+                                     self.mentions(text))
+        return self.edge_cache[path]
+
+    @staticmethod
+    def strings(node):
+        if isinstance(node, dict):
+            return [text for key, value in node.items() for text in [str(key), *NativeCoreOnlyClosureTests.strings(value)]]
+        if isinstance(node, list):
+            return [text for value in node for text in NativeCoreOnlyClosureTests.strings(value)]
+        return [str(node)]
+
+    def closure(self, workflow, job_id):
+        """Return {reached path: core_only components it names} for one job."""
+        doc = yaml.load((ROOT / workflow).read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
+        text = "\n".join(self.strings(doc["jobs"][job_id]))
+        actions, pending = set(), self.LOCAL_ACTION.findall(text)
+        while pending:  # composite actions may use further local actions
+            action = pending.pop()
+            if action not in actions:
+                actions.add(action)
+                body = (ROOT / action / "action.yml").read_text(encoding="utf-8")
+                text += "\n" + body
+                pending += self.LOCAL_ACTION.findall(body)
+        seeds = self.edges(text, ".github/") | {"tools/build.py"}
+        reached = {workflow: self.mentions(text)}
+        todo = list(seeds)
+        while todo:
+            path = todo.pop()
+            if path in reached:
+                continue
+            successors, mentioned = self.file_edges(path)
+            reached[path] = mentioned
+            todo += successors - set(reached)
+        return reached
+
+    def native_jobs(self):
+        for entry in self.catalogue["workflow"]:
+            nonnative = entry.get("trigger", {}).get("pull_request", {}).get("paths_ignore") == "@nonnative"
+            for job in entry["job"]:
+                # @nonnative skips the whole workflow, so its host jobs count as well.
+                if job["activation"] == "automatic" and ("native" in job.get("input_sets", []) or nonnative):
+                    yield entry, job
+
+    def violations(self, reached, inputs):
+        found = []
+        for path, components in sorted(reached.items()):
+            if any(github_path_filter_matches(pattern, path) for pattern in self.core_only) and \
+                    not any(github_path_filter_matches(pattern, path) for pattern in inputs):
+                found.append((path, "core_only file"))
+            for component in sorted(components):
+                if component in self.IMPLICIT:  # a convention read matters only for a core_only file
+                    hidden = any(github_path_filter_matches(pattern, component) for pattern in self.core_only)
+                    covered = any(github_path_filter_matches(pattern, component) for pattern in inputs)
+                else:
+                    hidden, covered = True, any(pattern.startswith(component + "/") for pattern in inputs)
+                if hidden and not covered:
+                    found.append((path, component))
+        return found
+
+    def test_native_pull_request_jobs_reach_core_only_paths_only_through_registered_inputs(self):
+        users, checked = set(), set()
+        for entry, job in self.native_jobs():
+            reached = self.closure(entry["path"], job["id"])
+            stem = Path(entry["path"]).stem
+            checked.add(f"{stem}#{job['id']}")
+            with self.subTest(job=f"{stem}#{job['id']}"):
+                self.assertEqual(self.violations(reached, job.get("inputs", [])), [])
+                if self.violations(reached, []):
+                    users.add(stem)
+                    self.assertNotIn(stem, NONNATIVE_WORKFLOWS)
+                # Control: import edges work, so a broken pattern cannot pass vacuously.
+                self.assertIn("tools/common.py", reached)
+        # Control: the closure finds tools/tokenguard.py -> plugins/** (#494 C1, D-2), and
+        # with the registered inputs removed those two jobs would fail.
+        self.assertEqual(users, {"native-hid-input", "native-xhci"})
+        for stem in users:
+            reached = self.closure(f".github/workflows/{stem}.yml", stem)
+            self.assertIn("plugins", reached["tools/tokenguard.py"])
+        # Control: the host jobs of an @nonnative workflow are covered too.
+        self.assertIn("net-broker-quality#net-broker-quality", checked)
+        # Control: the convention scan sees the tree-cleanliness check, so .gitignore must stay
+        # central; were it core_only, @nonnative would hide an input of these jobs.
+        workflow = ".github/workflows/native-foundation.yml"
+        self.assertIn(".gitignore", self.closure(workflow, "native-foundation")[workflow])
+        self.assertIn(".gitignore", self.catalogue["policy"]["always_full"])
+        self.assertNotIn(".gitignore", self.core_only)
+
+    def test_closure_follows_harness_discovery_and_imports(self):
+        """The design's under-approximation counterexample (CI-P5-A section 6.3) is reached."""
+        reached = self.closure(".github/workflows/signed-updates.yml", "b03-native-update")
+        for path in ("tools/test_update.py", "tests/test_update_floor_characterization.py",
+                     "tools/characterize_update_floor.py"):
+            self.assertIn(path, reached)
+        reached = self.closure(".github/workflows/entropy-keys.yml", "b01-native-supervisor")
+        self.assertTrue(any(fnmatch.fnmatchcase(path, "tests/test_keyring_*.py") for path in reached))
+
+    def test_no_compiled_source_includes_a_core_only_path(self):
+        include = re.compile(r"(?:include_(?:str|bytes)!\s*\(\s*|#\[path\s*=\s*|\bpath\s*=\s*)\"([^\"]*)\"")
+        checked = 0
+        for path in self.tracked:
+            if path.endswith((".rs", "Cargo.toml")):
+                checked += 1
+                text = (ROOT / path).read_text(encoding="utf-8", errors="replace")
+                with self.subTest(path=path):
+                    self.assertEqual([value for value in include.findall(text) if self.mention.search(value)], [])
+        self.assertGreater(checked, 100)
+
+
 SHADOW_SELECTOR = ROOT / "tools/ci_impact.py"
 SELECT_ACTION = ".github/actions/select-ci/action.yml"
 SHADOW_CATALOGUE = """\
@@ -1914,15 +2155,21 @@ class CiImpactShadowTests(unittest.TestCase):
                              if step.get("uses", "").startswith("actions/checkout@"))
         self.assertEqual(checkout["uses"], host_checkout["uses"])
         self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
-        select = next(step for step in steps if step.get("uses") == "./.github/actions/select-ci")
+        select, candidate = [step for step in steps if step.get("uses") == "./.github/actions/select-ci"]
         self.assertEqual(set(select["with"]), {"event-name", "tested-sha", "head-sha", "base-sha"})
         self.assertNotIn("pull_request.base.sha", select["with"]["base-sha"])
+        # #494 phase 5 C3: the same base selector plans the base copy of the candidate catalogue.
+        self.assertEqual(candidate["with"], {**select["with"],
+                                             "catalogue": ".github/ci-impact.candidate.toml",
+                                             "out": "build/ci-impact/plan-candidate.json"})
+        self.assertNotIn("id", candidate)
         preserve, = [step for step in steps if step.get("uses") == "./.github/actions/preserve-evidence"]
         self.assertEqual(preserve["if"], "${{ always() }}")
         self.assertEqual(preserve["with"], {
             "name": "ci-impact-plan", "job-status": "${{ job.status }}",
             "if-no-files-found": "error",
-            "path": "build/ci-impact/plan.json\nbuild/ci-impact/coverage.json\n",
+            "path": "build/ci-impact/plan.json\nbuild/ci-impact/plan-candidate.json\n"
+                    "build/ci-impact/coverage.json\n",
             "required-paths": "build/ci-impact/plan.json"})
         # The shadow job keeps a report-only coverage step; host-quality asserts it (phase 3).
         coverage, = [step for step in steps if "ci_impact.py coverage" in step.get("run", "")]
@@ -1930,6 +2177,27 @@ class CiImpactShadowTests(unittest.TestCase):
         self.assertNotIn("--strict", coverage["run"])
         self.assertNotIn("continue-on-error", coverage)
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
+
+    def test_only_the_shadow_job_reads_the_candidate_catalogue(self):
+        """#494 phase 5 C3: no selection or enforcement step consumes the candidate; host-quality only validates it."""
+        users = {}
+        for path in [*(ROOT / ".github").rglob("*.y*ml"), *(ROOT / "tools").glob("*.py")]:
+            text = path.read_text(encoding="utf-8")
+            for marker in ("ci-impact.candidate.toml", "plan-candidate.json"):
+                if marker in text:
+                    users.setdefault(marker, set()).add(path.relative_to(ROOT).as_posix())
+        self.assertEqual(users, {"ci-impact.candidate.toml": {".github/workflows/ci.yml"},
+                                 "plan-candidate.json": {".github/workflows/ci.yml"}})
+        for job_id, job in self.ci["jobs"].items():
+            if job_id != "ci-impact-shadow":
+                with self.subTest(job=job_id):
+                    self.assertNotIn("candidate", json.dumps(job))
+        with (ROOT / ".github/ci-impact.candidate.toml").open("rb") as handle:
+            candidate = tomllib.load(handle)
+        self.assertEqual(subprocess.run(
+            ["python3", "-B", "-I", str(SHADOW_SELECTOR), "validate", str(ROOT / ".github/ci-impact.candidate.toml")],
+            capture_output=True, text=True, check=False).returncode, 0)
+        self.assertEqual(candidate["schema_version"], 1)
 
     def test_host_quality_fails_on_an_invalid_or_drifted_catalogue(self):
         """Phase 3 (#494): merge-hold enforces plans, so catalogue drift must fail a required gate."""
@@ -1988,7 +2256,11 @@ class CiImpactShadowTests(unittest.TestCase):
     def test_select_action_passes_expressions_only_through_env(self):
         steps = self.action["runs"]["steps"]
         self.assertEqual(self.action["runs"]["using"], "composite")
-        self.assertEqual(set(self.action["inputs"]), {"event-name", "tested-sha", "head-sha", "base-sha", "base-ref"})
+        self.assertEqual(set(self.action["inputs"]),
+                         {"event-name", "tested-sha", "head-sha", "base-sha", "base-ref", "catalogue", "out"})
+        # Defaults keep the enforced catalogue and plan path (#494 phase 5 C3).
+        self.assertEqual((self.action["inputs"]["catalogue"]["default"], self.action["inputs"]["out"]["default"]),
+                         ("", ""))
         self.assertEqual(set(self.action["outputs"]), {"plan-id", "mode", "plan-path"})
         for step in steps:
             with self.subTest(step=step.get("name")):
@@ -2096,6 +2368,39 @@ class CiImpactShadowTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(outputs["mode"], "full")
             (repo / "tools/ci_impact.py").write_bytes(SHADOW_SELECTOR.read_bytes())
+
+            # C3: the candidate catalogue is planned from the base commit by the same base selector.
+            # Without a base copy the plan widens instead of failing the step.
+            candidate_env = {"EVENT_NAME": "pull_request", "TESTED_SHA": tested, "HEAD_SHA": head,
+                             "BASE_SHA": "", "CATALOGUE": ".github/ci-impact.candidate.toml",
+                             "OUT": "build/ci-impact/plan-candidate.json"}
+            result, outputs = self.run_action(repo, candidate_env, "candidate-bootstrap")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(outputs["plan-path"], "build/ci-impact/plan-candidate.json")
+            plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
+            self.assertEqual((outputs["mode"], plan["mode"], plan["fallback"]["code"],
+                              plan["catalogue"]["path"]),
+                             ("full", "full", "bootstrap-no-base-catalogue", ".github/ci-impact.candidate.toml"))
+            git("checkout", "-q", "main")
+            (repo / ".github/ci-impact.candidate.toml").write_text(SHADOW_CATALOGUE, encoding="utf-8")
+            git("add", "-A")
+            git("commit", "-q", "-m", "candidate")
+            git("checkout", "-q", "topic")
+            git("merge", "-q", "--no-ff", "-m", "catch up", "main")
+            git("checkout", "-q", "main")
+            git("merge", "-q", "--no-ff", "-m", "merge", "topic")
+            with_candidate = git("rev-parse", "HEAD")
+            result, outputs = self.run_action(repo, {**candidate_env, "TESTED_SHA": with_candidate,
+                                                     "HEAD_SHA": git("rev-parse", "topic")}, "candidate")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
+            self.assertEqual((outputs["mode"], plan["fallback"]), ("select", None))
+            self.assertEqual(plan["catalogue"]["path"], ".github/ci-impact.candidate.toml")
+            for index, (key, value) in enumerate((("OUT", "../plan.json"), ("OUT", "build/ci-impact/sub/plan.json"),
+                                                  ("CATALOGUE", "--catalogue=x.toml"),
+                                                  ("CATALOGUE", "tools/x.toml"))):
+                result, _ = self.run_action(repo, {**candidate_env, key: value}, f"reject-{index}")
+                self.assertEqual(result.returncode, 2, (key, value))
 
             # A malformed base is rejected before it reaches git; the plan widens.
             result, outputs = self.run_action(repo, {

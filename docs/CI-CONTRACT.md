@@ -80,8 +80,9 @@ are rejected.
   - `select` (phase 4): as `enforce`, and workflows with a `select` job skip
     executions the plan does not select.
   - `full`: the selection rollback. Every plan becomes full with fallback
-    `policy-rollback`, so every workflow runs everything, while merge-hold
-    still verifies every applicable gate.
+    `policy-rollback`, so every workflow that its own path filter starts runs
+    everything (see "Tooling metadata"), while merge-hold still verifies every
+    applicable gate.
 - `[policy.budgets]` (required): `pull_request_wait_minutes` and
   `merge_group_wait_minutes`, integers from 0 to 45 (below the 50-minute
   merge-hold timeout). merge-hold reads them from the trusted base.
@@ -95,6 +96,15 @@ are rejected.
 - `inert`: metadata globs; equal to the workflows' metadata `paths-ignore`
   and referenced from triggers as `"@metadata"`.
 - `core_only`: globs read only by the always-running core gates.
+- `"@nonnative"` (#494, phase 5 C2): `inert` followed by `core_only`, in that
+  order, as one `paths_ignore` macro. `validate` accepts it only on the
+  `pull_request` trigger of a workflow whose `push` trigger exists, applies to
+  `main` and uses `"@metadata"`: that push run is the post-merge backstop.
+  When a workflow uses it, `validate` also rejects a `core_only` pattern that
+  names or contains an `always_full` path (each pattern matched against the
+  other as a literal path). A partial overlap such as `plugins/**` with
+  `**/Cargo.lock` is caught by a host-quality test instead: no tracked path may
+  match both lists.
 - `[policy.events]`: one entry per event. `merge_group`, `push` and
   `schedule` must be `full`; `validate` rejects anything else, and the
   selector also plans these three events as full whatever the catalogue
@@ -119,7 +129,9 @@ rejects a workflow without it; the current convention is `owner = "ci-owner"`),
 (a list of `{ cite = "file:line", anchor = "<text on that line>" }`; `cite`
 may be a `file:first-last` range) and `trigger.<event>` for `pull_request`,
 `push` and `merge_group` with verbatim `types`, `branches`, `paths` or
-`paths_ignore`.
+`paths_ignore`. `paths_ignore` may name a macro instead: `"@metadata"` or, on
+`pull_request` only, `"@nonnative"`; the workflow YAML lists its literal
+expansion, which `coverage` compares in order.
 
 `[[workflow.job]]`: `id`, verbatim `name`, `class`, `activation` (`automatic`,
 `dispatch`, `schedule`, `label:<name>` or `push-branch:<branch>`), verbatim
@@ -399,13 +411,24 @@ dependencies (`host-dependencies: 'true'`, which provides PyYAML for
 `coverage`), comes from `./.github/actions/setup-python`. The steps are:
 
 1. `./.github/actions/select-ci` writes `build/ci-impact/plan.json`.
-2. A report-only step runs `coverage` from the checkout and writes
+2. The same action, with `catalogue: .github/ci-impact.candidate.toml` and
+   `out: build/ci-impact/plan-candidate.json`, plans the base commit's copy of
+   the advisory candidate catalogue (#494, phase 5 C3). The candidate starts
+   as a copy of the enforced catalogue and later carries candidate selection
+   data, which is activated only on counterexample-free shadow evidence.
+   No selection or enforcement step reads it: merge-hold, the select jobs and
+   the `validate` and `coverage` steps of host-quality ignore it. A host-quality
+   unit test does validate the checked-out copy, so an invalid candidate fails
+   host-quality, and as a `.github/**` path every edit to it makes the plan
+   full. Without a base copy the candidate plan is `full`
+   (`bootstrap-no-base-catalogue`).
+3. A report-only step runs `coverage` from the checkout and writes
    `build/ci-impact/coverage.json`, plus its status and at most 50 problems
    in the step summary. It never asserts the status.
-3. `./.github/actions/preserve-evidence` preserves both files as
+4. `./.github/actions/preserve-evidence` preserves the three files as
    `ci-impact-plan` (compact upload `ci-impact-plan-reports`, three-day
    retention, docs/CI-EVIDENCE.md), with `if: ${{ always() }}`,
-   `if-no-files-found: error` and only the plan as a required path.
+   `if-no-files-found: error` and only the enforced plan as a required path.
 
 **Inputs.**
 
@@ -423,8 +446,12 @@ would then give `merge-ref-mismatch`. `github.event.before` is passed only on
 head, not the base.
 
 **Action `.github/actions/select-ci`.** A composite action with inputs
-`event-name`, `tested-sha`, `head-sha` and `base-sha`, and outputs `plan-id`,
-`mode` and `plan-path` (`build/ci-impact/plan.json`).
+`event-name`, `tested-sha`, `head-sha`, `base-sha`, `base-ref`, and the
+optional `catalogue` and `out` (empty by default: the enforced
+`.github/ci-impact.toml` and `build/ci-impact/plan.json`), and outputs
+`plan-id`, `mode` and `plan-path`. A `catalogue` other than
+`.github/<name>.toml` or an `out` other than `build/ci-impact/<name>.json` is a
+usage error (exit 2).
 
 - Every `${{ }}` value reaches the shell only through `env:`; no `run:`
   block contains an expression.
@@ -496,7 +523,11 @@ null` (filter result unknown, more than 300 changed files) keeps the gate
 expected: fail closed. A path filter may hide only metadata: a row with
 `blocked_by_filter = true` and a non-empty `filter_hidden_inputs` is a
 failure ("its path filter hides registered input(s)"), never "not
-applicable" (#494, phase 5 C1). A row whose hidden hits are all metadata
+applicable" (#494, phase 5 C1). The rule makes `"@nonnative"` self-protecting:
+a `core_only` path that is also a registered input of a workflow whose
+pull_request filter hides it (for example the token-guard script of
+`native-hid-input` and `native-xhci`, which therefore keep `"@metadata"`) is a
+hidden input and fails. A row whose hidden hits are all metadata
 (`policy.inert`) stays "Not a pass … (path filter)"; that is a documented
 limit, for example a compiled vendored `README.md`. Central (`always_full`)
 paths are never hits, so a full plan still does not expect a gate whose own
@@ -621,10 +652,37 @@ owner never uses that bypass.
 **Scope.** Three workflows narrow, on `pull_request` only:
 `component-leaves.yml` per variant (16 registered leaves),
 `app-management-quality.yml` and `net-tls-quality.yml` per job. The integrated
-native suites, CodeQL, `ci.yml` and every other workflow run as before:
-their input relations are not provable more narrowly (the `native` input set
-covers almost all code). `push`, `merge_group`, `schedule` and
+native suites, CodeQL, `ci.yml` and every other workflow are not narrowed by
+job: their input relations are not provable more narrowly (the `native` input
+set covers almost all code); only their path filters decide whether they start
+(see "Tooling metadata" below). `push`, `merge_group`, `schedule` and
 `workflow_dispatch` always run everything.
+
+**Tooling metadata (phase 5 C2).** On `pull_request`, 13 native workflows with
+a `push` backstop on `main` (`entropy-keys`, `nas-core`,
+`native-display-input`, `native-foundation`, `native-hw-inventory`,
+`native-power`, `native-rtc`, `native-smp`, `native-system`,
+`native-window-session`, `net-broker-quality`, `process-management`,
+`signed-updates`) ignore `"@nonnative"`: a change confined to documentation,
+project metadata and `core_only` tooling metadata (`.agents/**`, `.claude/**`,
+`plugins/**`, `LICENSE` and the rest of the list) starts none of them, and
+merge-hold does not wait for them. Without a usable diff or classification,
+merge-hold instead keeps those gates Pending or fails them as possibly hidden
+inputs ("Expected set", K10). Their `push` trigger stays `"@metadata"`, so
+the merged commit runs them on `main`; a failure there reopens the rule, and a
+run cancelled by a newer push to `main` is no evidence either way.
+`native-hid-input` and `native-xhci` (which execute `plugins/**` through
+`tools/tokenguard.py`), the PR-only `resource-pressure`, `storage-resilience`
+and `volume-acceptance`, and the advisory `windows-qemu-test-version` keep
+their filters. A host-quality test follows an over-approximate execution
+closure from every pull-request job of the native workflows and fails when a
+reached file is, or names, a `core_only` path that the catalogue does not
+register as that job's input. Activation check before the change: of the last
+120 merged commits, 4 changed only such paths; on their pull request heads 12
+of the 13 workflows ran (`native-hw-inventory` did not exist yet), with 47
+successes, 1 run cancelled by hand after the merge and no failure. **Rollback:**
+set the 13 pull_request filters back to `"@metadata"` in the catalogue and the
+YAML; `policy.mode = "full"` does not restart a workflow that GitHub filtered.
 
 **Mechanism.** Each of the three workflows has a `select` job (class `core`,
 check name `<workflow> select`, no `needs`, no `if`, `contents: read`). It
@@ -717,6 +775,21 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
   `.github/ci-impact.toml` already was (`.github/**`).
 - **K9, activation OR-guard heuristic: unchanged, report only.** Activation
   correctness is not inferred from it; merge-hold judges actual results.
+- **K10, `@nonnative` gates that never start: open, fail-closed.** On a
+  tooling-metadata-only pull request (phase 5 C2) GitHub starts none of the 13
+  `@nonnative` workflows, but the plan can still expect them: after a pre-diff
+  fallback that merge-hold accepts (`ambiguous-merge-base`, `shallow-history`,
+  `missing-history`, `diff-failed`, `unknown-diff-status`, `diff-parse`), after
+  `diff-too-large` (more than 5,000 files), or under a rollback or full
+  `pull_request` mode with more than 300 changed files. merge-hold then reports
+  them Pending until a re-run with a usable diff or a new head. A fallback before classification (for example
+  `cargo-manifest-missing`, or a Cargo construct on the base) instead fails
+  those rows as possibly hidden inputs, with a message that names the
+  `core_only` paths. The causes are broken history, an oversized diff, a
+  transient read failure, a broken base catalogue, an active rollback or an
+  unmodelled Cargo construct on the base; only the last persists, because once
+  merged onto `main` it fails the 13 rows on every later tooling-only pull
+  request until the construct is modelled.
 
 ## Phases
 
@@ -728,10 +801,14 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
 - **3 (enforce, merged):** merge-hold recomputes the plan from base-side code
   and blocks until every applicable gate passed on the pull request head;
   host-quality asserts catalogue consistency; limits K4, K6, K7 and K8 closed.
+- **5 (fail-closed native selection):** C1, a path filter may hide only
+  metadata (see "Expected set"); C2, `"@nonnative"` on the pull_request
+  trigger of 13 backstopped native workflows (see "Selection"); C3, the
+  advisory candidate shadow plan (see "Shadow-mode wiring").
 - **4 (current, select):** component leaves per variant, app-management and
   net-tls per job; see "Selection".
 - **Rollback:** setting `policy.mode = "full"` in the catalogue on the base
-  branch makes every plan full immediately: every workflow runs everything
-  while merge-hold keeps verifying every applicable gate, and host-quality,
+  branch makes every plan full immediately: every workflow that its own
+  path filter starts runs everything while merge-hold keeps verifying every applicable gate, and host-quality,
   qemu-smoke, CodeQL and the acceptance hold are unchanged. `shadow` (above)
   is the separate emergency switch for the enforcement itself.

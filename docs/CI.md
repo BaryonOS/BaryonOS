@@ -36,8 +36,8 @@ execution result.
 |---|---|
 | PR opened, changed or reopened, including drafts | Required `host-quality` and `qemu-smoke`; applicable specialist workflows also run |
 | Draft PR marked ready for review | No rerun of the same source |
-| Push to main | Required checks on the integrated source; specialist workflows use the same documentation filters as PRs |
-| Only `docs/**` or root Markdown changed | Required CI remains available; broad specialist workflows do not rerun |
+| Push to main | Required checks on the integrated source; specialist workflows skip only documentation and project metadata, so tooling-metadata changes skipped on the PR run here |
+| Only `docs/**` or root Markdown changed | Required CI remains available; broad specialist workflows do not rerun. On PRs, tooling metadata (the catalogue's `core_only` paths, such as `.agents/**`, `plugins/**` or `LICENSE`) also skips 13 native workflows with a main backstop (`@nonnative`, docs/CI-CONTRACT.md); workflows without `@nonnative` keep their own filters, so `native-hid-input` and `native-xhci` still run (docs/CI-CONTRACT.md) |
 | Manual run through Actions | Each regular workflow can be started separately; evidence workflows provide `full_evidence` |
 | Copilot setup changed | Targeted setup check; after merging, the configuration becomes the Copilot development environment |
 
