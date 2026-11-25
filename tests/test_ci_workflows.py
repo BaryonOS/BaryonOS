@@ -1138,6 +1138,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                        "upload-coverage-javascript"):
             with self.subTest(job=job_id):
                 self.assertIn("github.event_name != 'merge_group'", workflow["jobs"][job_id]["if"])
+                self.assertEqual(workflow["jobs"][job_id]["timeout-minutes"], "10")
         for job_id in ("host-quality", "qemu-smoke"):
             job = workflow["jobs"][job_id]
             with self.subTest(job=job_id):

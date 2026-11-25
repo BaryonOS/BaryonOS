@@ -256,6 +256,7 @@ class = "publication"
 activation = "automatic"
 condition = "${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}"
 needs = ["host-quality"]
+timeout_minutes = 10
 evidence = []
 
 [[workflow.job]]
@@ -265,6 +266,7 @@ class = "publication"
 activation = "automatic"
 condition = "${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}"
 needs = ["host-quality"]
+timeout_minutes = 10
 evidence = []
 
 [[workflow.job]]
@@ -274,6 +276,7 @@ class = "publication"
 activation = "automatic"
 condition = "${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}"
 needs = ["host-quality"]
+timeout_minutes = 10
 evidence = []
 
 [[workflow.job]]
