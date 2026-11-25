@@ -15,6 +15,12 @@
 //! contract a hostile slot write can select a sibling store (ignored residual
 //! tests below). A store also binds the anchor instance, so a replaced or
 //! reset TPM yields `Foreign` until authorised recovery re-anchors from genesis.
+//!
+//! Assumption (not enforced here): the instance cannot change between the
+//! `instance` check and the following `read`/`advance` of one operation; B
+//! re-provisions only through authorised recovery before the policy process
+//! runs. The extend-chain port binds the instance into every chain value, so
+//! that assumption is no longer needed there.
 
 /// Digest of one authenticated store state, computed by the store owner.
 pub type Digest = [u8; 32];
