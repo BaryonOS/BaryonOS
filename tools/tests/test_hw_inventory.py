@@ -162,43 +162,6 @@ class SerialTimeoutFixtureTest(unittest.TestCase):
         self.assertFalse(run_hw_inventory.cpu_halted(Control("EFL=00000006 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=0\r\n")))
 
 
-class SerialTimeoutFixtureTest(unittest.TestCase):
-    """H06-T7: the timed-out write leaves a truncated block that the protocol rejects."""
-    LOG = "M2:PASS\nM1:PASS\nHWINV:BEGIN\nHWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n"
-
-    def failed(self, text, alive=True):
-        return {n for n, ok in run_hw_inventory.evaluate_fixture(text, "serial-timeout", alive).items() if not ok}
-
-    def test_truncated_log_passes(self):
-        self.assertEqual(self.failed(self.LOG), set())
-
-    def test_each_check_detects_its_own_deviation(self):
-        self.assertEqual(self.failed(self.LOG, alive=False), {"halted_without_exit_port"})
-        # The write after the injection reached the UART: the timeout did not fire.
-        self.assertEqual(self.failed(self.LOG + "HWINV:CPUID:VENDOR=AuthenticAMD:HYPERVISOR=0\n"),
-                         {"silent_after_injection"})
-        # A failure marker is not the expected rejection reason for a silent timeout.
-        self.assertEqual(self.failed(self.LOG + "HWINV:FAIL:X\n"),
-                         {"silent_after_injection", "protocol_failure_recognised"})
-        # A repeated armed marker must not hide output that followed the first one.
-        self.assertEqual(self.failed(self.LOG + "HWINV:CPUID:X\nHWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n"),
-                         {"silent_after_injection"})
-        self.assertEqual(self.failed(self.LOG.replace("HWINV:FIXTURE:SERIAL_TIMEOUT_ARMED\n", "")),
-                         {"fixture_markers_in_order", "silent_after_injection"})
-
-    def test_cpu_halted_reads_hmp_info_registers(self):
-        class Control:
-            def __init__(self, reply):
-                self.reply = reply
-
-            def command(self, name, arguments=None):
-                assert (name, arguments) == ("human-monitor-command", {"command-line": "info registers"})
-                return self.reply
-
-        self.assertTrue(run_hw_inventory.cpu_halted(Control("EFL=00000006 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=1\r\n")))
-        self.assertFalse(run_hw_inventory.cpu_halted(Control("EFL=00000006 [-----P-] CPL=0 II=0 A20=1 SMM=0 HLT=0\r\n")))
-
-
 class EvaluateTest(unittest.TestCase):
     def test_captured_iommu_log_passes_every_oracle(self):
         checks, inventory, error = run_hw_inventory.evaluate(LOG, "iommu", QMP, True)
