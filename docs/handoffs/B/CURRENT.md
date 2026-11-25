@@ -89,14 +89,17 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   1a46fa21 source (Rust 1.100.0, `GIT_EDITOR` unset): root fmt; tpm-crb test/clippy/fmt/scalar `x86_64-unknown-none`
   build; update-core test/clippy; `compileall`; `tools/tests` (1178 OK, 15 skipped); the ci.yml `tests/` patterns;
   `tools/test.py` (boot acceptance). `agent_gate.py --job ci.yml#host-quality` cannot resolve locally (`uses:` step). Observed: undefine of a missing index =
-  `0x28B`; refused owner command = `0x9A2` (`BAD_AUTH`; DA exemption inferred from the RC only, lockout counter not
-  read); policy read after the extend = `0x99D`.
-- Done locally: 89d00679 halt path + DA counter (`loader-hauth-no-rng`), evidence commit after it.
+  `0x28B`; refused owner command = `0x9A2` (`BAD_AUTH`; lockout counter `0x20E` unchanged at 0, sensitivity unproven); policy read after the extend =
+  `0x99D`.
+- Done locally: 89d00679 halt path + DA counter (`loader-hauth-no-rng`), fbe0e81c evidence, then this handoff update.
+  At source 1438acd9: six native cases pass (`loader-hauth` repeated, identical); `tools/tests` 1179 OK; `compileall`;
+  loader build, fmt, clippy (only the known `main_default.rs:818` errors).
 - Next on #524, in order: (a) pre-seeded native negative cases (squatted `HAUTH`, unbound `LREC`, foreign ownerAuth;
   reuse the swtpm driving of `docs/verification/b03-rel05-hauth-probe-20261125/probe.py` for a pre-seeding step), (b) S3/U27 and the section 7.9 halt, (c) native S5 with N's joint
   tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
-  body and post a HANDOFF comment; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
+  body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the six
+  `run_tpm.py` cases on the merged head, or state in the PR body that the loader evidence is bound to 1438acd9; #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
 
 Lane: owner correction ~18:05Z. CI keeps priority until every CI batch is resolved, and the main freeze holds after #544.
 #524 (draft, BEHIND main) does not catch up or push until the PR guard grants the lane. Infra reruns on 5e126571
