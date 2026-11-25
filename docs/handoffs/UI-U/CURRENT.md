@@ -25,22 +25,32 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
 
 ## Current cycle
 
-- **cycle_id:** `UI-U-C2-20261124`
-- **task:** U05 — UX-SR07 Full/Quota/known-I/O save-failure copy and UX-SR11
-  room for long compact status labels.
-- **branch:** `claude/ui-u-recovery-copy-20261124` (from `origin/main` `7108f138`)
-- **PR:** recorded in the PR itself and in the `HANDOFF UI-U UI-U-C2-20261124`
+- **cycle_id:** `UI-U-C3-20261124`
+- **task:** U04-K1 — keyboard-only reachability and activation host test
+  (`sdk/examples/window-session/tests/keyboard_only.rs`), landing the PR-less
+  commit `6c2771ef` on current `main`.
+- **branch:** `claude/ui-u-keyboard-only-20261124` (from `origin/main` `9f0eb19e`)
+- **PR:** recorded in the PR itself and in the `HANDOFF UI-U UI-U-C3-20261124`
   comment after merge.
 - **Tested source:** the reviewed and tested head is recorded in the PR
   verification table, not in this file.
-- **Evidence scope:** host copy, layout, pixel and semantic tests; native
-  library write and cold-start QEMU gates (scale 1); hosted window gates. No
-  native run reaches a Full/Quota/I/O failure, and no human trial.
+- **Evidence scope:** host test only (5 passing, 3 ignored with named
+  defects). No native keyboard run, no screen reader, no human trial.
 
-## Previous cycle
+## Previous cycles
 
-`UI-U-C1-20261124`: U04 / #447 History dialog order, merged as #483
-(`7108f138`); its HANDOFF comment is on #483.
+- `UI-U-C2-20261124`: U05 UX-SR07/SR11 save-failure copy, merged as #487
+  (`9f0eb19e`); HANDOFF comment on #487.
+- `UI-U-C1-20261124`: U04 / #447 History dialog order, merged as #483
+  (`7108f138`); HANDOFF comment on #483.
+
+## Project #5 metadata (standing agreement, 24 November 2026)
+
+The workstream maintains its own issues and PRs on Project #5: membership,
+labels, Status, Work Type and milestone (UI-U = M7). Effort (1/2/3/5/8) only on
+leaf issues; Target date stays empty without a real deadline. A closing keyword
+only for an issue the PR fully resolves. Merged/completed = Done, any other
+closure = Closed. No schema or permission changes and no artificial issues.
 
 ## Open items on 24 November 2026
 
@@ -63,8 +73,12 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
   reopen through the row.
 - #448 (Editor 700–783 px compact overlap/collapse): changes frozen frames and
   needs the frame-change list and design approval.
-- Unmerged, PR-less work: `claude/u04-keyboard-only-20261124` (`6c2771ef`,
-  new `sdk/examples/window-session/tests/keyboard_only.rs`, U04-K1).
+- U04-K1 keyboard defects, each pinned by an ignored test in
+  `keyboard_only.rs` (shell.rs line numbers at `9f0eb19e`): held Enter/Space
+  repeats activation (`KeyAction::Repeat` accepted, line 432); Space on a
+  focused search result types instead of activating (line 485); the
+  Notifications page opens only by pointer (lines 528-537). Fixes change shell
+  behaviour and frozen frames, so they need design-track agreement first.
 - Storage-owner follow-up: the unbounded stat `history_count` decode
   (`services/volume/src/client.rs:483`, `sdk/document-session/src/volume.rs:286`).
 - Open follow-ups named by PROJECT-STATE: Search S3 wiring and native run,
@@ -88,5 +102,6 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
 
 ## Next executable task
 
-U04-K1: verify `claude/u04-keyboard-only-20261124` (`6c2771ef`) against
-current `main`, then land it as its own PR or record why not.
+After C3 merges: fix the held-key repeat defect in `Shell::key` (smallest,
+no frame change) and un-ignore its test, after checking with the design track
+that no frozen frame depends on repeat activation.
