@@ -482,7 +482,8 @@ impl Shell {
             return Effect::take(true, Command::None);
         }
         if key.key == PhysicalKey::Enter
-            || key.key == PhysicalKey::Space && self.page != Page::Search
+            // Space types into the query field (slot 0) but activates a focused result.
+            || key.key == PhysicalKey::Space && (self.page != Page::Search || self.focus != 0)
         {
             // ds-1.1 B8: one activation per physical press. An auto-repeated
             // Enter/Space is consumed so a held key cannot walk Lock -> Users
