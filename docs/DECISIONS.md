@@ -5,6 +5,26 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-UI-NOTIFICATIONS-20261125 — Alt+N panel as the single notification centre
+
+**Status:** accepted; project-owner decision of 25 November 2026 for UI-U
+cycle C5, forwarded verbatim by the PR watcher session:
+"Alt+N-paneel als primair notificatiecentrum, met reguliere toegankelijke
+navigatie via toetsenbord, muis en systeemklok. Eén samenhangend
+notificatiesysteem, geen dubbele interfaces."
+
+**Decision.** The Veld Alt+N panel is the one notification surface of the
+window session. It opens by Alt+N, by a click on the header status band and by
+a click on the header clock (DESKTOP-SHELL.md: notification centre from
+clock/date). Inside it, Tab and Shift+Tab move focus and wrap, Enter and Space
+activate the focused control exactly once per physical press, Delete removes
+the notice and Escape closes without changing window focus.
+
+**Consequence.** The pointer-only shell page `Page::Notifications` and its
+header bands are removed. The user icon keeps the Session page. Evidence is
+host tests in `sdk/examples/window-session/tests/keyboard_only.rs`; no native
+run with real input, screen reader or human trial is claimed.
+
 ## ADR-CI-SELECTION-20261124 — Targeted pull request selection for component gates
 
 **Status:** accepted under the project owner's CI mandate for issue #494 (phase
