@@ -1738,10 +1738,10 @@
               "docs/security-review/B05-T4-INVARIANTS.md",
               "crates/elf-loader-core/tests/bounded_parser_invariants.rs",
               "crates/update-core/tests/bounded_policy_envelope_invariants.rs",
-              "crates/kernel-core/tests/bounded_user_abi_invariants.rs",
-              "docs/security-review/B05-T5-USER-ABI-INVARIANTS.md",
-              "crates/virtio-core/tests/bounded_capability_invariants.rs",
-              "docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md"
+              "https://github.com/BaryonOS/BaryonOS/blob/bd31a78ba30f28e7d668df1e56bb9b5a276a2d82/crates/kernel-core/tests/bounded_user_abi_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/bd31a78ba30f28e7d668df1e56bb9b5a276a2d82/docs/security-review/B05-T5-USER-ABI-INVARIANTS.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/633a0679926fdeb99837cf799a428950763d9723/crates/virtio-core/tests/bounded_capability_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/633a0679926fdeb99837cf799a428950763d9723/docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md"
             ]
           }
         ]
