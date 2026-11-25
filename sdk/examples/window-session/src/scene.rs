@@ -497,10 +497,18 @@ impl Scene {
             body.y = (if index == 0 { 114 } else { 140 }) * self.scale as i32;
         }
     }
-    /// Desktop pointer targets owned by Veld inside main's header: only the
-    /// notice area, and never while a shell page covers the apps.
+    /// Desktop pointer targets owned by Veld inside main's header: the notice
+    /// area and the system clock, both opening the Alt+N panel, and never
+    /// while a shell page covers the apps.
     pub fn desktop_control_at(&self, x: u32, y: u32) -> bool {
-        !self.shell.blocks_apps() && self.clipboard_notice_bounds().contains(x as i32, y as i32)
+        !self.shell.blocks_apps()
+            && (self.clipboard_notice_bounds().contains(x as i32, y as i32)
+                || self.clock_bounds().contains(x as i32, y as i32))
+    }
+    /// Main's header clock (drawn at `width - 128`), left of the session icon.
+    pub fn clock_bounds(&self) -> Rect {
+        let s = self.scale;
+        Rect::new((self.width - 136 * s) as i32, 0, 76 * s, 44 * s)
     }
     /// Main's trusted shell header; Veld state is drawn inside it, never over it.
     fn header(&self) -> Rect {
@@ -1430,7 +1438,7 @@ impl Scene {
             return Ok(None);
         }
         if down {
-            if self.clipboard_notice_bounds().contains(x as i32, y as i32) {
+            if self.desktop_control_at(x, y) {
                 self.cancel_pointer();
                 self.notifications_open = true;
                 self.notification_focus_close = !self.notification_is_present();

@@ -25,19 +25,23 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
 
 ## Current cycle
 
-- **cycle_id:** `UI-U-C6-20261125`
-- **owner session:** local session "BaryonOS - Specialist U", resumed on
-  25 November 2026 from the cloud hand-back in #503 (cloud UI-U stopped).
-- **task:** U04 — Space activates a Tab-focused search result (ds-1.1
-  Enter/Space parity); Space still types while focus is on the query field.
-- **branch:** `claude/ui-u-space-parity-20261125` (based on `main`).
+- **cycle_id:** `UI-U-C5-20261125`
+- **owner session:** local session "BaryonOS - Specialist U" (resumed
+  25 November 2026 from the cloud hand-back in #503).
+- **task:** U04 / FR-U05 — Alt+N panel as the single notification centre with
+  keyboard, mouse and system-clock routes; the shell `Page::Notifications` is
+  removed (owner decision, ADR-UI-NOTIFICATIONS-20261125).
+- **branch:** `claude/ui-u-notifications-panel-20261125` (based on `main`).
 - **PR:** recorded in the PR itself and in its HANDOFF comment after merge.
-- **Evidence scope:** host tests (`keyboard_only.rs` parity test) and hosted
-  native window gates. No native keyboard run, no human trial.
-- **C5 (blocked):** keyboard route to the Notifications page waits on the
-  owner decision between shell `Page::Notifications` and the Alt+N panel.
+- **Evidence scope:** host tests (`keyboard_only.rs`, `shell.rs` header
+  zones) passed locally; hosted gates including the native window gates are
+  pending until the PR's HANDOFF comment records them. No native keyboard run,
+  screen reader or human trial.
 
 ## Previous cycles
+
+- `UI-U-C6-20261125`: U04 Space activates a focused search result, merged as
+  #516 (`d436a595`); HANDOFF comment on #516.
 
 - `UI-U-C4-20261124`: U04 held Enter/Space activates once, merged as #508
   (`02235c1f`); HANDOFF comment on #508.
@@ -78,10 +82,9 @@ closure = Closed. No schema or permission changes and no artificial issues.
   reopen through the row.
 - #448 (Editor 700–783 px compact overlap/collapse): changes frozen frames and
   needs the frame-change list and design approval.
-- U04-K1 keyboard defect still pinned by an ignored test in
-  `keyboard_only.rs`: the Notifications page opens only by pointer (no
-  keyboard route; owner decision, C5). Held-key (C4) and Space-on-result (C6)
-  are fixed.
+- U04-K1: no keyboard-only defect remains pinned by an ignored test; held-key
+  (C4), Space-on-result (C6) and the Notifications route (C5) are fixed on the
+  host. Native keyboard evidence is still missing.
 - Storage-owner follow-up: the unbounded stat `history_count` decode
   (`services/volume/src/client.rs:483`, `sdk/document-session/src/volume.rs:286`).
 - Open follow-ups named by PROJECT-STATE: Search S3 wiring and native run,
@@ -105,6 +108,6 @@ closure = Closed. No schema or permission changes and no artificial issues.
 
 ## Next executable task
 
-After C6 merges: C5 once the owner decides the Notifications surface; until
-then, the next independent U item from the open list above (for example the
-unbounded `history_count` decode with the storage owner, or #449 native run).
+After C5 merges: the next independent U item from the open list above (for
+example the unbounded `history_count` decode with the storage owner, or the
+#449 native materiaal run).
