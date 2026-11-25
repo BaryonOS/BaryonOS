@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "source_commit": "de242a3f1df1e9782b142506c89f4e42e86e77de",
+  "source_commit": "9dcbcc692098685c7eaae51b36bbf8ddd44e3ef0",
   "assessment_basis": "parent_commit",
   "branch": "ci/b9-merge-hold-recheck-20261125",
   "task": "CI acceleration B9 (#494): merge-hold decides at once on pull_request (pull_request_wait_minutes = 0) instead of holding a runner while it polls; the new merge-hold-recheck.yml (workflow_run on every gate workflow, default branch only, actions write) runs tools/merge_hold_recheck.py, which re-runs a failed or cancelled merge-hold of the same head once no gate run is open; workflow-run activation in the CI impact catalogue; contract and tests",
