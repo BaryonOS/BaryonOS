@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "ad55e019ccdcff44f947a51b45f3caf0fd7df54b",
+    "source_commit": "ea38dcc692de657f7b3c025b223033e3af2b0bb8",
     "assessment_basis": "reviewed_main_commit",
     "branch": "claude/brave-feynman-jbiz6x",
     "task": "S09 follow-up: reverse-corpus fixture fixes from the PR #509 review; handoff after the merge",
     "previous_score": 43,
-    "summary": "43/100, unchanged: PR #509 (owner decisions O1-O13, the R3 reverse differential on the host, K5 per-device broker state) landed on main as ad55e019 with every hosted gate green on its head. This follow-up adds a genuine formatted-count-below-scope case to the reverse corpus (185 images) and makes the Rust side require a verdict for every image. S09 stays open: no native destination stage, native K5 fixture, O13 kernel latch, O12 owner-binding design, hosted R3 run or human audit exists yet. Source commit is main ad55e019."
+    "summary": "43/100, unchanged: PR #509 (owner decisions O1-O13, the R3 reverse differential on the host, K5 per-device broker state) landed on main as ad55e019 with every hosted gate green on its head. This follow-up adds a genuine formatted-count-below-scope case to the reverse corpus (185 images) and makes the Rust side require a verdict for every image. S09 stays open: no native destination stage, native K5 fixture, O13 kernel latch, O12 owner-binding design, hosted R3 run or human audit exists yet. Main ea38dcc6 (B05-T6, PR #512, 43/100 unchanged) is merged into the branch; source commit is main ea38dcc6."
   },
   "tracks": [
     {
@@ -1730,14 +1730,18 @@
             "verification": [
               "host"
             ],
-            "observation": "Capability enumeration covers19607 nonempty prefixes of7 actions through depth5 with revoke-weakened mutant red; ELF and policy-envelope bounded parser checks and mutation controls added.",
+            "observation": "Capability enumeration covers19607 nonempty prefixes of7 actions through depth5 with revoke-weakened mutant red; ELF and policy-envelope bounded parser checks and mutation controls added; ring-3 user ABI (copy planning, user ELF parse, return frames; B05-T5) and virtio PCI capability walk (B05-T6) bounded enumerations with exact-edge mutation controls added.",
             "remaining": "Bounded tests are not unbounded/formal proofs; external review must determine which additional invariants require stronger verification.",
             "evidence": [
               "crates/capability-core/tests/exhaustive_revocation.rs",
               "docs/roadmap-pipeline/receipts/B05-T2.json",
               "docs/security-review/B05-T4-INVARIANTS.md",
               "crates/elf-loader-core/tests/bounded_parser_invariants.rs",
-              "crates/update-core/tests/bounded_policy_envelope_invariants.rs"
+              "crates/update-core/tests/bounded_policy_envelope_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/bd31a78ba30f28e7d668df1e56bb9b5a276a2d82/crates/kernel-core/tests/bounded_user_abi_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/bd31a78ba30f28e7d668df1e56bb9b5a276a2d82/docs/security-review/B05-T5-USER-ABI-INVARIANTS.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/633a0679926fdeb99837cf799a428950763d9723/crates/virtio-core/tests/bounded_capability_invariants.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/633a0679926fdeb99837cf799a428950763d9723/docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md"
             ]
           }
         ]
