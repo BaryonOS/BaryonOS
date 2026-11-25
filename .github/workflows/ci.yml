@@ -114,8 +114,9 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           # Host-only outputs: never native images, acceptance reports or secrets.
-          # cargo-llvm-cov builds in target/llvm-cov-target and itself cleans the
-          # artifacts that could affect coverage results before each run (#494 B3).
+          # cargo-llvm-cov builds in target/llvm-cov-target and by default cleans the
+          # artifacts that could affect coverage results before each run; upstream
+          # treats a failed clean as a warning, so this is best effort (#494 B3).
           path: |
             target/debug
             sdk/target/debug

@@ -158,15 +158,21 @@ only the `cargo-llvm-cov` executable and checks the reported version. The
 September 6, 2026, under Apache-2.0 or MIT. The pinned value equals the
 digest that GitHub records for the release asset, and GitHub lists two
 artifact attestations for that digest (read through the REST API on
-November 25, 2026; not verified in CI). The checksum detects asset
-substitution; it is not an audit of the cargo-llvm-cov source or build.
+November 25, 2026; not verified in CI). One is a release attestation; the
+SLSA provenance attestation names commit
+`ff7de46c296060ef86cd0975c3ff724c8bb22b24` on `main`, the parent of the tag
+commit, because the release workflow starts from `main` and creates the tag.
+The tag commit itself is unsigned. The checksum detects asset substitution; it
+is not an audit of the cargo-llvm-cov source or build.
 
 The host build cache also holds `target/llvm-cov-target`. By default,
 cargo-llvm-cov cleans the artifacts that could affect coverage results before
 each run, and only a push to `main` saves the cache. A restored entry is
 therefore expected to shorten the build without changing a test verdict or a
-coverage report. This expectation rests on the documented cargo-llvm-cov clean
-step; the build-time gain has not yet been measured on a warm CI run.
+coverage report. That clean step is best effort: upstream reports a failed
+`cargo clean` as a warning, after which stale test binaries of a measured
+package could enter the report. The build-time gain has not yet been measured
+on a warm CI run.
 
 ## Validation and rollback
 

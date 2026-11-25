@@ -881,6 +881,54 @@ class WorkflowContractTests(unittest.TestCase):
         evidence = (ROOT / "docs/CI-EVIDENCE.md").read_text(encoding="utf-8")
         for fact in (CARGO_LLVM_COV_SHA256, CARGO_LLVM_COV_TAG_COMMIT, f"v{CARGO_LLVM_COV_VERSION}"):
             self.assertIn(fact, evidence)
+        restore, = [step for step in steps if step.get("id") == "host-build-cache"]
+        self.assertIn("target/llvm-cov-target", restore["with"]["path"].split())
+        self.assertTrue(restore["with"]["key"].startswith("host-rust-v4-"))
+
+    def test_cargo_llvm_cov_step_fails_closed(self):
+        """#494 B3: a bad checksum installs nothing and a wrong version fails the step."""
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        step, = [step for step in steps if step.get("name") == "Coverage tooling (cargo-llvm-cov, coverage.py, c8)"]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive_path = root / "cargo-llvm-cov-fixture.tar.gz"
+            binary = b'#!/usr/bin/env bash\necho "cargo-llvm-cov ${FAKE_LLVM_COV_VERSION}"\n'
+            with tarfile.open(archive_path, "w:gz") as archive:
+                entry = tarfile.TarInfo("cargo-llvm-cov")
+                entry.mode = 0o755
+                entry.size = len(binary)
+                archive.addfile(entry, io.BytesIO(binary))
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            fakes = {
+                "curl": 'while (( $# )); do [[ "$1" == --output ]] && output="$2"; shift; done\n'
+                        'cp -- "$LLVM_COV_FIXTURE" "$output"\n',
+                # cargo +toolchain llvm-cov --version runs the extracted subcommand binary.
+                "cargo": 'exec "$HOME/.cargo/bin/cargo-$2" "${@:3}"\n',
+                "python3": "exit 0\n",
+                "npm": "exit 0\n",
+            }
+            for name, body in fakes.items():
+                (fake_bin / name).write_text("#!/usr/bin/env bash\nset -euo pipefail\n" + body, encoding="utf-8")
+                (fake_bin / name).chmod(0o755)
+            good_hash = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+
+            def run(label, checksum, version):
+                home = root / label
+                (home / "temp").mkdir(parents=True)
+                environment = dict(os.environ, PATH=f"{fake_bin}{os.pathsep}{os.environ['PATH']}", HOME=str(home),
+                                   RUNNER_TEMP=str(home / "temp"), LLVM_COV_FIXTURE=str(archive_path),
+                                   CARGO_LLVM_COV_VERSION=CARGO_LLVM_COV_VERSION, CARGO_LLVM_COV_SHA256=checksum,
+                                   FAKE_LLVM_COV_VERSION=version)
+                result = subprocess.run(["bash", "-c", step["run"]], cwd=ROOT, env=environment,
+                                        capture_output=True, text=True, check=False)
+                return result.returncode, (home / ".cargo/bin/cargo-llvm-cov").exists()
+
+            self.assertEqual(run("success", good_hash, CARGO_LLVM_COV_VERSION), (0, True))
+            code, installed = run("bad-checksum", "0" * 64, CARGO_LLVM_COV_VERSION)
+            self.assertNotEqual(code, 0)
+            self.assertFalse(installed)
+            self.assertNotEqual(run("wrong-version", good_hash, "0.0.1")[0], 0)
 
     def test_actionlint_is_pinned_in_required_host_gate(self):
         """Workflow validation is required, checksum-pinned and narrowly scoped."""
