@@ -1,0 +1,2 @@
+# Preserve the exact raw serial bytes, including firmware CRLF and escape sequences.
+* -text
