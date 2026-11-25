@@ -12,7 +12,8 @@ import unittest.mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (DEVICE_ORDER, KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
-                        S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext)
+                        S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext,
+                        BLK_CASES)
 import volume_disk
 
 
@@ -361,7 +362,7 @@ class SystemHarnessTests(unittest.TestCase):
 
 # Printed by the kernel between BROKERS:PASS and CLEANUP:PASS, and after it.
 TEARDOWN = ("LIVE_PROCESSES_AFTER", "FRAMES_RECOVERED")
-DEVICE = tuple(f"SUSPEND_{key}" for key in DEVICE_ORDER)
+DEVICE = tuple(f"SUSPEND_{key}" for key in (*DEVICE_ORDER, "DEVICE_IO_ACCOUNTED_VOLUME"))
 AT_WAKE = dict(SUSPEND_DEVICE_IO_AT_WAKE_KEYRING=9, SUSPEND_DEVICE_IO_AT_WAKE_VOLUME=700)
 
 
@@ -369,7 +370,7 @@ def power_transcript(case="power", tail=None, **changes):
     """H05 power run in the kernel's real order: the wake evidence and the
     counters, BROKERS, teardown, CLEANUP, the post-wake device evidence, then
     the gate, case marker and S5 tail."""
-    ok = case in ("power", "power-s3", "power-s3-reinit", "power-s3-held-completion")
+    ok = case in ("power", "power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
     values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
                   POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
     held = int(case == "power-s3-held-completion")
@@ -382,6 +383,18 @@ def power_transcript(case="power", tail=None, **changes):
                       SUSPEND_HELD_REFUSALS=0, SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
                       SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_LOST_BLOCK=14,
                       **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0)
+    if case in BLK_CASES:
+        quarantined = BLK_CASES[case] is not None
+        values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                      SUSPEND_HELD_REFUSALS=0, SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
+                      SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_BLK_QUARANTINED=int(quarantined),
+                      SUSPEND_BLK_STALE_TICKET=0 if quarantined else 1,
+                      SUSPEND_BLK_PIC_MASTER=0 if quarantined else 0xfe,
+                      SUSPEND_BLK_PIC_SLAVE=0 if quarantined else 0xff,
+                      SUSPEND_BLK_INTX_LINE=0 if quarantined else 10,
+                      SUSPEND_LOST_BLOCK=24 if quarantined else 6,
+                      **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0,
+                      SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=0 if case.endswith("-busy") else 8)
     values.update(changes)
     values = {key: value for key, value in values.items() if value is not None}
     lines = transcript("normal", **values).replace(
@@ -577,6 +590,90 @@ class PowerS3ReinitHarnessTests(unittest.TestCase):
             evaluate("power", power_transcript("power") + S3_REINIT + "\n", 0, False)
         check_parent(dict(case="power-s3-reinit", passed=True, kernel_feature="test-system-s3-reinit",
                           source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
+
+
+S3_BLK_REINIT = "VOLUME:S3:REINIT:BARS=RESTORED:STATUS=15:CAPACITY=00000000000000002048:SELFTEST=READ"
+
+
+def blk_transcript(case="power-s3-blk-reinit", volume=None, injected=None, **changes):
+    """H05-T5c: the rng re-init marker, then the injection label (injected
+    cases) and the blk success or quarantine marker, before BROKERS."""
+    expected = BLK_CASES[case]
+    if volume is None:
+        volume = (S3_BLK_REINIT,) if expected is None else (f"VOLUME:S3:REINIT:QUARANTINE:{expected[1]}",)
+    if injected is None:
+        injected = () if expected is None else (f"SYSTEM:FAULT_INJECTED:S3_BLK_{expected[0]}",)
+    return s3_transcript(s3=(S3_ENTER, S3_RESUMED, S3_REINIT, *injected, *volume), case=case, **changes)
+
+
+class PowerS3BlkReinitHarnessTests(unittest.TestCase):
+    """H05-T5c run_system oracle: exact markers, codes and accounting."""
+
+    def test_every_blk_case_passes_only_with_raw_exit_zero(self):
+        for case in BLK_CASES:
+            with self.subTest(case=case):
+                found = evaluate(case, blk_transcript(case), 0, False)
+                quarantined = BLK_CASES[case] is not None
+                self.assertEqual(found["SUSPEND_LOST_BLOCK"], 24 if quarantined else 6)
+                self.assertEqual(found["SUSPEND_BLK_QUARANTINED"], int(quarantined))
+                for raw, timed_out in ((33, False), (35, False), (None, True)):
+                    with self.assertRaises(ValueError):
+                        evaluate(case, blk_transcript(case), raw, timed_out)
+        kept = blk_transcript(volume=(S3_BLK_REINIT.replace("RESTORED", "KEPT"),))
+        self.assertEqual(evaluate("power-s3-blk-reinit", kept, 0, False)["SUSPEND_BLK_STALE_TICKET"], 1)
+
+    def test_missing_doubled_or_misplaced_blk_markers_are_refused(self):
+        for case, (label, reason) in ((c, v) for c, v in BLK_CASES.items() if v):
+            quarantine = f"VOLUME:S3:REINIT:QUARANTINE:{reason}"
+            inject = f"SYSTEM:FAULT_INJECTED:S3_BLK_{label}"
+            for change in (dict(volume=()), dict(volume=(quarantine, quarantine)),
+                           dict(injected=()), dict(injected=(inject, inject)),
+                           dict(volume=(S3_BLK_REINIT,), injected=()),
+                           dict(volume=(quarantine.replace(reason, "OTHER"),))):
+                with self.subTest(case=case, change=change), self.assertRaisesRegex(ValueError, "marker"):
+                    evaluate(case, blk_transcript(case, **change), 0, False)
+            swapped = blk_transcript(case).replace(f"{inject}\n{quarantine}\n", f"{quarantine}\n{inject}\n")
+            with self.subTest(case=case, swapped=True), self.assertRaisesRegex(ValueError, "order"):
+                evaluate(case, swapped, 0, False)
+        for change in (dict(volume=()), dict(volume=(S3_BLK_REINIT, S3_BLK_REINIT)),
+                       dict(volume=(S3_BLK_REINIT.replace("SELFTEST=READ", "SELFTEST=NONE"),)),
+                       dict(volume=(S3_BLK_REINIT.replace("STATUS=15", "STATUS=11"),)),
+                       dict(volume=("VOLUME:S3:REINIT:QUARANTINE:CAPACITY",)),
+                       dict(injected=("SYSTEM:FAULT_INJECTED:S3_BLK_BUSY",))):
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, "marker"):
+                evaluate("power-s3-blk-reinit", blk_transcript(**change), 0, False)
+        late = blk_transcript().replace(S3_BLK_REINIT + "\n", "").replace(
+            "SYSTEM:BROKERS:PASS\n", f"SYSTEM:BROKERS:PASS\n{S3_BLK_REINIT}\n")
+        before_rng = blk_transcript().replace(f"{S3_REINIT}\n{S3_BLK_REINIT}\n", f"{S3_BLK_REINIT}\n{S3_REINIT}\n")
+        for text in (late, before_rng):
+            with self.assertRaisesRegex(ValueError, "order"):
+                evaluate("power-s3-blk-reinit", text, 0, False)
+
+    def test_codes_and_accounting_are_exact(self):
+        for case, change in (("power-s3-blk-reinit", dict(SUSPEND_LOST_BLOCK=14)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_LOST_BLOCK=24)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_QUARANTINED=1)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_STALE_TICKET=0)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_PIC_SLAVE=0xfb)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=0)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=None)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_INTX_LINE=None)),
+                             ("power-s3-blk-reinit-capacity", dict(SUSPEND_LOST_BLOCK=14)),
+                             ("power-s3-blk-reinit-capacity", dict(SUSPEND_LOST_BLOCK=6)),
+                             ("power-s3-blk-reinit-capacity", dict(SUSPEND_BLK_QUARANTINED=0)),
+                             ("power-s3-blk-reinit-busy", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=1)),
+                             ("power-s3-blk-reinit-identity", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=0))):
+            with self.subTest(case=case, change=change), self.assertRaises(ValueError):
+                evaluate(case, blk_transcript(case, **change), 0, False)
+
+    def test_blk_evidence_outside_its_profiles_is_refused(self):
+        for text in (reinit_transcript() .replace(S3_REINIT + "\n", f"{S3_REINIT}\n{S3_BLK_REINIT}\n"),
+                     reinit_transcript(SUSPEND_BLK_QUARANTINED=0)):
+            with self.assertRaisesRegex(ValueError, "outside"):
+                evaluate("power-s3-reinit", text, 0, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power-s3", s3_transcript() + "SYSTEM:FAULT_INJECTED:S3_BLK_BUSY\n", 0, False)
 
 
 def held_transcript(**changes):
