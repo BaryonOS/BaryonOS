@@ -213,7 +213,7 @@ With `chain = read()`:
 
 | Crash after | Store on disk | Chain | Next startup |
 |---|---|---|---|
-| nothing, or a torn A1 | old `A` (A1 must be atomic or rejected by N04's authenticator) | after `A` | accept `A` |
+| nothing, or a torn A1 | old `A` (requirement on N04: A1 replaces the store atomically or keeps the previous authenticated copy recoverable; rejecting the torn copy alone does not restore `A`) | after `A` | accept `A`; if no authentic store survives, denial, never acceptance |
 | A1 | new `S` | `S.prev` (= after `A`) | roll forward once, then accept |
 | X | new `S` | after `S` | accept |
 
@@ -269,8 +269,11 @@ provisioning nonce, hence a new `instance`) plus N04 rejecting its old store
 (`Foreign`) and reinitialising at the new genesis. B carries no tombstone or
 chain value across; old network grants are not restored and need explicit
 re-confirmation (agreed with N, 25 November 2026). Torn-A1 recovery of the
-previous store (review C143) is an N04 store requirement (N04-T3), not part
-of this contract.
+previous store (review C143) is a binding requirement of this contract on
+the N04 store (implemented by N in N04-T3): A1 is an atomic replacement or
+retains a recoverable authenticated copy of the previous store, so a torn A1
+yields the crash outcome above; a torn A1 with no recoverable copy is
+denial.
 
 ## Threat model
 
