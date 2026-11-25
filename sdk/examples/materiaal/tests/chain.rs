@@ -1387,6 +1387,8 @@ fn readonly_ctrl_s_is_refused_visibly() {
         host.disk.sectors = w.borrow().disk.sectors.clone();
         let mut table = Table::EMPTY;
         volume::table::recover(&mut host.disk, &mut table).unwrap();
+        // Writable service on purpose: this pins the client-side ReadOnly
+        // refusal (no BEGIN sent); the service-level deny is U03-T3 part 2.
         host.volume = Service::new(DOC_EPOCH, table, false);
     }
     let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
@@ -1400,7 +1402,9 @@ fn readonly_ctrl_s_is_refused_visibly() {
         Scale::Percent100,
         EditMode::ReadOnly,
     );
-    // Read-only Tab order of the probe: three Tabs reach Object(0), Enter opens.
+    // Read-only Tab order of the probe (tools/run_materiaal_probe.py): three
+    // Tabs reach Object(0), Enter opens. Update both if that order changes;
+    // the Editor/contents asserts below fail if the route lands elsewhere.
     keys(
         &h,
         &mut a,
