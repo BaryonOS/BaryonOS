@@ -129,7 +129,30 @@ restarts processes.
   Either way the 2b spec must map a timeout after a queued send to
   `Delivery::Sent`, and must decide who drops a late reply with an older
   correlation (today it would make every later exchange `Unknown`).
-- 2b (native, original proposal): new root stage `resume` (startup word 112 = 4, feature
+- 2b owner choice (~19:15Z): cross-boot cold restart ("Herstart over twee
+  boots"). Implemented as stages `offline` (4, root, fresh writable disk) and
+  `resume` (5, child of the exact passing offline image, writable); no token
+  handoff. Offline: the guest commits revision 1 through `NaspRemote`; the
+  admin sends Shutdown; only kernel `observe_exit(NAS)`, after
+  `process_died`, sets guest word 216, and the guest's next `prepare_via`
+  cannot deliver Open (`Io`), so the edit stays `NeedsReconcile`. Resume: plain
+  `Service::recover`; a base-0 edit reconciles via Head to `Conflict`; the
+  offline edit, re-created from fixed probe constants (no client persistence),
+  reconciles to `Ready` and commits revision 2. The edit is 32 bytes because the
+  core's copy-on-write reservation counts the old 96 bytes against quota 128.
+  Oracle `check_resume_image`: core generation 4/5, volume 7/9, Active epoch 1,
+  no history. Counts admin/NAS/guest: offline 3/0, 8/2, 5/2; resume 3/0,
+  15/2, 12/2. `nas-core.yml` needs no change (it runs `tools/test_nas.py`).
+  Open: a late reply with an older correlation still makes later exchanges
+  `Unknown` (no late-reply drop); the probe never times out a queued send.
+  Local result (272c064f): native gate 6/6 raw 33 (normal, recover,
+  interrupt, repair, offline, resume; source dee0df1f…); probe host tests,
+  clippy (debug/release, native `x86_64-unknown-none`) and fmt pass on 1.100.0;
+  NAS runner/build/oracle/replay unittests OK. Not run: hosted CI.
+  Evidence limit: local QEMU IPC, a controlled NAS exit and a second boot on
+  the same disk; not real transport, identity, power loss, an in-boot NAS
+  restart or client persistence.
+- 2b (native, original in-boot proposal, superseded): new root stage `resume` (startup word 112 = 4, feature
   `test-system-nas-resume`, fresh disk). The guest commits revision 1, the NAS
   process exits at a coordinated point, the guest queues an offline edit
   (prepare fails, edit stays `NeedsReconcile`), the fixture kernel observes the
@@ -159,6 +182,7 @@ restarts processes.
    NOS_BUILD_DIR must lie inside the checkout, e.g. `build/<name>`, or
    `private_path` refuses it), and make one push. Rerun only infra failures,
    then squash with `--match-head-commit <new head>`.
-2. P02-T3 slice 2a is committed locally (321cfdaa). 2b waits on the owner's
-   choice between the capability redesign for an in-boot restart and the
-   cross-boot cold restart.
+2. P02-T3 slices 1, 2a and 2b are committed locally on
+   `claude/p02-t3-nasp-head-20261125` (stacked on this branch). It becomes its
+   own PR after #533 lands; merge main in, never rebase. Slice 3 (guest queue
+   persistence) is an OWNER question before any code.
