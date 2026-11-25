@@ -61,12 +61,26 @@ session's context must rotate were only in issue comments.
 7. **Quantum.**
    - Post-quantum cryptography is a current obligation under ADR-007, ADR-012,
      ADR-017 and ADR-028, `docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md`
-     and `docs/implementation/QUANTUM-SPEC.md`. B owns that content, together
-     It covers harvest-now-decrypt-later exposure and the
-     classical dependencies that remain.
+     and `docs/implementation/QUANTUM-SPEC.md`. B owns that content. It covers
+     harvest-now-decrypt-later exposure and the classical dependencies that remain.
    - Physical quantum hardware is a future research line for L and does not
      block the consumer release.
    - No claim of full quantum resistance is made without bounded evidence.
+
+8. **Tracking issues (project owner, 25 November 2026, about 12:35Z, given to
+   the PR guard).** Owner wording: "Alle specialisten mogen voortaan
+   zelfstandig noodzakelijke, inhoudelijk gerechtvaardigde trackingissues en
+   subtaken binnen hun eigen werkstroom aanmaken, zonder afzonderlijke
+   toestemming te vragen. Controleer vooraf op duplicaten. Leg deze
+   bevoegdheid duurzaam vast en communiceer haar naar alle specialisten. Het
+   aanmaken van issues is ondersteunend aan de ontwikkeling, geen vervanging
+   voor implementatie." (All specialists may from now on create necessary,
+   substantively justified tracking issues and subtasks within their own
+   workstream without asking separate permission. Check for duplicates first.
+   Record this authority durably and communicate it to all specialists.
+   Creating issues supports development and does not replace implementation.)
+   - A specialist checks for duplicates before creating an issue.
+   - An issue stays within the specialist's own workstream.
 
 **Consequences:**
 
