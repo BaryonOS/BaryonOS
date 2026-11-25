@@ -10,16 +10,17 @@ default branch whenever a gate workflow (one that owns an automatic `core` or
 repository it re-runs the newest merge-hold run of each listed pull request
 whose current head is still the run's head, but only when
 
-- no run of a gate workflow is still open for that head (each open one starts
-  another re-check when it completes; runs of other workflows never do, so they
-  are ignored),
+- no run of a gate workflow is still open for that head (each open one normally
+  starts another re-check when it completes; runs of other workflows never do,
+  so they are ignored),
 - that merge-hold run ended `failure`, `timed_out` or `cancelled`, and
 - its latest attempt started before the triggering run finished (a later
   attempt already saw that result).
 
-It never passes or fails a check itself: the re-run merge-hold decides again from
-live data and fails closed as before. Every doubt is a no-op; an unexpected API
-answer exits non-zero, which shows on the re-check run and changes no check.
+It never passes or fails a check itself: the re-run merge-hold decides again on the
+same head and push-time merge commit, with live run, job, label and comment data,
+and fails closed as before. Every doubt is a no-op; an unexpected API answer exits
+non-zero, which shows on the re-check run and changes no pull request check.
 """
 
 import json

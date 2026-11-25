@@ -1408,7 +1408,9 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(len(trigger["workflows"]), len(gates))
         self.assertEqual(workflow["permissions"], {"contents": "read"})
         self.assertEqual(workflow["concurrency"], {
-            "group": "merge-hold-recheck-${{ github.event.workflow_run.head_sha }}",
+            "group": "merge-hold-recheck-${{ github.event.workflow_run.event }}-"
+                     "${{ github.event.workflow_run.head_repository.full_name }}-"
+                     "${{ github.event.workflow_run.head_sha }}",
             "cancel-in-progress": "false"})
         self.assertEqual(list(workflow["jobs"]), ["recheck"])
         job = workflow["jobs"]["recheck"]

@@ -594,14 +594,18 @@ while gates run. Gates still pending at that decision are listed and fail the
 check with "Pending"; a failed gate fails it as before. The visible effect on a
 pull request: merge-hold turns red with "Pending" shortly after a push, and
 turns green only when the re-check below re-runs it after the gates have
-finished. Before B9 the budget was 40 minutes: a merge-hold run then held a
+finished. A merge-hold failure whose error lines are all "Pending:" is
+therefore expected and needs no action: do not push a fix, wait for the
+re-check, and re-run by hand only after every gate has finished. Watchers and
+Auto-fix act only on "Failed:" lines. Before B9 the budget was 40 minutes: a merge-hold run then held a
 runner while it polled, which over the last 100 `pull_request` merge-hold runs
 (5.4 hours, measured on 25 November 2026) came to 1,567 runner-minutes, about
 4.8 runners held permanently; 672 of them belonged to runs cancelled by a new
 push. A positive budget still works that way: once a minute merge-hold reads
 only the head's run listing and makes the next full decision once no gated
 workflow run is open or the budget ends; a failed poll counts as open, and
-pending gates with nothing left running decide at once.
+pending gates with nothing left running decide at once. `merge_group` keeps
+`merge_group_wait_minutes = 45` and still waits that way.
 
 **Re-check.** `.github/workflows/merge-hold-recheck.yml` runs on
 `workflow_run` (`completed`) of every workflow that owns an automatic `core` or
@@ -612,18 +616,20 @@ merge-hold run of each listed pull request whose current head is still the
 run's head, but only when
 
 - no run of those workflows is still open for the head (the triggering run
-  counts as finished even if the listing lags). Each open one starts another
-  re-check when it completes. Runs of other workflows, such as
+  counts as finished even if the listing lags). Each open one normally starts
+  another re-check when it completes (see Limits for the exceptions). Runs of other workflows, such as
   `windows-qemu-test-version.yml`, never start one, so they are ignored;
 - that merge-hold run concluded `failure`, `timed_out` or `cancelled`
   (re-run of the failed jobs; for `cancelled`, of the whole run); and
 - its latest attempt started before the triggering run finished. A later
-  attempt has already seen that result.
+  attempt has normally already seen that result.
 
-The re-check never sets a check: the re-run merge-hold decides again from live
-data and fails closed as before, so it can only repeat a decision, never pass
-one. Every other case is a no-op. An unexpected API answer fails the re-check
-run, which changes no check. Its job has `actions: write` (needed for the
+The re-check never sets a pull request check: the re-run merge-hold decides
+again on the same head and push-time merge commit, with live run, job, label
+and comment data, and fails closed as before, so it can only repeat a decision,
+never pass one. Every other case is a no-op. An unexpected API answer fails the
+re-check run, which changes no pull request check; the re-check run itself
+appears on the default-branch head commit, so a failed one shows there. Its job has `actions: write` (needed for the
 re-run), `contents: read` and `pull-requests: read`, a 5-minute timeout and one
 run per head at a time. On `workflow_run` GitHub always runs the default
 branch's copy of the workflow, and its checkout is the default branch, never
@@ -633,8 +639,17 @@ skipped by the job condition and take no runner.
 Limits. The re-check takes effect only once its workflow is on the default
 branch. If merge-hold is still running when the last gate finishes and its
 report predates that gate, the re-check leaves the running merge-hold alone,
-and the check stays at "Pending". The fallback is unchanged: re-run the failed
-merge-hold job (`gh run rerun <run id> --failed`, or any label change). Like
+and the check stays at "Pending". The same holds after a failed or timed-out
+re-check run, when a non-gate `pull_request` workflow (for example the Windows
+QEMU bundle, the security alert summary or the Copilot environment) ends after
+the last gate, and for a pull request that renames a gate workflow, whose
+renamed runs start no re-check until the rename merges. The fallback is
+unchanged: re-run the failed merge-hold job once the gates have finished
+(`gh run rerun <run id> --failed`, or any label change). An expected gate
+workflow that GitHub never starts keeps merge-hold at "Pending"; re-runs
+cannot resolve that, so push a new head or investigate the missing run. A push
+during a re-check can make it re-run the old head's merge-hold, which cancels
+the new head's first merge-hold; the next gate completion re-runs it. Like
 the earlier wait, the re-check lets merge-hold turn green shortly after the
 last gate without a manual re-run, so auto-merge can follow. It does not remove
 the window in which another merge to `main` makes the pull request `behind`

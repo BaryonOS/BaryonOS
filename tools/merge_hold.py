@@ -647,8 +647,10 @@ def pull_request_gates(token, repo, number, head_sha):
     lines += [prefix + "Pending: " + line for line in pending]
     if pending and not failed:
         run = os.environ.get("GITHUB_RUN_ID", "<run id>")
-        lines.append(f"{prefix}The merge-hold re-check (merge-hold-recheck.yml) re-runs this job "
-                     "automatically when the pending gates finish; if it does not, re-run it then "
+        lines.append(f"{prefix}For a pull request from this repository the merge-hold re-check "
+                     "(merge-hold-recheck.yml) usually re-runs this job when the pending gates "
+                     "finish; a failure with only Pending lines needs no fix. If it is not re-run, "
+                     "re-run it once the gates have finished "
                      f"(gh run rerun {run} --failed).")
     lines += ["Passed: " + line for line in passed] + ["Not a pass: " + line for line in skipped]
     return (not failed and not pending) or not enforce, lines

@@ -45,7 +45,9 @@ permissions:
 
 concurrency:
   # One re-check per head at a time; a queued one is replaced by a newer one, never a running one.
-  group: merge-hold-recheck-${{ github.event.workflow_run.head_sha }}
+  # Keyed like the job condition, so a skipped push, merge_group or fork run never replaces a
+  # pending pull request re-check.
+  group: merge-hold-recheck-${{ github.event.workflow_run.event }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_sha }}
   cancel-in-progress: false
 
 jobs:
