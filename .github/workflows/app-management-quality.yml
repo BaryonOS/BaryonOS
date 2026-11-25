@@ -17,8 +17,55 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  select:
+    # Phase 4 of #494 (docs/CI-CONTRACT.md "Selection"): which jobs and variants of
+    # this workflow the trusted base plan needs. merge-hold verifies the result.
+    name: app-management-quality select
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      narrowed: ${{ steps.jobs.outputs.narrowed }}
+      run-app-package-quality: ${{ steps.jobs.outputs.run-app-package-quality }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history: the merge base never depends on a shallow clone.
+          fetch-depth: 0
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Plan with the trusted base selector
+        id: plan
+        uses: ./.github/actions/select-ci
+        with:
+          event-name: ${{ github.event_name }}
+          tested-sha: ${{ github.sha }}
+          head-sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          # Empty on pull_request (the action uses the merge ref's first parent) and on dispatch.
+          base-sha: ${{ (github.event_name == 'push' && github.event.before) || '' }}
+          base-ref: ${{ github.event.pull_request.base.ref || github.ref_name }}
+      - name: Jobs and variants to run
+        id: jobs
+        shell: bash
+        env:
+          PLAN_PATH: ${{ steps.plan.outputs.plan-path }}
+          PLAN_MODE: ${{ steps.plan.outputs.mode }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.ref_name }}
+          TESTED_SHA: ${{ github.sha }}
+        run: |
+          set -o pipefail
+          # Untrusted rendering (the checkout's copy); merge-hold alone decides.
+          python3 -B tools/ci_impact.py jobs --plan="$PLAN_PATH" \
+            --mode="$PLAN_MODE" --base-ref="$BASE_REF" \
+            --workflow=.github/workflows/app-management-quality.yml --tested-sha="$TESTED_SHA" | tee -a "$GITHUB_OUTPUT"
+
   app-package-quality:
     name: app-package-core and app-management host/target quality
+    needs: select
+    if: ${{ needs.select.outputs.run-app-package-quality == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
