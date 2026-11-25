@@ -147,6 +147,21 @@ fn nv_names_frozen() {
         name(&written),
         "000b442b22e4b54d200b29adf9ce099a389754078300340bdcb3764d0b51608d1f6d"
     );
+    // HAUTH: the loader compares the Name before writing the secret and on
+    // every boot (squatting). Both forms observed on swtpm 0.10.1
+    // (docs/verification/b03-rel05-squat-probe-20261125, N1).
+    assert_eq!(
+        name(&NV_HAUTH),
+        "000b8bc449e1e502ccff31629cdf815c711e7ef01c335d2a45695e402373a21fd496"
+    );
+    let written = NvSpec {
+        attributes: NV_HAUTH.attributes | TPMA_NV_WRITTEN,
+        ..NV_HAUTH
+    };
+    assert_eq!(
+        name(&written),
+        "000bbd7dcf06efd2bc90ae362d1a85da21c406bc9b64944632c26e2f6f513f739ce2"
+    );
 }
 
 #[test]

@@ -24,7 +24,8 @@ The undefine/redefine/replay revival found in this revision is addressed by
 **M1-HAUTH** (project-owner decision of 25 November 2026, option 1, TEST
 profile only; ADR-B03-REL05-TPM-20261125): the loader protects `ownerAuth` and
 `lockoutAuth` with a secret readable only in the loader phase. Implemented so
-far: codecs, constants, a swtpm feasibility probe and the host model. The
+far: codecs, constants, swtpm feasibility and squatting probes and the host
+model. The
 loader TPM path does not exist yet; until it enforces M1-HAUTH natively, the
 revival stays **not defended** and 5A stays in force.
 
@@ -32,10 +33,11 @@ revival stays **not defended** and 5A stays in force.
 |---|---|---|
 | Pure functions `extend_event`, `chain_step`, `chain_after`, `instance`, `genesis_event`, `genesis_chain` | `crates/update-core/src/anchor.rs` | host code, `no_std` |
 | NV constants (`ATTR_ANCHOR_CHAIN`, `anchor_domain`, `TPM_NT_EXTEND`) | `crates/update-core/src/trial_tpm.rs` | S2 constants |
-| Host model of the chain against N's attack sequences, the M1-HAUTH loader provisioning, clear and recovery | `crates/update-core/tests/anchor_chain_model.rs` | host model, not evidence of TPM behaviour |
+| Host model of the chain against N's attack sequences, the M1-HAUTH loader provisioning, squatting, the accepted-pair store (U13c), clear and recovery | `crates/update-core/tests/anchor_chain_model.rs` | host model, not evidence of TPM behaviour |
 | `HAUTH` constants (`NV_HAUTH`, `ATTR_HAUTH`, `POLICY_LOADER_READ`) | `crates/update-core/src/trial_tpm.rs` | S2 constants |
 | `NV_Extend`, `NV_UndefineSpace`, `HierarchyChangeAuth`, policy `NV_Read` | `drivers/tpm-crb/src/codec.rs` | codecs with golden bytes |
 | M1-HAUTH feasibility probe and transcript (secrets redacted) | `docs/verification/b03-rel05-hauth-probe-20261125/` | swtpm 0.10.1 without firmware; not native S5 |
+| Squatting probe and transcript (secret redacted) | `docs/verification/b03-rel05-squat-probe-20261125/` | swtpm 0.10.1 without firmware; not native S5 |
 | N04 consumer | `services/net-broker/src/durable.rs` (N branch) | N's host prototype; N moves it to this contract |
 
 ## Domains and ownership
@@ -97,21 +99,27 @@ The loader holds the only copy of the hierarchy secret outside the TPM:
 | Entropy | `EFI_RNG_PROTOCOL`, default algorithm (U25); absent → halt. Never derived from a record, nonce or chain value |
 | Hygiene | the secret is never logged, never put in BootInfo or serial markers, and is wiped from loader memory before the PCR 13 extend; command and response buffers that carried it are wiped after use, and the policy `NV_Read` result is decoded into a caller buffer without `Copy` or `Debug` and wiped with volatile writes (loader slice; today `Response::Data` is `Copy + Debug` and must not carry the secret). Before the PCR 13 extend the loader overwrites the CRB data buffer up to the longest secret-bearing command or response length, because the kernel maps that buffer (native check planned) |
 | Loader record | binds `SHA-256(HAUTH)` and names the anchored instance; owner index written only under `PolicyPCR(13 = 0³²) + CC_NV_Write`. **Open design item U26** (handle, size, per-domain layout, public-area check); the host model assumes it |
-| Squatting | before writing the secret, `NV_ReadPublic` and the Name of `HAUTH` (and of the U26 record) must match `NV_HAUTH` exactly; any failed undefine or define, or a mismatch, halts. Never tolerate `NV_DEFINED` here: a runtime attacker with empty ownerAuth could pre-define `0x0100B304` with `AUTHREAD` or `POLICY_DELETE` and then read the secret (security review; host model and loader slice open) |
+| Squatting | with ownerAuth empty (fresh or cleared TPM) anyone can define the `HAUTH` or record handle first (probe S1, S4). The owner cannot set `POLICY_DELETE` (S2, `TPM_RC_ATTRIBUTES`), so an owner squat is removed by an empty-ownerAuth undefine; a platform squat (U23 broken, S3) refuses owner undefine with `TPM_RC_NV_AUTHORIZATION` and survives `TPM2_Clear`. Before writing the secret the loader undefines both handles, tolerating only "not defined"; any other undefine or define failure halts (`NV_DEFINED` is never tolerated). On every boot it compares the Name of `HAUTH` with the frozen `NV_HAUTH` Names (both forms, `tests/trial_tpm_constants.rs`, observed in S1/N1) before using its contents, and it trusts the loader record only with its expected Name, because a squatted record is writable at run time (S4). Host model: `squatted_hauth_never_receives_the_secret`, `forged_record_after_a_platform_clear_is_never_adopted`; loader slice open |
 
 Loader provisioning order (TEST profile, re-run from the start after any
-cut): remove leftovers while ownerAuth is still empty, define and write
-`HAUTH`, write the loader record binding it, `HierarchyChangeAuth(owner)`,
+cut): while ownerAuth is still empty, remove leftovers and owner squats of
+`HAUTH` and the loader record, define and write `HAUTH`, define and write the
+loader record binding it, `HierarchyChangeAuth(owner)`,
 `HierarchyChangeAuth(lockout)`, then the anchor genesis (undefine, define,
-genesis extend) and the loader record naming the anchored instance, then the
-PCR 13 extend. The loader never adopts a `HAUTH` that its record does not
-bind (for example one provisioned by an attacker after a clear): without a
-fresh record it halts; with one it clears with that `HAUTH`'s lockout secret
-and provisions new secrets, and if that clear fails it halts until a
-firmware-mediated clear (host model `every_recovery_cut_converges`). The provisioning
-state is read from `TPM_PT_PERMANENT` (`ownerAuthSet`, `lockoutAuthSet`),
-never by trying an authorisation: a wrong `lockoutAuth` locks the lockout
-hierarchy. `HAUTH` is never written once `ownerAuthSet` is 1.
+genesis extend), the loader record naming the accepted pair (TPM copy, U13c),
+the UEFI copy of that pair, then the PCR 13 extend (ten writes on a fresh
+TPM). The loader never adopts a `HAUTH` that no trusted record binds (for
+example one provisioned by an attacker after a clear): without a newer record
+it halts; with one it clears with that `HAUTH`'s lockout secret, or with an
+empty lockoutAuth when `lockoutAuthSet` is 0, and provisions new secrets; if
+that clear fails it halts until a firmware-mediated clear (host model
+`every_recovery_cut_converges`). The provisioning state is read from
+`TPM_PT_PERMANENT` (`ownerAuthSet`, `lockoutAuthSet`), never by trying an
+authorisation: a wrong `lockoutAuth` counts toward the lockout hierarchy's
+dictionary-attack protection. `HAUTH` is never written once `ownerAuthSet` is
+1. The model loader is generic over the TPM command set, so it sees only
+permanent flags, public areas and policy reads, never an authValue, and no
+honest path tries and fails a lockoutAuth.
 `endorsementAuth` stays empty and is not changed by B (outside the approved
 scope); a runtime attacker can set it and so block the EK check of
 section 10.5, which is denial (`BOOT:FAIL:TPM_IDENTITY`), not revival.
@@ -246,10 +254,20 @@ a second `extend(S.prev, D(S))` returns `Conflict`.
 Under M1-HAUTH the loader, not the host tool of REL-05 section 10.3,
 defines the index and performs the genesis extend, because only the loader
 phase can authorise owner commands. Genesis is allowed only for a record
-whose nonce has never been anchored (accepted-serial store, U13c, open); the
-loader-only record (policy-written at PCR 13 = 0³²) names the anchored
-instance, so a runtime attacker cannot forge "already anchored". Every cut
-converges on the next boot (host model `every_provisioning_cut_converges`).
+whose serial is above the accepted pair (U13c rules of REL-05 section 10.5;
+mechanism open); the current record on a restart authorises none. The
+accepted pair advances only after the genesis of every domain the record
+names: first the TPM copy, in the same policy write of the loader record
+(PCR 13 = 0³²) that names the anchored instance, so a runtime attacker cannot
+forge "already anchored"; then the UEFI copy. The effective pair is the
+surviving copy with the higher serial, and two copies with one serial but
+different records halt. Every cut converges on the next boot (host model
+`every_provisioning_cut_converges`, which also fixes the number of writes).
+Losing one copy keeps older records refused, and the loader rewrites a lost
+UEFI copy. Losing both (a TPM clear with U23 broken or by firmware, plus a UEFI
+NVRAM reset) lets the old `ENROLL` authorise a second genesis and revives that
+instance's first store: residual `accepted_pair_survives_one_lost_copy`, in
+the boot-path class below, not accepted and reported to the project owner.
 
 **Same-TPM recovery** (after a stray extend, P3, agreed with N) is
 `NV_UndefineSpace` authorised by the loader-phase ownerAuth, then provisioning with a **fresh instance**: every
@@ -258,7 +276,8 @@ refuses an instance that was used before. Re-genesis with the old instance
 would let a disk attacker walk the old store history forward one boot at a
 time and choose any branch, including an unacknowledged sibling (host model
 `same_tpm_regenesis_after_a_stray_extend_needs_a_fresh_instance`). Recovery
-keeps the hierarchy secret and refuses a record that is not fresh (host model
+keeps the hierarchy secret and refuses an older record or one that reuses
+the accepted serial (host model
 `authorised_recovery_needs_a_fresh_record`), so it cannot revive revoked
 grants or lower anti-rollback state. N04's first store has `prev` = genesis chain.
 **A missing store is never accepted (review L2, agreed with N):** startup
@@ -295,7 +314,8 @@ Agreed with N on 25 November 2026. Residual risks are stated literally; no
 | T3, TEST profile without M1-HAUTH (empty ownerAuth; the state until the loader enforces it) | `NV_UndefineSpace` + `NV_DefineSpace` + replay of the public genesis and extend events | **revival of an older store: NOT defended** (retained regression `undefine_redefine_replay_revives_with_empty_owner_auth`) |
 | T3 at run time, M1-HAUTH provisioned | undefine, redefine, clear, read `HAUTH` | **refused**: `TPM_RC_BAD_AUTH` / `AUTH_FAIL` / `POLICY_FAIL` on swtpm (probe H1–H3), next honest boot rejects X as `Stale` (`undefine_redefine_replay_refused_with_hauth_provisioning`). Writing the loader record is refused in the host model only (U26). Not yet native |
 | T3 using ACPI S3: suspend without `TPM2_Shutdown(STATE)` | firmware may fall back to `Startup(CLEAR)` on resume, resetting PCR 13 to 0³² inside the same kernel, then read `HAUTH` | **NOT defended, unverified (U27)**: until the TPM-bearing TEST configuration disables S3 or the firmware is shown to halt or cap PCR 13 on resume, the runtime claim excludes S3 |
-| T3 with an OS-usable platformAuth (U23 broken) | platform `TPM2_Clear`, then rebuild the old chain and its own `HAUTH`/hierarchy auth | denial *(host model only; rests on the open loader record U26 and on U13c: the UEFI copy of the accepted serial must mark the old `ENROLL` as used, be written after the record and not be writable at run time; the model passes `fresh` as an oracle)*: the record is missing, the next boot halts until a fresh recovery record, recovery clears the foreign hierarchy and provisions new secrets, old stores are `Foreign` (`tpm_clear_is_denial_until_authorised_recovery`) |
+| T3 with an OS-usable platformAuth (U23 broken) | platform `TPM2_Clear`, then rebuild the old chain and its own `HAUTH`/hierarchy auth | denial *(host model only; rests on the open loader record U26 and on the U13c store: the UEFI copy survives the clear, is written after the TPM copy and is not writable at run time, U28)*: the record is missing or squatted (a forged record in a writable squat is ignored, `forged_record_after_a_platform_clear_is_never_adopted`), the next boot halts until a newer recovery record, recovery clears the foreign hierarchy and provisions new secrets, old stores are `Foreign` (`tpm_clear_is_denial_until_authorised_recovery`). If the UEFI copy is lost as well: revival (U13c residual above) |
+| T3 while ownerAuth is empty (a cleared TPM that reached a kernel, REL-05 section 7 item 9 open) | squat the `HAUTH` or record handle (probe S1, S4) | **refused in the host model**: owner squats are removed before the secret is written, a platform squat halts (`squatted_hauth_never_receives_the_secret`); loader slice open |
 | T3 | set `endorsementAuth`; trip the lockout hierarchy with a wrong `lockoutAuth` | denial: EK check fails (section 10.5 halt); recovery uses ownerAuth, not lockoutAuth |
 | Boot-path attacker before B04: loader replaced on the ESP, `BootNext` to other code, or T5 (foreign OS) | run code at PCR 13 = 0³², read `HAUTH`, then undefine, redefine and replay | **revival of an older store one reboot later: NOT defended until B04** (residual `reboot_path_attacker_at_pcr13_zero_still_revives`). PCR 13 phase separation does not authenticate the boot path, the TPM identity or the kernel |
 | swtpm host administrator | snapshot and restore the whole TPM state with a matching store | not defended (REL-05 threat model) |
@@ -341,6 +361,9 @@ Listed in REL-05 section 14; the host model assumes them, S5 must prove them.
   OVMF falls back to `Startup(CLEAR)` after a missing `TPM2_Shutdown(STATE)`
   and so resets PCR 13. Required: disable S3 there, or prove the firmware
   halts or caps PCR 13, plus a native negative test.
+- U28 The UEFI copy of the accepted pair (U13c) survives TPM clear and
+  replacement and cannot be written after `ExitBootServices`
+  (boot-services-only variable). The host model assumes it.
 - REL-05 section 7 item 9 still routes a cleared TPM to a `DEGRADED`
   known-good boot, which runs the kernel with an empty ownerAuth; M1-HAUTH
   and C665 require a halt until authorised recovery. Open conflict, resolved
@@ -356,7 +379,10 @@ Listed in REL-05 section 14; the host model assumes them, S5 must prove them.
 
 The anchor inherits the REL-05 threat model: a host administrator who
 snapshots and restores the whole swtpm state together with the store, or a
-boot-path attacker before B04, defeats it. A chain establishes freshness of
+boot-path attacker before B04, defeats it. So does an attacker who loses
+both copies of the accepted pair (U13c): the old `ENROLL` then authorises a
+second genesis (`accepted_pair_survives_one_lost_copy`, reported to the
+project owner, not accepted). A chain establishes freshness of
 one store per domain; it does not authenticate the store, bind keys or
 replace N04's own grant-generation checks within a boot. Domain isolation is
 enforced by the kernel capability, not by TPM authorisation: a compromised
@@ -375,6 +401,8 @@ spent budget → `RateLimited`; a network capability cannot reach the update
 records or another domain; the golden vectors above on swtpm; the
 undefine/redefine/replay sequence (revival without M1-HAUTH, refusal with
 it); M1-HAUTH provisioning cut after every write; `HAUTH` read refused after
-the PCR 13 extend; TPM clear, replaced TPM and foreign boot environment each
+the PCR 13 extend; owner and platform squats of `HAUTH` and the loader
+record (probe S1-S4) before provisioning; loss of one accepted-pair copy
+refused, loss of both shown as the residual; TPM clear, replaced TPM and foreign boot environment each
 halting until authorised recovery; authorised same-TPM recovery with a fresh
 instance; the boot-path residual demonstrated, not hidden.
