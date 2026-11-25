@@ -31,6 +31,9 @@ CACHE_ACTION_SHA = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
 ACTIONLINT_VERSION = "1.7.12"
 ACTIONLINT_SHA256 = "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
 ACTIONLINT_TAG_COMMIT = "914e7df21a07ef503a81201c76d2b11c789d3fca"
+CARGO_LLVM_COV_VERSION = "0.9.1"
+CARGO_LLVM_COV_SHA256 = "b3f68e625481fed9b16444174f3fa5ebcdbde4a1878803a35eabe2dcefcdc41a"
+CARGO_LLVM_COV_TAG_COMMIT = "0dc905679ae6b4740b186f6e2c2ef1ab78fb76d7"
 # Non-required workflows skip only documentation and project metadata. The
 # required ci.yml gates stay unfiltered (see test_required_gates_...).
 METADATA_PATHS_IGNORE = [
@@ -853,6 +856,31 @@ class WorkflowContractTests(unittest.TestCase):
         for reference, expected in fixtures.items():
             with self.subTest(fixture=reference):
                 self.assertEqual(uses_reference_is_pinned(reference), expected)
+
+    def test_cargo_llvm_cov_is_a_checksum_pinned_release_binary(self):
+        """#494 B3: the required host gate verifies the upstream archive before extracting it."""
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        step, = [step for step in steps if step.get("name") == "Coverage tooling (cargo-llvm-cov, coverage.py, c8)"]
+        self.assertNotIn("if", step)
+        self.assertEqual(step.get("continue-on-error", "false"), "false")
+        self.assertEqual(step["env"], {"CARGO_LLVM_COV_VERSION": CARGO_LLVM_COV_VERSION,
+                                       "CARGO_LLVM_COV_SHA256": CARGO_LLVM_COV_SHA256})
+        command = step["run"]
+        self.assertTrue(command.startswith("set -euo pipefail\n"))
+        self.assertNotIn("install cargo-llvm-cov", command)
+        self.assertNotIn("|| true", command)
+        self.assertIn("https://github.com/taiki-e/cargo-llvm-cov/releases/download/"
+                      "v${CARGO_LLVM_COV_VERSION}/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz", command)
+        checksum = command.index("sha256sum --check --strict")
+        extraction = command.index("tar --extract")
+        self.assertLess(checksum, extraction)
+        self.assertIn("${CARGO_LLVM_COV_SHA256}", command[:checksum])
+        self.assertLess(extraction, command.index('llvm-cov --version | grep -F "${CARGO_LLVM_COV_VERSION}"'))
+        self.assertLess(steps.index(step), min(index for index, candidate in enumerate(steps)
+                                               if "llvm-cov --locked" in candidate.get("run", "")))
+        evidence = (ROOT / "docs/CI-EVIDENCE.md").read_text(encoding="utf-8")
+        for fact in (CARGO_LLVM_COV_SHA256, CARGO_LLVM_COV_TAG_COMMIT, f"v{CARGO_LLVM_COV_VERSION}"):
+            self.assertIn(fact, evidence)
 
     def test_actionlint_is_pinned_in_required_host_gate(self):
         """Workflow validation is required, checksum-pinned and narrowly scoped."""

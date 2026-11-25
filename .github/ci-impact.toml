@@ -289,7 +289,7 @@ path = ".github/workflows/clear-stale-actions.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["push"]
-obligation = [{ cite = "tests/test_ci_workflows.py:789", anchor = "\".github/workflows/clear-stale-actions.yml\", \"cancel-orphans\"" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:792", anchor = "\".github/workflows/clear-stale-actions.yml\", \"cancel-orphans\"" }]
 trigger.push = { branches = ["maintenance/clear-stale-actions-20261109"], paths = [".github/workflows/clear-stale-actions.yml"] }
 
 [[workflow.job]]
@@ -304,7 +304,7 @@ path = ".github/workflows/codeql.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["push", "pull_request", "merge_group", "workflow_dispatch", "schedule"]
-obligation = [{ cite = "tests/test_ci_workflows.py:779", anchor = "(\".github/workflows/codeql.yml\", \"analyze\")" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:782", anchor = "(\".github/workflows/codeql.yml\", \"analyze\")" }]
 trigger.pull_request = { branches = ["main"] }
 trigger.push = { branches = ["main"] }
 trigger.merge_group = { types = ["checks_requested"] }
@@ -505,7 +505,7 @@ path = ".github/workflows/kvm-pilot.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch"]
-obligation = [{ cite = "tests/test_ci_workflows.py:671", anchor = "self.workflows[\".github/workflows/kvm-pilot.yml\"][\"jobs\"][\"kvm-pilot\"]" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:674", anchor = "self.workflows[\".github/workflows/kvm-pilot.yml\"][\"jobs\"][\"kvm-pilot\"]" }]
 
 [[workflow.job]]
 id = "kvm-pilot"
@@ -911,7 +911,7 @@ path = ".github/workflows/native-system.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "tests/test_ci_workflows.py:747", anchor = "system = self.workflows[\".github/workflows/native-system.yml\"]" }]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "tests/test_ci_workflows.py:750", anchor = "system = self.workflows[\".github/workflows/native-system.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -1002,7 +1002,7 @@ path = ".github/workflows/net-broker-quality.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "docs/PROGRESS.md:112", anchor = "Native packet and transport stack**" }, { cite = "tests/test_ci_workflows.py:723", anchor = "service = self.workflows[\".github/workflows/net-broker-quality.yml\"]" }]
+obligation = [{ cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "docs/PROGRESS.md:112", anchor = "Native packet and transport stack**" }, { cite = "tests/test_ci_workflows.py:726", anchor = "service = self.workflows[\".github/workflows/net-broker-quality.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -1189,7 +1189,7 @@ path = ".github/workflows/volume-acceptance.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request"]
-obligation = [{ cite = "docs/PROGRESS.md:79", anchor = "Space reuse and scalable volumes**" }, { cite = "tests/test_ci_workflows.py:675", anchor = "self.workflows[\".github/workflows/volume-acceptance.yml\"][\"jobs\"][\"m6e\"]" }]
+obligation = [{ cite = "docs/PROGRESS.md:79", anchor = "Space reuse and scalable volumes**" }, { cite = "tests/test_ci_workflows.py:678", anchor = "self.workflows[\".github/workflows/volume-acceptance.yml\"][\"jobs\"][\"m6e\"]" }]
 trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace/**", "services/**", "drivers/**", "crates/**", ".cargo/**", "sdk/**", "ui/**", "experiments/**", "tests/**", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".github/workflows/volume-acceptance.yml", ".github/actions/**", ".github/actions/preserve-evidence/**"] }
 
 [[workflow.job]]
