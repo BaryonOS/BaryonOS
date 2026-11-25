@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "ad55e019ccdcff44f947a51b45f3caf0fd7df54b",
+    "source_commit": "ea38dcc692de657f7b3c025b223033e3af2b0bb8",
     "assessment_basis": "parent_commit",
-    "branch": "claude/b05-virtio-caps-20261123",
-    "task": "B05-T6 oracle-checked bounded enumeration of the virtio PCI capability walk (with B05-T5 from #511)",
+    "branch": "claude/ui-u-space-parity-20261125",
+    "task": "UI-U-C6-20261125 U04: Space activates a focused search result (ds-1.1 Enter/Space parity)",
     "previous_score": 43,
-    "summary": "43/100 unchanged. B05-T5 (#511) and B05-T6 add host-only bounded invariant enumerations for the ring-3 user ABI (kernel-core user.rs) and the virtio PCI capability walk (virtio-core), each with mutation controls; this extends the partial 'selected invariants checked by machine' requirement. B05 stays open: no external human examination exists and AI review is not that audit; evidence: docs/security-review/B05-T5-USER-ABI-INVARIANTS.md, docs/security-review/B05-T6-VIRTIO-CAPABILITY-INVARIANTS.md."
+    "summary": "43/100 unchanged. Shell::key now types Space only while focus is on the search field and activates a Tab-focused search result like a pointer click; the ignored host test is folded into the keyboard_only.rs Enter/Space parity test. U04 stays open: Notifications keyboard route (owner decision), native keyboard evidence, screen-reader chain and human trials are missing; evidence is host tests only."
   },
   "tracks": [
     {
