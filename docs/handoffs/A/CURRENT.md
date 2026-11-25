@@ -64,7 +64,7 @@ acceptance.
   needs `progress.py --write` plus the views.
 
 - CI D2 review of #531 ci.yml at 3075c1b3: no blocking findings; CI confirmed
-  it still holds for d84a080b (no `.github` delta). Conditions:
+  it still holds for later heads with no `.github` delta. Conditions:
   hosted qemu-smoke, host-quality and merge-hold pass on the head; any new head
   needs a ci.yml-only delta check by CI before merge.
 - A03-T2b (grant retirement on process exit) is implemented in
@@ -76,7 +76,7 @@ acceptance.
 
 ## Next action
 
-Keep #531 and the T2b PR green. Merge #531 (head d84a080b) once CI's conditions
+Keep #531 and the T2b PR green. Merge #531 with --match-head-commit set to its current head once CI's conditions
 hold, then retarget T2b to main. Next A slice: bind the broker to real
 Materiaal volume objects (per-object READ via the volume service; coordinate the
 volume.rs boundary with S) and replace the exit fixture with a product
