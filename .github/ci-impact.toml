@@ -361,6 +361,13 @@ cargo = ["experiments/ai/model-store-contract/Cargo.toml"]
 evidence = []
 
 [[workflow.job.variant]]
+id = "ai-reference-forward"
+check_name = "component-quality (ai-reference-forward)"
+matrix = { component = "ai-reference-forward", manifest = "experiments/ai/reference-forward/Cargo.toml", toolchain = "1.100.0" }
+cargo = ["experiments/ai/reference-forward/Cargo.toml"]
+evidence = []
+
+[[workflow.job.variant]]
 id = "image-viewer"
 check_name = "component-quality (image-viewer)"
 matrix = { component = "image-viewer", manifest = "sdk/examples/image-viewer/Cargo.toml", toolchain = "1.100.0" }

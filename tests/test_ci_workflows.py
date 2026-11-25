@@ -1336,7 +1336,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         leaves = next(wf for wf in catalogue["workflow"] if wf["path"] == ".github/workflows/component-leaves.yml")
         matrix = [variant["matrix"] for job in leaves["job"] if job["id"] == "component-quality"
                   for variant in job["variant"]]
-        self.assertEqual(len(matrix), 15)
+        self.assertEqual(len(matrix), 16)
         self.assertTrue({"artifact-store", "materiaal-ui"}.isdisjoint(
             entry["component"] for entry in matrix
         ))
