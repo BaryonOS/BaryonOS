@@ -58,11 +58,12 @@ previous good release a permanent `DOWNGRADE` (REL-05).
 
 **Not authorized:** production keys, signing or activation; physical TPM or
 firmware changes; a production TPM provisioning or owner-authorization
-procedure; use of the anchor for N04 (option 5B of its Decision 5, see
-[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md)); CI
-workflow changes without a separate owner-reviewed request. TPM 2.0 is the
+procedure; CI workflow changes without a separate owner-reviewed request. TPM 2.0 is the
 intended D3 backend of ADR-B03-B04-TARGET for this TEST profile only; its
-production approval remains open.
+production approval remains open. Use of the anchor for N04 is authorized
+separately by ADR-NET-ISSUER-20261125 Decision 5B (owner, 25 November 2026)
+under its conditions 1–9; the contract is
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
 
 **Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
 extension, kernel profile and health service; the characterization of PR #514

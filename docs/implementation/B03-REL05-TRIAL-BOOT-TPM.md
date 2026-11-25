@@ -147,7 +147,7 @@ SHA-256, `TPMA_NV_POLICYWRITE`, `TPMA_NV_AUTHREAD` with empty `authValue`,
 | `0x0100B301` | `CONFIRM` | ordinary, 64 B | `PolicyPCR(13 = P_OPEN)` + `CC_NV_Write` | kernel (trial boot) |
 | `0x0100B302` | `FLOOR` | ordinary, 64 B | `PolicyPCR(13 = 0³²)` + `CC_NV_Write` | loader |
 | `0x0100B303` | `GEN` | counter, 8 B | `PolicyPCR(13 = 0³²)` + `CC_NV_Increment` | loader |
-| `0x0100B310`+ | cold-freshness counters | counter, 8 B | see [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) | kernel on behalf of N04 |
+| `0x0100B310`–`0x0100B31F` | cold-freshness anchor domains (counter + 64 B slot per domain) | see [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) | exception to the attributes above: `AUTHWRITE`, not phase-bound | kernel on behalf of the domain holder (N04 only) |
 
 `P_OPEN = SHA-256(0³² ‖ SHA-256("BARYON-TRIAL-OPEN-V1"))` in the SHA-256 bank,
 assuming the loader extends through `HashLogExtendEvent`, which hashes the
