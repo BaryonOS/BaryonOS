@@ -126,6 +126,7 @@ pub fn run(weights: &Weights, logits: &mut [f32; OUTPUT]) -> Result<u64, Error> 
         KvCache::new(CONFIG.kv_heads, CONFIG.head_dim, &mut k1, &mut v1)?,
     ];
     let (mut hidden, mut normed, mut scratch) = ([0f32; H], [0f32; H], [0f32; SCRATCH]);
+    let mut staging = [0f32; VOCAB];
     let mut budget = Budget::new(u64::MAX, &NoCancel);
     for (position, (&id, out)) in TOKENS
         .iter()
@@ -141,7 +142,14 @@ pub fn run(weights: &Weights, logits: &mut [f32; OUTPUT]) -> Result<u64, Error> 
             &mut scratch[..len],
             &mut budget,
         )?;
-        model.logits(&hidden, CONFIG.rms_epsilon, &mut normed, out, &mut budget)?;
+        model.logits(
+            &hidden,
+            CONFIG.rms_epsilon,
+            &mut normed,
+            &mut staging,
+            out,
+            &mut budget,
+        )?;
     }
     Ok(u64::MAX - budget.remaining())
 }
