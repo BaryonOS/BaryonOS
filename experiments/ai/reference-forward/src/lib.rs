@@ -9,6 +9,8 @@ pub enum Error {
     Shape,
     WorkLimit,
     NonFinite,
+    /// The fixed context or KV ceiling is exhausted; nothing was truncated.
+    ContextLimit,
 }
 
 /// Borrowed row-major weights and one bias per output row.
@@ -220,5 +222,213 @@ pub fn swi_glu(
     }
     down.compute(gates, final_values)?;
     output.copy_from_slice(final_values);
+    Ok(())
+}
+
+/// Proposed L01 KV ceiling (LOCAL-AI-L01-PROPOSAL.md); not a measured requirement.
+pub const MAX_KV_BYTES: usize = 128 * 1024 * 1024;
+
+/// `2 × layers × kv_heads × head_dim × tokens × bytes_per_element`, checked before
+/// any allocation. Overflow is `Shape`; exceeding `MAX_KV_BYTES` is `ContextLimit`.
+pub fn kv_cache_bytes(
+    layers: usize,
+    kv_heads: usize,
+    head_dim: usize,
+    tokens: usize,
+    bytes_per_element: usize,
+) -> Result<usize, Error> {
+    let factors = [layers, kv_heads, head_dim, tokens, bytes_per_element];
+    if factors.contains(&0) {
+        return Err(Error::Shape);
+    }
+    let bytes = factors
+        .iter()
+        .try_fold(2usize, |acc, &n| acc.checked_mul(n))
+        .ok_or(Error::Shape)?;
+    if bytes > MAX_KV_BYTES {
+        return Err(Error::ContextLimit);
+    }
+    Ok(bytes)
+}
+
+/// Rotary position embedding for one head in the rotate-half layout used by
+/// Llama/Qwen2-style checkpoints: element `i` pairs with `i + head_dim / 2`, with
+/// inverse frequency `theta^(-2i / head_dim)`. Output is committed only on success.
+pub fn rope(input: &[f32], position: u32, theta: f32, output: &mut [f32]) -> Result<(), Error> {
+    let dim = input.len();
+    if dim == 0 || !dim.is_multiple_of(2) || output.len() != dim || dim > MAX_MACS {
+        return Err(Error::Shape);
+    }
+    if !theta.is_finite() || theta <= 1.0 || input.iter().any(|x| !x.is_finite()) {
+        return Err(Error::NonFinite);
+    }
+    let half = dim / 2;
+    // Validate every rotated value before publishing any of them.
+    let rotated = |i: usize| -> Result<(f32, f32), Error> {
+        let inv_freq = 1.0 / libm::powf(theta, (2 * i) as f32 / dim as f32);
+        let angle = position as f32 * inv_freq;
+        let (sin, cos) = (libm::sinf(angle), libm::cosf(angle));
+        let (a, b) = (input[i], input[i + half]);
+        let pair = (a * cos - b * sin, b * cos + a * sin);
+        if pair.0.is_finite() && pair.1.is_finite() {
+            Ok(pair)
+        } else {
+            Err(Error::NonFinite)
+        }
+    };
+    for i in 0..half {
+        rotated(i)?;
+    }
+    for i in 0..half {
+        (output[i], output[i + half]) = rotated(i)?;
+    }
+    Ok(())
+}
+
+/// Fixed-capacity per-layer KV cache over caller-owned buffers. No allocation;
+/// a full cache refuses further tokens instead of evicting or truncating.
+pub struct KvCache<'a> {
+    keys: &'a mut [f32],
+    values: &'a mut [f32],
+    kv_heads: usize,
+    head_dim: usize,
+    len: usize,
+}
+
+impl<'a> KvCache<'a> {
+    pub fn new(
+        kv_heads: usize,
+        head_dim: usize,
+        keys: &'a mut [f32],
+        values: &'a mut [f32],
+    ) -> Result<Self, Error> {
+        let row = kv_heads.checked_mul(head_dim).ok_or(Error::Shape)?;
+        if row == 0
+            || keys.len() != values.len()
+            || keys.is_empty()
+            || !keys.len().is_multiple_of(row)
+        {
+            return Err(Error::Shape);
+        }
+        Ok(Self {
+            keys,
+            values,
+            kv_heads,
+            head_dim,
+            len: 0,
+        })
+    }
+
+    fn row(&self) -> usize {
+        self.kv_heads * self.head_dim
+    }
+
+    pub fn capacity(&self) -> usize {
+        self.keys.len() / self.row()
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    /// Append one token's keys and values (`kv_heads × head_dim` each).
+    pub fn append(&mut self, key: &[f32], value: &[f32]) -> Result<(), Error> {
+        let row = self.row();
+        if key.len() != row || value.len() != row {
+            return Err(Error::Shape);
+        }
+        if key.iter().chain(value).any(|x| !x.is_finite()) {
+            return Err(Error::NonFinite);
+        }
+        if self.len == self.capacity() {
+            return Err(Error::ContextLimit);
+        }
+        let range = self.len * row..(self.len + 1) * row;
+        self.keys[range.clone()].copy_from_slice(key);
+        self.values[range].copy_from_slice(value);
+        self.len += 1;
+        Ok(())
+    }
+}
+
+/// Causal grouped-query attention of one new query over every cached token
+/// (the caller appends the current token first). `query` holds `heads × head_dim`
+/// values and `heads` must be a multiple of the cache's KV heads. Scratch holds
+/// `cache.len() + heads × head_dim` values; output is committed only on success.
+pub fn attention(
+    query: &[f32],
+    heads: usize,
+    cache: &KvCache<'_>,
+    scratch: &mut [f32],
+    output: &mut [f32],
+) -> Result<(), Error> {
+    let dim = cache.head_dim;
+    let width = heads.checked_mul(dim).ok_or(Error::Shape)?;
+    let tokens = cache.len;
+    if heads == 0
+        || !heads.is_multiple_of(cache.kv_heads)
+        || query.len() != width
+        || output.len() != width
+        || scratch.len() != tokens.checked_add(width).ok_or(Error::Shape)?
+    {
+        return Err(Error::Shape);
+    }
+    if tokens == 0 {
+        return Err(Error::Shape);
+    }
+    // Scores and weighted sum: two multiply/accumulate passes per head and token.
+    if width
+        .checked_mul(tokens)
+        .and_then(|n| n.checked_mul(2))
+        .ok_or(Error::WorkLimit)?
+        > MAX_MACS
+    {
+        return Err(Error::WorkLimit);
+    }
+    if query.iter().any(|x| !x.is_finite()) {
+        return Err(Error::NonFinite);
+    }
+    let group = heads / cache.kv_heads;
+    let row = cache.row();
+    let scale = 1.0 / libm::sqrtf(dim as f32);
+    let (scores, accum) = scratch.split_at_mut(tokens);
+    for head in 0..heads {
+        let q = &query[head * dim..(head + 1) * dim];
+        let offset = (head / group) * dim;
+        let mut max = f32::NEG_INFINITY;
+        for (t, score) in scores.iter_mut().enumerate() {
+            let k = &cache.keys[t * row + offset..t * row + offset + dim];
+            let mut dot = 0.0;
+            for (a, b) in q.iter().zip(k) {
+                dot += a * b;
+            }
+            *score = dot * scale;
+            if !score.is_finite() {
+                return Err(Error::NonFinite);
+            }
+            max = max.max(*score);
+        }
+        let mut total = 0.0;
+        for score in scores.iter_mut() {
+            *score = libm::expf(*score - max);
+            total += *score;
+        }
+        let out = &mut accum[head * dim..(head + 1) * dim];
+        out.fill(0.0);
+        for (t, weight) in scores.iter().enumerate() {
+            let v = &cache.values[t * row + offset..t * row + offset + dim];
+            for (o, x) in out.iter_mut().zip(v) {
+                *o += (weight / total) * x;
+            }
+        }
+        if out.iter().any(|x| !x.is_finite()) {
+            return Err(Error::NonFinite);
+        }
+    }
+    output.copy_from_slice(accum);
     Ok(())
 }
