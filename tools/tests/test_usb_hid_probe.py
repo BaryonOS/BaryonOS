@@ -433,7 +433,18 @@ class LifecycleTests(unittest.TestCase):
         self.assertTrue(process.killed and process.reaped)
 
     def test_refused_device_arguments(self):
-        self.assertEqual(probe.refused_device("refuse-hub", None)[-1].split(",")[:2], ["usb-hub", "id=usb-refused"])
+        drivers = {"refuse-hub": "usb-hub", "refuse-tablet": "usb-tablet",
+                   "refuse-hs-kbd": "usb-kbd", "refuse-storage": "usb-storage"}
+        for case, driver in drivers.items():
+            fields = probe.refused_device(case, "disk.img")[-1].split(",")
+            self.assertEqual(fields[:2], [driver, "id=usb-refused"])
+            self.assertIn("port=1", fields)
+        self.assertIn("usb_version=2", probe.refused_device("refuse-hs-kbd", "")[-1].split(","))
+        self.assertIn("usb_version=1", probe.refused_device("refuse-tablet", "")[-1].split(","))
+        self.assertEqual(probe.refused_device("refuse-storage", "disk.img")[:2],
+                         ["-drive", "if=none,id=refused-disk,format=raw,file=disk.img"])
+        with self.assertRaises(ValueError):
+            probe.refused_device("reports", "")
         with self.assertRaises(ValueError):
             probe.refused_device("refuse-storage", "/a,b/disk.img")
 

@@ -2356,21 +2356,25 @@
         "tools/run_usb_hid.py",
         "tools/tests/test_usb_hid_probe.py",
         "docs/implementation/NATIVE-USB-HID.md",
-        "docs/verification/h02-usb-refusal-feasibility-20261125/"
+        "docs/verification/h02-usb-refusal-feasibility-20261125/",
+        "docs/verification/h02-usb-refusal-20261125/"
       ],
       "lead_paths": [
         ".github/workflows/native-xhci.yml"
       ],
       "checks": [
         "python3 -B -m unittest discover -s tools/tests -p 'test_usb_hid*.py' -v",
-        "python3 -B tools/build.py --kernel-feature native-usb-hid-refusal && python3 -B tools/run_usb_hid.py --case refuse-<hub|tablet|hs-kbd|storage>",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-refusal && for c in refuse-hub refuse-tablet refuse-hs-kbd refuse-storage; do python3 -B tools/run_usb_hid.py --case $c; done",
         "python3 -B tools/build.py --kernel-feature native-usb-hid-probe && python3 -B tools/run_usb_hid.py --case reports",
-        "python3 -B tools/build.py --kernel-feature native-usb-hid-reattach && python3 -B tools/run_usb_hid.py --case reattach"
+        "python3 -B tools/build.py --kernel-feature test-usb-hid-readonly-fault && python3 -B tools/run_usb_hid.py --case readonly",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-reattach && python3 -B tools/run_usb_hid.py --case reattach",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-mouse-reattach && python3 -B tools/run_usb_hid.py --case reattach-mouse"
       ],
       "acceptance": [
-        "each refusal case emits its own reason marker (speed, not-boot, non-HID class) and no USB-DIAG:REJECT for the refused port",
-        "the mouse on port 2 still enumerates and delivers press/release after the port-1 refusal; raw exit 33",
-        "one mutant per check (speed, class/boot, Session refusal) fails its case",
+        "each refusal case emits its own reason marker (HUB, NOT_BOOT, SPEED) and no USB-DIAG:REJECT for the refused port; a refusal after Enable Slot also proves SLOT_DISABLED",
+        "the refused port stays Failed and Busy; the mouse on port 2 still enumerates and delivers press/release after the port-1 refusal",
+        "after the port-1 unplug the same port recovers with a new-generation boot keyboard that delivers key down/up; raw exit 33",
+        "one mutant per check (speed, hub, terminal refusal, Disable Slot, DCBAA clear, input settle) fails its case",
         "reports, readonly, reattach and reattach-mouse unchanged (raw 33)"
       ],
       "non_claimable": "QEMU only. Storage reaches only the speed refusal: QEMU usb-storage attaches at high speed on the USB2-only fixture controller, so a class-level storage refusal is not exercised. No hub support, physical hotplug or H02 acceptance.",

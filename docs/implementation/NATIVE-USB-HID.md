@@ -265,6 +265,59 @@ after `USB:REATTACH:UNPLUG:PASS`, `device_add hid-mouse-g3`. That is fifteen
 QMP commands; every reply is required and held keys and buttons are released
 on every error path.
 
+## Per-port refusal
+
+`native-usb-hid-refusal` is a separate boot (H02-T5). Root port 1 holds a
+device outside the reference profile; root port 2 holds the boot mouse. The
+driver refuses the port-1 device at the enumeration boundary, keeps serving
+the mouse and recovers port 1 after an unplug. In every other profile the same
+checks keep their terminal codes (8, 14).
+
+1. **Refusal points.** PORTSC speed other than low or full is refused before
+   Enable Slot (`USB:REFUSE:SPEED`, a high-speed keyboard and USB storage).
+   A device descriptor with class 9 is refused after the descriptor read
+   (`USB:REFUSE:HUB`). A configuration without a boot keyboard or boot mouse
+   interface is refused when `Session::new` returns `Binding(NotBoot)`
+   (`USB:REFUSE:NOT_BOOT`, the QEMU tablet); any other binding error gives
+   `USB:REFUSE:BINDING`. Malformed descriptors (codes 10–13) stay terminal.
+2. **What a refused device receives.** No SET_CONFIGURATION, no interrupt
+   endpoint context, no `Session` and no input path. Only the EP0 control
+   context needed to read descriptors may exist. A refusal after Enable Slot
+   issues Disable Slot, clears DCBAA[slot], and then checks that a Reset
+   Device for that slot completes with Slot Not Enabled (code 11,
+   `USB:REFUSE:SLOT_DISABLED`). QEMU reports Slot ID 0 in that completion; the
+   check accepts 0 or the slot. A speed-refused device has no slot. The port
+   is not disabled through PORTSC.PED, so it stays at address 0 until unplug.
+3. **Port state.** The refused attach leaves port 1 `Failed`; a further
+   `Ports::attach(0)` must return `Busy` (`USB:REFUSE:PORT_HELD`, code 56
+   otherwise, also when the refused device would have been served).
+4. **Other port.** The mouse on port 2 then enumerates and reports. Before
+   `USB:REFUSE:READY` the guest waits for at least 16 × interval + 8
+   microframes of MFINDEX (xHCI §5.5.1), because QEMU routes input to a USB
+   HID device only after its first interrupt-IN poll. One QEMU event with
+   x +7, y −3 and left down gives `USB:REFUSE:MOUSE_DOWN`; the release gives
+   `USB:REFUSE:MOUSE_UP` (code 59 otherwise; events on another slot are
+   rejected).
+5. **Unplug and recovery.** The only accepted port event is the port-1
+   disconnect while port 1 is `Failed` (code 58). `Ports` detaches port 1
+   (`USB:REFUSE:UNPLUG:PASS`). A new port-1 connect starts a new generation
+   attach; it must be a boot keyboard in a slot other than the mouse's, with
+   phase `Ready` (code 60), `USB:REFUSE:RECOVER:KEYBOARD`. After the same
+   MFINDEX wait (`USB:REFUSE:RECOVER:READY`), key A down and up give
+   `USB:REFUSE:RECOVER:KEY_DOWN` and `KEY_UP` (code 61 otherwise).
+
+`refuse-hs-kbd` and `refuse-storage` produce the same transcript: both are
+refused on speed before any descriptor is read, so storage class refusal is
+not reachable in this profile. `Refusal::Binding` is not exercised natively.
+The recovered keyboard reuses output-context page 0 after Disable Slot. Hubs,
+downstream devices, retries and physical hotplug remain unsupported.
+
+The harness sequence is: after `USB:REFUSE:READY`, x +7, y −3 and left down,
+then left up; `device_del usb-refused`; after `USB:REFUSE:UNPLUG:PASS`,
+`device_add` `usb-kbd` `hid-kbd-g2` on `xhci.0` port `1` with `usb_version=1`;
+after `USB:REFUSE:RECOVER:READY`, key A down and up. Held input is released on
+every error path.
+
 ## Separate evidence cases
 
 `tools/run_usb_hid.py --case reports` requires the exact ordered native USB
@@ -281,6 +334,9 @@ Its source-bound results are in
 `--case reattach-mouse` runs `native-usb-hid-mouse-reattach` with the same
 rules and the mouse reattach markers; its results are in
 [the H02-T4 evidence](../verification/h02-native-mouse-reattach-20261123/README.md).
+`--case refuse-hub|refuse-tablet|refuse-hs-kbd|refuse-storage` runs
+`native-usb-hid-refusal` with the refusal markers above; its results are in
+[the H02-T5 evidence](../verification/h02-usb-refusal-20261125/README.md).
 
 The actual input-policy IPC experiment is documented in
 [HID-INPUT.md](../../sdk/examples/input-service/HID-INPUT.md). It uses real

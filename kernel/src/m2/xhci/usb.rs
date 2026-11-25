@@ -487,23 +487,23 @@ impl Engine<'_> {
             || descriptor[7] != 8
             || descriptor[17] != 1
         {
-            return Err(bad(10));
+            return Err(self.refuse(Refusal::Binding, Some(slot), 10));
         }
         // Refused before its configuration is read; other profiles keep code 14.
         if descriptor[4] == 9 {
             return Err(self.refuse(Refusal::Hub, Some(slot), 14));
         }
         if self.control(index, slot, [0x80, 6, 0, 2, 0, 0, 9, 0], 9)? != 9 {
-            return Err(bad(11));
+            return Err(self.refuse(Refusal::Binding, Some(slot), 11));
         }
         let header = bytes::<9>(self.pages[DESCRIPTOR], 0);
         let total = u16::from_le_bytes([header[2], header[3]]) as usize;
         if header[0] != 9 || header[1] != 2 || !(9..=256).contains(&total) || header[4] != 1 {
-            return Err(bad(12));
+            return Err(self.refuse(Refusal::Binding, Some(slot), 12));
         }
         let setup = [0x80, 6, 0, 2, 0, 0, total as u8, (total >> 8) as u8];
         if self.control(index, slot, setup, total)? != total {
-            return Err(bad(13));
+            return Err(self.refuse(Refusal::Binding, Some(slot), 13));
         }
         let configuration = bytes::<256>(self.pages[DESCRIPTOR], 0);
         let mut session = match Session::new(lifetime, &configuration[..total], 0, speed) {
@@ -620,6 +620,10 @@ impl Engine<'_> {
             || (event.slot() != slot && event.slot() != 0)
         {
             return Err(event.rejected());
+        }
+        // The controller never reads DCBAA for a disabled slot, so check the clear.
+        if bytes::<8>(self.pages[DCBAA], usize::from(slot) * 8) != [0; 8] {
+            return Err(bad(62));
         }
         serial::write(b"USB:REFUSE:SLOT_DISABLED\n");
         Ok(())
@@ -1035,6 +1039,9 @@ impl Engine<'_> {
             return Err(Error::Timeout);
         }
         self.await_connect(ports, 0, 1)?;
+        // xHCI §4.3.3: the refused device's slot and EP0 contexts must not
+        // survive into the next Address Device.
+        clear(output);
         let (mut keyboard, _) = self.attach(ports, 0, 1, output, report, None)?;
         if keyboard.session.binding().protocol != Protocol::Keyboard
             || ports.phase(0) != Ok(Phase::Ready)
