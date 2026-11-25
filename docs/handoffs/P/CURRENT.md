@@ -48,6 +48,11 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   #539 → #533; the guard announces the lane explicitly. Since B9, merge-hold
   first fails with only "Pending:" lines and restarts itself; only "Failed:"
   needs action, then `gh run rerun --failed` if it is an infra failure.
+- GitHub Enterprise Cloud (PR guard, ~20:30Z): the hosted job limit is now
+  up to 500; the merge lane stays until the merge queue is authorized. Merge
+  promptly once holding the lane with applicable gates and reviews done.
+  Report upgrade-related problems (unusual runners, missing required checks,
+  permission or billing errors) to the PR guard.
 - Superseded P0 CI-first mode (owner, ~17:25Z; corrected ~18:05Z): CI keeps priority
   until all CI batches are resolved, so the main freeze continues after #544
   lands. #533 gets the lane only when a CI PR is genuinely blocked (non-infra
