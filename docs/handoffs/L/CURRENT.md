@@ -40,6 +40,16 @@ issues and pull requests. Newer ADRs and live evidence take precedence over it.
    fixture ids; refuse input it cannot normalize or classify.
 2. Model file: `~/projects/BaryonOS-scratch/l/qwen-7ae5576/model.safetensors`
    (SHA-256 verified); run the oracle test with `NOS_QWEN_DIR` set.
-3. Native: needs the numeric-profile (SSE) owner decision, asked 25 Nov; meanwhile the LP-05 network-denial
-   probe does not depend on the engine.
+3. Native SSE2 job (owner-approved 25 Nov; Specialist H agreed on the kernel write
+   set): branch `claude/l01-native-ai-job-20261125`, worktree
+   `~/projects/BaryonOS-worktrees/l01-native-ai-job`, stacked on #525.
+   `experiments/ai/native-job` builds and passes its gate. Next: kernel feature
+   `native-ai-job` (next to `native-qsim-job`, exclusive with the S3/sleep profiles),
+   `kernel/src/m2/m3/ai_job.rs` (canary `fpu-b` plus the AI job; exit, slot reuse and
+   a second run; wipe/frame/save-count checks), a `tools/build.py` hook added as a
+   separate statement (it collides with #515's KERNEL_FEATURES line), and
+   `tools/run_ai_job.py`.
+   Full Qwen is blocked by USER_QUOTA (2048 pages = 8 MiB per process); it needs a
+   verified artifact mapping design.
+   The LP-05 network-denial probe still does not depend on the engine.
 4. L02: no reopen without a concrete technical trigger.
