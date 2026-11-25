@@ -909,7 +909,13 @@ each boot. On that basis the loader:
 - after a real provisioning boot, halts `UNBOUND` on an `LREC` with one
   flipped binding byte;
 - removes power-cut leftovers (written `HAUTH`, unwritten `LREC`) and
-  provisions again.
+  provisions again;
+- removes the same owner-created `HAUTH` squat under the empty ownerAuth and
+  provisions exactly as on a fresh state;
+- reports the seeded DA lockout counter (`0x20E` = 1 after one
+  `TPM_RC_AUTH_FAIL` on a removed scratch index) in its `DA` line, so that
+  read is sensitive to DA-counted failures
+  ([b03-rel05-hauth-da-squat-20261125](../verification/b03-rel05-hauth-da-squat-20261125/README.md)).
 
 Every halt follows the `CLOSED` extend (raw exit 35, no kernel) and leaves the
 seeded public state unchanged. Still open: a provisioning-path halt after an
