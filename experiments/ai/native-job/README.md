@@ -10,10 +10,15 @@ numeric-profile mismatch.
 - Target: `x86_64-unknown-linux-gnu`, used only for its hard-float SSE2 ABI. The ELF
   is freestanding and static, with no libc and no Linux syscalls. The only trap is
   `int 0x80`, using yield (1), exit (2) and monotonic ticks (3).
-- `build.py` gate: the linked ELF has no undefined symbols. Every instruction with an
-  XMM operand is SSE/SSE2. It rejects x87, MMX, SSE3+, VEX/EVEX, privileged,
-  `syscall` and FXSAVE/XSAVE instructions. This is a bounded decoded-mnemonic check,
-  not a formal proof.
+- `build.py` gate: the linked ELF has no undefined symbols. After REX, address-size
+  and other prefixes are stripped, every mnemonic must be on a positive allowlist of
+  baseline x86-64 integer and SSE/SSE2 instructions. Anything else is rejected,
+  including x87, MMX, SSE3+, BMI/POPCNT/LZCNT/TZCNT, any VEX/EVEX form, privileged
+  and system instructions, and `syscall`. `int3` is accepted only as linker padding
+  between functions. This is a bounded decoded-mnemonic check, not a formal proof.
+- Provenance: the build report records a SHA-256 of this directory and of
+  `reference-forward`. The runner recomputes it before launch and after the run,
+  because the kernel source fingerprint does not cover these trees.
 - `mem*` and `rust_eh_personality` are supplied in `src/main.rs`, because the
   target's precompiled `core` expects them from libc.
 - Capabilities: none. The process has no IPC endpoint or network authority.
