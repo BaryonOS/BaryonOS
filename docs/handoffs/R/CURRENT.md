@@ -137,6 +137,24 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   view triggers no repaint, so the InputLost banner appears only on the next
   view change.
 
+## Update 25 Nov 2026, 14:10Z
+
+- Fix head `c3721894` (local): the superseded-frame exclusion now covers only
+  the hull of tiles that frame actually blitted. New test
+  `superseded_partial_frame_tiles_are_resent_even_when_unchanged` fails with
+  the exclusion removed (receiver refuses the RETAIN: `Err(Grid)`); the older
+  supersede test did not cover this.
+- `document-menu-cancelled` explained by guest counters: on the fix the
+  menu-open generation is superseded by Esc after its menu tiles were already
+  blitted (GEN 24→26, one completed frame); the base never reached those tiles,
+  so its ≈0.05 s only shows that the expected image equals the pre-input one.
+- `ab3` at `a155749c`: B2 timed out in `calculator-restored` (Calculator
+  EVALUATIONS stayed 2, compositor FOCUSED 0; guest alive). Base: 20/20
+  passes over three batches; fix: 11/12. Treat as an open regression signal
+  until the final 10+10 batch (`r/ab4`, `--timeout 240`) is read.
+- #526 is green at `b59c1294`; update it from `main` once, after #527, then
+  merge. Do not push #526 before then (each push restarts its CI).
+
 ## Next action
 
 Read `r/ab3`, write evidence to `docs/verification/r02-materiaal-repaint-ab-20261125/`
