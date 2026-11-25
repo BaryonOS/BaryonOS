@@ -5,6 +5,70 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-B03-REL05-TPM-20261125 — Trial boot with TPM 2.0 health confirmation (REL-05 option A)
+
+**Status:** the requirements (option A, items 1–9 on issue #41) were decided
+by the project owner on 25 November 2026. The mechanism below (PCR 13, NV
+layout, kernel confirmation grant, amendment of ADR-049 decision 4) is
+**adopted by the B workstream under the owner's execution mandate of the same
+day, for the TEST profile only**; the specification
+is [B03-REL05-TRIAL-BOOT-TPM.md](implementation/B03-REL05-TRIAL-BOOT-TPM.md).
+Design only: nothing is implemented or tested. It would amend ADR-049
+decisions 2 and 4 for a new loader feature `signed-boot-trial`; `signed-boot`
+keeps ADR-049 semantics, including the REL-05 hazard, until gate migration.
+
+**Problem:** the signed loader raises `NieuwOsMinVersion` when a slot
+verifies, before the kernel runs, so a signed but broken release makes the
+previous good release a permanent `DOWNGRADE` (REL-05).
+
+**Decision:**
+
+1. The floor is raised only by the loader, before ExitBootServices, on the
+   boot **after** a durable TPM-held health confirmation that binds the exact
+   generation, version, slot and manifest digest of the trial (owner items
+   5–6). It is never raised at selection time and never lowered.
+2. A candidate (verified slot above the effective floor and above every
+   rejected version) runs at most three times; each attempt is made durable in
+   TPM NV before the candidate executes. After three unconfirmed attempts it is
+   recorded as rejected and the known-good release boots; user data is not
+   touched (items 3, 7).
+3. TPM objects (TEST profile, disposable swtpm): loader-only `TRIAL` and
+   `FLOOR` records and a `GEN` counter, writable only while PCR 13 is at its
+   reset value; a `CONFIRM` record writable only while PCR 13 holds the fixed
+   trial-open value. The loader always extends PCR 13 before handover. The
+   effective floor is `max(UEFI copy, TPM FLOOR)`.
+4. The kernel calls no UEFI runtime service (item 2). In profile
+   `native-update-trial` it performs, as narrowly scoped privileged policy
+   recorded by this ADR (`kernel/AGENTS.md`), one confirmation write and one PCR seal per trial boot through a
+   one-shot capability held by a ring-3 health service. The kernel copies the
+   loader-supplied binding; ring-3 supplies only a verdict for the versioned
+   list `HEALTH-LIST-1`. The kernel still contains no cryptography.
+5. While a trial is pending the update service does not write slots (amends
+   ADR-049 decision 4).
+6. A missing, faulty, cleared, replaced or inconsistent TPM gives a degraded
+   boot (known-good only, no trial, no floor write, explicit markers), except
+   that a reachable TPM whose phase PCR cannot be extended halts the boot
+   (`BOOT:FAIL:TPM_EXTEND`): handing over with PCR 13 at its reset value would
+   grant the kernel loader-phase write rights, so halting is the fail-closed
+   choice. This TEST-profile grant is not a product kernel TPM grant
+   (`docs/contracts/TPM2-CRB.md`). TPM state
+   behind the UEFI copy is treated as rollback. A TPM counter alone is not
+   full rollback protection: clearing the TPM together with the firmware
+   variables, or a boot-path attacker before B04, defeats it (item 9).
+
+**Not authorized:** production keys, signing or activation; physical TPM or
+firmware changes; a production TPM provisioning or owner-authorization
+procedure; use of the anchor for N04 (option 5B of its Decision 5, see
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md)); CI
+workflow changes without a separate owner-reviewed request. TPM 2.0 is the
+intended D3 backend of ADR-B03-B04-TARGET for this TEST profile only; its
+production approval remains open.
+
+**Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
+extension, kernel profile and health service; the characterization of PR #514
+must fail under the trial profile. Issue #41, B03 and REL-05 remain open;
+scores are unchanged.
+
 ## ADR-CI-SELECTION-20261124 — Targeted pull request selection for component gates
 
 **Status:** accepted under the project owner's CI mandate for issue #494 (phase
