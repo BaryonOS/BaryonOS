@@ -957,6 +957,20 @@ class CatalogueValidationTests(TestCase):
         with REAL_CATALOGUE.open("rb") as handle:
             self.assertEqual(ci_impact.validate(tomllib.load(handle)), [])
 
+    def test_every_automatic_real_gate_job_runs_on_the_queue_commit(self):
+        """#494 D1 step 1: a merge_group trigger is useless if the gate job's own condition skips it."""
+        with REAL_CATALOGUE.open("rb") as handle:
+            catalogue = tomllib.load(handle)
+        checked = 0
+        for workflow in catalogue["workflow"]:
+            jobs = {job["id"]: job for job in workflow.get("job", [])}
+            for job in jobs.values():
+                if job["class"] in ci_impact.SELECTABLE and job["activation"] == "automatic":
+                    checked += 1
+                    with self.subTest(job=f"{workflow['path']}#{job['id']}"):
+                        self.assertIs(ci_impact.job_runs(jobs, job["id"], "merge_group"), True)
+        self.assertGreaterEqual(checked, 38)
+
     def test_real_catalogue_registers_the_token_guard_script_for_its_native_users(self):
         # #494 C1 (D-2): tools/tokenguard.py runs this core_only script in both workflows.
         with REAL_CATALOGUE.open("rb") as handle:

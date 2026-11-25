@@ -365,8 +365,11 @@ class MergeGroupTests(TestCase):
         # 100 check runs; a required check on page 2 must not make the group wait.
         filler = {"check_runs": [{"name": f"filler {index}", "status": "in_progress",
                                   "conclusion": None} for index in range(100)]}
+        # host-quality completes on page 1 and qemu-smoke on page 2: both pages must count.
+        first = {"check_runs": filler["check_runs"][:99] + DONE["check_runs"][:1]}
+        second = {"check_runs": DONE["check_runs"][1:]}
         code, out, calls = self.run_group(
-            self.QUEUE, checks=[lambda url: DONE if url.endswith("&page=2") else filler])
+            self.QUEUE, checks=[lambda url: second if url.endswith("&page=2") else first])
         self.assertEqual(code, 0, out)
         self.assertEqual(calls.count("sleep"), 0)
         polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
