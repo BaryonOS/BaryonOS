@@ -14,10 +14,10 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 7
+revision = 8
 
 [policy]
-mode = "shadow"
+mode = "enforce"
 # Highest precedence: any change here forces a full plan.
 always_full = [
   ".github/**",
@@ -82,6 +82,13 @@ push = "full"
 schedule = "full"
 workflow_dispatch = "manual"
 
+# merge-hold wait budgets (minutes), read from the trusted base. 0 on pull_request:
+# merge-hold decides at once and lists the gates it still waits for; re-run it after
+# they complete (docs/CI-CONTRACT.md, "Enforcement"). Both stay below the job timeout.
+[policy.budgets]
+pull_request_wait_minutes = 0
+merge_group_wait_minutes = 45
+
 [input_sets]
 # Integrated QEMU suites: relations to individual sources are not provable, so
 # they are selected broadly (issue #494, design risk R6).
@@ -101,9 +108,13 @@ native = [
 
 # Sources compiled into a crate from outside its own directory. Cargo path
 # dependencies and manifest target paths are derived by the selector; only
-# #[path] and include_str!/include_bytes! escapes are registered here.
+# #[path], include_str!/include_bytes! and runtime CARGO_MANIFEST_DIR joins with a
+# '..' segment are registered here (coverage reports unregistered ones).
 # when = "always": the escape is compiled whenever the crate is in a closure.
-# when = "root": only when the crate is the gate's own root (tests, bins).
+# when = "root": only when the crate is the gate's own root. Allowed only for
+# origins under tests/, benches/, examples/, src/bin/, src/main.rs or a declared
+# bin/test/example/bench target; library source needs "always" (coverage
+# reports escape-scope-mismatch otherwise).
 
 [[crate_escape]]
 crate = "sdk/examples/calculator"
@@ -131,7 +142,9 @@ evidence = ["sdk/examples/image-export/tests/cli.rs:7", "sdk/examples/image-expo
 
 [[crate_escape]]
 crate = "services/image-codec/vendor/zune-jpeg-0.5.16-rc3"
-when = "root"
+# The includes sit in #[cfg(test)] modules of library source. `coverage` cannot see
+# cfg(test), so the registration is "always": dependents over-select, never under-select.
+when = "always"
 inputs = ["services/image-codec/test-images/**"]
 evidence = ["services/image-codec/vendor/zune-jpeg-0.5.16-rc3/src/decoder.rs:3666"]
 
@@ -146,6 +159,20 @@ crate = "services/net-stack"
 when = "root"
 inputs = ["sdk/examples/tcp-probe/src/contract.rs"]
 evidence = ["services/net-stack/tests/conversation.rs:3"]
+
+# Runtime CARGO_MANIFEST_DIR joins (phase 3, limit K5). Both crates are covered by the
+# native input set today; the registrations keep them selected if a cargo closure adds them.
+[[crate_escape]]
+crate = "services/nas/native-volume"
+when = "root"
+inputs = ["services/nas/native-probe/tests/check_volume_fixture.py"]
+evidence = ["services/nas/native-volume/tests/volume.rs:207"]
+
+[[crate_escape]]
+crate = "tools/update-tool"
+when = "root"
+inputs = ["tools/update-keys/**"]
+evidence = ["tools/update-tool/tests/roundtrip.rs:305"]
 
 [[workflow]]
 path = ".github/workflows/app-management-quality.yml"
@@ -170,7 +197,7 @@ path = ".github/workflows/artifact-store-quality.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "push", "workflow_dispatch"]
-obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1264", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
+obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1287", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
 trigger.push = { branches = ["main"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
 
@@ -290,7 +317,7 @@ path = ".github/workflows/component-leaves.yml"
 owner = "ci-owner"
 granularity = "variant"
 events = ["pull_request", "push", "workflow_dispatch"]
-obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1257", anchor = "matrix = self.workflows[\".github/workflows/component-leaves.yml\"]" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1280", anchor = "matrix = self.workflows[\".github/workflows/component-leaves.yml\"]" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -468,7 +495,7 @@ path = ".github/workflows/materiaal-probe.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "pull_request"]
-obligation = [{ cite = "tests/test_ci_workflows.py:1205", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:1228", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
 trigger.pull_request = { types = ["opened", "reopened", "synchronize", "labeled", "ready_for_review"], branches = ["main"] }
 
 [[workflow.job]]
@@ -484,7 +511,7 @@ path = ".github/workflows/merge-hold.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "merge_group"]
-obligation = [{ cite = "docs/DECISIONS.md:1365", anchor = "`.github/workflows/merge-hold.yml` runs `tools/merge_hold.py`" }]
+obligation = [{ cite = "docs/DECISIONS.md:1433", anchor = "`.github/workflows/merge-hold.yml` runs `tools/merge_hold.py`" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened", "labeled", "unlabeled"] }
 trigger.merge_group = { types = ["checks_requested"] }
 
@@ -535,7 +562,7 @@ path = ".github/workflows/native-display-input.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1265", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1288", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -869,7 +896,7 @@ path = ".github/workflows/native-window-session.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request", "push"]
-obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:237", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1182", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
+obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:237", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1205", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 
@@ -1066,7 +1093,7 @@ path = ".github/workflows/security-alerts.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "schedule", "pull_request"]
-obligation = [{ cite = "docs/DECISIONS.md:1518", anchor = "**Decision:** `.github/workflows/security-alerts.yml` runs" }]
+obligation = [{ cite = "docs/DECISIONS.md:1586", anchor = "**Decision:** `.github/workflows/security-alerts.yml` runs" }]
 trigger.pull_request = { paths = [".github/workflows/security-alerts.yml", ".github/actionlint.yaml", "tools/security_alerts_summary.py", "tests/test_security_alerts_summary.py"] }
 
 [[workflow.job]]
