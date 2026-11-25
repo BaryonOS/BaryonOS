@@ -180,6 +180,8 @@ mod tests {
         fail: Option<AnchorError>,
         lose_next_response: bool,
         corrupt_next_write: bool,
+        /// B re-provisions the domain right after the next `instance()` answer.
+        reprovision_after_instance: Option<Digest>,
         writes: u32,
     }
 
@@ -193,6 +195,7 @@ mod tests {
                 fail: None,
                 lose_next_response: false,
                 corrupt_next_write: false,
+                reprovision_after_instance: None,
                 writes: 0,
             }
         }
@@ -240,7 +243,12 @@ mod tests {
             if let Some(error) = self.fail {
                 return Err(error);
             }
-            Ok(self.instance)
+            let answer = self.instance;
+            if let Some(next) = self.reprovision_after_instance.take() {
+                self.instance = next;
+                self.chain = Some(genesis_chain(&next));
+            }
+            Ok(answer)
         }
     }
 
@@ -476,6 +484,32 @@ mod tests {
         let genesis = first(I1, 7);
         assert_eq!(startup(&mut anchor, &genesis), Ok(Startup::RolledForward));
         assert_eq!(startup(&mut anchor, &genesis), Ok(Startup::Accept));
+    }
+
+    /// Re-provisioning between the instance check and the read or extend of
+    /// one operation (CodeRabbit on #543): the new genesis chain binds the new
+    /// instance, so no store of the old instance matches it. A same-instance
+    /// re-genesis is excluded by B's fresh-nonce rule, not by this module.
+    #[test]
+    fn reprovisioning_after_the_instance_check_never_accepts_an_old_store() {
+        let mut anchor = Fake::provisioned(I0);
+        anchor.reprovision_after_instance = Some(I1);
+        assert_eq!(startup(&mut anchor, &first(I0, 1)), Err(Denied::Stale));
+        let (mut anchor, a) = at_a();
+        anchor.reprovision_after_instance = Some(I1);
+        assert_eq!(startup(&mut anchor, &a), Err(Denied::Stale));
+        let (mut anchor, a) = at_a();
+        anchor.reprovision_after_instance = Some(I1);
+        assert_eq!(startup(&mut anchor, &child(&a, 3)), Err(Denied::Stale));
+        let (mut anchor, a) = at_a();
+        anchor.reprovision_after_instance = Some(I1);
+        let writes = anchor.writes;
+        assert_eq!(
+            acknowledge(&mut anchor, &child(&a, 2)),
+            Err(Denied::Anchor(AnchorError::Conflict))
+        );
+        assert_eq!(anchor.writes, writes);
+        assert_eq!(anchor.read(), Ok(genesis_chain(&I1)));
     }
 
     fn unhex(text: &str) -> Digest {
