@@ -1381,7 +1381,8 @@ AI reviews, not a human audit.
   holder exits, a new object on a partly overlapping range with a different
   first sector is granted; its WRITE that translates into the latched range
   returns -5 and its WRITE outside it is admitted (RQ4); (e) a disk-0 WRITE is
-  admitted; (f) a separate run: `0x44` on an unlatched entry, then a WRITE
+  admitted; (f) a separate run: `0x44` on a handle whose scope wholly contains an
+  unlatched entry, then a WRITE
   returns -5; `0x44` from a READ-only handle is refused; `0x44` on a handle
   whose scope intersects no entry, or only part of one, returns -5 and latches
   nothing; `0x44` while
