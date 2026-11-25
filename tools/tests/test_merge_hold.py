@@ -191,6 +191,8 @@ class MergeGroupTests(TestCase):
             if "/check-runs?" in url:
                 queue = polls.get(url.split("/commits/")[1].split("/")[0], polls[None])
                 answer_ = queue.pop(0) if len(queue) > 1 else queue[0]
+                if callable(answer_):  # an answer that depends on the URL, e.g. its page
+                    answer_ = answer_(url)
                 if isinstance(answer_, Exception):
                     raise answer_
                 return answer_
@@ -357,6 +359,24 @@ class MergeGroupTests(TestCase):
         poll = calls[polls[0]]
         self.assertIn(f"/commits/{GROUP}/check-runs?", poll)
         self.assertIn(f"app_id={merge_hold.ACTIONS_APP_ID}", poll)
+
+    def test_required_checks_beyond_the_first_page_are_read_in_the_same_poll(self):
+        # With every gate workflow on merge_group a queue commit can carry more than
+        # 100 check runs; a required check on page 2 must not make the group wait.
+        filler = {"check_runs": [{"name": f"filler {index}", "status": "in_progress",
+                                  "conclusion": None} for index in range(100)]}
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=[lambda url: DONE if url.endswith("&page=2") else filler])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 0)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual([url.rsplit("&", 1)[1] for url in polls], ["page=1", "page=2"])
+        # Past MAX_PAGES full pages the read fails and the group fails closed at the deadline.
+        code, out, calls = self.run_group(self.QUEUE, checks=[lambda url: filler])
+        self.assertEqual(code, 1, out)
+        self.assertIn("Too many pages", out)
+        self.assertEqual(len([url for url in calls if f"/commits/{GROUP}/check-runs?" in url
+                              and url.endswith("&page=1")]), calls.count("sleep") + 1)
 
     def assertLabelsReadAfterWait(self, calls):
         last_poll = max(i for i, url in enumerate(calls) if "/check-runs?" in url)

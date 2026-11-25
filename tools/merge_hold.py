@@ -271,13 +271,22 @@ def tree(token, repo, sha):
 
 
 def completed_runs(token, repo, sha):
-    """The completed check runs on sha by name (absent or running counts as not done)."""
-    # shortcut: one page of 100 check runs; a commit with more runs waits until
-    # the deadline and fails closed. Page through if the workflows ever grow that far.
+    """The completed check runs on sha by name (absent or running counts as not done).
+
+    Every page is read: a queue commit runs every gate workflow. A run that shifts
+    between pages while paging only counts as not done, so the wait never ends early.
+    """
     url = (f"{API}/repos/{repo}/commits/{sha}/check-runs"
            f"?app_id={ACTIONS_APP_ID}&filter=latest&per_page=100")
-    return {run["name"]: run for run in call(token, url)["check_runs"]
-            if run["status"] == "completed"}
+    done, page = {}, 1
+    while True:
+        batch = call(token, f"{url}&page={page}")["check_runs"]
+        done.update({run["name"]: run for run in batch if run["status"] == "completed"})
+        if len(batch) < 100:
+            return done
+        page += 1
+        if page > MAX_PAGES:
+            raise ValueError("Too many pages")
 
 
 def unfinished(token, repo, sha, names):
@@ -294,8 +303,8 @@ def still_running(token, repo, sha, number):
     went through this same wait, so every entry ahead of it had finished. A
     `merge-hold` that ended otherwise (failed early, cancelled, runner lost)
     proves nothing about the entries ahead of it, so the walk continues. Each
-    run makes one REST request per entry walked plus one GraphQL query per
-    poll; usually that is the nearest entry only. "The rate limit for
+    run makes one REST request per check-run page of each entry walked plus one
+    GraphQL query per poll; usually that is one page of the nearest entry only. "The rate limit for
     GITHUB_TOKEN is 1,000 requests per hour per repository"
     (https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api);
     beyond it reads fail, are retried and, at the deadline, fail closed.
