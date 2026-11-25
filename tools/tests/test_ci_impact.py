@@ -1447,6 +1447,14 @@ class EscapeScopeTests(TestCase):
                             'const B: &str = include_str!("near.txt");\n',
             "other/src/lib.rs": 'const C: &str = include_str!("../../data/c.txt");\n'})
         self.assertEqual(found, [("app", "data/a.txt", "ext/src/m.rs:1", True)])
+        # Library code that reaches into the external directory stays reported, at library scope:
+        # only root gates take that directory as an input (CodeRabbit on #510).
+        found = self.scan({
+            "app/Cargo.toml": '[package]\nname = "app"\n[[bin]]\nname = "x"\npath = "../ext/src/main.rs"\n',
+            "app/src/lib.rs": '#[path = "../../ext/src/helper.rs"]\nmod helper;\n',
+            "ext/src/main.rs": "fn main() {}\n",
+            "ext/src/helper.rs": "// helper\n"})
+        self.assertEqual(found, [("app", "ext/src/helper.rs", "app/src/lib.rs:1", False)])
         self.assertEqual(ci_impact.external_root_targets(
             lambda path: b'[[bin]]\nname = "x"\npath = "../ext/src/main.rs"\n' if path == "app/Cargo.toml" else None,
             {"app"}), {"app": ["ext/src"]})
@@ -1515,6 +1523,11 @@ class EscapeScopeTests(TestCase):
         partial = [{"crate": "app", "when": "always", "inputs": ["keys/a"], "evidence": []}]
         self.assertTrue(problem(partial, "app", "keys", "app/tests/t.rs:2", True, descendants=["keys/a", "keys/b"])
                         .startswith("escape-unregistered"))
+        # The directory's own name covers none of its files (CodeRabbit on #510).
+        bare = [{"crate": "app", "when": "always", "inputs": ["keys"], "evidence": []}]
+        self.assertTrue(problem(bare, "app", "keys", "app/tests/t.rs:2", True, descendants=["keys/a"])
+                        .startswith("escape-unregistered"))
+        self.assertIsNone(problem(bare, "app", "keys", "app/tests/t.rs:2", True))  # a file target
         by_type = [{"crate": "app", "when": "always", "inputs": ["keys/*.bin"], "evidence": []}]
         self.assertIsNone(problem(by_type, "app", "keys", "app/tests/t.rs:2", True, descendants=["keys/a.bin"]))
         # A one-level glob leaves a deeper tracked file uncovered.

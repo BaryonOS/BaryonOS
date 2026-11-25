@@ -1569,8 +1569,11 @@ def scan_escapes(repo, crate_dirs, tracked, root_targets=frozenset(), external=N
                         # A library file can pull in e.g. tests/helper.rs: it is then library source too.
                         queue.append((target, False))
                     continue
-                if any(target.startswith(f"{directory}/") for directory in (external or {}).get(crate, [])):
-                    continue  # inside an external target's directory, already an input of the crate
+                if root_only and any(target.startswith(f"{directory}/")
+                                     for directory in (external or {}).get(crate, [])):
+                    # Root gates already take the external target's directory as an input;
+                    # a library-scope visit must still be reported (dependent gates do not).
+                    continue
                 found.append((crate, target, f"{source}:{line}", root_only))
                 if target in sources:
                     queue.append((target, root_only))
@@ -1668,8 +1671,9 @@ def escape_problem(escapes, crate, target, origin, root_only, descendants=()):
     # or an include that changed its target on the same line would keep an outdated registration.
     matching = [escape for escape in escapes if escape["crate"] == crate and (
         (target is None and origin in escape.get("evidence", []))
-        or (target is not None and (first_match(escape["inputs"], target) or (
-            descendants and all(first_match(escape["inputs"], path) for path in descendants)))))]
+        or (target is not None and (
+            all(first_match(escape["inputs"], path) for path in descendants) if descendants
+            else first_match(escape["inputs"], target))))]
     if not matching:
         return f"escape-unregistered: {crate} -> {target} ({origin})"
     if not root_only and all(escape["when"] == "root" for escape in matching):
