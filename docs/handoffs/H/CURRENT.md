@@ -9,7 +9,7 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 | Location | local H session (took over from the cloud H session via #503; cloud HANDOFF on #507, comment 7151275971) |
 | Task | H02-T5 native refusal fixtures for out-of-profile USB devices (hub, tablet without boot interface, storage, high-speed); starts with a QEMU feasibility probe |
 | Branch | `claude/h02-t5-usb-refusal-20261125` (base main `ad55e019`) |
-| PR | see the `HANDOFF H h02-t5-20261125` comment |
+| PR | #515 (draft) |
 | Previous | #507 (H06-T8) merged as `78dc7b18`; ledger H06-T8 is `verified` in this branch |
 | Score | 43/100 unchanged; H02 and H06 stay open |
 
@@ -36,11 +36,16 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 ## Next task
 
-H02-T5: probe in QEMU (local 10.2.1 and `pc-q35-8.2`) which `USB-DIAG:REJECT:`
-code each out-of-profile device reaches in `native-usb-hid-probe`, then add one
-exclusive refusal profile with per-reason markers, cleanup at the matching depth
-and one mutant per check. After that, H05 virtio-blk re-initialisation after an
-S3 wake (needs a security review). H04 in-flight TX at a link-down edge touches
-`kernel/src/m2/m3/network.rs` and needs agreement with workstream N first.
-Physical H02–H06 work stays blocked on the owner decisions above; image-hash
-reproduction once B04 (#493) is merged.
+Feasibility is recorded in
+[h02-usb-refusal-feasibility-20261125](../../verification/h02-usb-refusal-feasibility-20261125/README.md):
+hub/tablet refuse at `Session::new` (code 14), high-speed keyboard/storage at
+speed (code 8), and every refusal currently ends the controller run. Implement
+the exclusive `native-usb-hid-refusal` profile on #515: map the
+`boot_interface::Error` variant to a reason marker, refuse per port (Disable Slot
+and clear DCBAA after Address Device; nothing to undo before Enable Slot), then
+serve the mouse on port 2; one mutant per check; keep reports/readonly/reattach
+cases at raw 33; add the hosted `native-xhci.yml` rows in the same PR. After
+that, H05 virtio-blk re-initialisation after an S3 wake (needs a security
+review). H04 in-flight TX at a link-down edge touches `kernel/src/m2/m3/network.rs`
+and needs agreement with workstream N first. Physical H02–H06 work stays blocked
+on the owner decisions above; image-hash reproduction once B04 (#493) is merged.
