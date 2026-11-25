@@ -653,6 +653,18 @@ class FallbackTests(FixtureTestCase):
             "solo", extra='\n[patch.crates-io]\nx = { path = "../../crates/codec" }\n')}))
         self.assertFull(plan, "cargo-patch-unresolved")
 
+    def test_fallback_before_classification_hides_every_changed_input(self):
+        # #544 review: without hits a blocked row must not read as "hides only metadata".
+        plan = self.plan(self.branch({"tools/native/run.py": "# changed\n",
+                                      "apps/solo/Cargo.toml": manifest(
+            "solo", extra='\n[patch.crates-io]\nx = { path = "../../crates/codec" }\n')}))
+        self.assertFull(plan, "cargo-patch-unresolved")
+        rows = {row["id"]: row for row in plan["selected"]}
+        blocked = [row for row in rows.values() if row["blocked_by_filter"] is True]
+        self.assertTrue(blocked)
+        for row in blocked:
+            self.assertIn("tools/native/run.py", row["filter_hidden_inputs"], row["id"])
+
     def test_explicit_package_workspace_is_not_guessed(self):
         # The workspace root lies outside the ancestor walk; a change to it alone would be missed.
         solo = manifest("solo").replace('version = "0.1.0"', 'version = "0.1.0"\nworkspace = "../../ws"')

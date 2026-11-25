@@ -278,7 +278,8 @@ ASCII escapes (control characters in paths never reach logs raw):
   `reasons` (at most three `[glob, path]` pairs), `reason_count`,
   `blocked_by_filter` (`true`, `false` or `null` for unknown),
   `filter_hidden_inputs` (the sorted non-metadata hit paths of a row whose own
-  filter blocks it; `[]` otherwise);
+  filter blocks it; every changed non-metadata path when a fallback stopped the
+  plan before classification; `[]` otherwise);
 - `excluded`: `id`, `class`, `workflow`, `job`, `check_name`, `reason` (class
   name, `not-automatic`, `event-not-applicable`, `condition-false`,
   `no-input-match` or `manual-event`);
