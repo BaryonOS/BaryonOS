@@ -110,11 +110,9 @@ pub extern "C" fn _start() -> ! {
         );
     }
     write(STATUS, 1);
-    loop {
-        if call(1).is_err() {
-            core::hint::spin_loop();
-        }
-    }
+    // Exit so the observer exercises termination, context wipe and slot reuse.
+    let _ = call(2);
+    fail(5)
 }
 
 #[panic_handler]
