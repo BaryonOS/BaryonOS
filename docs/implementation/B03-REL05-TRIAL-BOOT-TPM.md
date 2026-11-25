@@ -541,7 +541,7 @@ named marker (TEST hook markers emitted before each write in a test feature).
 | S7 | Kernel profile `native-update-trial`: CRB claim reuse, `TrialConfirm` capability, K1–K4, deadline, reset. | Native C2, C6, C8, C9. |
 | S8 | Health service (ring-3) for `HEALTH-LIST-1`; update service trial deferral. | Native C2, C3, C12; update-service unit tests. |
 | S9 | Compiled-in minimum image version in the trial loader; remaining matrix C4–C20. | Native matrix. |
-| S10 | Gate migration: run `test_update.py` stages under the trial profile with swtpm; inverse of the characterization; protected CI request. | Owner-reviewed workflow PR; hosted job. |
+| S10 | Gate migration: run `test_update.py` stages under the trial profile with swtpm; inverse of the characterization; protected CI request, which also adds `tests/test_update_floor_characterization.py` to the `ci.yml` host unittest patterns (not run in CI today; Graphify finding on #514). | Owner-reviewed workflow PR; hosted job. |
 
 ## 14. Open questions and unverified claims
 
