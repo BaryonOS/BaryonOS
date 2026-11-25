@@ -52,16 +52,16 @@
  ],
  "machine": "pc-q35-8.2",
  "raw_qemu_exit": 0,
- "duration_s": 3.587189201000001,
+ "duration_s": 3.3860307199997806,
  "source_fingerprint_version": 3,
- "source_sha256": "74c732d26d3454ca6a9ea9d1cd5d77ffc9be37f0ce538a041b7228f053b45559",
- "base_commit": "013b60ada53a0969f5d829828627d17043e990d7",
+ "source_sha256": "56ff972a05ed7cc1ae038fc54a7d4d869cafb8d62229b5c1ceb0310a6eab8583",
+ "base_commit": "a4b4d550999598cc092bb4e5ff3e711f0e1cb393",
  "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)\nCopyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers",
  "firmware": {
   "code": "/usr/share/OVMF/OVMF_CODE_4M.fd",
   "code_sha256": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083"
  },
- "run_directory": "build/r/hwinv-panic-c71d768c17",
+ "run_directory": "build/r/hwinv-panic-c4bd499d0e",
  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nM2:PANIC_LINE:0000000322\nM1:FAIL:KERNEL_PANIC\n",
  "artifacts": {
   "serial.txt": "ba753e0a2bf2654caae10ec57f63a8209b11df8ed80cba45e62377e58831e05b",
@@ -69,6 +69,6 @@
   "qmp-trace.json": "73436398b47f4f2fd83dd8fde6f1a4cdb0c258d971da58d2f941070f121d7997",
   "OVMF_VARS.fd": "bf62103e00ecddc0147ae92b591f7b4aaf1e42dee5ad65ccf60ba90ee0f3780f",
   "OVMF_CODE.fd": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
-  "build-manifest.json": "0a1eba851bd2224d239026c7df7cb59c49db35ac01729e1ad9d86a228666d2e8"
+  "build-manifest.json": "bf820564b119c797c36a83a35ad8ef6f3b76dc0beea796cea94212602a052fcc"
  }
 }

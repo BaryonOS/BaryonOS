@@ -8,9 +8,9 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 | cycle_id | `h06-t8-20261124` |
 | Location | cloud H session (took over from the local session via READY_FOR_CLOUD on #500, comment 7145796849) |
 | Task | H06-T8 exact-line matching for full-line fixture markers (deferred CodeRabbit finding on #500) |
-| Branch | `claude/sweet-franklin-ljra1f`, stacked on #500 (`claude/h06-t7-serial-timeout-20261124`) |
+| Branch | `claude/sweet-franklin-ljra1f` (base main `a2595a3a`) |
 | PR | see the `HANDOFF H h06-t8-20261124` comment |
-| Tested source | `013b60ad` (source fingerprint `74c732d2…`), clean tree; later commits add docs, evidence, ledger and progress only |
+| Tested source | `a4b4d55` (source fingerprint `56ff972a…`), clean tree; later commits add docs, evidence, ledger and progress only |
 | Evidence | [h06-exact-markers-20261124](../../verification/h06-exact-markers-20261124/README.md): full native HW-INV gate on `pc-q35-8.2`, all cases and five terminal fixtures pass; `startswith` mutant fails the new host tests |
 | NOT RUN | physical boot; default/M2 smoke (no kernel or loader change); image-hash reproduction (local hash `7a646569…`, needs B04) |
 | Score | 43/100 unchanged; H06 stays open |
