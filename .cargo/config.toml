@@ -18,4 +18,10 @@ rustflags = [
 rustflags = [
   "--cfg", "curve25519_dalek_backend=\"serial\"",
   "--cfg", "sha2_backend=\"soft\"",
+  # B04 reproducibility: lld-link otherwise stamps the COFF TimeDateStamp with wall-clock
+  # time and links a PDB (absolute target-dir paths) whose hash feeds the CodeView GUID.
+  # /Brepro hashes the output instead (leaving one data-less REPRO debug entry);
+  # /DEBUG:NONE drops the unused PDB and its CodeView record.
+  "-C", "link-arg=/Brepro",
+  "-C", "link-arg=/DEBUG:NONE",
 ]
