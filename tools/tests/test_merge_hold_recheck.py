@@ -85,6 +85,15 @@ class RecheckTests(TestCase):
         self.assertEqual(api.posts, [])
         self.assertIn("still open", lines[-1])
 
+    def test_workflow_names_from_the_branch_are_escaped_in_the_log(self):
+        payload = event()
+        payload["workflow_run"]["name"] = "::error::forged\nline"
+        gate = run(2, LEAVES, status="in_progress")
+        gate["name"] = "::warning::forged"
+        _, lines = decide([run(1, CI), gate], payload=payload)
+        self.assertFalse(any(line.startswith("::") or "\n" in line for line in lines), lines)
+        self.assertIn('"::error::forged\\nline"', lines[0])
+
     def test_failed_merge_hold_is_rerun_once_every_gate_run_is_closed(self):
         api, lines = decide([run(1, CI), run(2, LEAVES, conclusion="failure"),
                              run(3, HOLD, conclusion="failure")])

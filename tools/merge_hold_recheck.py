@@ -127,7 +127,9 @@ def recheck(event, repo, watched, get, post):
     numbers = [pull.get("number") for pull in trigger.get("pull_requests") or []]
     if not all(type(number) is int and number > 0 for number in numbers):
         raise ValueError("the triggering run lists a malformed pull request number")
-    lines = [f"{trigger.get('name')} run {trigger['id']} finished for {sha}."]
+    # Workflow names come from the pull request branch: JSON-escape them so no line of the
+    # log starts with a workflow command or carries a control character.
+    lines = [f"Run {trigger['id']} ({json.dumps(trigger.get('name'))}) finished for {sha}."]
     current = []
     for number in numbers:
         head = get(f"/repos/{repo}/pulls/{number}")["head"]["sha"]
@@ -139,7 +141,7 @@ def recheck(event, repo, watched, get, post):
         return lines + ["No listed pull request is still at this head; nothing to re-check."]
     runs = head_runs(get, repo, sha)
     # The triggering run has finished even if the listing still lags behind.
-    still_open = sorted(f"{run.get('name')} (run {run['id']}, {run.get('status')})" for run in runs
+    still_open = sorted(f"{json.dumps(run.get('name'))} (run {run['id']}, {run.get('status')})" for run in runs
                         if run.get("path") in watched and run["id"] != trigger["id"]
                         and (run.get("head_repository") or {}).get("full_name") == repo
                         and run.get("status") != "completed")
