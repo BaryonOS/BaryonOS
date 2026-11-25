@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source_sha256": "c09b43eb1c22a6588bd418b8823732bb95aec27399611721a10337f9766bcfe5",
+  "image_kind": "canonical ESP payload manifest, not a FAT disk image",
+  "runs": [
+    {
+      "build": "<worktree>/build/repro-check/run-7b3nuvo3/a/build",
+      "target": "<worktree>/build/repro-check/run-7b3nuvo3/a/target",
+      "sha256": {
+        "kernel": "71c3d9e36f34c40f491de40096ea64f1b3af3c1eac7d358fd9f111159983dc13",
+        "loader": "ada54285e5fc7f56c772abaa7b9791f38516e1555b55e2b035e260f6ef7a12ca",
+        "image_payload": "4105ae1527da375d01644a29daf21e12ad7ada94ba3ee93afd98cc2f7edc8f09"
+      }
+    },
+    {
+      "build": "<worktree>/build/repro-check/run-7b3nuvo3/b/build",
+      "target": "<worktree>/build/repro-check/run-7b3nuvo3/b/target",
+      "sha256": {
+        "kernel": "71c3d9e36f34c40f491de40096ea64f1b3af3c1eac7d358fd9f111159983dc13",
+        "loader": "78e8736ff1c0c3e1370e6f28bec17f636e808cedde80255be3539b06edb0a059",
+        "image_payload": "6a8a870bd6b3267f5d98ae7804ea75eb7e0d02a5936d9c5ad7d009943c85e166"
+      }
+    }
+  ],
+  "differences": [
+    "loader",
+    "image_payload"
+  ],
+  "passed": false
+}

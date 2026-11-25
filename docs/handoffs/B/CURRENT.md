@@ -28,29 +28,23 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- cycle_id: b02-key1-relay-20261124
-- task: B02-T4 (ledger), native KEY1 key-state commit ingress per ADR-B02-KEY1-RELAY-20261123
-- branch: claude/b02-key1-relay-native-20261124
-- PR: #486 (ready for review; auto-merge off)
-- tested source SHA: recorded in the PR body, not here
-- state: RESUME_REQUIRED. Independent security and evidence verifiers returned MERGE; their
-  low findings and all CodeRabbit findings are fixed (49b1557d, 07a8879f) and confirmed.
-  Main is integrated by merge commits; hosted gates on the current head and the merge remain.
+- cycle_id: b04-repro-loader-20261124 (previous b02-key1-relay-20261124 closed: #486 merged as 93dabb65, CLEAR_READY)
+- task: B04 build divergence (loader/image_payload) diagnosis and root-cause fix
+- branch: claude/b04-repro-divergence-20261124
+- PR: see the HANDOFF comment for the number and expected head
+- state: RESUME_REQUIRED until the PR is squash-merged and verified on main.
+- result: lld-link wall-clock COFF/debug timestamps and a PDB (run paths) feeding the CodeView GUID
+  were the only differing bytes; `/Brepro` + `/DEBUG:NONE` on the UEFI target make two isolated
+  default builds byte-identical on this host. Comparator unchanged, nothing normalised.
 
 ## Evidence / NOT RUN
 
-- Evidence: `docs/verification/b02-key1-relay-20261124/` (native relay cases and B01 gate re-run at `07a8879f`,
-  host checks at `d4db823e`; see its README):
-  relay, relay-not-committed, relay-timeout pass (raw 33); red relay-leak stops at
-  `SYSTEM:FAIL:APP_COMMIT_HANDLE` (raw 35, disk unchanged); wrong-case control 12/12
-  rejected; `tools/test_system.py` and `tools/test_keyring.py` exit 0.
-- NOT RUN: `agent_gate.py` prefilter (exits 1 at plan resolution: pinned checkout
-  needs a local adapter); hosted CI; run_random/run_images/Materiaal/NAS/TCP/cap-bench
-  regressions; hardware; human audit.
-- Open low items (documented in FR-B02R residuals): native refusal of opcodes 13/14 on the
-  domain endpoint not measured; only one red manifest control; pre-supply wait unbounded
-  (fails closed); relay cold-start RESTORE path depends on B02-T3.
-- progress/PROJECT-STATE untouched; B02 stays open (the ADR grants no credit).
+- Evidence: `docs/verification/b04-repro-loader-20261124/` (red/red/green/green raw reports,
+  byte diffs, Secure Boot TEST chain 5/5 at `0c590f13`, smoke raw 33, `tools/test.py` exit 0).
+- NOT RUN: hosted CI; non-default profiles in repro_check; other host/path/toolchain;
+  FAT image bytes; hardware; human audit. No CI job runs repro_check (protected `.github/**`).
+- progress/PROJECT-STATE/ledger untouched (lead-owned). Their wording "loader/image_payload differ"
+  becomes stale on merge; the lead should reassess B04-T2 text. No B04 credit: same-host only.
 
 ## Blockers (external)
 
@@ -74,7 +68,7 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- Finish #486: confirm hosted checks green on the current head (integrate main again if it
-  moved), run the SHA-bound acceptance release and let merge-hold revalidate, squash-merge
-  with the expected head, verify on main, then post `HANDOFF B b02-key1-relay-20261124` on #486.
-- After that cycle: B04 build divergence (loader/image_payload) diagnosis without normalising differences away.
+- Finish the B04 repro PR: hosted checks green on the current head, expected-head squash merge,
+  verify on main, post `HANDOFF B b04-repro-loader-20261124`.
+- After that cycle: B05 parked branches (b05-user-abi quota off-by-one mutant first), or B04
+  hosted job once the protected `.github/**` request is handled.

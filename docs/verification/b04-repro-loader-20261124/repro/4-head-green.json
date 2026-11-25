@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "source_sha256": "60bed151512c905debcdb0bca68ec1616c220cbfba09519b407718de58cd5728",
+  "image_kind": "canonical ESP payload manifest, not a FAT disk image",
+  "runs": [
+    {
+      "build": "<worktree>/build/repro-check/run-5crwxkd8/a/build",
+      "target": "<worktree>/build/repro-check/run-5crwxkd8/a/target",
+      "sha256": {
+        "kernel": "71c3d9e36f34c40f491de40096ea64f1b3af3c1eac7d358fd9f111159983dc13",
+        "loader": "2b49fedd1f427ff551dd19219de0d2dde1fccccd55094f20c1c2e967f34e612f",
+        "image_payload": "6a0d04f15d1aff3aa9109e6118b0600c84a2cb511b1f7457649e2f57d635c647"
+      }
+    },
+    {
+      "build": "<worktree>/build/repro-check/run-5crwxkd8/b/build",
+      "target": "<worktree>/build/repro-check/run-5crwxkd8/b/target",
+      "sha256": {
+        "kernel": "71c3d9e36f34c40f491de40096ea64f1b3af3c1eac7d358fd9f111159983dc13",
+        "loader": "2b49fedd1f427ff551dd19219de0d2dde1fccccd55094f20c1c2e967f34e612f",
+        "image_payload": "6a0d04f15d1aff3aa9109e6118b0600c84a2cb511b1f7457649e2f57d635c647"
+      }
+    }
+  ],
+  "differences": [],
+  "passed": true
+}
