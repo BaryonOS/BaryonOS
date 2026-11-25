@@ -20,22 +20,21 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261125-1 (cloud session). Cycle S-20261124-6 landed on
-  `main` as `ad55e019` (PR #509, squash): owner decisions O1–O13 in
-  `docs/implementation/S09-DESTINATION-SERVICE.md`, the R3 reverse
-  differential (host), the R2 status record and K5 step 1 (per-device broker
-  state in `kernel/src/m2/m3/volume.rs`, S3 latch in `advance_lane`).
-  Evidence for K5: native volume gate 32/32 and H05 power gate 12/12 locally
-  on `9b30c556`, and every hosted gate on the merged head.
-- **This branch:** `claude/brave-feynman-jbiz6x`, restarted from `ad55e019`.
-  Task: the two valid Graphify review findings on PR #509 (a real
-  formatted-count-below-scope case; every reverse-corpus image needs a
-  verdict) and this handoff.
+- **cycle_id:** S-20261125-2 (local session "BaryonOS - Specialist S", resumed
+  from the cloud on 25 November 2026 through #503). Cycle S-20261125-1 landed
+  on `main` as `8acf1dea` (PR #513: real formatted-count-below-scope case,
+  verdict for every reverse-corpus image).
+- **This branch:** `claude/s09-o13-latch-20261125` (PR #521): the O13 kernel
+  write latch specification in `docs/implementation/S09-DESTINATION-SERVICE.md`
+  2.7, with N38. O13-SPEC-REVIEW-1 and -2 (AI) returned REQUEST_CHANGES; all
+  findings applied; verifier O13-SPEC-VERIFY-3 confirmed the review-2 fixes.
 - **Coordinator requests:** C1–C5 in `COORDINATOR-REQUEST-20261124.md` are
-  still open (ADR, hosted R3 checks, P10, destination gate, K5 routing).
-- **Process note:** `main` enforces strict up-to-date required checks; with
-  merges about hourly and gates of about 45 minutes, a PR can stay behind.
-  A merge queue would remove that race (repository setting, coordinator).
+  still open. The assessment-block conflict is decided by the coordinator
+  (D3: per-PR assessment files, CI PR #519; then D1 merge queue); until #519
+  lands, the single assessment block stays.
+- **Process note:** `main` enforces strict up-to-date required checks; a PR
+  that falls behind needs `main` merged, its gates re-run and a `merge-hold`
+  re-run before the expected-head squash merge.
 
 ## Lessons
 
@@ -81,13 +80,18 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Next executable task
 
-1. O13 kernel write latch in the per-device broker: specify the trigger and
-   the service interface, then implement with a native test; keep READ and
-   the remount FLUSH, keep N32; O17 mismatch alone sets no latch.
-2. Native K5 fixtures (new stage; pins by the CI owner, C4/C5).
-3. O12 owner-binding design with B and the user/session owner; O1
+1. O13 implementation, step 1: the add-only latch table beside `Policy` in
+   `crates/virtio-core` (open-to-latched only; WRITE intersection; a FLUSH
+   with an `Unknown` completion or a device-side refused submission latches
+   the whole device, full trigger list in S09 2.7; `Unknown` hook in `complete`, `start_reset` and
+   `exit`), with host tests and the killing mutations of N38.
+2. O13 step 2: `volume.rs` enforcement before the input copy, syscall `0x44`
+   routed only under `native-volume`, and the native N38 stage (new stage and
+   pins by the CI owner).
+3. Native K5 fixtures (new stage; pins by the CI owner, C4/C5).
+4. O12 owner-binding design with B and the user/session owner; O1
    remembered-VERIFY store; O3/O5 catalog extension.
-4. R5: destination service binary in the test profile on disk 1 with
+5. R5: destination service binary in the test profile on disk 1 with
    `DEST:ID:TEST-ONLY` and a scripted dialog.
 
 Owner decisions D1–D5 and a human audit remain outside S's authority.
