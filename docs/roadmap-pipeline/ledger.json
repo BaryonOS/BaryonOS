@@ -3220,7 +3220,7 @@
       "criterion": "H06",
       "milestone": "M9",
       "executor": "lead",
-      "status": "active",
+      "status": "verified",
       "title": "Exact-line matching for full-line HW-INV fixture markers (host oracle)",
       "goal": "evaluate_fixture in tools/run_hw_inventory.py matched every fixture marker as a line prefix, so M2:PASSED or HWINV:BEGIN_X satisfied M2:PASS or HWINV:BEGIN. Markers ending in ':' carry a value and keep prefix matching with a non-empty value; every other marker must be the whole line.",
       "deps": [
@@ -3250,8 +3250,14 @@
           "event": "active",
           "at": "2026-11-24",
           "reason": "Cloud H session; deferred CodeRabbit findings 6047166675, 6047799391 and 6048042333 on #500. Stacked on #500 head 1e341d58."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-25",
+          "reason": "PR #507 squash-merged as 78dc7b18; tested head 961e78f8 passed all applicable gates and merge-hold attempt 2; local native HW-INV gate green on source 9b24c9d (fingerprint d1cb0845)."
         }
-      ]
+      ],
+      "source_commit": "78dc7b18a4ce2a7b3bbf0180b757a776ded745ec"
     },
     {
       "id": "H06-T4",

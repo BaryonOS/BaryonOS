@@ -5,15 +5,13 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 | Field | Value |
 |---|---|
-| cycle_id | `h06-t8-20261124` |
-| Location | cloud H session (took over from the local session via READY_FOR_CLOUD on #500, comment 7145796849) |
-| Task | H06-T8 exact-line matching for full-line fixture markers (deferred CodeRabbit finding on #500) |
-| Branch | `claude/sweet-franklin-ljra1f` (base main `a2595a3a`) |
-| PR | see the `HANDOFF H h06-t8-20261124` comment |
-| Tested source | `9b24c9d` (source fingerprint `d1cb0845…`), clean tree; later commits add docs, evidence, ledger and progress only |
-| Evidence | [h06-exact-markers-20261124](../../verification/h06-exact-markers-20261124/README.md): full native HW-INV gate on `pc-q35-8.2`, all cases and five terminal fixtures pass; `startswith` mutant fails the new host tests |
-| NOT RUN | physical boot; default/M2 smoke (no kernel or loader change); image-hash reproduction (local hash `7a646569…`, needs B04) |
-| Score | 43/100 unchanged; H06 stays open |
+| cycle_id | `h02-t5-20261125` |
+| Location | local H session (took over from the cloud H session via #503; cloud HANDOFF on #507, comment 7151275971) |
+| Task | H02-T5 native refusal fixtures for out-of-profile USB devices (hub, tablet without boot interface, storage, high-speed); starts with a QEMU feasibility probe |
+| Branch | `claude/h02-t5-usb-refusal-20261125` (base main `ad55e019`) |
+| PR | see the `HANDOFF H h02-t5-20261125` comment |
+| Previous | #507 (H06-T8) merged as `78dc7b18`; ledger H06-T8 is `verified` in this branch |
+| Score | 43/100 unchanged; H02 and H06 stay open |
 
 ## Blockers
 
@@ -38,11 +36,11 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 ## Next task
 
-#500 (H06-T7) merged as `a2595a3a`; ledger H06-T7 is `verified`. Land H06-T8
-(#507). Then H02-T5: native refusal fixtures for out-of-profile USB devices (hub,
-tablet without boot interface, storage, high-speed), after a QEMU feasibility
-check. After that, H05 virtio-blk re-initialisation after an S3 wake (needs a
-security review). H04 in-flight TX at a link-down edge touches
+H02-T5: probe in QEMU (local 10.2.1 and `pc-q35-8.2`) which `USB-DIAG:REJECT:`
+code each out-of-profile device reaches in `native-usb-hid-probe`, then add one
+exclusive refusal profile with per-reason markers, cleanup at the matching depth
+and one mutant per check. After that, H05 virtio-blk re-initialisation after an
+S3 wake (needs a security review). H04 in-flight TX at a link-down edge touches
 `kernel/src/m2/m3/network.rs` and needs agreement with workstream N first.
 Physical H02–H06 work stays blocked on the owner decisions above; image-hash
 reproduction once B04 (#493) is merged.
