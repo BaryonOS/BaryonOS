@@ -20,6 +20,12 @@ A criterion is either **Accepted** or **Open**. Partial implementation does not 
 
 The machine-readable source of truth is [progress.json](progress.json). `tools/progress.py --check` validates the score, evidence references, and generated README/rubric/SVG views; it does not determine whether the evidence itself is technically sufficient.
 
+A task that leaves the score unchanged records its assessment as a new file in
+[progress/assessments/](progress/assessments/) (`<YYYY-MM-DD>-<slug>.json`, same
+fields as the `assessment` object), so parallel pull requests do not edit the same
+lines. A score change updates the `assessment` object and the generated views.
+The check applies the same rules to both (ADR-PROGRESS-ASSESSMENTS-20261125).
+
 ## Reading the three views
 
 **Acceptance** covers the complete fixed 100-point roadmap. **Implementation**

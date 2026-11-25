@@ -5,6 +5,53 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-PROGRESS-ASSESSMENTS-20261125 — Per-task assessment files; CI owner decisions D1 and D2
+
+**Status:** decided by the project owner on 25 November 2026 (#494, comments
+7155783661 and 7155944783). Owner wording: "D3 goedkeuren met behoud van alle
+assessmentvalidatie" (approve D3 while keeping all assessment validation);
+"D1 optie B na geverifieerde merge_group-integratie" (D1 option B after a
+verified merge_group integration); D2: "Yes, option C".
+
+**Problem:** every pull request rewrote the single `assessment` object in
+`docs/progress.json`, so any two open pull requests conflicted on the same
+lines. Since 23 November, 24 of 54 commits on `main` touched the file; #500
+needed four extra CI rounds for it.
+
+**Decision (D3):** a task or pull request that leaves the score unchanged adds
+its own file `docs/progress/assessments/<YYYY-MM-DD>-<slug>.json` with the same
+fields as the `assessment` object (`date`, `source_commit`,
+`assessment_basis`, `branch`, `task`, `previous_score`, `summary`). A score
+change still updates the `assessment` object, the criteria and the generated
+views in `docs/progress.json`, `README.md`, `docs/PROGRESS.md` and the SVG.
+The fixed criteria register and the rubric stay central and unchanged.
+
+`tools/progress.py --check` applies every existing assessment rule to the
+header and to each file, unchanged. It adds checks for each file:
+
+- an exact field set;
+- a plain, non-symlinked file;
+- a file name whose date matches the recorded date;
+- an integer score;
+- a file dated after the header must record the current score.
+
+Files never change the score or the generated views.
+
+**D2 (amends ADR-MERGE-DELEGATION-20261123):**
+
+- For CI files (`.github/**`, `tools/merge_hold.py`, `tools/ci_impact.py`), an independent AI review satisfies "reviewed by someone other than the merging workstream". The review is done by a separate agent without write access, and bot findings must be resolved.
+- Policy, register and security files (any `AGENTS.md` or `CLAUDE.md`, `tools/progress.py`, `docs/progress.json`, `docs/DECISIONS.md`, keys) still need the project owner's review.
+
+**D1 (extends ADR-MERGE-HOLD-20261113):** the merge queue is enabled only after a verified `merge_group` integration:
+
+1. the selected workflows gain `merge_group` triggers at full scope;
+2. merge-hold judges the queue commit;
+3. a queue trial with at least two entries passes.
+
+Enabling the queue in the ruleset is a separate step that needs the project owner's explicit confirmation at that moment. It must not weaken any existing security or acceptance gate. The strict up-to-date rule and merge-hold stay until the queue has proved itself.
+
+**Rollback:** removing the assessment directory and writing the header again restores the previous format, and the validation of the header is unchanged. D1 and D2 are rolled back by a new project-owner decision.
+
 ## ADR-CI-SELECTION-20261124 — Targeted pull request selection for component gates
 
 **Status:** accepted under the project owner's CI mandate for issue #494 (phase
