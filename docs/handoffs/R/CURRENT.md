@@ -80,7 +80,25 @@ ERRORS 1, SAVE_ACKS 0); (4) A/B on the same host in a new verification
 directory. Request U review (UI/a11y); U does not merge. R updates
 `docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md`.
 
+## Fix in progress (25 Nov 2026)
+
+- Branch `claude/r02-dirty-repaint-20261125` (worktree
+  `~/projects/BaryonOS-worktrees/r-dirty`), head `5cd55d1c`, not pushed.
+- Root cause: with `enable_retained`, the sparse digest skip was disabled,
+  so the conservative whole-viewport damage re-sent every tile. The fix
+  RETAINs digest-proven unchanged runs from the existing scan loop; a
+  superseded partial frame disables this until the next complete frame
+  (the receiver refuses RETAIN for tiles changed since base).
+- Native `.text` 0x27e73 under the 0x28000 linker assertion (base 0x27ee3);
+  a separate probe renderer overflowed it, so do not reintroduce one.
+- Host: `tests/retained_digest.rs` passes; against `origin/main` `lib.rs`
+  the edit test fails with 1608 tiles sent (mutation control). Host suite,
+  clippy and fmt green.
+- Running: `~/projects/BaryonOS-scratch/r/ab2.sh` (materiaal-probe normal
+  and recover, then five interleaved A/B window runs; output in `r/ab2/`).
+
 ## Next action
 
-Implement on a separate branch from `origin/main`, then A/B the same
-baseline before and after.
+Check probe exit 33 and A/B results, write evidence to a new
+`docs/verification/` directory, update `VM-HARDWARE-AND-PERFORMANCE.md`,
+then push and open the draft PR (merge `main` once after #523 lands).
