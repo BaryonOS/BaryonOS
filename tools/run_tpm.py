@@ -28,7 +28,11 @@ import tpm_seed
 SEED = {"loader-hauth-squat": (0, "squat"), "loader-hauth-foreign-owner": (0, "foreign-owner"),
         "loader-hauth-owner-squat": (0, "owner-squat"), "loader-hauth-unbound": (1, "unbound"),
         "loader-hauth-cut": (0, "cut"), "loader-hauth-owner-squat-empty": (0, "owner-squat-empty"),
-        "loader-hauth-da-counted": (0, "da-counted"), "loader-hauth-lockout-cut": (0, "lockout-cut")}
+        "loader-hauth-da-counted": (0, "da-counted"), "loader-hauth-lockout-cut": (0, "lockout-cut"),
+        **{f"loader-hauth-cut-{seed}": (0, seed) for seed in ("hauth-defined", "hauth-written", "lrec-written")}}
+# Seeded power cuts that the loader repairs by provisioning again (MODE:PROVISION on boot 0).
+CUTS = ("loader-hauth-cut-hauth-defined", "loader-hauth-cut-hauth-written", "loader-hauth-cut",
+        "loader-hauth-cut-lrec-written")
 FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
             "loader-probe": "native-tpm-crb", "loader-rng": "native-tpm-crb",
             "loader-hauth": "native-tpm-crb", "loader-hauth-no-rng": "native-tpm-crb",
@@ -38,11 +42,11 @@ FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
 # verification on boot 1 of the same swtpm state.
 LOADER = {"loader-probe": "tpm-loader-probe-test", "loader-rng": "tpm-loader-probe-test",
           **dict.fromkeys(("loader-hauth", "loader-hauth-no-rng", *SEED), "tpm-hauth-provision-test")}
-BOOTS = {"loader-hauth": 2, "loader-hauth-unbound": 2, "loader-hauth-cut": 2,
-         "loader-hauth-owner-squat-empty": 2, "loader-hauth-lockout-cut": 2}
+BOOTS = {"loader-hauth": 2, "loader-hauth-unbound": 2, "loader-hauth-owner-squat-empty": 2,
+         "loader-hauth-lockout-cut": 2, **dict.fromkeys(CUTS, 2)}
 # Cases whose non-halt boots must provision or verify exactly like loader-hauth (or as REPAIRED).
-PROVISIONED = ("loader-hauth", "loader-hauth-unbound", "loader-hauth-cut",
-               "loader-hauth-owner-squat-empty", "loader-hauth-da-counted", "loader-hauth-lockout-cut")
+PROVISIONED = ("loader-hauth", "loader-hauth-unbound", "loader-hauth-owner-squat-empty",
+               "loader-hauth-da-counted", "loader-hauth-lockout-cut", *CUTS)
 # The only case whose seed leaves a nonzero DA lockout counter; every other reads 0.
 DA_SEEDED = ("loader-hauth-da-counted",)
 PROVISION, EXISTING = "LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:MODE:EXISTING"
@@ -185,6 +189,23 @@ def halted(stdout, case, boot):
     return result
 
 
+def check_state(case, boot, entry):
+    """Public swtpm state (tpm_seed.observe) around a pre-seeded case's boot."""
+    seeded, after = entry.get("seeded"), entry["after"]
+    if (case, boot) in HALT:
+        if after != seeded:
+            raise ValueError("The loader changed the seeded TPM state before halting")
+        return
+    if seeded is None:
+        return
+    # A repair sets lockoutAuth only: same HAUTH and LREC, no re-provisioning.
+    if (case, boot) in REPAIRED and after != seeded | {"permanent": seeded["permanent"] | 0x4}:
+        raise ValueError("The loader changed more than lockoutAuth on the cut state")
+    # Re-provisioning ends with a freshly written LREC, never the seeded one.
+    if hauth_mode(case, boot)[0] == PROVISION and after["lrec"].get("sha256") in (None, seeded["lrec"].get("sha256")):
+        raise ValueError("The loader did not replace the seeded loader record")
+
+
 def loader_observations(stdout):
     """Facts the probe loader printed; RNG presence is recorded, not required (U25)."""
     found = {}
@@ -283,7 +304,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power-cut leftovers, a cut between the ownerAuth and lockoutAuth changes) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power cuts after each provisioning step up to the one between the ownerAuth and lockoutAuth changes) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
@@ -325,12 +346,7 @@ def run(case):
                 if case in SEED:
                     # Public state after the boot; a halt must leave the seeded state as it was.
                     entry["after"] = tpm_seed.snapshot(*swtpm(), directory)
-                    if (case, boot) in HALT and entry["after"] != entry["seeded"]:
-                        raise ValueError("The loader changed the seeded TPM state before halting")
-                    # A repair sets lockoutAuth only: same HAUTH and LREC, no re-provisioning.
-                    if (case, boot) in REPAIRED and entry["after"] != entry["seeded"] | {
-                            "permanent": entry["seeded"]["permanent"] | 0x4}:
-                        raise ValueError("The loader changed more than lockoutAuth on the cut state")
+                    check_state(case, boot, entry)
                 report["boots"].append(entry | {key: report.pop(key) for key in ("backend", "guest", "observed")})
         else:
             with backend(report) as control:

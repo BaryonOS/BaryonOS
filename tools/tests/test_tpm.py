@@ -156,7 +156,7 @@ class NativeTpmTranscriptTests(unittest.TestCase):
     def test_pre_seeded_cases_pin_the_boot_that_halts_and_its_exact_failure(self):
         # Boots before the seed, the repaired cut and the replaced empty-ownerAuth squat behave
         # exactly like loader-hauth; the DA case differs only in its nonzero counter.
-        for case, boot in (("loader-hauth-unbound", 0), ("loader-hauth-cut", 0), ("loader-hauth-cut", 1),
+        for case, boot in (("loader-hauth-unbound", 0), *((cut, boot) for cut in probe.CUTS for boot in (0, 1)),
                            ("loader-hauth-owner-squat-empty", 0), ("loader-hauth-owner-squat-empty", 1),
                            ("loader-hauth-da-counted", 0)):
             result = probe.evaluate(self.transcript(case, boot), case, boot)
@@ -212,6 +212,29 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         ):
             with self.subTest(other=other, boot=boot, bad=bad), self.assertRaises(ValueError):
                 probe.evaluate(bad, other, boot)
+
+    def test_public_state_around_seeded_boots(self):
+        public = {"hauth": {"attributes": 1, "name": "aa"}, "lrec": {"attributes": 2, "name": "bb", "sha256": "11"}}
+        cut = {"permanent": 0x401, "lockout_counter": 0, **public}
+        repaired = cut | {"permanent": 0x405}
+        probe.check_state("loader-hauth-lockout-cut", 0, {"seeded": cut, "after": repaired})
+        stale = cut | {"permanent": 0x400}
+        fresh = stale | {"permanent": 0x405, "lrec": public["lrec"] | {"sha256": "22"}}
+        probe.check_state("loader-hauth-cut-lrec-written", 0, {"seeded": stale, "after": fresh})
+        probe.check_state("loader-hauth-cut-hauth-defined", 0, {"seeded": stale | {"lrec": {"rc": 0x18B}}, "after": fresh})
+        probe.check_state("loader-hauth-squat", 0, {"seeded": stale, "after": stale})
+        probe.check_state("loader-hauth-cut-lrec-written", 1, {"after": fresh})
+        for case, boot, seeded, after in (
+            ("loader-hauth-lockout-cut", 0, cut, cut),
+            ("loader-hauth-lockout-cut", 0, cut, repaired | {"lockout_counter": 1}),
+            ("loader-hauth-lockout-cut", 0, cut, fresh | {"permanent": 0x405}),
+            ("loader-hauth-cut-lrec-written", 0, stale, stale | {"permanent": 0x405}),
+            ("loader-hauth-cut-hauth-written", 0, stale, fresh | {"lrec": {"rc": 0x18B}}),
+            ("loader-hauth-squat", 0, stale, fresh),
+            ("loader-hauth-unbound", 1, repaired, fresh),
+        ):
+            with self.subTest(case=case, after=after), self.assertRaises(ValueError):
+                probe.check_state(case, boot, {"seeded": seeded, "after": after})
 
     def test_virtio_rng_is_a_boolean_opt_in_of_the_tpm_fixture_only(self):
         import run
@@ -340,20 +363,29 @@ class TpmSeedTests(unittest.TestCase):
                 else:
                     self.assertNotIn(state["hauth"]["name"], self.names.values())
 
-    def test_lockout_cut_leaves_a_bound_record_under_ownerauth_only(self):
+    def test_cut_points_leave_the_documented_public_state(self):
         source = (Path(__file__).resolve().parents[2] / "crates/update-core/src/trial.rs").read_text()
         self.assertIn(f'LREC_MAGIC: [u8; 8] = *b"{tpm_seed.LREC_MAGIC.decode()}";', source)
         self.assertIn(f"LREC_BINDING_LEN: usize = {tpm_seed.LREC_BINDING_LEN};", source)
         self.assertIn("sha256(hauth)[..LREC_BINDING_LEN]", source)
-        state = tpm_seed.seed(*self.tool, self.directory, "lockout-cut")
-        self.assertEqual((state["permanent"] & 0x5, state["lockout_counter"]), (1, 0))
-        self.assertEqual((state["hauth"]["name"], state["lrec"]["name"]),
-                         (self.names["NAME_HAUTH_WRITTEN"], self.names["NAME_LREC_WRITTEN"]))
-        with tpm_seed.server(*self.tool, self.directory) as tpm:
-            record = tpm.lrec()
-        self.assertEqual(record[:48], tpm_seed.LREC_MAGIC + bytes(40))
-        self.assertEqual(state["lrec"]["sha256"], hashlib.sha256(record).hexdigest())
-
+        for name, permanent, hauth, lrec in (("hauth-defined", 0, "NAME_HAUTH", None),
+                                             ("hauth-written", 0, "NAME_HAUTH_WRITTEN", None),
+                                             ("lrec-written", 0, "NAME_HAUTH_WRITTEN", "NAME_LREC_WRITTEN"),
+                                             ("lockout-cut", 1, "NAME_HAUTH_WRITTEN", "NAME_LREC_WRITTEN")):
+            with self.subTest(name=name):
+                directory = self.directory / name
+                (directory / "state").mkdir(parents=True)
+                state = tpm_seed.seed(*self.tool, directory, name)
+                self.assertEqual((state["permanent"] & 0x5, state["lockout_counter"], state["hauth"]["name"]),
+                                 (permanent, 0, self.names[hauth]))
+                if lrec is None:
+                    self.assertEqual(state["lrec"], {"rc": 0x18B})
+                    continue
+                self.assertEqual(state["lrec"]["name"], self.names[lrec])
+                with tpm_seed.server(*self.tool, directory) as tpm:
+                    record = tpm.lrec()
+                self.assertEqual(record[:48], tpm_seed.LREC_MAGIC + bytes(40))
+                self.assertEqual(state["lrec"]["sha256"], hashlib.sha256(record).hexdigest())
 
 if __name__ == "__main__":
     unittest.main()

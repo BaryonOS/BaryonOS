@@ -157,26 +157,44 @@ def unbound(tpm):
     tpm.write_lrec(bytes(record))
 
 
-def cut(tpm, secret=None):
-    """Power cut after defining LREC: written HAUTH leftover, unwritten LREC, no hierarchy auth."""
+# Power cuts after each step of the loader's provisioning sequence, in order.
+def hauth_defined(tpm):
+    """Power cut after defining HAUTH: an unwritten HAUTH, no LREC, no hierarchy auth."""
     tpm.define(RH_OWNER, HAUTH, ATTR_HAUTH, POLICY_READ)
+
+
+def hauth_written(tpm, secret=None):
+    """Power cut after writing HAUTH: a written HAUTH, no LREC, no hierarchy auth."""
+    hauth_defined(tpm)
     tpm.ok("NV_Write", struct.pack(">II", RH_OWNER, HAUTH), password(),
            b2(secret or os.urandom(64)) + struct.pack(">H", 0))
+
+
+def cut(tpm, secret=None):
+    """Power cut after defining LREC: written HAUTH leftover, unwritten LREC, no hierarchy auth."""
+    hauth_written(tpm, secret)
     tpm.define(RH_OWNER, LREC, ATTR_LREC, POLICY_WRITE)
+
+
+def lrec_written(tpm, secret=None):
+    """Power cut after writing LREC: HAUTH and a BOUND LREC, ownerAuth still empty."""
+    secret = secret or os.urandom(64)
+    cut(tpm, secret)
+    tpm.write_lrec(LREC_MAGIC + bytes(40) + hashlib.sha256(secret).digest()[:LREC_BINDING_LEN])
 
 
 def lockout_cut(tpm):
     """Power cut between the ownerAuth and lockoutAuth changes of a provisioning boot: HAUTH and
     a BOUND LREC written, ownerAuth = HAUTH[:32], lockoutAuth still empty."""
     secret = os.urandom(64)
-    cut(tpm, secret)
-    tpm.write_lrec(LREC_MAGIC + bytes(40) + hashlib.sha256(secret).digest()[:LREC_BINDING_LEN])
+    lrec_written(tpm, secret)
     tpm.ok("HierarchyChangeAuth", struct.pack(">I", RH_OWNER), password(), b2(secret[:32]))
 
 
 SEEDS = {"squat": squat, "foreign-owner": foreign_owner, "owner-squat": owner_squat,
          "owner-squat-empty": owner_squat_empty, "da-counted": da_counted,
-         "unbound": unbound, "cut": cut, "lockout-cut": lockout_cut}
+         "unbound": unbound, "hauth-defined": hauth_defined, "hauth-written": hauth_written,
+         "cut": cut, "lrec-written": lrec_written, "lockout-cut": lockout_cut}
 
 
 def observe(tpm):
