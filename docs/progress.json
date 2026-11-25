@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-25",
-    "source_commit": "77dd864e7ed3d351d4fc99b8a66ece47cc1e274f",
+    "source_commit": "c61a1fe096401a21436fa4b042214f3017fa2b76",
     "assessment_basis": "parent_commit",
     "branch": "claude/h02-t5-usb-refusal-20261125",
     "task": "H02-T5 h02-t5-20261125: native per-port refusal of out-of-profile USB devices",
