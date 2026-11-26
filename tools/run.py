@@ -79,7 +79,8 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     if not hid_input_probe and vga_rom is not None:
         raise ValueError("VGA ROM belongs only to the HID input fixture")
     if usb_hid_case is not None and (
-            usb_hid_case not in ("reports", "readonly", "reattach", "reattach-mouse") or cpus != 1
+            usb_hid_case not in ("reports", "readonly", "reattach", "reattach-mouse", "refuse-hub",
+                                 "refuse-tablet", "refuse-hs-kbd", "refuse-storage") or cpus != 1
             or tcg_threads != "single" or memory_mib != 256 or m5_case is not None
             or rtc_base is not None or tpm_socket is not None or acpi_tables
             or reboot_on_reset or xhci_case is not None or hid_input_probe):
@@ -163,9 +164,15 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             args += ["-device", "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39"]
         args += ["-device", "qemu-xhci,id=h02-xhci,bus=pcie.0,addr=0x5,p2=1,p3=1"]
     if usb_hid_case is not None:
+        port1 = ["-device", "usb-kbd,id=hid-kbd,bus=xhci.0,port=1,usb_version=1"]
+        if usb_hid_case.startswith("refuse-"):
+            from run_usb_hid import refused_device
+            if usb_hid_case == "refuse-storage":
+                # Disposable, zeroed and private to this run; never a host disk.
+                (run_dir / "usb-storage.img").write_bytes(bytes(1 << 20))
+            port1 = refused_device(usb_hid_case, f"{run_rel}/usb-storage.img")
         args += ["-device", "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39",
-                 "-device", "qemu-xhci,id=xhci,bus=pcie.0,addr=0x5,p2=2,p3=0",
-                 "-device", "usb-kbd,id=hid-kbd,bus=xhci.0,port=1,usb_version=1",
+                 "-device", "qemu-xhci,id=xhci,bus=pcie.0,addr=0x5,p2=2,p3=0", *port1,
                  "-device", "usb-mouse,id=hid-mouse,bus=xhci.0,port=2,usb_version=1"]
     if hid_input_probe:
         args += ["-device", f"VGA,vgamem_mb=16,romfile={run_rel}/VGA.rom",

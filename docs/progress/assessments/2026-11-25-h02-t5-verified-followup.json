@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "744f1b75b68dc45dd2ab4d150a65cc827402e381",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/h02-t5-verified-20261125",
+  "task": "H02-T5 follow-up: ledger verified and H handoff refresh",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Bookkeeping only: ledger H02-T5 moves to verified after #515 squash-merged as 744f1b75 with all applicable hosted gates green on 33b1d7be, and the H handoff points at H05-T5c. No code, test or evidence change; the H02-T5 native evidence stays bound to f8662109. H02 stays open: physical USB devices, hubs, hotplug, the reference hardware matrix and human acceptance are missing."
+}

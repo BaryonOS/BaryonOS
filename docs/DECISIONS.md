@@ -5,6 +5,156 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-MERGE-GROUP-GATES-20261126 — merge-hold judges the applicable gates on the merge-queue commit
+
+**Status:** proposed by the CI specialist for issue #494 on 26 November 2026 (D1
+option B step 2 of ADR-PROGRESS-ASSESSMENTS-20261125). The project owner must
+review it. It amends three sentences of ADR-CI-GATE-ENFORCEMENT-20261124, which
+are listed below. It also extends ADR-MERGE-HOLD-20261113, whose acceptance
+hold, labels, release comments and queue walk stay in force. It does not enable
+the merge queue. Enabling the queue still needs a passing trial with at least
+two entries (D1 step 3) and the owner's explicit confirmation at that moment.
+
+**Budget (project owner, 26 November 2026):** the `merge_group` wait is 80 minutes
+(`MAX_WAIT_SECONDS`, `merge_group_wait_minutes`) and the merge-hold job timeout 90
+minutes, because `native-window-session` reached p90 59 and max 72 minutes.
+
+**Source:** branch `ci/d1s2-merge-group-gates-20261126` on base `main`
+`2289a271`. Implementation commits: `524ea570` (round 1), `1ae6b57e` and
+`9e10d7ec` (round 2), `f7743f06` (stacked on CI-SETTLE), `7d387a80` to
+`18f4e375` (fix round 3), `5901b29d` to `a533f91e` (round 4), and `7dc6c53c`
+to the round 6 head `763f25d9`. `7671b20d` merges `main` `60b1aac7` (#558)
+and changes none of the merge-hold files.
+
+**Problem:** since D1 step 1, every workflow with an automatic `core` or `rwa`
+job also runs on `merge_group`, at full scope. On `merge_group`, however,
+merge-hold waited only for `host-quality` and `qemu-smoke`. It judged each
+member's gates on that member's own `pull_request` head and required its queue
+entry to land a tree equal to that head. The tree that actually lands was never
+judged as a whole, and a queue with more than one entry ahead failed closed.
+
+**Decision:**
+
+- **Inputs, bound before any wait.** On `merge_group`, `BASE_SHA` must equal
+  `merge_group.base_sha` and `TESTED_SHA` must equal `merge_group.head_sha`. Both
+  must be well-formed, and the base must be an ancestor of the queue commit.
+  The base selector recomputes the plan with `--event=merge_group` (mode full).
+  The plan must describe that event, that base, the queue commit and `main`.
+  Any doubt fails at once.
+- **Run binding.** A run counts only with:
+  - event `merge_group`;
+  - head SHA equal to the queue commit;
+  - head branch equal to the queue ref without `refs/heads/`;
+  - this repository as both repository and head repository.
+
+  The run's `pull_requests` list is not used.
+- **Budget clock.** The catalogue budget (45 minutes) is counted from before
+  the plan. The plan, the catalogue read, the wait and the chain of entries
+  ahead share it. A 3-minute reserve is kept back for the decision after the
+  wait, so the gate wait gets the budget less the plan time less the reserve.
+  The deadline still fails closed; a plan that uses up the budget gets the
+  single poll of a 0 budget. Up to the wait's last poll the script, whose
+  clock starts before the plan, takes at most 43 minutes; the workflow steps
+  before the script are outside that clock. The last poll, the decision and
+  those steps must fit the remaining 7 minutes of the 50-minute job timeout.
+  This is an assumption, not a proof. Counted one page each, the decision
+  makes 2 + 2N + 4M requests for N counted runs and M members with no member
+  lifted, 2 + 2N + 8M - 8 (M >= 2) in an ordinary queue, where every member
+  ahead but the first is lifted, and at most 4N + 8M - 1. A poll makes three
+  plus one per entry walked, and the last poll
+  may itself add a full gate report (1 + 2N to 1 + 4N) when a new failure
+  trigger appears that the report does not count. For N = 24 and M = 5 that is
+  about 86 requests in an ordinary queue and about 240 at worst. Each blocking socket read
+  times out after 20 s, so a single request has no hard ceiling. The job
+  timeout stays the fail-closed backstop.
+- **Wait.** After `host-quality` and `qemu-smoke` have completed, every poll reads the
+  queue first. Two consecutive well-formed reads that lack the queue commit
+  (the entry was removed or rebuilt) fail the group, also while gate runs are
+  open. Under an enforcing plan the poll then reads the run listing of the queue
+  commit. It waits while a gate run is open or an expected gate has no run. A
+  gate that has already failed ends the wait early:
+  - The trigger is a newest gate run that completed without success, or a
+    completed check run with a blocking conclusion. For an expected gate, any
+    conclusion but success is a trigger.
+  - A trigger causes one full gate report.
+  - A Failed line in that report fails the group, and that report decides.
+  - Each trigger is judged once, and only after its report was read.
+
+  The walk over the entries ahead is unchanged.
+- **Decision.** One full gate report on the queue commit decides with the
+  `pull_request` rules, including the settle step and the job attempt binding.
+  Any Pending or Failed line fails the group, and the queue removes it. A
+  runtime-matrix row whose run is still running is Pending, never Failed, while
+  its variants so far have succeeded.
+- **Members.** Each member needs:
+  - its hold decision;
+  - for a released hold, a queue entry tree equal to the released head tree.
+    This rule is unconditional;
+  - a successful newest `pull_request` merge-hold on its own head (defense in
+    depth).
+
+  An unheld member may land a tree other than its head's only when the
+  queue-commit report was enforced and clean. Under `shadow`, or with any
+  Pending or Failed line, its entry tree must equal its head tree, as before.
+
+  That report judges only this group's own entry tree, the queue commit. A
+  member ahead lands the tree of its own entry E instead. When that member is
+  lifted (its entry tree differs from its head tree), it also needs the newest
+  merge-hold run on E to have concluded `success`. That run must have event
+  `merge_group`, head SHA E, a queue branch of that pull request, and this
+  repository as repository and head repository. That run judged the gates on
+  E. It is read as strictly as the queue-commit runs: its jobs (all of its
+  attempt and successful), a re-read by id (same id, attempt and status, still
+  bound and successful) and E's `merge-hold` check run read again at the
+  decision (success) must all agree. A missing, running or failed run, or any
+  disagreement between these reads, fails the member at the decision. The
+  ruleset's "Only merge non-failing pull requests" setting, which the
+  merge-queue rule must enable, also keeps E from merging without it.
+- **Shadow.** Under `shadow`, gates neither hold the wait, nor block the
+  decision, nor end the wait early.
+
+**Consequences:**
+
+- The tree that lands is judged as a whole. An unheld member is no longer
+  ejected merely because the entries ahead change its landing tree, provided
+  the enforced report is clean.
+- **Budget.** With the current runner capacity, one `native-window-session` run
+  took more than 46 minutes of wall time (measured; see the #494 record). With
+  the former 45-minute budget and 50-minute job timeout, a queue entry running
+  that workflow could fail at the deadline. The project owner raised them to 80
+  and 90 minutes (see Budget above); the queue status check timeout must be at
+  least 100 minutes.
+- **Unobserved payload fields.** The `head_branch` and `head_repository` fields
+  of a live `merge_group` run have not been observed yet. If GitHub fills them
+  differently, no run counts and the group fails closed at the deadline. The
+  first queue trial must therefore capture one real run payload.
+- **API cost.** Each gate poll adds one run listing of the queue commit. A full
+  report costs about two requests per counted run. It is made only for a
+  failure that has not been judged before. A lifted member ahead adds up to
+  four reads at the decision: the run listing of its entry commit, that run's
+  jobs, a re-read of it, and the entry's check runs.
+- **Entry queue ref.** The queue read does not return a member's queue ref,
+  and GitHub does not document the ref's SHA suffix. The run on a member's
+  entry is therefore bound to a queue ref of that pull request, not to one
+  exact ref; its head SHA ties it to the entry.
+- A hold added after the final read is still not seen (ADR-MERGE-HOLD-20261113).
+- **Stale failure text (resolved).** The failure text for an unheld member's
+  unequal tree was reworded in `f7743f06`, stacked on CI-SETTLE before fix round 3. It now says that the
+  queue-commit gate report is not an enforced clean pass and so does not cover
+  that tree.
+
+**Revise when:**
+
+- the first queue trial shows run payloads that differ from the binding;
+- measured gate wall time on the queue commit stays above the budget;
+- GitHub documents how a rebuilt group's queue ref and runs behave;
+- the merge queue is enabled.
+
+**Primary sources:** the sources of ADR-CI-GATE-ENFORCEMENT-20261124, retrieved
+24 November 2026. No new source was retrieved for this amendment. The
+`merge_group` run fields named above are bound fail-closed and remain to be
+confirmed on a live run.
+
 ## ADR-B03-REL05-TPM-20261125 — Trial boot with TPM 2.0 health confirmation (REL-05 option A)
 
 **Status:** the requirements (option A, items 1–9 on issue #41) were decided
@@ -422,9 +572,12 @@ request could change the scripts that judge it.
   separately and is never a pass.
 - The pull request wait budget is 0 (decision Q1 of the handoff): merge-hold
   lists the pending gates and is re-run after they finish. Job timeouts are
-  unchanged. On `merge_group`, where the selected workflows do not run, each
-  member needs a successful pull_request merge-hold on its own head and an
-  equal tree.
+  unchanged. On `merge_group` every applicable gate is judged on the queue
+  commit (ADR-CI-MERGE-GROUP-GATES-20261126); each member still needs a
+  successful pull_request merge-hold on its own head, a released hold an equal
+  tree, and an unheld member an equal tree unless the enforced queue-commit
+  report is clean; a member ahead whose entry tree differs from its head tree
+  also needs a successful merge_group merge-hold on its own entry commit.
 - `host-quality` fails on an invalid catalogue or on drift between the
   catalogue, the workflows and the sources.
 - `policy.mode` gains its enforcement meaning: `shadow` reports without
@@ -435,9 +588,11 @@ request could change the scripts that judge it.
 
 **Consequences:** merges wait for every applicable gate, not only for the three
 required checks. A pull request's first merge-hold run normally fails with a
-pending list and needs one re-run. A merge queue with several entries fails
-closed until the selected workflows gain `merge_group` triggers, which is
-outside #494. A started gate that the plan did not select must still finish
+pending list and needs one re-run. The selected workflows have `merge_group`
+triggers (D1 step 1) and merge-hold judges their gates on the queue commit
+(D1 step 2, ADR-CI-MERGE-GROUP-GATES-20261126); the queue stays disabled until
+a trial with at least two entries passes (D1 step 3) and the project owner
+confirms enabling it. A started gate that the plan did not select must still finish
 before merge-hold passes. The introducing pull request is judged by the older
 base copy, so its gates must be verified by hand before its merge. Runs of a fork head
 list no pull request and cannot be bound to a base, so a fork pull request fails
@@ -447,9 +602,10 @@ pull request side, so review of `.github/**` remains the control for workflow
 edits. Details and the remaining limits are in docs/CI-CONTRACT.md
 ("Enforcement", "Known limits").
 
-**Revise when:** the merge queue is enabled and the selected workflows gain
-`merge_group` triggers; GitHub changes which workflow files a `pull_request` run
-reads; or `policy.mode = "shadow"` is needed to let a selected gate pass.
+**Revise when:** the merge queue is enabled (the `merge_group` triggers and the
+queue-commit judgement are in place, ADR-CI-MERGE-GROUP-GATES-20261126); GitHub
+changes which workflow files a `pull_request` run reads; or
+`policy.mode = "shadow"` is needed to let a selected gate pass.
 
 **Primary sources:**
 
@@ -865,6 +1021,84 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    device call site is preceded by an access counter; after CLEANUP the kernel
    requires zero post-wake device accesses outside the accounted re-init path,
    and live (non-zero) counters at the wake.
+   Amendment H05-T5c (25 November 2026, slice 1): under the opt-in profile
+   `test-system-s3-blk-reinit` (built on `test-system-s3-reinit`, mutually
+   exclusive with `test-system-s3-held-completion` by `compile_error!`), after a
+   validated wake and the virtio-rng re-init, the kernel re-validates and
+   re-initialises the virtio-blk primary lane (00:05.0, `Function::Primary`
+   only) and runs a kernel-driven READ of reserved canary sector 0 whose bytes
+   are discarded. No block capability is issued, `block_objects == 0` and the
+   SUSPEND storage gate are unchanged, and init's post-wake 0x40 with its POWER
+   handle now reaches the authority check (-6) instead of -14. The volume latch
+   (four `resumed()` call sites in three functions: `device_call` twice,
+   `reset`, `advance_lane`) now uses `device_lost()` = resumed and not
+   re-initialised; in every other
+   S3 profile block devices stay lost (-14), and the rng path is unchanged.
+   Project-owner decisions of 25 November 2026, as relayed in the H05-T5c task
+   brief (Q4 quoted verbatim from it; Q1-Q3, Q5 and Q6 summarised in full):
+   - **Q1** (ring-3 block re-grant), **Q2** (mandatory remount after a wake) and
+     **Q3** (key erasure before SUSPEND) are later slices; this slice
+     implements none of them and relaxes no gate.
+   - **Q4** "a refused blk re-init must NOT stop the system. It quarantines
+     lane 0 (offline, every later device request gets -14 before any device
+     access, no automatic retry or re-init, no false acknowledgement, no
+     replay) and the system continues to the existing S5 gate and recovery."
+     This overrides the review's I1 "exit 0x11". The lead decision of
+     25 November 2026 reserves one distinct refusal code, -24, for a block
+     request on a quarantined lane (-13/-14 keep their offline/missing
+     meaning); it replaces the latch's -14 in the volume syscall result once
+     lane 0 is quarantined. The quarantine stops the device when `rediscover`
+     had validated it (status 0, bus mastering off), quarantines the same lane
+     Policy (`reset_completed(false)`) and logs exactly one
+     `VOLUME:S3:REINIT:QUARANTINE:<REASON>`. `lane.offline` is left unchanged:
+     it feeds the S5 durability gate (-16 "never this boot"), and the data
+     was proven durable by the storage gate before SUSPEND, so S5 still passes
+     on unchanged gate code and a cold recovery follows.
+   - **Q5** full identity: dword 0, revision/class (0x08), subsystem (0x2c)
+     and the capability pointer are compared with config reads before any
+     config write; the parsed regions after the BARs; offered and negotiated
+     features, `queue_size_max`, the notify offset and the capacity after
+     `initialize_profile`. No BAR is sized after the wake (`rediscover`, a copy
+     of the rng `classify_bars` rule). Reset with acknowledgement, the five
+     pool pages still kernel-owned, zeroed rings through `initialize_profile`,
+     MSI/MSI-X re-disabled and INTx-disable set. The epoch advances through
+     `start_reset` -> `reset_completed(true)` on the same Policy object; the
+     ticket floor is kept and a pre-sleep ticket or epoch is refused (-1).
+     `Policy::new()` is never used. The profile has no IOMMU, so DMA isolation
+     against a misbehaving device is not claimable.
+   - **Q6** deterministic, labelled, test-only injections
+     (`test-system-s3-blk-reinit-busy`, `-identity`, `-capacity`,
+     `-no-reset-ack`) corrupt one input of a real check (lane state, the saved
+     subsystem dword, the expected capacity, the acknowledgement) so that only
+     that check refuses and the real quarantine path runs; none fabricates
+     device success. Evidence is tagged injected, emulator or physical.
+
+   Slice order: 1 kernel re-init and quarantine (this amendment); 2 the Q3
+   key-erasure SUSPEND gate (with B); 3 the Q2 remount (with S); 4 the Q1
+   fresh-generation ring-3 re-grant. Invariant: no ring-3 block re-grant and
+   no relaxation of `block_objects == 0` before slices 2 and 3 exist.
+   Invariants as adapted from the H05-T5c security review: I1 re-init only
+   after a validated wake with lane 0 quiescent, otherwise quarantine (not
+   exit); I2 00:05.0 only; I3 no BAR sizing, BARs restored only from the
+   all-cleared state; I4 identity equality before any config write; I5 no MMIO
+   before `rediscover` succeeded; I6 acknowledged reset and pool ownership
+   before reuse; I7 negotiated-state and capacity equality; I8 fresh zeroed
+   rings; I9 same Policy, epoch + 1, monotonic tickets; I10 the latch lifts only
+   after I1-I9 and the self-test; I11 every re-init device access is counted in
+   an accounted volume subset and `io_after == 0` holds over the keyring and
+   volume accounted totals; I12 no new authority, the canary READ never reaches
+   a process; I13 interrupts quiesced at the function, and the post-wake
+   `timer_init` masks every 8259 line but IRQ0 (the INTx line is read from
+   config 0x3c and must be masked, else quarantine); I14 the final S5 gate
+   re-check still passes (the self-test is a READ outside the broker counters).
+   Negotiated-state checks can only run after `initialize_profile` set
+   DRIVER_OK and bus mastering; a refusal there resets the device first.
+   Evidence boundary: QEMU `pc-q35-8.2`/OVMF/TCG; the success path and the
+   four injections are native on local QEMU 10.2.1 (`BARS=RESTORED`); the
+   injections are labelled kernel-side injections, not device faults; no BAR
+   or capacity change is provoked by the emulator; no physical S3; the
+   ticket floor is checked natively on a Policy copy and by a host test
+   (docs/verification/h05-s3-blk-reinit-20261125/).
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
    pause across S3. This is recorded, not hidden.
 
@@ -1889,9 +2123,9 @@ an entry whose required checks failed cannot merge as part of a later group
 that passed; a minimum group size of 1 with no merge-limit wait, so the
 window after the final read is not lengthened; each pull request built
 separately (no batching), so every entry has its own commit and its own
-`merge-hold` run; and a merge queue status check timeout of at least 60
+`merge-hold` run; and a merge queue status check timeout of at least 100
 minutes, so GitHub does not remove a group while `merge-hold` still waits (up
-to 45 minutes, inside a job `timeout-minutes` of 50). Verify these five
+to 80 minutes, inside a job `timeout-minutes` of 90). Verify these five
 settings and the predecessor-rerun control above before enabling the queue. On
 `merge_group` the workflow and `tools/merge_hold.py` come from the group
 commit, which includes the entries ahead, so a queued pull request ahead can
