@@ -95,6 +95,16 @@ const ARCHIVE_USTAR: u64 = 12;
 const ARCHIVE_ABSENT: u64 = 15;
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_CUT: u64 = 18;
+/// S09 O13 N38 slice 1 (a, b, c, e): the portal's whole device-1 scope is one
+/// kernel write-latch entry, and the kernel turns the completion of the second
+/// device-1 WRITE into a device error (labelled, simulated fault).
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_LATCH: u64 = 31;
+/// S09 O13 N38 slice 2 (f): syscall 0x44 on test-scripted kernel latch
+/// entries [0, 10) and [10, 20); the archive handle's scope is [0, 15) and the
+/// kernel adds three handles (words 576, 584, 592). No injected fault.
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_LATCH_0X44: u64 = 32;
 // S09 phase 3 L2 cases (docs/implementation/S09-L2-NATIVE-EXPORT.md section
 // 4): slot 1 is the backup portal on the device-1 archive disk.
 #[cfg(feature = "l2-portal")]
@@ -1120,6 +1130,23 @@ fn verified_restore(
     )
 }
 
+/// Submits one block request again while the broker answers -8 (its own
+/// transient state), yielding in between; any other answer is returned.
+#[cfg(feature = "archive-portal")]
+fn submit(
+    mut call: impl FnMut() -> Result<u64, nieuw_os_sdk_runtime::Error>,
+) -> Result<u64, nieuw_os_sdk_runtime::Error> {
+    for _ in 0..disk::POLL_LIMIT {
+        match call() {
+            Err(error) if error.is_again() => {
+                let _ = native::yield_now();
+            }
+            result => return result,
+        }
+    }
+    Err(nieuw_os_sdk_runtime::Error::Kernel(-13))
+}
+
 /// S09 backup portal: the only process with a capability on the archive
 /// range, plus a volume client bound to domain 0 like any app.
 #[cfg(feature = "archive-portal")]
@@ -1365,6 +1392,76 @@ fn portal(app: &mut App, case: u64) {
             let _ = archive::export(&mut app.client, 0, &mut sink);
             // Not reached when the cut happens.
             fail(879);
+        }
+        ARCHIVE_LATCH => {
+            use nieuw_os_sdk_runtime::Error::Kernel;
+            // A fresh domain; the service is READY before any device-1 request.
+            check(app.list(0, 880).1 == 0, 881);
+            let written = [0xa5; SECTOR];
+            let refused = [0x5a; SECTOR];
+            // (a) A device-1 WRITE answered Ok.
+            check(disk.write(1, &written).is_ok(), 882);
+            // (b) The kernel fails this WRITE's completion. Without any poll,
+            // the next WRITE gets -8 while it is in flight and -5 once the
+            // Policy latched the entry; only then is its ticket polled.
+            let ticket = native::block_write(device, 2, &written).unwrap_or_else(|_| fail(883));
+            check(
+                submit(|| native::block_write(device, 3, &refused)) == Err(Kernel(-5)),
+                884,
+            );
+            check(
+                native::block_wait(device, ticket, &mut [], disk::POLL_LIMIT) == Err(Kernel(-16)),
+                885,
+            );
+            // (c) READ and FLUSH stay admitted; -8 only while the reset runs.
+            let ticket =
+                submit(|| native::block_read(device, 1, 0, 128)).unwrap_or_else(|_| fail(886));
+            let mut back = [0; 128];
+            check(
+                native::block_wait(device, ticket, &mut back, disk::POLL_LIMIT).is_ok(),
+                887,
+            );
+            check(back == written[..128], 888);
+            let ticket = submit(|| native::block_flush(device)).unwrap_or_else(|_| fail(889));
+            check(
+                native::block_wait(device, ticket, &mut [], disk::POLL_LIMIT).is_ok(),
+                890,
+            );
+            check(
+                native::block_write(device, 4, &refused) == Err(Kernel(-5)),
+                891,
+            );
+            // (e) A device-0 WRITE (one service commit) is admitted.
+            app.write(0, 0, b"Na", 1, 892);
+        }
+        ARCHIVE_LATCH_0X44 => {
+            use nieuw_os_sdk_runtime::Error::Kernel;
+            let handle = |offset| {
+                BlockDevice::from_handle(
+                    Handle::from_raw(support::word(offset)).unwrap_or_else(|_| fail(940)),
+                )
+            };
+            // READ|WRITE on [15, 25) (part of [10, 20) only) and on [25, 35)
+            // (no entry); READ only on the archive object's own [0, 15).
+            let (partial, none, read_only) = (handle(576), handle(584), handle(592));
+            check(app.list(0, 941).1 == 0, 942);
+            let (first, refused, last) = ([0xa5; SECTOR], [0x5a; SECTOR], [0x3c; SECTOR]);
+            // (f3) No entry, or only part of one: -5. (f2) READ only, although
+            // the scope wholly contains both open entries: refused.
+            for (device, step) in [(none, 943), (partial, 944), (read_only, 945)] {
+                check(native::block_latch(device) == Err(Kernel(-5)), step);
+            }
+            // Nothing was latched: a WRITE into each entry is admitted.
+            check(disk.write(3, &first).is_ok(), 946);
+            check(disk.write(12, &first).is_ok(), 947);
+            // (f1, f4) [0, 15) wholly contains [0, 10), which then refuses
+            // WRITEs, and only part of [10, 20), which stays open.
+            check(native::block_latch(device) == Ok(0), 948);
+            check(
+                native::block_write(device, 3, &refused) == Err(Kernel(-5)),
+                949,
+            );
+            check(disk.write(12, &last).is_ok(), 950);
         }
         _ => fail(769),
     }
@@ -1680,7 +1777,7 @@ fn run() {
         INSTALL | INSTALL_RECOVER | INSTALL_CUT => install_flow(&mut app, case),
         #[cfg(feature = "archive-portal")]
         ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
-        | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT
+        | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT | ARCHIVE_LATCH | ARCHIVE_LATCH_0X44
             if domain == 0 =>
         {
             portal(&mut app, case)
@@ -1689,7 +1786,7 @@ fn run() {
         // only after the portal finished its archive I/O (kernel gate 2).
         #[cfg(feature = "archive-portal")]
         ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
-        | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT => {
+        | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT | ARCHIVE_LATCH | ARCHIVE_LATCH_0X44 => {
             app.phase(1);
             app.wait_gate(2);
             app.report(760)

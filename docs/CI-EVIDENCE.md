@@ -145,6 +145,35 @@ release checksum therefore detects asset substitution relative to the upstream
 checksum list, but it is not a signed provenance chain or an audit of the
 actionlint source and build process.
 
+## Coverage tool binary
+
+The required `host-quality` job no longer compiles cargo-llvm-cov from source
+on every run (#494 B3). It downloads only
+`cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz` from the upstream `v0.9.1`
+release, verifies SHA-256
+`b3f68e625481fed9b16444174f3fa5ebcdbde4a1878803a35eabe2dcefcdc41a`, extracts
+only the `cargo-llvm-cov` executable and checks the reported version. The
+`v0.9.1` tag points directly to commit
+`0dc905679ae6b4740b186f6e2c2ef1ab78fb76d7`; the release was published on
+September 6, 2026, under Apache-2.0 or MIT. The pinned value equals the
+digest that GitHub records for the release asset, and GitHub lists two
+artifact attestations for that digest (read through the REST API on
+November 25, 2026; not verified in CI). One is a release attestation; the
+SLSA provenance attestation names commit
+`ff7de46c296060ef86cd0975c3ff724c8bb22b24` on `main`, the parent of the tag
+commit, because the release workflow starts from `main` and creates the tag.
+The tag commit itself is unsigned. The checksum detects asset substitution; it
+is not an audit of the cargo-llvm-cov source or build.
+
+The host build cache also holds `target/llvm-cov-target`. By default,
+cargo-llvm-cov cleans the artifacts that could affect coverage results before
+each run, and only a push to `main` saves the cache. A restored entry is
+therefore expected to shorten the build without changing a test verdict or a
+coverage report. That clean step is best effort: upstream reports a failed
+`cargo clean` as a warning, after which stale test binaries of a measured
+package could enter the report. The build-time gain has not yet been measured
+on a warm CI run.
+
 ## Validation and rollback
 
 `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`
@@ -182,3 +211,9 @@ https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_
 
 rhysd. (2026). *actionlint source at v1.7.12*.
 https://github.com/rhysd/actionlint/tree/914e7df21a07ef503a81201c76d2b11c789d3fca
+
+taiki-e. (2026). *cargo-llvm-cov v0.9.1 release*.
+https://github.com/taiki-e/cargo-llvm-cov/releases/tag/v0.9.1
+
+taiki-e. (2026). *cargo-llvm-cov source at v0.9.1*.
+https://github.com/taiki-e/cargo-llvm-cov/tree/0dc905679ae6b4740b186f6e2c2ef1ab78fb76d7

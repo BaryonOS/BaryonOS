@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "3b9a94c52bb4d3ada5a9c6499817560b71d0e4d0",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "claude/s09-o13-virtio-latch-20261125",
+  "task": "S09 O13 step 1: add-only write latch table in the virtio-core Policy (L1 hook, L1b rule, 0x44 whole-entry rule)",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: crates/virtio-core now holds the O13 latch table beside each device Policy (four add-only entries, open-to-latched only; the L1 hook at every site that sets Unknown; WRITE latches intersecting entries, FLUSH the whole device, READ never; the 0x44 whole-entry rule), with 15 host tests and an independent AI review whose should-fix was applied. It enforces nothing yet: the kernel wiring in volume.rs, syscall 0x44 and the native N38 stage are step 2, so S09 stays open; R8 preconditions, a native destination stage, native K5 fixtures and a human audit remain open. Main 3b9a94c5 (#519, D3 assessment files) is merged into the branch."
+}

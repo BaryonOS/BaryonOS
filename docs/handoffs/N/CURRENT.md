@@ -27,18 +27,15 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Current cycle
 
-- cycle_id: `N-20261124-nxdomain-nosoa`
-- task: N02-T6 host regression — the network service never caches an
-  NXDOMAIN without an authority SOA (lesson 4)
-- branch: `claude/fervent-mccarthy-wykkfa`
-- pull request, tested source SHA, hosted runs: recorded in the pull request
-  description, not in this file
-- evidence: `services/network-service/tests/dns_resolve.rs`
-  `nxdomain_without_soa_is_not_found_and_never_cached` replays the stub's
-  33-byte reply (NSCOUNT 0); the caller gets `NotFound` and the next Resolve
-  sends a fresh query. A mutant that invents a lifetime for a missing SOA
-  fails only this test. Host evidence only.
-- previous cycle `N-20261124-slirp-nx` merged as `734820d6` (#502).
+- cycle_id: `N-20261125-open-deadline-tick`
+- task: N01 guard — the network service samples the OpenTcp deadline tick
+  after the receive (one helper flake, raw exit 35, client check 36, run
+  45520606634 attempt 1); N02 progress entries made consistent with #502
+- branch: `claude/n01-open-deadline-tick-20261125`; pull request #518
+- evidence: all network-service and DHCP/slirp native profiles pass locally
+  (raw 33); forced reproduction of the race did not succeed, so the cause
+  rests on the deadline argument and a measured zero-tick margin (lesson 5)
+- previous cycle `N-20261124-nxdomain-nosoa` merged as `c2549ccb` (#506).
 
 ## Blockers
 
@@ -63,6 +60,10 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
    and no authority SOA (33 bytes, NSCOUNT 0), so the resolver derives no
    negative-cache lifetime; the case therefore asserts one query only and
    does not claim negative caching against the real resolver.
+5. A service must sample its tick after receiving a request when that tick
+   starts a deadline the client measures from its own earlier reading; the
+   loop-top tick can predate the client's send. The native Timeout check has
+   a zero-tick margin (observed - start = 300 exactly).
 
 ## Next executable task
 
