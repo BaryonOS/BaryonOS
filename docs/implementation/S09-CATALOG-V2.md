@@ -256,25 +256,27 @@ and does not enter the `Corrupt` mount state, as in v1.
 
 **v2 mount rule (replaces the record-prefix "extends" rule of 2.6 for v2
 copies).** Exactly one valid copy: use it. Two valid copies, byte-identical:
-use either. Two valid copies that differ: the one with the higher sequence,
-*H*, must have sequence = the lower's (*L*) + 1, and *H* must equal one
-transition of the table applied to *L*. If *L* is v1 and *H* is v2, UPGRADE is
-the only accepted transition. If both are v2, UPGRADE is not accepted (it
-would turn a `deleting` record back into `sealed` and drop verified state);
-SYNC, SEAL, MARK, REMOVE and RECORD are. *H* v1 with *L* v2, and two v1 copies
-that are not related by the v1 rule of 2.6, give `Corrupt`. Then use *H*.
-Otherwise: `Corrupt`. Equal sequences with different bytes: `Corrupt`.
+use either. Two valid v1 copies: the v1 mount rule of 2.6, unchanged (3.2),
+including a higher copy more than one commit ahead; the one-transition rule
+below does not apply to them. Two valid copies that differ, at least one of
+them v2: the one with the higher sequence, *H*, must have sequence = the
+lower's (*L*) + 1, and *H* must equal one transition of the table applied to
+*L*. If *L* is v1 and *H* is v2, UPGRADE is the only accepted transition. If
+both are v2, UPGRADE is not accepted (it would turn a `deleting` record back
+into `sealed` and drop verified state); SYNC, SEAL, MARK, REMOVE and RECORD
+are. *H* v1 with *L* v2 gives `Corrupt`. Then use *H*. Otherwise: `Corrupt`.
+Equal sequences with different bytes: `Corrupt`.
 
-This is stricter than the v1 prefix rule, which accepts a higher copy any
-number of records ahead (`catalog.rs:206-213` *[main]*). The legitimate states
-of the commit protocol never put the two copies more than one commit apart:
-a completed commit leaves them identical, a crash between barriers 2 and 3
-leaves the target slot one commit ahead, and the next commit targets the
-lower slot. The v1 prefix rule cannot be kept for v2, because REMOVE makes the
-higher copy one record *shorter*. The "identical v2 copies" starting point of
-3.3 holds within one instance; after a reboot between U2 and U3 the new
-instance mounts *H* and its next commit targets the v1 slot directly, which
-the one-transition rule accepts.
+For pairs with a v2 copy this is stricter than the v1 prefix rule, which
+accepts a higher copy any number of records ahead (`catalog.rs:206-213`
+*[main]*). The legitimate states of the commit protocol never put the two
+copies more than one commit apart: a completed commit leaves them identical, a
+crash between barriers 2 and 3 leaves the target slot one commit ahead, and
+the next commit targets the lower slot. The v1 prefix rule cannot be kept for
+v2, because REMOVE makes the higher copy one record *shorter*. The "identical
+v2 copies" starting point of 3.3 holds within one instance; after a reboot
+between U2 and U3 the new instance mounts *H* and its next commit targets the
+v1 slot directly, which the one-transition rule accepts.
 
 **Remount after a failed catalog write (O16, O18).** The v1 rule generalises
 unchanged. After a failed write or flush at barrier 2 or 3 of any v2 commit,
