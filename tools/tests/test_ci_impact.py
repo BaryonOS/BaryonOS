@@ -1054,6 +1054,165 @@ class MergeGroupSelectTests(FixtureTestCase):
         self.assertFull(plan, "shallow-history")
 
 
+GATE_RUNS = "${{ " + ci_impact.GATE_RUNS + " }}"
+NET_HEADER_SELECT = ('path = ".github/workflows/net.yml"\nowner = "ci-owner"\ngranularity = "job"\n'
+                     'events = ["pull_request", "merge_group", "push"]\n'
+                     'obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]\n')
+# PR B: net's pull_request filter keeps a docs-only diff out, so merge-hold may leave net out of
+# a docs-only group, and its merge-group gate may then skip its jobs.
+UNGATED_NET = MERGE_GROUP_SELECT.replace(
+    NET_HEADER_SELECT, NET_HEADER_SELECT + 'trigger.pull_request = { paths_ignore = "@metadata" }\n', 1)
+GATED_NET = UNGATED_NET.replace(
+    'id = "broker"\nclass = "rwa"\nactivation = "automatic"\n',
+    f'id = "{ci_impact.GATE_JOB}"\nclass = "operational"\nactivation = "automatic"\n'
+    f'condition = "{ci_impact.GATE_CONDITION}"\n\n[[workflow.job]]\n'
+    f'id = "broker"\nclass = "rwa"\nactivation = "automatic"\nneeds = ["{ci_impact.GATE_JOB}"]\n'
+    f'condition = "{GATE_RUNS}"\n', 1).replace(
+    'needs = ["broker"]\n', 'needs = ["broker"]\n'
+    'condition = "${{ !cancelled() && needs.broker.result == \'success\' }}"\n', 1)
+
+
+class MergeGroupGateTests(FixtureTestCase):
+    """PR B of ADR-CI-MERGE-GROUP-SELECT-20261126: the merge-group gate and its wiring change no
+    plan. The selector models a gated job by its own condition; only merge-hold's own answer
+    (merge_hold.merge_group_skip) lets the gate skip a workflow on merge_group."""
+
+    catalogue = GATED_NET
+
+    @staticmethod
+    def net(catalogue):
+        assert catalogue["workflow"][2]["path"] == ".github/workflows/net.yml"
+        return {job["id"]: job for job in catalogue["workflow"][2]["job"]}
+
+    def test_the_fixture_differs_only_by_the_gate(self):
+        self.assertNotEqual(UNGATED_NET, MERGE_GROUP_SELECT)
+        self.assertEqual(GATED_NET.count(ci_impact.GATE_JOB), 4)
+        ungated, gated = self.net(tomllib.loads(UNGATED_NET)), self.net(tomllib.loads(GATED_NET))
+        self.assertEqual(list(gated), [ci_impact.GATE_JOB, "broker", "native"])
+        self.assertEqual({job_id: (job.get("condition"), job.get("needs", [])) for job_id, job in ungated.items()},
+                         {"broker": (None, []), "native": (None, ["broker"])})
+        self.assertEqual({job_id: ci_impact.gate_wiring(gated[job_id]) for job_id in ungated},
+                         {"broker": (None, []), "native": (None, ["broker"])})
+
+    def test_gate_wiring_has_exactly_two_forms(self):
+        gate, runs = ci_impact.GATE_JOB, ci_impact.GATE_RUNS
+        below = "!cancelled() && needs.a.result == 'success' && needs.b.result == 'success'"
+        cases = [
+            (GATE_RUNS, [gate], (None, [])),
+            (f"${{{{ {runs} && (github.event_name != 'workflow_dispatch') }}}}", [gate],
+             ("${{ github.event_name != 'workflow_dispatch' }}", [])),
+            (f"${{{{ {below} }}}}", ["a", "b"], (None, ["a", "b"])),
+            (f"${{{{ {below} && (inputs.x) }}}}", ["a", "b"], ("${{ inputs.x }}", ["a", "b"])),
+            (f"${{{{ {below} }}}}", ["b", "a"], None),  # each need, in order
+            (f"${{{{ {below} }}}}", ["a", "b", "c"], None),
+            ("${{ !cancelled() && needs.a.result == 'success' }}", ["a", "b"], None),
+            (GATE_RUNS, [gate, "a"], None),  # a gated root needs the gate alone
+            (f"${{{{ !cancelled() && needs.{gate}.result == 'success' }}}}", [gate], None),
+            (runs, [gate], None),  # outside ${{ }}
+            (f"${{{{ {runs} && github.event_name == 'push' }}}}", [gate], None),  # own condition unparenthesised
+            (f"${{{{ {runs} || (always()) }}}}", [gate], None),
+            ("${{ always() }}", [gate], None),
+            (GATE_RUNS, [], None),
+            (None, [gate], None),
+        ]
+        for condition, needs, expected in cases:
+            with self.subTest(condition=condition, needs=needs):
+                job = {"id": "x", "needs": needs} | ({} if condition is None else {"condition": condition})
+                self.assertEqual(ci_impact.gate_wiring(job), expected)
+
+    def test_job_runs_models_a_gated_job_by_its_own_condition(self):
+        jobs = self.net(tomllib.loads(GATED_NET))
+        for event in ("pull_request", "push", "merge_group", "workflow_dispatch"):
+            with self.subTest(event=event):
+                self.assertIs(ci_impact.job_runs(jobs, ci_impact.GATE_JOB, event), event == "merge_group")
+                # The gate is skipped off merge_group; the wiring still runs every job below it.
+                self.assertIs(ci_impact.job_runs(jobs, "broker", event), True)
+                self.assertIs(ci_impact.job_runs(jobs, "native", event), True)
+        jobs["broker"]["condition"] = f"${{{{ {ci_impact.GATE_RUNS} && (github.event_name != 'workflow_dispatch') }}}}"
+        self.assertIs(ci_impact.job_runs(jobs, "broker", "workflow_dispatch"), False)
+        self.assertIs(ci_impact.job_runs(jobs, "native", "workflow_dispatch"), False)  # its need is skipped
+        self.assertIs(ci_impact.job_runs(jobs, "native", "merge_group"), True)
+        # Unwired, a job below the gate inherits the gate's skip through implicit success().
+        del jobs["broker"]["condition"]
+        self.assertIs(ci_impact.job_runs(jobs, "broker", "pull_request"), False)
+        jobs["broker"]["condition"] = f"${{{{ {ci_impact.GATE_RUNS} && (always()) }}}}"
+        self.assertIsNone(ci_impact.job_runs(jobs, "broker", "merge_group"))
+
+    def test_validate_requires_the_gate_shape_and_its_wiring(self):
+        self.assertEqual(ci_impact.validate(tomllib.loads(GATED_NET)), [])
+        gate, net = ci_impact.GATE_JOB, self.net
+        shape = f"net#{gate}: the gate must be operational and automatic"
+        wiring = f"below {gate} a job needs the gate alone"
+        required = f"a core or ruleset-required job must not depend on {gate}"
+
+        def prep(catalogue):
+            catalogue["workflow"][2]["job"].append({"id": "prep", "class": "rwa", "activation": "automatic"})
+        cases = [
+            (lambda c: net(c)[gate].update({"class": "rwa"}), shape),
+            (lambda c: net(c)[gate].update({"activation": "dispatch"}), shape),
+            (lambda c: net(c)[gate].update({"condition": "${{ github.event_name != 'pull_request' }}"}), shape),
+            (lambda c: net(c)[gate].pop("condition"), shape),
+            (lambda c: (prep(c), net(c)[gate].update({"needs": ["prep"]})), shape),
+            (lambda c: net(c)["broker"].pop("condition"), f"net#broker: {wiring}"),
+            (lambda c: (prep(c), net(c)["broker"].update({"needs": [gate, "prep"]})), f"net#broker: {wiring}"),
+            (lambda c: net(c)["native"].pop("condition"), f"net#native: {wiring}"),
+            (lambda c: net(c)["native"].update({"condition": "${{ needs.broker.result == 'success' }}"}),
+             f"net#native: {wiring}"),
+            (lambda c: net(c)["broker"].update({"class": "core"}), f"net#broker: {required}"),
+            (lambda c: net(c)["native"].update({"ruleset_required": True}), f"net#native: {required}"),
+            (lambda c: c["workflow"][3]["job"][0].update(
+                {"condition": f"${{{{ needs.{gate}.outputs.run != 'false' }}}}"}),
+             f"window#a: names {gate} without depending on it"),
+            (lambda c: net(c)["broker"].update({"condition": f"${{{{ {ci_impact.GATE_RUNS} && (always()) }}}}"}),
+             "net#broker: condition-undecidable on pull_request"),
+        ]
+        for mutate, fragment in cases:
+            with self.subTest(fragment=fragment):
+                catalogue = tomllib.loads(GATED_NET)
+                mutate(catalogue)
+                problems = ci_impact.validate(catalogue)
+                self.assertTrue(any(fragment in p for p in problems), problems)
+        self.assertEqual(ci_impact.validate(tomllib.loads(UNGATED_NET)), [])
+
+    def rows(self, plan):
+        gate = [row for row in plan["selected"] + plan["excluded"] if row["job"] == ci_impact.GATE_JOB]
+        self.assertEqual([(row["id"], row.get("reason")) for row in gate], [(f"net#{ci_impact.GATE_JOB}", "operational")])
+        return (plan["mode"], plan["fallback"] and plan["fallback"]["code"],
+                sorted(row["id"] for row in plan["selected"]),
+                sorted((row["id"], row["reason"]) for row in plan["excluded"] if row not in gate),
+                plan["pull_request_filter_blocked"])
+
+    def test_the_gate_changes_no_plan_on_any_event(self):
+        diffs = {"docs": {"docs/guide.md": "guide 2\n"}, "licence": {"LICENSE": "licence 2\n"},
+                 "native": {"kernel/main.rs": "fn main() { 2 }\n"}, "ui": {"ui/x.css": "x\n"},
+                 "unknown": {"stray.txt": "x\n"}}
+
+        def plans(rows):
+            result = {}
+            for name, files in diffs.items():
+                head = self.branch(files)
+                for event in ("pull_request", "push", "merge_group"):
+                    result[name, event] = rows(self.plan(head, event=event, base_ref="main"))
+            return result
+
+        gated = plans(self.rows)
+        self.repo.git("checkout", "-q", "main")
+        self.base = self.repo.commit("ungated", {".github/ci-impact.toml": UNGATED_NET})
+        ungated = plans(lambda plan: (plan["mode"], plan["fallback"] and plan["fallback"]["code"],
+                                      sorted(row["id"] for row in plan["selected"]),
+                                      sorted((row["id"], row["reason"]) for row in plan["excluded"]),
+                                      plan["pull_request_filter_blocked"]))
+        self.assertEqual(ungated, gated)
+        # Not vacuous: a docs-only group leaves net out on both counts, a native one selects it.
+        mode, _, _, excluded, blocked = gated["docs", "merge_group"]
+        self.assertEqual(mode, "select")
+        self.assertIn(".github/workflows/net.yml", blocked)
+        self.assertLessEqual({("net#broker", "no-input-match"), ("net#native", "no-input-match")}, set(excluded))
+        self.assertLessEqual({"net#broker", "net#native"}, set(gated["native", "merge_group"][2]))
+        self.assertEqual(gated["unknown", "merge_group"][:2], ("full", "unknown-path"))
+        self.assertEqual(gated["docs", "push"][0], "full")
+
+
 class GlobTests(TestCase):
     def test_double_star_slash_matches_zero_or_more_directories(self):
         match = ci_impact.github_path_filter_matches
