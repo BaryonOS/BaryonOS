@@ -580,8 +580,17 @@ an older success never masks a newer running or failed run, and a later
 re-run of an older run counts. Its jobs come from
 `/actions/runs/<id>/jobs?filter=latest` (every page, `run_id` checked), which
 reflects the latest attempt after a re-run. The run is read again after its
-jobs; if its attempt or status changed in between, it counts as pending. A
-job's class comes only from rows of its own workflow. Per expected execution exactly one
+jobs. If its id, attempt or status changed in between, merge-hold reads the
+jobs once more and the run a third time, and judges that third record only if
+the second and third reads agree, name the requested run id and show an
+attempt no older than the listing; otherwise the run counts as pending
+("changed while it was read"). The judged record and its jobs must also
+belong together: a listed job whose `run_attempt` is missing, not an integer
+or another attempt than the judged record's leaves the run pending as a whole
+("listed jobs of another attempt"). After a partial "re-run failed jobs"
+GitHub copies the carried-over jobs into the new attempt with that attempt's
+number (checked on three runs on 26 November 2026), so such a re-run still
+passes. A job's class comes only from rows of its own workflow. Per expected execution exactly one
 job with the rendered check name must have concluded `success`; a runtime
 matrix (`id = "*"`) needs at least one matching job, all successful. Then:
 
@@ -636,8 +645,9 @@ filtered before GitHub creates a re-check run; they cannot change a pull request
 hold. The other workflows
 (today the Copilot environment, the Materiaal probe, the security alert summary
 and the Windows QEMU bundle) are triggers only: merge-hold counts their runs
-too, and a run that changed while merge-hold read it, or a running job that the
-base catalogue does not know, leaves merge-hold at "Pending". Its script,
+too, and a run that kept changing while merge-hold read it, a run whose listed
+jobs belong to another attempt, or a running job that the base catalogue does
+not know, leaves merge-hold at "Pending". Its script,
 `tools/merge_hold_recheck.py`, handles the two activities separately.
 
 When an attempt greater than one of a gate workflow enters `in_progress`, the
@@ -751,7 +761,8 @@ a label is added.
 
 API use: a full decision costs about one pull request read, one or two
 run-list pages, and one job list and one re-read per counted workflow run
-(about 30 today). A re-check costs one pull request read and one or two
+(about 30 today); a run that changed between those reads costs two job lists
+and two run reads. A re-check costs one pull request read and one or two
 run-list pages, one or two more pages per wait poll (at most eight), and one
 more pull request read per re-run request. It normally makes one request; a
 conflict adds at most six exact-run reads per request and at most one replacement
