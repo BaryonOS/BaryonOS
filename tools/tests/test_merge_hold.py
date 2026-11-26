@@ -1484,20 +1484,22 @@ class GateTests(TestCase):
     def test_a_settle_that_drops_a_job_without_an_integer_attempt_stays_pending(self):
         """D2 round 7 (S5): a failed job of the first read whose run_attempt is missing or not an
         integer cannot be shown to belong to an older attempt; the second read omits it, so the run
-        that settles green stays pending."""
-        for attempt in (None, "1", 1.5):
-            with self.subTest(attempt=attempt):
+        that settles green stays pending. A JSON boolean is no attempt either: read as an int it would
+        pass for an older attempt and escape the comparison (False as 0 against judged attempt 1, True
+        as 1 against judged attempt 2)."""
+        for attempt, judged, kept in ((None, 1, 21), ("1", 1, 21), (1.5, 1, 21), (False, 1, 21), (True, 2, 24)):
+            with self.subTest(attempt=attempt, judged=judged):
                 late = job(22, 2, "late-gate", "failure", attempt=attempt)
                 if attempt is None:
                     del late["run_attempt"]
                 passed, out, _ = self.decide(
                     runs_=[wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)],
                     jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), late]},
-                    settle_during_read={2: {"status": "completed", "conclusion": "success"}},
-                    later_jobs={2: [job(21, 2, "quality (viewer)")]})
+                    settle_during_read={2: {"status": "completed", "conclusion": "success", "run_attempt": judged}},
+                    later_jobs={2: [job(kept, 2, "quality (viewer)", attempt=judged)]})
                 self.assertFalse(passed)
-                self.assertIn(f"Pending: {LEAVES}: run 2 attempt 1 dropped job(s) late-gate between two reads; "
-                              "re-run merge-hold", out)
+                self.assertIn(f"Pending: {LEAVES}: run 2 attempt {judged} dropped job(s) late-gate between two "
+                              "reads; re-run merge-hold", out)
                 self.assertIn("1 pending; 0 failed.", out)
                 self.assertNotIn("Passed: quality (viewer)", out)
 
