@@ -44,6 +44,64 @@ queue down and conflicts with the delegated merge mandate.
 **Consequence:** only real exceptions and substantive owner decisions reach the
 project owner; regular integration within the mandate is autonomous.
 
+## ADR-KEYRING-LOCK-20261126 — Key erasure before S3 by kernel teardown of the Key Service instance
+
+**Status:** this ADR records decisions at two levels of authority.
+- **Project owner, 26 November 2026, question O1:** "Yes, with a label". In
+  TEST profiles, SUSPEND may pass on the kernel-verified fact "instance
+  erased" alone, with a mandatory label; every non-TEST profile also
+  requires "no unwrap path".
+- **Workstreams B and H, technical decision:** the LOCK mechanism, its codes
+  and the work split. They act within the project-owner mandate Q3 of
+  25 November 2026 (amendment H05-T5c of ADR-H05-S3-SYSTEM-20261123), which
+  requires key erasure before S3 through the B keyring architecture.
+
+UNLOCK and questions O2, O5 and O8 remain open. Nothing is implemented yet.
+Specification: [B01-KEYRING-LOCK](implementation/B01-KEYRING-LOCK.md).
+
+**Context.** RAM stays powered during S3. The SUSPEND storage gate proves an
+idle, closed storage path but observes no key material. The ring-3
+Key Service holds the master key, the DRBG key and the RANDOM pool for its
+whole lifetime. Kernel service-stack buffers keep copies of IPC and entropy
+payloads.
+
+**Decision.**
+1. The kernel keeps a keyring lock state, LIVE or LOCKED. Only the kernel's
+   own LOCK path sets LOCKED. An exit or fault of the Key Service outside
+   LOCK stays `UNEXPECTED_EXIT` and never counts as LOCKED.
+2. Syscall `0x92` LOCK(power handle, 0, 0, 0, 0, 0) is init-only under the
+   non-delegable POWER object, with the validation order of `0x90` and
+   `0x91`.
+   - Preconditions are checked without side effects: an idle entropy broker
+     with no pending or completed request, and no queued message from the
+     instance in any endpoint it can send to.
+   - A failed precondition returns -8 (retry). A LOCK while LOCKED returns
+     -14.
+   - LOCK ends the instance through kernel process teardown, which zeroes its
+     frames. It also wipes or scrubs the kernel copies of Key Service
+     payloads and entropy, and never passes through `observe_exit`.
+3. While the state is not LOCKED, SUSPEND returns -25. The check runs after
+   `sleep::ready()` and before `storage_closed()` and any I/O. In TEST
+   profiles a pass carries the label "instance erased; unwrap secret is a
+   public TEST constant". Non-TEST profiles also require that no unwrap path
+   remains.
+4. B lands LOCK first, without changing SUSPEND. H then lands the SUSPEND
+   check, init's LOCK-then-SUSPEND sequence and the post-wake re-init target
+   in one change. Each step takes its own merge lane.
+5. UNLOCK is a fresh instance. It serves keys only after fresh startup
+   entropy and a restore with a session-authenticated secret, and after the
+   key-free read-only remount. Its mechanism is a separate decision.
+
+**Consequences.**
+- TEST profiles show the mechanism, not confidentiality.
+- The system runs without key service between LOCK and UNLOCK.
+- Key state that is not durable at LOCK is lost (O5).
+- The volume after a wake is checked for integrity, not authenticity (O7).
+
+**Falsified if:** SUSPEND passes while the state is not LOCKED; a frame of the
+ended instance is not zero after LOCK; a Key Service exit or fault yields
+LOCKED; or a TEST-profile S3 pass lacks the label.
+
 ## ADR-CI-MERGE-GROUP-GATES-20261126 — merge-hold judges the applicable gates on the merge-queue commit
 
 **Status:** proposed by the CI specialist for issue #494 on 26 November 2026 (D1
