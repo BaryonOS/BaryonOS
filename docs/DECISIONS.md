@@ -5,6 +5,45 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-MERGE-QUEUE-AUTONOMY-20261126 — mandated workstreams enqueue their own pull requests
+
+**Status:** decided by the project owner on 26 November 2026 (CI specialist chat)
+and recorded by the CI specialist. It amends ADR-MERGE-DELEGATION-20261123 and
+ADR-SPECIALIST-TEAM-20261125 for the merge queue that is active on `main`
+(ruleset 25967588). ADR-MERGE-HOLD-20261113, ADR-CI-MERGE-GROUP-GATES-20261126
+and D1–D3 stay in force.
+
+**Problem:** with the merge queue active, workstreams still asked for a separate
+approval or lane signal before each queue entry. That approval step slows the
+queue down and conflicts with the delegated merge mandate.
+
+**Decision:**
+
+- Workstreams with a merge mandate under ADR-MERGE-DELEGATION-20261123, as
+  extended by ADR-SPECIALIST-TEAM-20261125, add their own merge-ready pull
+  requests to the merge queue themselves. They ask no approval per pull request,
+  push, queue entry or regular merge. The command is
+  `gh pr merge <N> --squash --match-head-commit <sha>`, run only after no
+  workflow run on that head is still open and every merge condition in
+  AGENTS.md holds.
+- The CI specialist enqueues its own regular CI pull requests once the
+  applicable D2 review and the other merge conditions hold.
+- The PR guard (integration coordinator) coordinates dependencies, priorities and
+  exceptions. It is not an approval layer. Its dependency and priority calls are
+  still followed.
+- Explicit owner approval remains necessary only for protected policy changes,
+  changes to binding acceptance contracts, reserved architecture decisions,
+  security exceptions, costs that are not authorised, and ruleset changes outside
+  an earlier mandate. Once the owner has approved such a change in substance, no
+  second approval is needed to enqueue it.
+- Unchanged: the required checks, the applicable acceptance gates and holds,
+  dependency order, protected-file review, the Security Floor, D1–D3,
+  `--match-head-commit`, and the prohibitions on `--admin`, bypasses and
+  auto-merge outside a delegation.
+
+**Consequence:** only real exceptions and substantive owner decisions reach the
+project owner; regular integration within the mandate is autonomous.
+
 ## ADR-KEYRING-LOCK-20261126 — Key erasure before S3 by kernel teardown of the Key Service instance
 
 **Status:** this ADR records decisions at two levels of authority.
