@@ -7,6 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 from unittest import TestCase, main, mock
+from urllib.error import HTTPError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -765,11 +766,13 @@ class GateTests(TestCase):
     """Phase 3: the pull_request path verifies every applicable gate from base-side code."""
 
     def decide(self, plan=None, runs_=None, jobs=None, pull=None, ancestor=0, page_size=100, totals=None,
-               polls=None, rerun_during_read=None, settle_during_read=None, later_jobs=None):
+               polls=None, rerun_during_read=None, settle_during_read=None, later_jobs=None, via_main=False):
         """rerun_during_read: a run that keeps changing; its first re-read shows these fields, each
         later one yet another attempt. settle_during_read: a run that moved on once and then holds
         these fields (a list gives the fields of each re-read in turn, the last one held).
-        later_jobs: the jobs of a run from its second jobs read on."""
+        later_jobs: the jobs of a run from its second jobs read on. An exception in place of fields
+        or jobs is raised by that read. via_main: decide through main() with no acceptance hold set;
+        returns (exit code is 0, its output, state)."""
         plan = plan or plan_fixture()
         state = {"poll": 0, "calls": [], "sleeps": 0}
         clock = [0.0]
@@ -790,6 +793,8 @@ class GateTests(TestCase):
                     if isinstance(fields, list):  # one overlay per re-read; the last one holds
                         rereads[run_id] = rereads.get(run_id, 0) + 1
                         fields = fields[min(rereads[run_id], len(fields)) - 1]
+                    if isinstance(fields, Exception):
+                        raise fields
                     return {**current, **fields}
                 change = (rerun_during_read or {}).get(run_id)
                 if change is None:
@@ -804,6 +809,8 @@ class GateTests(TestCase):
                 listed = (jobs or GOOD_JOBS).get(run_id, [])
                 if job_reads[run_id] > 1 and run_id in (later_jobs or {}):
                     listed = later_jobs[run_id]
+                if isinstance(listed, Exception):
+                    raise listed
                 key = "jobs"
             else:
                 listed = runs_ if runs_ is not None else GOOD_RUNS
@@ -825,6 +832,11 @@ class GateTests(TestCase):
                 mock.patch.object(merge_hold, "git", return_value=(ancestor, "")), \
                 mock.patch.object(merge_hold.time, "sleep", sleep), \
                 mock.patch.object(merge_hold.time, "monotonic", lambda: clock[0]):
+            if via_main:
+                out = io.StringIO()
+                with mock.patch.object(merge_hold, "fetch_all", lambda token, url: []), \
+                        contextlib.redirect_stdout(out):
+                    return merge_hold.main() == 0, out.getvalue(), state
             passed, lines = merge_hold.pull_request_gates("x", "o/r", 7, HEAD)
         return passed, "\n".join(lines), state
 
@@ -1273,7 +1285,7 @@ class GateTests(TestCase):
         self.assertIn("changed while it was read (now attempt 2, queued)", out)
 
     def test_a_skipped_non_gate_run_that_completes_between_reads_is_not_pending(self):
-        """#494: a label-skipped run starts no re-check, so it must not leave merge-hold Pending."""
+        """#494: a label-skipped run that completes between reads must not leave merge-hold Pending."""
         probe = ".github/workflows/probe.yml"
         plan = plan_fixture(excluded=plan_fixture()["excluded"] + [
             {"id": "probe#p", "class": "manual", "workflow": probe, "job": "p", "check_name": "p",
@@ -1314,7 +1326,12 @@ class GateTests(TestCase):
         self.assertIn("0 pending; 1 failed.", out)
 
     def test_a_failed_gate_that_settles_in_a_new_running_attempt_is_pending(self):
-        """The failure belongs to the old attempt; the new one runs and lists no job yet."""
+        """The failure belongs to the old attempt; the new one runs and lists no job yet.
+
+        Assumption: once the re-reads show the new attempt running, `filter=latest` no longer lists
+        the old attempt's jobs. Should it still list the old failed job, the run is reported Failed,
+        as base already reports it once the run listing shows the re-run; that case is known, low
+        priority and deliberately left unchanged."""
         failed = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")]
         jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]}
         passed, out, _ = self.decide(
@@ -1341,15 +1358,90 @@ class GateTests(TestCase):
         self.assertIn("Pending: .github/workflows/leaves.yml: run 2 attempt 1 changed while it was read "
                       "(now attempt 2, in_progress)", out)
 
-    def test_a_settled_record_is_reported_under_the_run_whose_jobs_were_read(self):
-        """GitHub returns the requested run; should a re-read ever name another id, the report still
-        names the run these reads were made for."""
+    def test_a_re_read_that_names_another_run_stays_pending(self):
+        """GitHub returns the requested run; should a re-read ever name another id, the jobs read
+        beside it cannot be tied to this run, so it stays pending under the run that was requested.
+        A settled record is judged under the requested run: see the moved-on test above."""
+        for reads in ([{"id": 99}, {}],  # the second read, attempt and status unchanged
+                      [{"id": 99, "run_attempt": 2}, {"run_attempt": 2}],
+                      [{"run_attempt": 2}, {"id": 99, "run_attempt": 2}],  # the third read
+                      {"id": 99, "run_attempt": 2, "conclusion": "failure"}):  # both reads
+            with self.subTest(reads=reads):
+                passed, out, _ = self.decide(settle_during_read={2: reads},
+                                             later_jobs={2: [job(24, 2, "quality (viewer)", "failure")]})
+                self.assertFalse(passed)
+                self.assertIn("Pending: .github/workflows/leaves.yml: run 2 attempt 1 changed while it was read",
+                              out)
+                self.assertIn("1 pending; 0 failed.", out)
+                self.assertNotIn("run 99", out)
+
+    def test_a_re_read_older_than_the_listing_never_passes(self):
+        """D2 on CI-SETTLE: both re-reads may lag behind the run listing. A failed attempt 2 in the
+        listing must not pass on an attempt 1 that both re-reads still return green."""
+        failed = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure", attempt=2)]
         passed, out, _ = self.decide(
-            settle_during_read={2: {"id": 99, "run_attempt": 2, "conclusion": "failure"}},
-            later_jobs={2: [job(24, 2, "quality (viewer)", "failure")]})
+            runs_=failed, jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]},
+            settle_during_read={2: {"run_attempt": 1, "conclusion": "success"}},
+            later_jobs={2: [job(21, 2, "quality (viewer)")]})
         self.assertFalse(passed)
-        self.assertIn("Failed: quality (viewer): failure in run 2 attempt 2", out)
-        self.assertNotIn("run 99", out)
+        self.assertIn("Pending: .github/workflows/leaves.yml: run 2 attempt 2 changed while it was read "
+                      "(now attempt 1, completed)", out)
+        self.assertNotIn("Passed: quality (viewer)", out)
+
+    def test_a_queued_attempt_is_not_judged_on_an_older_completed_re_read(self):
+        """D2 on CI-SETTLE: the listing shows attempt 2 queued; the lagging re-reads show attempt 1
+        completed and green, which says nothing about attempt 2."""
+        queued = [wf_run(1, CI), wf_run(2, LEAVES, "queued", None, attempt=2)]
+        passed, out, _ = self.decide(
+            runs_=queued, jobs={**GOOD_JOBS, 2: []},
+            settle_during_read={2: {"run_attempt": 1, "status": "completed", "conclusion": "success"}},
+            later_jobs={2: [job(21, 2, "quality (viewer)")]})
+        self.assertFalse(passed)
+        self.assertIn("Pending: .github/workflows/leaves.yml: run 2 attempt 2 changed while it was read "
+                      "(now attempt 1, completed)", out)
+        self.assertNotIn("Passed: quality (viewer)", out)
+
+    def test_a_run_attempt_that_is_not_an_integer_stays_pending(self):
+        """Without an integer attempt in the listing and the settled record, their order is unknown."""
+        for listed, settled in ((None, 1), ("1", 1), (1, "2"), (1, None)):
+            with self.subTest(listed=listed, settled=settled):
+                passed, out, _ = self.decide(runs_=[wf_run(1, CI), wf_run(2, LEAVES, attempt=listed)],
+                                             settle_during_read={2: {"run_attempt": settled}})
+                self.assertFalse(passed)
+                self.assertIn(f"Pending: .github/workflows/leaves.yml: run 2 attempt {listed} changed while "
+                              f"it was read (now attempt {settled}, completed)", out)
+
+    def test_an_api_error_in_a_settle_read_fails_closed(self):
+        """D2 on CI-SETTLE: an HTTPError is an OSError, so main() fails closed on one in the second
+        jobs read or the third run read; the run is never judged on a partial settle."""
+        error = HTTPError("https://api.github.com/x", 502, "Bad Gateway", None, None)
+        cases = {"second jobs read": ({2: {"run_attempt": 2}}, {2: error}, "/actions/runs/2/jobs?filter=latest&"),
+                 "third run read": ({2: [{"run_attempt": 2}, error]}, None, "/actions/runs/2")}
+        for read, (settle, later, url) in cases.items():
+            with self.subTest(read=read):
+                passed, out, state = self.decide(settle_during_read=settle, later_jobs=later, via_main=True)
+                self.assertFalse(passed)
+                self.assertIn("::error::merge-hold could not decide (HTTP Error 502: Bad Gateway); failing closed.",
+                              out)
+                self.assertNotIn("Passed:", out)
+                failing = state["calls"][-1]  # the read that raised, and it was the second of its kind
+                self.assertIn(url, failing)
+                self.assertEqual(state["calls"].count(failing), 2)
+
+    def test_an_advisory_run_that_settles_in_progress_is_not_counted_as_passed(self):
+        """A non-gated run that moved on to a running attempt adds no Passed line, and like an
+        advisory run listed as running it holds nothing."""
+        advisory = ".github/workflows/advisory.yml"
+        plan = plan_fixture(excluded=plan_fixture()["excluded"] + [
+            {"id": "adv#a", "class": "advisory", "workflow": advisory, "job": "a", "check_name": "a",
+             "reason": "advisory"}])
+        passed, out, _ = self.decide(
+            plan=plan, runs_=GOOD_RUNS + [wf_run(5, advisory)], jobs={**GOOD_JOBS, 5: [job(51, 5, "a")]},
+            settle_during_read={5: {"run_attempt": 2, "status": "in_progress", "conclusion": None}},
+            later_jobs={5: [job(52, 5, "a", None, "in_progress")]})
+        self.assertTrue(passed, out)
+        self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 0 failed.", out)
+        self.assertNotIn("run 5", out)
 
     def test_the_jobs_re_read_keeps_only_jobs_of_the_run_that_was_read(self):
         """A job of another run in the second jobs read must not decide this run's gate."""
