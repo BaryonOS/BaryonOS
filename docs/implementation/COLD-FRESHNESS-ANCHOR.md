@@ -189,7 +189,7 @@ None of them is ever an acceptance; N04 maps each to a denial (fail closed).
 
 | Error | Produced by the kernel anchor service when |
 |---|---|
-| `Unavailable` | the boot is `DEGRADED` (verified TPM identity with a lost or behind anchor; the kernel does not claim the CRB, REL-05 section 10.2); the TPM is faulty or times out at run time; the index is missing, never extended, or its public area differs from the constants (cleared, replaced or squatted TPM) |
+| `Unavailable` | the TPM is faulty or times out at run time; the index is missing, never extended, or its public area differs from the constants (a TPM cleared at run time, or a squatted index). A TPM that is absent, cleared, replaced or rolled back before boot halts the loader (REL-05 sections 7.8 and 7.9), so no kernel runs on it |
 | `Corrupt` | read-back mismatch after the extend |
 | `Conflict` | the chain differs from `expected` |
 | `RateLimited` | the per-domain extend budget of this boot is spent, or the TPM reports `TPM_RC_NV_RATE` |
@@ -314,7 +314,8 @@ provisioning or recovery, never by the policy process on its own. On a
 provisioned index no extend reproduces the genesis chain, because the chain
 never returns to zero.
 
-A cleared, replaced or rolled-back TPM yields `Unavailable` (index missing,
+A TPM cleared, replaced or rolled back before boot halts the loader (REL-05
+sections 7.8 and 7.9); at run time such a TPM yields `Unavailable` (index missing,
 never extended, public area changed, or the REL-05 TPM identity check of
 section 10.5 fails) or a store that no longer matches: fail closed, 5A
 behaviour. Explicit recovery is the authenticated REL-05 recovery (owner
@@ -343,7 +344,7 @@ Agreed with N on 25 November 2026. Residual risks are stated literally; no
 | T3 at run time, M1-HAUTH provisioned | undefine, redefine, clear, read `HAUTH` | **refused**: `TPM_RC_BAD_AUTH` / `AUTH_FAIL` / `POLICY_FAIL` on swtpm (probe H1–H3), next honest boot rejects X as `Stale` (`undefine_redefine_replay_refused_with_hauth_provisioning`). Writing the loader record is refused in the host model only (U26). Not yet native |
 | T3 using ACPI S3: suspend without `TPM2_Shutdown(STATE)` | firmware may fall back to `Startup(CLEAR)` on resume, resetting PCR 13 to 0³² inside the same kernel, then read `HAUTH` | **NOT defended, unverified (U27)**: until the TPM-bearing TEST configuration disables S3 or the firmware is shown to halt or cap PCR 13 on resume, the runtime claim excludes S3 |
 | T3 with an OS-usable platformAuth (U23 broken) | platform `TPM2_Clear`, then rebuild the old chain and its own `HAUTH`/hierarchy auth | denial *(host model only; rests on the open loader record U26 and on the U13c store: the UEFI copy survives the clear, is written after the TPM copy and is not writable at run time, U28)*: the record is missing or squatted (a forged record in a writable squat is ignored, `forged_record_after_a_platform_clear_is_never_adopted`), the next boot halts until a newer recovery record, recovery clears the foreign hierarchy and provisions new secrets, old stores are `Foreign` (`tpm_clear_is_denial_until_authorised_recovery`). If the UEFI copy is lost as well: revival (U13c residual above) |
-| T3 while ownerAuth is empty (a cleared TPM that reached a kernel, REL-05 section 7 item 9 open) | squat the `HAUTH` or record handle (probe S1, S4) | **refused in the host model**: owner squats are removed before the secret is written, a platform squat halts (`squatted_hauth_never_receives_the_secret`); loader slice open |
+| T3 while ownerAuth is empty (a cleared TPM that reached a kernel; REL-05 §7.9 now halts the loader on a cleared TPM, loader slice open) | squat the `HAUTH` or record handle (probe S1, S4) | **refused in the host model**: owner squats are removed before the secret is written, a platform squat halts (`squatted_hauth_never_receives_the_secret`); loader slice open |
 | T3 | set `endorsementAuth`; trip the lockout hierarchy with a wrong `lockoutAuth` | denial: EK check fails (section 10.5 halt); recovery uses ownerAuth, not lockoutAuth |
 | Boot-path attacker before B04: loader replaced on the ESP, `BootNext` to other code, or T5 (foreign OS) | run code at PCR 13 = 0³², read `HAUTH`, then undefine, redefine and replay | **revival of an older store one reboot later: NOT defended until B04** (residual `reboot_path_attacker_at_pcr13_zero_still_revives`). PCR 13 phase separation does not authenticate the boot path, the TPM identity or the kernel |
 | swtpm host administrator | snapshot and restore the whole TPM state with a matching store | not defended (REL-05 threat model) |
@@ -395,13 +396,13 @@ Listed in REL-05 section 14; the host model assumes them, S5 must prove them.
 - U28 The UEFI copy of the accepted pair (U13c) survives TPM clear and
   replacement and cannot be written after `ExitBootServices`
   (boot-services-only variable). The host model assumes it.
-- REL-05 section 7 item 9 still routes a cleared TPM to a `DEGRADED`
-  known-good boot, which runs the kernel with an empty ownerAuth; M1-HAUTH
-  and C665 require a halt until authorised recovery. Owner decision of
-  26 November 2026: C665 takes precedence over ADR decision 6 for every TPM
-  without a verified identity (absent, faulty, unenrolled, replaced or reset:
-  halt, never `DEGRADED`); a cleared TPM that still proves its enrolled EK
-  remains the open question REL-05 §7.9.
+- REL-05 §7.9 (owner decision of 26 November 2026): a cleared TPM that
+  still proves its enrolled EK halts until authenticated recovery, like every
+  TPM without a verified identity (C665 precedence); `DEGRADED` is removed, so
+  no kernel runs with an empty ownerAuth after a clear. Host model only: the
+  loader slice and native case C18a are open, and the TEST loader's M1-HAUTH
+  path still provisions whenever ownerAuth is unset, which a clear also
+  produces (REL-05 section 7.9 table, open binding condition).
 - U26 Loader record design: *designed* as `LREC` (table above; probe
   b03-rel05-lrec-probe-20261125; codec `update_core::trial::LoaderRecord`). The clear-is-denial result rests on it;
   the loader code, native S5 tests and power-loss atomicity (U22) are open.
@@ -428,7 +429,7 @@ kernel (T3) reaches every domain. There is no cloud, NAS or software fallback
 Cold restart accept; roll forward once after a cut at A1; accept after a cut
 at X; replayed older store refused; sibling store refused after an
 acknowledgement; stray extend → denial; lost response → no double extend;
-TPM absent → the loader halts (REL-05 C16); cleared, squatted or never provisioned → `Unavailable`; replaced
+TPM absent, cleared or REL-05 index squatted → the loader halts (REL-05 C16, C18a, C21); N04 index missing, squatted or never provisioned with the REL-05 anchor intact → `Unavailable`; replaced
 TPM → `Foreign` until authorised genesis; same-TPM re-genesis with a fresh
 instance after a stray extend; `Conflict` on a concurrent extend;
 spent budget → `RateLimited`; a network capability cannot reach the update

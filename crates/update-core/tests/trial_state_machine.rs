@@ -195,13 +195,24 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
     let post = cur;
     let post_eff = post.effective();
     assert!(post_eff >= pre_eff, "I1: {}", ctx());
-    let degraded = plan.path.iter().any(|s| *s == State::Degraded);
-    // I7: DEGRADED never writes and never trials.
+    // Owner decisions 26 Nov (sections 7.8, 7.9): every halt that only
+    // authenticated recovery resolves writes nothing and says so.
+    if let Outcome::Halt(
+        Halt::TpmIdentity | Halt::TpmUnenrolled | Halt::UefiFloorMissing | Halt::TpmAnchor,
+    ) = plan.outcome
+    {
+        assert!(plan.writes.is_empty(), "recovery halt wrote: {}", ctx());
+        assert!(
+            plan.markers.iter().any(|m| *m == Marker::RecoveryRequired),
+            "no recovery message: {}",
+            ctx()
+        );
+    }
     // C665/U13: an unidentified TPM is never written and never trialled.
     // An enrolled device whose ENROLL file was deleted looks unenrolled, so
     // UNENROLLED must fail closed too (review: record existence is not protected).
     // Owner decision 26 Nov: C665 prevails over decision 6, so a TPM without a
-    // verified identity (absent, faulty, dirty PCR 13) halts too, never DEGRADED.
+    // verified identity (absent, faulty, dirty PCR 13) halts too (section 7.8).
     if matches!(
         dev,
         Dev::IdentityMismatch | Dev::Unenrolled | Dev::Absent | Dev::Fault | Dev::PcrDirty
@@ -213,12 +224,7 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
         };
         assert_eq!(plan.outcome, Outcome::Halt(halt), "{}", ctx());
         assert!(plan.writes.is_empty(), "U13 write: {}", ctx());
-        assert!(!degraded, "unverified TPM degraded: {}", ctx());
         return pre.clone();
-    }
-    if degraded {
-        assert!(plan.writes.is_empty(), "I7 write: {}", ctx());
-        assert!(trial_binding(plan).is_none(), "I7 trial: {}", ctx());
     }
     // I2: a raise needs a matching durable confirmation for the pending trial.
     if post_eff > pre_eff {
@@ -254,12 +260,8 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
                 "{}",
                 ctx()
             );
-            // DEGRADED trusts only the UEFI copy (section 10.2); the BFS
-            // proves UEFI >= FLOOR in every reachable state (F1 before F2).
-            let visible = if degraded { pre.uefi } else { post_eff };
-            assert!(h.version >= visible, "I6 below floor: {}", ctx());
-            // I7: DEGRADED hands over only the confirmed version (spec 10.2).
-            assert!(!degraded || h.version == pre.uefi, "I7 version: {}", ctx());
+            // The BFS proves UEFI >= FLOOR in every reachable state (F1 before F2).
+            assert!(h.version >= post_eff, "I6 below floor: {}", ctx());
             match h.mode {
                 Mode::Trial(b) => {
                     assert_eq!(h.extend, Some(Phase::Open), "{}", ctx());
@@ -296,18 +298,6 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
                     assert_eq!(h.version, post_eff, "{}", ctx());
                     assert_eq!(h.extend, Some(Phase::Closed), "{}", ctx());
                 }
-                Mode::Degraded(class) => {
-                    // Only a verified TPM with a lost or behind anchor degrades.
-                    assert!(
-                        matches!(class, TpmClass::AnchorLost | TpmClass::AnchorBehind),
-                        "{}",
-                        ctx()
-                    );
-                    assert_eq!(h.extend, Some(Phase::Closed), "{}", ctx());
-                    // I7 on the mode itself, not only the path.
-                    assert!(degraded, "{}", ctx());
-                    assert_eq!(h.version, pre.uefi, "I7 mode version: {}", ctx());
-                }
             }
         }
         Outcome::Halt(Halt::TpmExtend) => assert_eq!(dev, Dev::ExtendBroken, "{}", ctx()),
@@ -315,6 +305,11 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
             panic!("identity halt without an identity failure: {}", ctx())
         }
         Outcome::Halt(Halt::UefiFloorWrite) => panic!("executor-only halt: {}", ctx()),
+        // §7.9: a verified TPM whose anchor is lost or behind never boots.
+        Outcome::Halt(Halt::TpmAnchor) => {
+            assert!(matches!(dev, Dev::Ready | Dev::ExtendBroken), "{}", ctx());
+            assert!(trial_binding(plan).is_none(), "{}", ctx());
+        }
         // C665: an absent UEFI floor (NVRAM reset) is never auto-healed; only
         // authenticated recovery restores it. No write before the halt.
         Outcome::Halt(Halt::UefiFloorMissing) => {
@@ -325,10 +320,8 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
         Outcome::Halt(Halt::NoValidSlot) => {
             // I5: a valid known-good slot is never refused. Known-good means the
             // floor version and, once finalized, the recorded manifest (M2).
-            // DEGRADED cannot read that record and halts on ambiguity instead.
-            let known = (!degraded)
-                .then(|| post.floor_rec())
-                .flatten()
+            let known = post
+                .floor_rec()
                 .filter(|f| f.last_generation != 0)
                 .map(|f| f.last_digest);
             let good: Vec<_> = disk
@@ -336,8 +329,7 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
                 .flatten()
                 .filter(|(v, w)| *v == plan.floor && known.is_none_or(|d| d == digest(*v, *w)))
                 .collect();
-            let ambiguous = degraded && good.len() == 2 && good[0] != good[1];
-            assert!(good.is_empty() || ambiguous, "I5: {}", ctx());
+            assert!(good.is_empty(), "I5: {}", ctx());
         }
     }
     if dev == Dev::ExtendBroken {
@@ -577,8 +569,8 @@ fn every_tpm_fault_class_fails_closed_without_writes() {
                         let plan = boot(&s, &disk, 0, dev);
                         check_plan(&s, &disk, dev, &plan);
                         if i > 0 && matches!(dev, Dev::Ready | Dev::ExtendBroken) {
-                            // Every corrupted anchor is ANCHOR_LOST (or BEHIND).
-                            assert!(plan.path.iter().any(|p| *p == State::Degraded));
+                            // Every corrupted anchor is ANCHOR_LOST (or BEHIND): halt.
+                            assert_eq!(plan.outcome, Outcome::Halt(Halt::TpmAnchor));
                             assert!(plan.writes.is_empty());
                         }
                         n += 1;
@@ -628,7 +620,7 @@ fn check_resume(cut: &Store, disk: &Disk, hint: u8, plan: &Plan, k: usize) {
     let ws = writes(plan);
     let done = &ws[..k];
     let next = boot(cut, disk, hint, Dev::Ready);
-    // A cut between F1 and F2 resumes FINALIZE; it never ends DEGRADED.
+    // A cut between F1 and F2 resumes FINALIZE; it never halts on the anchor.
     let f1 = done.iter().any(|w| matches!(w, Write::UefiFloor(_)))
         && plan.path.iter().any(|p| *p == State::Finalize);
     let f2 = done.iter().any(|w| matches!(w, Write::Floor(_)));
@@ -637,7 +629,7 @@ fn check_resume(cut: &Store, disk: &Disk, hint: u8, plan: &Plan, k: usize) {
             next.path.iter().any(|p| *p == State::Finalize),
             "F1→F2 resume: {cut:?} {next:?}"
         );
-        assert!(!next.path.iter().any(|p| *p == State::Degraded));
+        assert_ne!(next.outcome, Outcome::Halt(Halt::TpmAnchor));
     }
     // A durable T2 counts: the next boot continues with attempt n+1 or exhausts.
     if let Some(Write::Trial(t)) = done.last() {
@@ -1031,9 +1023,10 @@ fn power_cut_between_f1_and_f2_resumes_finalization() {
     assert!(matches!(ws[0], Write::UefiFloor(2)) && matches!(ws[1], Write::Floor(_)));
     m.store.apply(&ws[0]);
     let b = m.boot(Kernel::Crash);
-    assert!(has(&b, "BOOT:CONFIRM:FINALIZED:2:2") && !has(&b, "BOOT:MODE:DEGRADED"));
+    assert!(has(&b, "BOOT:CONFIRM:FINALIZED:2:2") && !has(&b, "BOOT:RECOVERY:REQUIRED"));
     assert_eq!(m.store.floor_rec().unwrap().floor, 2);
-    // TPM lost in that window: the raise survives in UEFI, boot degrades.
+    // TPM cleared in that window: the raise survives in UEFI and the boot
+    // halts for authenticated recovery (section 7.9).
     let mut m = Machine::new(1);
     m.disk[1] = Some((2, 0));
     m.boot(Kernel::Healthy);
@@ -1044,10 +1037,10 @@ fn power_cut_between_f1_and_f2_resumes_finalization() {
     };
     let b = m.boot(Kernel::Crash);
     assert!(
-        has(&b, "BOOT:TPM:ANCHOR_LOST") && has(&b, "BOOT:FLOOR:2"),
+        has(&b, "BOOT:TPM:ANCHOR_LOST") && has(&b, "BOOT:FAIL:TPM_ANCHOR"),
         "{b:?}"
     );
-    assert!(has(&b, "BOOT:SLOT:B:VERSION:2"));
+    assert!(!b.iter().any(|x| x.starts_with("BOOT:SLOT:")) && m.store.uefi == 2);
 }
 
 #[test]
@@ -1075,50 +1068,47 @@ fn tpm_missing_faulty_cleared_replaced_or_rolled_back() {
         assert_eq!(plan.outcome, Outcome::Halt(Halt::TpmIdentity));
         assert!(plan.writes.is_empty());
     }
-    // C18a: a cleared TPM that still proves its enrolled EK loses its anchor.
-    // DEGRADED versus halt here is the open owner question REL-05 §7.9: this
-    // pins the current model, not an owner decision. C21 squatted: anchor lost.
+    // C18a, C21 and C19 (owner decision REL-05 section 7.9, 26 Nov): a matching
+    // EK proves identity, not continuity. A cleared, squatted or rolled-back
+    // anchor halts for authenticated recovery, writes nothing and keeps the
+    // highest floor (the UEFI copy at 2), even with a newer candidate on disk.
     let kept = m.store.clone();
-    m.store = Store {
-        uefi: 2,
-        ..cleared()
-    };
-    let b = m.boot(Kernel::Healthy);
-    assert!(has(&b, "BOOT:TPM:ANCHOR_LOST") && has(&b, "BOOT:FLOOR:2"));
-    m.store = kept.clone();
-    m.store.public_ok = false;
-    let b = m.boot(Kernel::Healthy);
-    assert!(has(&b, "BOOT:TPM:ANCHOR_LOST"));
-    // C19 rolled back to the pre-update TPM state with the UEFI copy at 2.
-    m.store = Store {
-        uefi: 2,
-        ..snapshot
-    };
     m.disk[0] = Some((3, 0));
-    let b = m.boot(Kernel::Healthy);
-    assert!(
-        has(&b, "BOOT:TPM:ANCHOR_BEHIND") && has(&b, "BOOT:FLOOR:2"),
-        "{b:?}"
-    );
-    assert!(has(&b, "BOOT:SLOT:B:VERSION:2") && !b.iter().any(|x| x.contains("TRIAL")));
-    // Degraded with only a rejected version above the floor: never booted.
-    let mut m = Machine::new(1);
-    m.disk[1] = Some((2, 0));
-    for _ in 0..4 {
-        m.boot(Kernel::Crash);
+    for (store, class) in [
+        (
+            Store {
+                uefi: 2,
+                ..cleared()
+            },
+            "BOOT:TPM:ANCHOR_LOST",
+        ),
+        (
+            Store {
+                public_ok: false,
+                ..kept
+            },
+            "BOOT:TPM:ANCHOR_LOST",
+        ),
+        (
+            Store {
+                uefi: 2,
+                ..snapshot
+            },
+            "BOOT:TPM:ANCHOR_BEHIND",
+        ),
+    ] {
+        m.store = store;
+        let (plan, b) = m.boot_with(Dev::Ready, Kernel::Healthy);
+        assert!(
+            has(&b, class) && has(&b, "BOOT:FAIL:TPM_ANCHOR") && has(&b, "BOOT:RECOVERY:REQUIRED"),
+            "{b:?}"
+        );
+        assert!(!b
+            .iter()
+            .any(|x| x.starts_with("BOOT:SLOT:") || x.contains("TRIAL")));
+        assert_eq!(plan.outcome, Outcome::Halt(Halt::TpmAnchor));
+        assert!(plan.writes.is_empty() && m.store.uefi == 2);
     }
-    m.disk[0] = None;
-    m.store.public_ok = false;
-    let (plan, b) = m.boot_with(Dev::Ready, Kernel::Crash);
-    // Spec 10.2: no slot at the UEFI floor, so halt rather than boot the
-    // rejected v2 as known-good.
-    assert!(
-        has(&b, "BOOT:MODE:DEGRADED")
-            && has(&b, "BOOT:FAIL:NO_VALID_SLOT")
-            && !b.iter().any(|x| x.starts_with("BOOT:SLOT:")),
-        "{b:?}"
-    );
-    assert!(trial_binding(&plan).is_none() && plan.writes.is_empty());
 }
 
 #[test]
@@ -1152,6 +1142,8 @@ fn marker_strings_match_the_spec() {
             "BOOT:TPM:ANCHOR_BEHIND",
         ),
         (Marker::FailTpmExtend, "BOOT:FAIL:TPM_EXTEND"),
+        (Marker::FailTpmAnchor, "BOOT:FAIL:TPM_ANCHOR"),
+        (Marker::RecoveryRequired, "BOOT:RECOVERY:REQUIRED"),
         (Marker::TrialRefused(2), "BOOT:TRIAL:REFUSED:2"),
     ];
     for (m, s) in cases {
@@ -1217,17 +1209,10 @@ fn known_good_requires_the_finalized_manifest() {
             "{plan:?}"
         );
     }
-    // DEGRADED (verified TPM, squatted anchor) cannot read the record:
-    // ambiguity halts.
-    s.public_ok = false;
-    let plan = boot(&s, &both, 1, Dev::Ready);
-    check_plan(&s, &both, Dev::Ready, &plan);
-    assert!(plan.path.iter().any(|p| *p == State::Degraded), "{plan:?}");
-    assert_eq!(plan.outcome, Outcome::Halt(Halt::NoValidSlot));
 }
 
 /// C665/U13: FLOOR ahead of UEFI (NVRAM reset or replaced TPM) heals only for
-/// a verified TPM identity; a mismatch halts, an unenrolled TPM degrades.
+/// a verified TPM identity; a mismatch or an unenrolled TPM halts.
 #[test]
 fn floor_heal_requires_verified_tpm_identity() {
     let mut s = provisioned(3, 1);
@@ -1248,7 +1233,6 @@ fn floor_heal_requires_verified_tpm_identity() {
     check_plan(&s, &disk, Dev::Unenrolled, &unenrolled);
     assert_eq!(unenrolled.outcome, Outcome::Halt(Halt::TpmUnenrolled));
     assert!(unenrolled.writes.is_empty());
-    assert!(!unenrolled.path.iter().any(|p| *p == State::Degraded));
     assert!(unenrolled
         .markers
         .iter()

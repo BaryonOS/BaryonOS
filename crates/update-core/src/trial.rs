@@ -299,8 +299,7 @@ pub enum Identity {
 
 /// `Absent`, `Fault` and `PcrDirty` carry no verified identity, so [`step`]
 /// halts on them without a write: C665 takes precedence over ADR decision 6
-/// (project owner, 26 November 2026) and `DEGRADED` follows only a verified
-/// identity.
+/// (project owner, 26 November 2026). There is no `DEGRADED` boot (section 7.9).
 // No allocator in the loader; one value per boot, so the size is irrelevant.
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -358,7 +357,6 @@ pub enum Write {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
     Init,
-    Degraded,
     Finalize,
     Abandon,
     Exhausted,
@@ -422,7 +420,6 @@ impl TrialBinding {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
     KnownGood,
-    Degraded(TpmClass),
     Trial(TrialBinding),
 }
 
@@ -432,7 +429,7 @@ pub struct Handover {
     pub version: u64,
     pub digest: [u8; 32],
     pub mode: Mode,
-    /// `None` only without TCG2.
+    /// Always set: every handover has a verified TPM (sections 7.8, 7.9).
     pub extend: Option<Phase>,
 }
 
@@ -451,6 +448,11 @@ pub enum Halt {
     UefiFloorMissing,
     /// A `UefiFloor` write failed; see [`Plan::uefi_write_failed`].
     UefiFloorWrite,
+    /// Verified identity, but the anchor is lost (cleared, squatted or
+    /// inconsistent) or behind the UEFI copy: a matching EK proves identity,
+    /// not continuity of the protected state. Authenticated recovery only
+    /// (project-owner decision REL-05 §7.9, 26 November 2026).
+    TpmAnchor,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -462,7 +464,6 @@ pub enum Outcome {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Marker {
     Tpm(TpmClass),
-    ModeDegraded,
     ModeKnownGood,
     ModeTrial,
     ConfirmFinalized {
@@ -490,6 +491,9 @@ pub enum Marker {
     FailTpmUnenrolled,
     FailUefiFloorMissing,
     FailUefiFloorWrite,
+    FailTpmAnchor,
+    /// Printed with every halt that only authenticated recovery resolves.
+    RecoveryRequired,
 }
 
 fn slot_name(slot: u8) -> char {
@@ -510,7 +514,6 @@ impl fmt::Display for Marker {
                 TpmClass::AnchorLost => "BOOT:TPM:ANCHOR_LOST",
                 TpmClass::AnchorBehind => "BOOT:TPM:ANCHOR_BEHIND",
             }),
-            Marker::ModeDegraded => f.write_str("BOOT:MODE:DEGRADED"),
             Marker::ModeKnownGood => f.write_str("BOOT:MODE:KNOWN_GOOD"),
             Marker::ModeTrial => f.write_str("BOOT:MODE:TRIAL"),
             Marker::ConfirmFinalized {
@@ -547,6 +550,8 @@ impl fmt::Display for Marker {
             Marker::FailTpmUnenrolled => f.write_str("BOOT:FAIL:TPM_UNENROLLED"),
             Marker::FailUefiFloorMissing => f.write_str("BOOT:FAIL:UEFI_FLOOR_MISSING"),
             Marker::FailUefiFloorWrite => f.write_str("BOOT:FAIL:UEFI_FLOOR_WRITE"),
+            Marker::FailTpmAnchor => f.write_str("BOOT:FAIL:TPM_ANCHOR"),
+            Marker::RecoveryRequired => f.write_str("BOOT:RECOVERY:REQUIRED"),
         }
     }
 }
@@ -606,8 +611,8 @@ impl Plan {
     }
 
     /// A planned `UefiFloor` write failed. Halt with this reason instead of
-    /// re-stepping: a `DEGRADED` boot would trust only the UEFI copy, which
-    /// then lies below `FLOOR` after a failed heal (review finding C686).
+    /// re-stepping: the UEFI copy would then lie below `FLOOR` after a failed
+    /// heal (review finding C686).
     pub fn uefi_write_failed(&mut self) {
         self.outcome = Outcome::Halt(Halt::UefiFloorWrite);
         self.path.push(State::Halt);
@@ -721,47 +726,33 @@ fn halt_no_slot(plan: &mut Plan) {
     plan.outcome = Outcome::Halt(Halt::NoValidSlot);
 }
 
-/// Owner decision of 26 November 2026: C665 prevails over ADR decision 6. A
-/// TPM without a verified identity never reaches `DEGRADED`; it halts like a
-/// failed identity proof, with no write and no kernel.
-fn unverified(mut plan: Plan, class: TpmClass) -> Plan {
+/// A halt that only authenticated recovery (section 10.5) resolves: no write,
+/// no kernel, all floors kept, and a recovery message. Owner decisions of
+/// 26 November 2026: C665 prevails over ADR decision 6 (an unverified TPM
+/// never boots, section 7.8) and REL-05 §7.9 (a verified TPM with a lost or
+/// behind anchor never boots, section 7.9); there is no `DEGRADED` boot.
+fn recovery_halt(mut plan: Plan, class: Option<TpmClass>, fail: Marker, halt: Halt) -> Plan {
     plan.path.push(State::Halt);
-    plan.markers.push(Marker::Tpm(class));
-    plan.markers.push(Marker::FailTpmIdentity);
-    plan.outcome = Outcome::Halt(Halt::TpmIdentity);
+    if let Some(class) = class {
+        plan.markers.push(Marker::Tpm(class));
+    }
+    plan.markers.push(fail);
+    plan.markers.push(Marker::RecoveryRequired);
+    plan.outcome = Outcome::Halt(halt);
     plan
 }
 
-/// Section 10.2, reached only with a verified TPM identity. Never writes. The
-/// floor is the UEFI copy: TPM content is untrusted here (a squatted index
-/// must not be able to raise it).
-fn degraded(obs: &Observation, mut plan: Plan, class: TpmClass) -> Plan {
-    plan.path.push(State::Degraded);
-    plan.markers.push(Marker::Tpm(class));
-    plan.markers.push(Marker::ModeDegraded);
-    let floor = obs.uefi_floor;
-    plan.floor = floor;
-    plan.markers.push(Marker::Floor(floor));
-    let extend = Some(Phase::Closed);
-    let hint = u8::from(obs.hint == 1);
-    // Only the confirmed version: a slot above the UEFI floor was never
-    // confirmed and may be a rejected trial, which the untrusted TPM content
-    // cannot rule out. Equal versions follow the hint (versions are never
-    // reused, section 6.4). Strict: two different manifests at the floor
-    // version halt, because the untrusted TPM cannot say which was confirmed.
-    let chosen = pick(&obs.slots, |s| s.version == floor, hint, true, true);
-    match chosen {
-        Some((slot, view)) => handover(
-            &mut plan,
-            slot,
-            view,
-            Mode::Degraded(class),
-            extend,
-            State::HandoverKnownGood,
-        ),
-        None => halt_no_slot(&mut plan),
-    }
-    plan
+fn unverified(plan: Plan, class: TpmClass) -> Plan {
+    recovery_halt(
+        plan,
+        Some(class),
+        Marker::FailTpmIdentity,
+        Halt::TpmIdentity,
+    )
+}
+
+fn anchor_lost(plan: Plan, class: TpmClass) -> Plan {
+    recovery_halt(plan, Some(class), Marker::FailTpmAnchor, Halt::TpmAnchor)
 }
 
 /// One boot's decision (section 7.1). Pure and total.
@@ -781,21 +772,19 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
         Tpm::Ready(anchor) => anchor,
     };
     // C665/U13: no record of an unidentified TPM is trusted or written.
-    let (marker, halt) = match anchor.identity {
-        Identity::Verified => (None, None),
-        Identity::Unenrolled => (Some(Marker::FailTpmUnenrolled), Some(Halt::TpmUnenrolled)),
-        Identity::Mismatch => (Some(Marker::FailTpmIdentity), Some(Halt::TpmIdentity)),
-    };
-    if let (Some(marker), Some(halt)) = (marker, halt) {
-        plan.path.push(State::Halt);
-        plan.markers.push(marker);
-        plan.outcome = Outcome::Halt(halt);
-        return plan;
+    match anchor.identity {
+        Identity::Verified => {}
+        Identity::Unenrolled => {
+            return recovery_halt(plan, None, Marker::FailTpmUnenrolled, Halt::TpmUnenrolled)
+        }
+        Identity::Mismatch => {
+            return recovery_halt(plan, None, Marker::FailTpmIdentity, Halt::TpmIdentity)
+        }
     }
     let floor_rec = anchor.floor.as_ref().and_then(FloorRecord::decode);
     let trial_rec = anchor.trial.as_ref().and_then(TrialRecord::decode);
     let (Some(fr), Some(mut t), Some(gen)) = (floor_rec, trial_rec, anchor.generation) else {
-        return degraded(obs, plan, TpmClass::AnchorLost);
+        return anchor_lost(plan, TpmClass::AnchorLost);
     };
     // Unspecified inconsistencies, all fail closed as anchor loss: a record
     // generation from the future, a PENDING record without a counted attempt,
@@ -806,7 +795,7 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
         || (t.state == TrialState::Pending && t.attempts == 0)
         || fr.revision == u64::MAX
     {
-        return degraded(obs, plan, TpmClass::AnchorLost);
+        return anchor_lost(plan, TpmClass::AnchorLost);
     }
 
     let check = if t.state == TrialState::Pending {
@@ -818,15 +807,17 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
     // C665: floors are provisioned >= 1, so 0 means the UEFI variable is gone
     // (NVRAM reset). That is healed only by authenticated recovery, never here.
     if obs.uefi_floor == 0 && fr.floor > 0 {
-        plan.path.push(State::Halt);
-        plan.markers.push(Marker::FailUefiFloorMissing);
-        plan.outcome = Outcome::Halt(Halt::UefiFloorMissing);
-        return plan;
+        return recovery_halt(
+            plan,
+            None,
+            Marker::FailUefiFloorMissing,
+            Halt::UefiFloorMissing,
+        );
     }
     let mut uefi = obs.uefi_floor;
     // Step 2: UEFI ahead of FLOOR is only the interrupted finalization (F1 done).
     if uefi > fr.floor && !(valid && t.version == uefi) {
-        return degraded(obs, plan, TpmClass::AnchorBehind);
+        return anchor_lost(plan, TpmClass::AnchorBehind);
     }
     if fr.floor > uefi {
         plan.writes.push(Write::UefiFloor(fr.floor));

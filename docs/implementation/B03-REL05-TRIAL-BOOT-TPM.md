@@ -13,8 +13,11 @@ while the binding is not demonstrably reliable (section 10.5); its host model
 and tests exist, its enrollment tool, EK session, recovery and native tests
 C23–C30 are pending (S3b, S5b). *Decided*: C665 takes precedence over ADR
 decision 6 (owner, 26 November 2026): a TPM without a verified identity halts
-and never boots `DEGRADED` (sections 10.1–10.2); REL-05 §7.9, a cleared TPM that
-still proves its enrolled EK, stays open. *Decided*: anchor finding M1 (owner, protected
+and never boots `DEGRADED` (section 7.8). *Decided*: REL-05 §7.9 (owner,
+26 November 2026): a cleared TPM that keeps its original EK halts for
+authenticated recovery, because a matching EK proves identity, not continuity;
+`DEGRADED` no longer exists (section 7.9, host model and tests only; the loader
+conditions of 7.9 are open and REL-05 stays open). *Decided*: anchor finding M1 (owner, protected
 slot via B, ADR-NET-ISSUER-20261125); B's extend-chain contract and host model
 exist (COLD-FRESHNESS-ANCHOR.md), native tests pending, and the
 undefine/redefine/replay residual awaits an owner decision. Decision record:
@@ -89,8 +92,8 @@ v1 is refused on every later boot.
 | T3 kernel compromise of a *non-trial* boot | Arbitrary CPL0 code after EBS. | Partially | PCR phase is `CLOSED`: cannot satisfy any write policy, so cannot write trial, floor or confirmation state. With empty TEST owner auth it can undefine indices → detected as anchor loss (denial of service, never a lower floor). |
 | T4 kernel compromise of the *trial* boot | Arbitrary CPL0 code in the candidate while the window is open. | Out of scope | The candidate is authenticated signed code; it can confirm itself. Same limit as any measured-boot confirmation. |
 | T5 boot-path attacker | Boots a foreign EFI application (no Secure Boot) or modifies the loader. | Out of scope until B04 | Reaches the loader phase (PCR at reset value) and can write every loader-only index, raise the floor (brick) or reset UEFI variables. Needs the authenticated loader chain of B04 (ADR-B03-B04-TARGET D5). |
-| T6 TPM cleared / replaced / faulty | Owner or lockout clear, a different TPM, swtpm state deleted, command failures. | Yes (O9) | Detected as anchor loss or fault (section 10); floor kept from UEFI NV; no trials, no floor raise. A TPM without a verified identity (absent, faulty, replaced, reset) halts until authenticated recovery (C665 precedence, 26 November 2026). |
-| T7 combined T1 + T6 + reset of `OVMF_VARS` | Every persistent anchor wiped together. | Not defended | Both floors return to 0; the `DEGRADED` loader then halts (no slot at floor 0, section 10.2), but an attacker who also re-provisions with the TEST tool (10.3) can mark an older signed release still present on disk as known-good. Mitigation is a compiled-in minimum version in the authenticated loader plus B04 (section 10.4). **This is why a TPM counter alone is not full rollback protection.** |
+| T6 TPM cleared / replaced / faulty | Owner or lockout clear, a different TPM, swtpm state deleted, command failures. | Yes (O9) | Detected as anchor loss or fault (section 10). Every class halts until authenticated recovery, without any write, so the UEFI floor is kept: a TPM without a verified identity (absent, faulty, replaced, reset; C665 precedence, section 7.8) and a verified TPM whose anchor is lost or behind, including a clear that keeps the EK (section 7.9). |
+| T7 combined T1 + T6 + reset of `OVMF_VARS` | Every persistent anchor wiped together. | Not defended | Both floors return to 0; the loader then halts (a fresh swtpm has a new endorsement key, so `BOOT:FAIL:TPM_IDENTITY`, C20; earlier: `DEGRADED` with no slot at floor 0), but an attacker who also re-provisions with the TEST tool (10.3) can mark an older signed release still present on disk as known-good. Mitigation is a compiled-in minimum version in the authenticated loader plus B04 (section 10.4). **This is why a TPM counter alone is not full rollback protection.** |
 | T8 power loss | Cut between any two persistent writes, or during a TPM command. | Yes | Every cut point has a defined successor state (section 7). |
 
 The host running QEMU/swtpm and its administrator are trusted in the TEST
@@ -132,7 +135,9 @@ profile; snapshotting swtpm state voids the independence assumption.
    precedence):* a TPM without a verified identity (absent, faulty, unenrolled,
    replaced or reset) halts until authenticated recovery; `DEGRADED` remains
    only for a verified TPM with a lost or inconsistent anchor (section 10.2).
-   A cleared TPM that still proves its enrolled EK is the open question §7.9.
+   *Superseded in full (owner, 26 November 2026, REL-05 §7.9):* a verified
+   TPM whose anchor is lost or behind halts too; there is no `DEGRADED` boot
+   (section 7.9).
 10. **Legacy profile untouched until migration.** A new loader feature
     `signed-boot-trial` carries the behaviour; `signed-boot` keeps ADR-049
     semantics until step S10 migrates the gate (section 12).
@@ -252,7 +257,7 @@ Per-boot loader states (all pre-EBS):
 | State | Meaning |
 |---|---|
 | `INIT` | TPM probed, PCR 13 read, public areas checked. |
-| `DEGRADED` | Verified TPM identity, anchor lost or behind (section 10). Terminal for this boot. |
+| `HALT` | Controlled halt before any handover and without any write; every halt that only authenticated recovery resolves also prints `BOOT:RECOVERY:REQUIRED` (sections 7.8, 7.9). Terminal for this boot. |
 | `FINALIZE` | `TRIAL` PENDING with a valid matching `CONFIRM` for its generation. |
 | `IDLE_SELECT` | No candidate eligible: boot known-good. |
 | `TRIAL_START` | Eligible candidate, attempts < 3: start attempt n+1. |
@@ -261,7 +266,8 @@ Per-boot loader states (all pre-EBS):
 | `HANDOVER_TRIAL` / `HANDOVER_KNOWN_GOOD` | PCR extended, BootInfo written, EBS. |
 
 Durable cross-boot state is the tuple `(TRIAL.state, TRIAL.gen, TRIAL.attempts,
-CONFIRM.gen, FLOOR.floor, FLOOR.last_gen, UEFI floor, GEN)`.
+CONFIRM.gen, FLOOR.floor, FLOOR.last_gen, UEFI floor, GEN)`. There is no
+`DEGRADED` state (owner decision REL-05 §7.9, 26 November 2026).
 
 ### 7.1 Boot algorithm (normative order)
 
@@ -287,7 +293,8 @@ it (owner decision C665). Otherwise, if `FLOOR.floor > UEFI` → heal: SetVariab
    (`BOOT:FAIL:UEFI_FLOOR_WRITE`) instead of degrading below `FLOOR`. If `UEFI > FLOOR.floor`, this is the interrupted
    finalization of 7.3 when `TRIAL` is PENDING, `CONFIRM` is valid for
    `TRIAL.gen` (step 4 checks) and `TRIAL.version == UEFI` → resume at F2.
-   Otherwise → `DEGRADED` (`ANCHOR_BEHIND`). Effective floor
+   Otherwise → halt `BOOT:TPM:ANCHOR_BEHIND`, `BOOT:FAIL:TPM_ANCHOR`,
+   `BOOT:RECOVERY:REQUIRED`, without any write (section 7.9). Effective floor
    `f = max(UEFI, FLOOR.floor)`.
 3. Verify both slot manifests (existing `verify_manifest`) **and each slot's
    image digest** against its manifest, independent of the header hint. A
@@ -352,7 +359,8 @@ with `BOOT:FAIL:TPM_IDENTITY` (S1 executor contract; C665 precedence,
 | F3 | `NV_Write(TRIAL = IDLE, max_rejected unchanged)` | Done; `CONFIRM` for g remains but is inert (generation never recurs). |
 
 The UEFI copy is written first so that a TPM loss between F1 and F2 still
-leaves the raised floor in UEFI NV (`DEGRADED` keeps it); writing `FLOOR`
+leaves the raised floor in UEFI NV (the section 7.9 halt keeps it, and the
+recovery record must not go below it); writing `FLOOR`
 first would lose the raise in that compound fault. After F3 the loader
 continues at step 5: the confirmed release is now `K`. A crash before F1
 leaves the confirmation durable; finalization is retried. A `FLOOR` read-back
@@ -403,12 +411,12 @@ counts or exhausts. NV_Write atomicity for one command is assumed *[U4]*.
   current `native-update` profile has no user-data volume, so that part of
   C3/C4 is not testable yet.
 - I7 Every loss or inconsistency of the anchor of a TPM with a verified
-  identity leads to `DEGRADED`, never to a lower floor or a trial; a TPM
-  without a verified identity halts without any write and never reaches
-  `DEGRADED` (C665 precedence, owner, 26 November 2026); a `DEGRADED` handover boots exactly the version
-  equal to the pre-boot UEFI floor (strict: two different manifests at that
-  version halt), otherwise the loader halts. An identity `MISMATCH` halts
-  without any write; a failed `UefiFloor` write halts (C686).
+  identity halts with `BOOT:FAIL:TPM_ANCHOR` and `BOOT:RECOVERY:REQUIRED`,
+  without any write, trial or handover, so it never lowers a floor (owner
+  decision REL-05 §7.9, 26 November 2026); a TPM without a verified identity
+  halts without any write (C665 precedence, section 7.8). An identity
+  `MISMATCH` halts without any write; a failed `UefiFloor` write halts
+  (C686). Every handover has a verified TPM with an intact anchor.
 - I9 (U13/C665) No write and no trial happen unless the TPM identity is
   verified; the known-good release after a finalization is the recorded
   manifest (`FLOOR.last_digest`, review M2).
@@ -431,6 +439,41 @@ specification left open; implementations follow it:
   simply not eligible. `BOOT:SLOT:<s>:REJECTED:DOWNGRADE` (C14, C15) remains
   the existing slot verifier's marker, outside S1.
 
+### 7.8 Identity precedence (C665, owner decision of 26 November 2026)
+
+C665 takes precedence over ADR decision 6: a TPM that is absent, faulty,
+unenrolled, replaced or reset, or whose identity cannot be verified for any
+other reason, halts before any record is trusted
+(`BOOT:FAIL:TPM_IDENTITY` or `BOOT:FAIL:TPM_UNENROLLED`, with
+`BOOT:RECOVERY:REQUIRED`) and is never routed around the identity binding.
+Recovery is the authenticated procedure of section 10.5.
+
+### 7.9 TPM clear and anchor loss (owner decision of 26 November 2026)
+
+**Decision (project owner, REL-05 §7.9):** fail closed. A TPM that was
+cleared but keeps its original endorsement key gets a controlled halt with
+authenticated recovery. A matching EK proves identity, not continuity of the
+protected state. The permission holds only within the existing
+TEST/QEMU/swtpm mandate. REL-05 stays open until every acceptance condition
+is met; the progress score stays 43/100.
+
+The loader applies it to every `ANCHOR_LOST` and `ANCHOR_BEHIND` class of
+section 10.1 once the identity is verified: halt with
+`BOOT:TPM:<ANCHOR_LOST|ANCHOR_BEHIND>`, `BOOT:FAIL:TPM_ANCHOR` and
+`BOOT:RECOVERY:REQUIRED`, without any write. The only `UEFI > FLOOR` case that
+continues is the interrupted finalization of 7.3 (step 2).
+
+| Binding condition (owner) | Status on this branch |
+|---|---|
+| No regular or `DEGRADED` boot once a TPM clear or the loss of required anchor state is detected. | Host model: `Halt::TpmAnchor`; `DEGRADED` removed; invariant I7 and the reachable-state search check it. Loader: open (S6). |
+| No automatic re-provisioning based only on a matching EK. | Host model: the halt writes nothing. **Open:** the TEST loader's M1-HAUTH path still provisions whenever `ownerAuth` is unset, which is also the state after a clear (`boot/loader/src/tpm_hauth.rs`); before acceptance it must tell first provisioning of a never-provisioned device (authorised by the signed `ENROLL` step, S3b) from a clear of a provisioned one, and halt on the latter. The TEST host tool of 10.3 is not automatic and stays limited to disposable swtpm state. |
+| Recovery only through an authenticated, demonstrably current recovery procedure. | Design: the recovery record of 10.5. **Open:** currency needs a record bound to this recovery (for example a device challenge), not only a serial; specification and implementation pending (S3b, U13c). |
+| Keep the highest reliably established anti-rollback floor. | Host model: no write on the halt, so the UEFI copy survives (`power_cut_between_f1_and_f2_resumes_finalization`, `tpm_missing_faulty_cleared_replaced_or_rolled_back`). Design: the recovery floor is `≥` every surviving copy (10.5). |
+| Prevent reactivation of revoked keys, grants and older anchor instances. | Design: accepted-serial rule (U13c), N04 re-anchors from genesis and network grants are not restored (10.5). **Open:** native tests, and the rule for older recovery records once the accepted pair is lost. |
+| When every reliable freshness record is lost, independently authorised recovery is mandatory. | Host model: TPM and UEFI copies both lost still halts (no route boots). **Open:** the recovery authority and its procedure; the residual `accepted_pair_survives_one_lost_copy` (both copies rolled back with the disk) is a binding open condition, not accepted risk. |
+| Preserve user data. | Halts write nothing, and the loader never writes the user-data partition (section 5 item 8); recovery leaves user data and slots untouched (10.5). Native evidence open (C3/C4 note). |
+| A clear recovery message. | `BOOT:RECOVERY:REQUIRED` with every recovery halt (model, `marker_strings_match_the_spec`). **Open:** the user-visible loader text (S6). |
+
 ## 8. Authorization boundaries and BootInfo
 
 | Party | May | May not |
@@ -449,7 +492,9 @@ copies opaque binding bytes).
 
 **BootInfo trial extension** (new, loader feature `signed-boot-trial` only):
 offset 320, 96 bytes, magic `NOSTRI\0\0`, version 1: flags (TPM state: 0
-ready, 1 absent, 2 fault, 3 anchor lost; mode: 0 known-good, 1 trial), health
+ready, 1 absent, 2 fault, 3 anchor lost, where 1, 2 and 3 are never handed
+over since the owner decisions of 26 November 2026, sections 7.8 and 7.9;
+mode: 0 known-good, 1 trial), health
 list id, generation, version, slot, attempt number, 32-byte manifest digest,
 `CONFIRM` handle. Zero bytes never validate (as with `NOSFWF`). The base
 structure's end and the free range 272–416 must be confirmed with a const
@@ -530,24 +575,15 @@ known-good fallback. Installation resumes after finalization.
 |---|---|
 | No TCG2 protocol and no ACPI `TPM2` table (no TPM) | Controlled halt `BOOT:TPM:ABSENT`, `BOOT:FAIL:TPM_IDENTITY`: the enrolled identity cannot be verified, and a missing TPM must not open a degraded route around it (owner decision of 26 November 2026, C665 takes precedence over ADR decision 6). Recovery: the enrolled TPM back, or authenticated recovery (10.5). |
 | TCG2 present, any command or NV read error, or PCR 13 dirty at loader start | Controlled halt `BOOT:TPM:FAULT[:PCR_DIRTY]`, `BOOT:FAIL:TPM_IDENTITY`, no write (same decision). |
-| Identity verified (10.5), anchor lost or behind | `DEGRADED` boot. Whether a cleared TPM that still proves its enrolled EK degrades or halts is the open owner question §7.9; the host model degrades, which is not an owner decision. |
+| Identity verified (10.5), anchor lost or behind, including a clear that keeps the EK | Controlled halt `BOOT:TPM:<ANCHOR_LOST\|ANCHOR_BEHIND>`, `BOOT:FAIL:TPM_ANCHOR`, `BOOT:RECOVERY:REQUIRED`, no write (owner decision REL-05 §7.9, section 7.9). Recovery: authenticated recovery (10.5). |
 | TCG2 present and the extend fails | Controlled halt `BOOT:FAIL:TPM_EXTEND` (no kernel runs). Recovery: power cycle; persistent failure needs TPM service or the TEST re-provisioning of 10.3. Booting degraded instead is rejected: it would hand over with PCR 13 at its reset value (see the state machine). |
 
-In `DEGRADED`: effective floor = UEFI floor (never lowered). Boot only the
-verified slot with `version == floor`, the last confirmed version (equal
-versions are never reused, 6.4; two different verified manifests at that
-version halt with `BOOT:FAIL:NO_VALID_SLOT`, as I7 requires, and the header
-hint never breaks that tie). If no such
-slot exists, halt with `BOOT:FAIL:NO_VALID_SLOT`. A slot above the UEFI floor
-was never confirmed and may be a rejected or abandoned trial; the TPM content
-that would say so is untrusted in this mode, so booting it as known-good would
-bypass the health check (security review finding, 25 November 2026). An
-absent UEFI variable reads as floor 0 and therefore halts too: no
-`DEGRADED` boot without a provisioned floor (recovery 10.3). No trial, no attempt write, no floor write of any kind. BootInfo reports the
-TPM state; the kernel then does not claim the CRB; the update service defers
-installation. Markers `BOOT:TPM:<ANCHOR_LOST|ANCHOR_BEHIND>` and
-`BOOT:MODE:DEGRADED`. Updates stall until recovery: availability is traded for
-O8.
+No class above boots: there is no `DEGRADED` mode (section 7.9). The earlier
+`DEGRADED` design (known-good at the UEFI floor only) is withdrawn; its
+security finding of 25 November 2026 (a slot above the UEFI floor may be a
+rejected trial) no longer arises because nothing boots without an intact
+anchor. Every halt writes nothing, so the UEFI floor is kept. Availability is
+traded for O8 until authenticated recovery.
 
 ### 10.3 Recovery
 
@@ -555,7 +591,10 @@ TEST only: a host provisioning tool (new, `tools/`) defines the indices on a
 disposable swtpm with empty owner auth (before the loader has set ownerAuth;
 M1-HAUTH, [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md)) and writes `FLOOR.floor = max(UEFI
 floor, version of the image to be marked known-good)`, `TRIAL = IDLE`. It
-never sets a value below the UEFI floor. A production procedure (owner/lockout
+never sets a value below the UEFI floor. It runs only on an explicit
+operator command, never automatically; after a clear of a provisioned TPM it
+is a TEST stand-in for the authenticated recovery of 10.5 and proves nothing
+about that recovery (section 7.9). A production procedure (owner/lockout
 auth custody, physical presence, EK binding) is **not** specified and needs an
 owner decision.
 
@@ -566,11 +605,10 @@ replaced TPM is fully attacker-controlled state. The UEFI copy survives that,
 but an attacker who also resets `OVMF_VARS` (T7) removes both. Neither the
 TPM nor the UEFI variable authenticates the code that enforces the floor;
 that is B04. Additional mitigation (step S9): the authenticated loader carries
-a compiled-in minimum image version, below which no slot boots even in
-`DEGRADED`. Binding the provisioned TPM identity (EK name) is an open option
+a compiled-in minimum image version, below which no slot boots. Binding the provisioned TPM identity (EK name) is an open option
 (U13). This is now decided: see section 10.5. Without a verified identity a
-TPM is never trusted to raise any floor or to start a trial, and it never
-boots `DEGRADED` (owner decision of 26 November 2026).
+TPM is never trusted to raise any floor or to start a trial; nothing boots
+without a verified identity and an intact anchor (sections 7.8, 7.9).
 
 ### 10.5 TPM identity binding (U13, owner decision C665)
 
@@ -684,18 +722,18 @@ named marker (TEST hook markers emitted before each write in a test feature).
 | C17a | TPM fault | swtpm returns errors on NV reads, extend works (test hook) | `BOOT:TPM:FAULT`, `BOOT:FAIL:TPM_IDENTITY`; no write, no kernel |
 | C17b | TPM fault | swtpm killed before the extend | `BOOT:FAIL:TPM_EXTEND`, no kernel markers; floors unchanged on the next healthy boot |
 | C3/C4 add | user data | hash of all non-slot disk regions before and after | byte-identical (not testable in the current profile, I8) |
-| C18 | TPM reset or replaced | fresh swtpm state (new endorsement seed) after C2, `OVMF_VARS` kept | `BOOT:FAIL:TPM_IDENTITY`, no write, UEFI floor 2 kept; authenticated recovery only |
-| C18a | TPM cleared, EK kept | `TPM2_Clear` after C2 (endorsement seed kept), `OVMF_VARS` kept | open owner question §7.9 (`DEGRADED` versus halt); the host model gives `BOOT:TPM:ANCHOR_LOST`, `BOOT:FLOOR:2`, degraded, which is not an owner decision |
-| C19 | TPM rolled back | swtpm state snapshot from before C2 restored | `BOOT:TPM:ANCHOR_BEHIND`, floor 2 kept |
+| C18 | TPM reset or replaced | fresh swtpm state (new endorsement seed *[unverified]*) after C2, `OVMF_VARS` kept | `BOOT:FAIL:TPM_IDENTITY`, no write, UEFI floor 2 kept; authenticated recovery only |
+| C18a | TPM cleared, EK kept | `TPM2_Clear` after C2 (endorsement seed kept *[unverified]*), `OVMF_VARS` kept | `BOOT:TPM:ANCHOR_LOST`, `BOOT:FAIL:TPM_ANCHOR`, `BOOT:RECOVERY:REQUIRED`, no write, no kernel, UEFI floor 2 kept; no re-provisioning by the loader (owner decision §7.9) |
+| C19 | TPM rolled back | swtpm state snapshot from before C2 restored | `BOOT:TPM:ANCHOR_BEHIND`, `BOOT:FAIL:TPM_ANCHOR`, `BOOT:RECOVERY:REQUIRED`, no write, floor 2 kept |
 | C20 | combined T7 | fresh swtpm + fresh `OVMF_VARS` + v1 on disk | new endorsement seed: `BOOT:FAIL:TPM_IDENTITY`, no write (denial, not rollback); authenticated recovery only (10.5) |
-| C21 | index squatting | indices predefined with weaker policy | `BOOT:TPM:ANCHOR_LOST` |
+| C21 | index squatting | indices predefined with weaker policy | `BOOT:TPM:ANCHOR_LOST`, `BOOT:FAIL:TPM_ANCHOR`, `BOOT:RECOVERY:REQUIRED`, no write |
 | C22 | dirty PCR | PCR 13 pre-extended (test firmware hook or EFI shell) | `BOOT:TPM:FAULT:PCR_DIRTY`, `BOOT:FAIL:TPM_IDENTITY`, no write |
 | C23 | identity: original TPM | enrolled swtpm, normal boot and trial | identity verified, C1/C2 behaviour unchanged |
 | C24 | identity: replacement with identical settings | new swtpm state, indices and records copied byte for byte, `FLOOR` above UEFI | `BOOT:FAIL:TPM_IDENTITY`, no write, UEFI floor unchanged |
 | C25 | identity: higher reported floor | enrolled TPM vs replacement, `FLOOR.floor > UEFI` | heal only on the enrolled TPM; halt on the replacement |
 | C26 | identity: lower reported floor | replacement with `FLOOR.floor < UEFI` | halt; UEFI floor never lowered |
 | C27 | NVRAM reset | fresh `OVMF_VARS`, enrolled TPM intact | `BOOT:FAIL:UEFI_FLOOR_MISSING`, no write; after authenticated recovery the floor is restored and the known-good release boots |
-| C27a | enrollment deleted | `ENROLL` removed from the ESP of an enrolled device (optionally with a replaced TPM) | `BOOT:FAIL:TPM_UNENROLLED`, no write, no degraded boot |
+| C27a | enrollment deleted | `ENROLL` removed from the ESP of an enrolled device (optionally with a replaced TPM) | `BOOT:FAIL:TPM_UNENROLLED`, `BOOT:RECOVERY:REQUIRED`, no write, no boot |
 | C28 | replay | an old `ENROLL` or recovery record (serial below the accepted serial); a different record with the accepted serial (same or other EK); a replacement cut after each of its three writes; the current record on a normal restart; or a recorded TPM response | older or equal-serial different record refused, cut replacement halts until the new record is written, the current record is accepted (accepted-serial store, 10.5); a replayed TPM response fails the session HMAC → halt |
 | C29 | failed authentication | recovery record with a bad signature or a foreign key | refused; normal boot stays blocked |
 | C30 | interrupted recovery | power loss at every recovery write | the old record stays in force or the new one is complete; never a lower floor |

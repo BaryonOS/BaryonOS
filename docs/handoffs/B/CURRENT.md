@@ -34,8 +34,9 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   QEMU/swtpm only; ADR-B03-REL05-TPM-20261125, C665 identity binding).
 - branch: claude/b03-rel05-tpm-20261125, worktree ~/projects/BaryonOS-worktrees/b03-rel05-tpm.
 - PR: #524 (draft). Live head, checks and evidence: the newest HANDOFF/CHECKPOINT comment on #524.
-- Merge order: #518, then N's N03/N04 ADR PR, then #524 (after merging `main`). #524 changes
-  `docs/DECISIONS.md`, so it needs the project owner's review under D2 (ADR-PROGRESS-ASSESSMENTS-20261125).
+- Merge order satisfied (#518 and N's N03/N04 decisions are on `main`). D2 done: on 26 November 2026 the project owner
+  approved ADR-B03-REL05-TPM-20261125 for the TEST/QEMU/swtpm profile, including C665 and M1-HAUTH, with C665
+  taking precedence over decision 6 (session [ea7388]; ADR amendment and model change e0bd1690).
 - B03-F1 (#514) is merged; its REL-05 characterization is the input to this cycle.
 
 ## Evidence / NOT RUN
@@ -78,7 +79,9 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   the first lane push; the post-boot state checks
   are unit-tested through `run_tpm.check_state()`; ci-impact selects host-quality through the `tools/**` glob.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
-  staging and both-copies-lost revival; REL-05 section 7.9 DEGRADED versus halt; the TEST loader does not check
+  staging and both-copies-lost revival (now a binding open condition of REL-05 §7.9); the §7.9 loader conditions
+  (no M1-HAUTH re-provisioning after a clear, recovery currency, recovery authority, user-visible recovery text;
+  owner decided §7.9 fail closed on 26 Nov, host model done); the TEST loader does not check
   ownerAuth against `HAUTH[..32]` (a foreign owner planting a well-formed `HAUTH`/`LREC` would bind); U25 on the hosted OVMF image and real firmware.
 
 ## Merge procedure lesson (25 Nov)
@@ -145,14 +148,19 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Done locally: 477674bf event log check (`drivers/tpm-crb` `event_log` parser with four tests, loader
   `Tpm::closed_event()`, `run_tpm.closed_events`, six negative transcripts), then the evidence/assessment commit.
   Seventeen native cases at source 42e48d3c; `tools/tests` 1184 OK (15 skipped); `tools/test.py` PASS.
-- Next on #524: no decision-free task is left before the lane. Only after the owner
-  answers (both are in the "reported to the owner, not accepted" list): (b) S3/U27 and the section 7.9 halt; (c) native
-  S5 with N's joint tests. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
+- Done locally (26 Nov, session [ea7388]): e0bd1690 C665 precedence (S1 model halts Absent/Fault/PcrDirty with
+  `TPM_IDENTITY`; spec, ADR amendment, anchor contract), 1d4b5905 assessment, merge of `main` ffea3883, then one
+  follow-up commit with review wording fixes and REL-05 §7.9 (owner decision 26 Nov: `DEGRADED` removed, `Halt::TpmAnchor`,
+  `BOOT:FAIL:TPM_ANCHOR`, `BOOT:RECOVERY:REQUIRED`; spec sections 7.8/7.9, second ADR amendment, anchor contract).
+  Host checks green; native cases stay bound to 42e48d3c.
+- Next on #524: one bundled push on the PR guard's grant, then ready and the merge queue on the guard's signal. After
+  that: the loader halts for an unverified TPM and for anchor loss (S6, §7.9 table), native S5 with N's joint tests;
+  S3/U27 still waits for the owner. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
   body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the seventeen
   `run_tpm.py` cases (six + eleven seeded) on the merged head, or state in the PR body that the loader evidence is bound to 42e48d3c; `native-system.yml` runs the
   `tpm-crb` tests and `tools.tests.test_tpm` (TpmSeedTests on swtpm 0.7.3, not run locally; the noble OVMF 2024.02
-  image is not run either); #524 changes `docs/DECISIONS.md`, so D2 owner review still applies.
+  image is not run either); the D2 owner review of `docs/DECISIONS.md` was given on 26 Nov.
 
 Lane: the owner lifted the main freeze at 20:19Z (main 0fe66b51, #524 BEHIND by 8, no TPM-file overlap). Lane order from the
 PR guard: #515 (H) -> #539 -> #533 -> #543 -> #535 -> #525 / #523 / #540 / #524 / #538; one lane holder at a time, no

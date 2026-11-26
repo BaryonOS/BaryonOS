@@ -385,8 +385,8 @@ previous good release a permanent `DOWNGRADE` (REL-05).
    list `HEALTH-LIST-1`. The kernel still contains no cryptography.
 5. While a trial is pending the update service does not write slots (amends
    ADR-049 decision 4).
-6. *(Superseded in part: C665 takes precedence, see the amendment of
-   26 November 2026 below.)* A missing, faulty, cleared, replaced or
+6. *(Superseded in full: C665 takes precedence, and the REL-05 §7.9
+   amendment of 26 November 2026 below removes `DEGRADED`.)* A missing, faulty, cleared, replaced or
    inconsistent TPM gives a degraded
    boot (known-good only, no trial, no floor write, explicit markers), except
    that a reachable TPM whose phase PCR cannot be extended halts the boot
@@ -475,29 +475,64 @@ the strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH, and
 decided (translated from Dutch) that C665 takes precedence over decision 6: an
 unknown, replaced, reset or unverifiable TPM must not bypass the identity
 binding through `DEGRADED`; the controlled halt and authenticated recovery
-stay. The open REL-05 §7.9 question is not decided by this amendment.
-Consequences for the TEST profile:
+stay. REL-05 §7.9 was decided separately the same day (amendment below). The
+boot-path revival at PCR 13 = 0³² before B04 stays an open security problem,
+not an accepted residual risk. N04 stays under 5A until the full 5B
+integration passes native security acceptance. All open implementation and
+acceptance conditions (C23–C30, native S5, U13c) remain; no production
+credentials, no physical TPM change and no progress score change.
 
-- `DEGRADED` follows only a TPM identity that section 10.5 of the
-  specification verified. A TPM that is absent, fails before or during the
+Application by workstream B (the mapping of TPM classes below is B's reading
+of the owner's precedence decision, recorded for the owner to confirm or
+reverse; it is not itself an owner decision), TEST profile:
+
+- A TPM that is absent, fails before or during the
   identity proof, or shows PCR 13 dirty at loader start has no verified
   identity: the loader prints the class marker, halts with
-  `BOOT:FAIL:TPM_IDENTITY`, writes nothing and runs no kernel. An unenrolled
+  `BOOT:FAIL:TPM_IDENTITY`, writes nothing and runs no kernel. A failed TPM
+  write or read-back after a verified identity re-steps as a fault and halts
+  the same way. An absent TPM therefore means no boot in this profile. An unenrolled
   TPM (`BOOT:FAIL:TPM_UNENROLLED`), another or unproven endorsement key,
   including a replaced TPM or one reset to new seeds (`BOOT:FAIL:TPM_IDENTITY`),
   and an NVRAM reset (`BOOT:FAIL:UEFI_FLOOR_MISSING`) halt as before. A failed
   extend still halts with `BOOT:FAIL:TPM_EXTEND`. Recovery is authenticated
   only (section 10.5).
-- Decision 6 keeps `DEGRADED` only for a verified TPM whose anchor is lost or
-  behind (`ANCHOR_LOST`, `ANCHOR_BEHIND`). Whether a cleared TPM that still
-  proves its enrolled endorsement key degrades or halts is REL-05 §7.9; it
-  stays open, and the host model's current `DEGRADED` result for that case is
-  not an owner decision.
-- The boot-path revival at PCR 13 = 0³² before B04 stays an open security
-  problem, not an accepted residual risk. N04 stays under 5A until the full 5B
-  integration passes native security acceptance. All open implementation and
-  acceptance conditions (C23–C30, native S5, U13c) remain; no production
-  credentials, no physical TPM change and no progress score change.
+- *(Superseded by the REL-05 §7.9 amendment below.)* Decision 6 kept
+  `DEGRADED` only for a verified TPM whose anchor is lost or behind
+  (`ANCHOR_LOST`, `ANCHOR_BEHIND`), with the cleared-TPM case left open.
+  "Reset" is read as a TPM with new seeds (a new
+  endorsement key); that `TPM2_Clear` keeps the endorsement key and a fresh
+  swtpm state does not is TPM 2.0 Part 1 hierarchy semantics, not probed on
+  swtpm *[unverified]*.
+
+**Amendment, 26 November 2026 (project-owner decision REL-05 §7.9: TPM clear
+and anchor loss):** the project owner chose fail closed (translated from
+Dutch): a TPM that was cleared but keeps its original endorsement key gets a
+controlled halt with authenticated recovery; a matching endorsement key
+proves identity, not continuity of the protected state. Binding conditions:
+no regular or `DEGRADED` boot once a TPM clear or the loss of required anchor
+state is detected; no automatic re-provisioning based only on a matching
+endorsement key; recovery only through an authenticated, demonstrably current
+recovery procedure; keep the highest reliably established anti-rollback
+floor; prevent reactivation of revoked keys, grants and older anchor
+instances; when every reliable freshness record is lost, independently
+authorised recovery is mandatory; preserve user data; give a clear recovery
+message. The permission holds only within the existing TEST/QEMU/swtpm
+mandate. REL-05 stays open until every acceptance condition is met; the
+progress score stays 43/100.
+
+Consequence for this ADR: decision 6 is replaced in full. `DEGRADED` no
+longer exists. Every `ANCHOR_LOST` and `ANCHOR_BEHIND` class with a verified
+identity halts with `BOOT:FAIL:TPM_ANCHOR`; every halt that only
+authenticated recovery resolves (`TPM_IDENTITY`, `TPM_UNENROLLED`,
+`UEFI_FLOOR_MISSING`, `TPM_ANCHOR`) also prints `BOOT:RECOVERY:REQUIRED`. The
+host model and its tests implement this; the loader does not yet. Section 7.9
+of the specification records each condition with its status. Open binding
+conditions include: the TEST loader's M1-HAUTH path still provisions whenever
+`ownerAuth` is unset, which is also the state after a clear, and must halt on
+a cleared provisioned TPM before acceptance; the currency of a recovery
+record; the recovery authority for the case where both copies of the
+accepted pair are lost; and the user-visible recovery text.
 
 **Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
 extension, kernel profile and health service; the characterization of PR #514
