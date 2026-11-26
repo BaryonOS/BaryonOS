@@ -32,7 +32,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 16
+revision = 17
 
 [policy]
 mode = "select"
