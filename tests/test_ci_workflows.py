@@ -1004,6 +1004,25 @@ class WorkflowContractTests(unittest.TestCase):
         step, = [step for step in steps if step.get("name") == HOST_PYTHON_STEP]
         return step
 
+    def run_with_host_python_fakes(self, script, work, shell=("bash", "-e"), failing=""):
+        """Run step text in work, with coverage and python3 replaced by HOST_PYTHON_FAKE."""
+        fake_bin = work.parent / "bin"
+        if not fake_bin.is_dir():
+            fake_bin.mkdir()
+            for name in ("coverage", "python3"):
+                (fake_bin / name).write_text(HOST_PYTHON_FAKE, encoding="utf-8")
+                (fake_bin / name).chmod(0o755)
+        (work / "temp").mkdir(parents=True, exist_ok=True)
+        record = work / "record.jsonl"
+        environment = dict(os.environ, PATH=f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+                           RUNNER_TEMP=str(work / "temp"), FAKE_RECORD=str(record),
+                           FAKE_FAIL=shlex.join(shlex.split(failing)))
+        result = subprocess.run([*shell, "-c", script], cwd=work, env=environment,
+                                preexec_fn=default_entry_signals, capture_output=True,
+                                text=True, timeout=60, check=False)
+        records = [json.loads(line) for line in record.read_text().splitlines()] if record.exists() else []
+        return result, records
+
     def assert_host_python_lanes(self, run):
         """Run the step against fakes: every command once, tools/tests in front, any failing lane fails."""
         lines = [line.strip() for line in run.splitlines()]
@@ -1020,26 +1039,15 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertEqual(lines[-1], 'exit "$rc"')
         with tempfile.TemporaryDirectory(prefix="host-python-lanes-") as directory:
             root = Path(directory)
-            fake_bin = root / "bin"
-            fake_bin.mkdir()
-            for name in ("coverage", "python3"):
-                (fake_bin / name).write_text(HOST_PYTHON_FAKE, encoding="utf-8")
-                (fake_bin / name).chmod(0o755)
 
             def run_step(label, failing=""):
                 work = root / label
-                (work / "temp").mkdir(parents=True)
-                record = work / "record.jsonl"
-                environment = dict(os.environ, PATH=f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
-                                   RUNNER_TEMP=str(work / "temp"), FAKE_RECORD=str(record),
-                                   FAKE_FAIL=shlex.join(shlex.split(failing)))
-                result = subprocess.run(["bash", "-e", "-c", run], cwd=work, env=environment,
-                                        preexec_fn=default_entry_signals, capture_output=True,
-                                        text=True, timeout=60, check=False)
-                records = [json.loads(line) for line in record.read_text().splitlines()]
+                result, records = self.run_with_host_python_fakes(run, work, failing=failing)
                 self.assertEqual(result.stdout.count("::group::"), len(launches), result.stdout)
                 for entry in records:  # also the output of the background lanes
                     self.assertIn("ran: " + shlex.join(entry["argv"]), result.stdout)
+                # A printed lane log is removed, so the leftover-log step shows only unprinted ones.
+                self.assertEqual(list((work / "temp").iterdir()), [], "printed lane logs stay behind")
                 return work, result, [entry["argv"] for entry in records], records
 
             work, result, ran, records = run_step("success")
@@ -1065,7 +1073,8 @@ class WorkflowContractTests(unittest.TestCase):
         self.assert_host_python_lanes(step["run"])
 
     def test_host_python_lane_contract_rejects_weakened_steps(self):
-        """The lane pin fails for a dropped command, a backgrounded tools/tests run, a bare wait or a lost failure."""
+        """The lane pin fails for a dropped command, a backgrounded tools/tests run, a bare wait, a
+        tools/tests failure that skips the lane waits and logs, a kept printed log or a lane that continues."""
         run = self.host_python_step()["run"]
         foreground = HOST_PYTHON_FOREGROUND + " || rc=1\n"
         mutations = {
@@ -1073,7 +1082,9 @@ class WorkflowContractTests(unittest.TestCase):
             "background tools/tests": run.replace(foreground, "", 1).replace(
                 "  set -e\n", f"  set -e\n  {foreground}", 1),
             "bare wait": run.replace('wait "$lane_b" || rc=1\nwait "$lane_c" || rc=1\n', "wait\n", 1),
-            "unrecorded tools/tests failure": run.replace(foreground, HOST_PYTHON_FOREGROUND + "\n", 1),
+            "tools/tests failure skips lane waits and logs": run.replace(
+                foreground, HOST_PYTHON_FOREGROUND + "\n", 1),
+            "printed lane log kept": run.replace(' && rm -f "$RUNNER_TEMP/python-lane-$lane.log"', "", 1),
             "lane continues after a failure": run.replace("  set -e\n", "  set +e\n", 1),
         }
         for label, mutated in mutations.items():
@@ -1081,6 +1092,41 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertNotEqual(mutated, run)
                 with self.assertRaises(AssertionError):
                     self.assert_host_python_lanes(mutated)
+
+    def test_host_python_lane_logs_left_by_an_interrupted_run_are_printed(self):
+        """#494: after a step timeout or cancellation an always() step prints only the unprinted lane logs."""
+        job = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]
+        step = self.host_python_step()
+        leftover = job["steps"][job["steps"].index(step) + 1]
+        self.assertEqual(leftover["name"], "Python lane logs left by an interrupted run")
+        self.assertEqual(leftover["if"], "${{ always() }}")  # a step condition; the job has none
+        self.assertNotIn("if", job)
+        # A hung lane hits the step timeout first, so the job still reaches the leftover step.
+        self.assertLess(int(step["timeout-minutes"]), int(job["timeout-minutes"]))
+        shell = ("bash", "--noprofile", "--norc", "-eo", "pipefail")  # `shell: bash` on a runner
+        self.assertEqual(leftover["shell"], "bash")
+        interrupted = step["run"][:step["run"].index("for lane in b c")]  # stopped before printing
+        with tempfile.TemporaryDirectory(prefix="host-python-leftover-") as directory:
+            root = Path(directory)
+            for label, script in (("interrupted", interrupted), ("complete", step["run"])):
+                with self.subTest(run=label):
+                    work = root / label
+                    result, records = self.run_with_host_python_fakes(script, work)
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    (work / "temp/unrelated.log").write_text("not a lane log\n", encoding="utf-8")
+                    printed, _ = self.run_with_host_python_fakes(leftover["run"], work, shell=shell)
+                    self.assertEqual(printed.returncode, 0, printed.stderr)
+                    self.assertNotIn("not a lane log", printed.stdout)
+                    if label == "complete":
+                        self.assertEqual(printed.stdout, "")
+                        continue
+                    self.assertEqual(printed.stdout.count("::group::"), 2, printed.stdout)
+                    serial = (shlex.split(HOST_PYTHON_COMMANDS[1]), shlex.split(HOST_PYTHON_FOREGROUND))
+                    lanes = [entry["argv"] for entry in records if entry["argv"] not in serial]
+                    self.assertEqual(len(lanes), len(HOST_PYTHON_COMMANDS) - 3)
+                    for argv in lanes:
+                        self.assertIn("ran: " + shlex.join(argv), printed.stdout)
+                    self.assertNotIn("ran: " + shlex.join(serial[1]), printed.stdout)
 
     def test_actionlint_is_pinned_in_required_host_gate(self):
         """Workflow validation is required, checksum-pinned and narrowly scoped."""
