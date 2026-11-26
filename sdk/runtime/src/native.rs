@@ -203,6 +203,13 @@ pub fn block_flush(device: BlockDevice) -> Result<u64, Error> {
     call(0x43, [device.handle().raw(), 0, 0, 0, 0, 0])
 }
 
+/// S09 O13 syscall 0x44 (native-volume broker only; other profiles answer
+/// ENOSYS): latch every kernel write-latch entry wholly inside this handle's
+/// scope. Needs the WRITE right; no device access; idempotent.
+pub fn block_latch(device: BlockDevice) -> Result<u64, Error> {
+    call(0x44, [device.handle().raw(), 0, 0, 0, 0, 0])
+}
+
 /// Poll one ticket until completion, yielding while the broker reports
 /// EAGAIN, for at most `limit` polls. Copies READ data into `out`. A kernel
 /// error is returned unchanged; the caller decides whether it is uncertain.
