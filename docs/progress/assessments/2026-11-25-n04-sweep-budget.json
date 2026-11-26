@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "source_commit": "a571d87cf2332442c8c3acf4a7f2abb4d8af1cb0",
+  "source_commit": "959e1e10ed7e7f07e5b392cf00d4e5bcd9ff6d9b",
   "assessment_basis": "parent_commit",
   "branch": "claude/n04-sweep-budget-20261125",
   "task": "N04 guard: port-sweep fixture deadline raised from 32,000 to 48,000 ticks and host watchdog from 360 to 520 s after slow hosted runners exceeded it",
