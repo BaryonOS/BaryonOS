@@ -1468,10 +1468,79 @@ class GateTests(TestCase):
                 passed, out, _ = self.decide(runs_=runs_, jobs={**GOOD_JOBS, 2: first},
                                              settle_during_read={2: settle}, later_jobs={2: [kept]})
                 self.assertFalse(passed)
-                self.assertIn(f"Pending: {LEAVES}: run 2 attempt {attempt} dropped job(s) late-gate of that "
-                              "attempt between two reads; re-run merge-hold", out)
+                self.assertIn(f"Pending: {LEAVES}: run 2 attempt {attempt} dropped job(s) late-gate between "
+                              "two reads; re-run merge-hold", out)
                 self.assertIn("1 pending; 0 failed.", out)
                 self.assertNotIn("Passed: quality (viewer)", out)
+
+    def test_a_settle_that_drops_a_job_without_an_integer_attempt_stays_pending(self):
+        """D2 round 7 (S5): a failed job of the first read whose run_attempt is missing or not an
+        integer cannot be shown to belong to an older attempt; the second read omits it, so the run
+        that settles green stays pending."""
+        for attempt in (None, "1", 1.5):
+            with self.subTest(attempt=attempt):
+                late = job(22, 2, "late-gate", "failure", attempt=attempt)
+                if attempt is None:
+                    del late["run_attempt"]
+                passed, out, _ = self.decide(
+                    runs_=[wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)],
+                    jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), late]},
+                    settle_during_read={2: {"status": "completed", "conclusion": "success"}},
+                    later_jobs={2: [job(21, 2, "quality (viewer)")]})
+                self.assertFalse(passed)
+                self.assertIn(f"Pending: {LEAVES}: run 2 attempt 1 dropped job(s) late-gate between two reads; "
+                              "re-run merge-hold", out)
+                self.assertIn("1 pending; 0 failed.", out)
+                self.assertNotIn("Passed: quality (viewer)", out)
+
+    def test_a_settle_that_changes_a_completed_job_of_the_judged_attempt_stays_pending(self):
+        """D2 round 7 (S1): the same job id is completed and failed in the first read and completed
+        and green in the second, in the same attempt (also for a job without an integer attempt);
+        a completed job does not change, so the green record is not judged."""
+        for name, (first, second) in {
+                "failure to success": (job(22, 2, "late-gate", "failure"), job(22, 2, "late-gate")),
+                "completed to running": (job(22, 2, "late-gate", "failure"),
+                                         job(22, 2, "late-gate", None, "in_progress")),
+                "no integer attempt": (job(22, 2, "late-gate", "failure", attempt="1"),
+                                       job(22, 2, "late-gate", attempt="1"))}.items():
+            with self.subTest(name):
+                passed, out, _ = self.decide(
+                    runs_=[wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)],
+                    jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), first]},
+                    settle_during_read={2: {"status": "completed", "conclusion": "success"}},
+                    later_jobs={2: [job(21, 2, "quality (viewer)"), second]})
+                self.assertFalse(passed)
+                self.assertIn(f"Pending: {LEAVES}: run 2 attempt 1 changed the completed record of job(s) "
+                              "late-gate between two reads; re-run merge-hold", out)
+                self.assertIn("1 pending; 0 failed.", out)
+                self.assertNotIn("Passed: quality (viewer)", out)
+        # Controls: a completed job read twice the same way, and a running job that completes, settle.
+        for name, first in {"unchanged": job(22, 2, "late-gate"),
+                            "completes": job(22, 2, "late-gate", None, "in_progress")}.items():
+            with self.subTest(name):
+                passed, out, _ = self.decide(
+                    runs_=[wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)],
+                    jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), first]},
+                    settle_during_read={2: {"status": "completed", "conclusion": "success"}},
+                    later_jobs={2: [job(21, 2, "quality (viewer)"), job(22, 2, "late-gate")]})
+                self.assertTrue(passed, out)
+                self.assertIn("Passed: quality (viewer): success in run 2 attempt 1", out)
+
+    def test_a_settle_back_to_an_older_attempt_than_listed_jobs_stays_pending(self):
+        """D2 round 7 (S4): the first jobs read already lists attempt 2 with a failed job, and both
+        re-reads and the second jobs read went back to a green attempt 1. Attempt 2's failure must
+        not be lost."""
+        passed, out, _ = self.decide(
+            runs_=[wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)],
+            jobs={**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)", attempt=2),
+                                   job(25, 2, "late-gate", "failure", attempt=2)]},
+            settle_during_read={2: {"status": "completed", "conclusion": "success"}},
+            later_jobs={2: [job(21, 2, "quality (viewer)")]})
+        self.assertFalse(passed)
+        self.assertIn(f"Pending: {LEAVES}: run 2 attempt 1 first listed jobs of a newer attempt (2) than the one "
+                      "it settled on; re-run merge-hold", out)
+        self.assertIn("1 pending; 0 failed.", out)
+        self.assertNotIn("Passed: quality (viewer)", out)
 
     def test_a_settle_compares_only_jobs_of_the_judged_attempt(self):
         """Controls for A: jobs of an older attempt in the first read are neither compared nor carried

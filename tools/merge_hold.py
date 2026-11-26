@@ -632,14 +632,32 @@ def gate_report(token, repo, pull, head_sha, plan):
             run = settled
             where = f"run {run['id']} attempt {run.get('run_attempt')}"
             running = run.get("status") != "completed"
-            # Evidence of the judged attempt is never dropped: a job the first read listed for it
-            # (a failed unregistered or continue-on-error job too) must still be listed.
-            kept = {job["id"] for job in jobs}
-            dropped = [job for job in earlier if job.get("run_attempt") == attempt and job["id"] not in kept]
+            # A job the first read listed for the judged attempt, or without an integer attempt (a
+            # failed unregistered or continue-on-error job too), must still be listed by the second
+            # read, and a completed one with the same status and conclusion. A job that completes
+            # between the reads is the normal settle. Jobs of an older attempt are not compared.
+            kept = {job["id"]: job for job in jobs}
+            ours = [job for job in earlier
+                    if type(job.get("run_attempt")) is not int or job["run_attempt"] == attempt]
+            dropped = [job for job in ours if job["id"] not in kept]
+            changed = [job for job in ours if job["id"] in kept and job.get("status") == "completed"
+                       and (kept[job["id"]].get("status"), kept[job["id"]].get("conclusion"))
+                       != ("completed", job.get("conclusion"))]
+            # Jobs of a newer attempt in the first read: the run went back to an older record.
+            newer = sorted({job["run_attempt"] for job in earlier
+                            if type(job.get("run_attempt")) is int and job["run_attempt"] > attempt})
+            if newer:
+                pending.append(f"{workflow}: {where} first listed jobs of a newer attempt "
+                               f"({', '.join(map(str, newer))}) than the one it settled on; re-run merge-hold")
             if dropped:
                 pending.append(f"{workflow}: {where} dropped job(s) "
-                               f"{', '.join(str(job.get('name')) for job in dropped)} of that attempt "
-                               "between two reads; re-run merge-hold")
+                               f"{', '.join(str(job.get('name')) for job in dropped)} between two reads; "
+                               "re-run merge-hold")
+            if changed:
+                pending.append(f"{workflow}: {where} changed the completed record of job(s) "
+                               f"{', '.join(str(job.get('name')) for job in changed)} between two reads; "
+                               "re-run merge-hold")
+            if newer or dropped or changed:
                 continue
         # Bind the jobs to the judged attempt: `filter=latest` can lag behind the run record or
         # run ahead of it. A partial "re-run failed jobs" still passes, because GitHub copies the
