@@ -192,7 +192,9 @@ pub enum CommitError {
     /// `next` is not on top of the accepted state, or `record` does not
     /// authenticate to exactly `next`; nothing written.
     Rejected,
-    /// A previous acknowledge failed; `load` again before any write.
+    /// A previous acknowledge failed, or the anchor no longer holds (or could
+    /// not confirm) the accepted state; nothing written. `load` again before
+    /// any write.
     Reload,
     /// The acknowledge failed after the record was durable; the extend may
     /// or may not have happened. The outcome is unknown until the next `load`,
@@ -223,7 +225,9 @@ fn classify(instance: &Digest, chain: &Digest, state: &StoreState) -> Class {
 /// Startup over both slots. `buf` is one slot long. A never-acknowledged
 /// store wins over the anchored one, so a durable commit (for example a
 /// revocation) is rolled forward rather than dropped; if that extend fails the
-/// result is a denial, never the older store.
+/// result is a denial, never the older store. The slots are flushed before any
+/// decision, so a read can never roll the anchor onto bytes that are not yet
+/// durable; a failed flush is a denial.
 pub fn load(
     media: &mut impl SlotMedia,
     verifier: &mut impl RecordVerifier,
@@ -235,6 +239,7 @@ pub fn load(
         media.read(slot, buf).map_err(|_| Denied::Media)?;
         *state = verifier.open(buf);
     }
+    media.flush().map_err(|_| Denied::Media)?;
     let (slot, state, how) = decide(anchor, states)?;
     Ok((
         Session {
@@ -308,6 +313,11 @@ impl Session {
             || verifier.open(record) != Some(*next)
         {
             return Err(CommitError::Rejected);
+        }
+        // A stale session's writable slot may hold the anchored store now.
+        if anchor.read().ok() != Some(self.state.anchored()) {
+            self.reload = true;
+            return Err(CommitError::Reload);
         }
         let slot = 1 - self.slot;
         media
@@ -978,6 +988,42 @@ mod tests {
             boot(&mut disk, &mut anchor).err(),
             Some(Denied::Anchor(AnchorError::RateLimited))
         );
+    }
+
+    /// Two sessions from one anchored store: once the first commits, the
+    /// second may only reload, never write over the newly anchored slot.
+    #[test]
+    fn stale_session_never_overwrites_the_anchored_slot() {
+        let (mut disk, mut anchor, mut first, _, s1) = at_s1();
+        let (mut stale, _) = boot(&mut disk, &mut anchor).unwrap();
+        let s2 = child(&s1, 3);
+        first
+            .commit(&mut disk, &mut Mac, &mut anchor, &record(&s2), &s2)
+            .unwrap();
+        let slots = disk.slots;
+        let other = child(&s1, 4);
+        assert_eq!(
+            stale.commit(&mut disk, &mut Mac, &mut anchor, &record(&other), &other),
+            Err(CommitError::Reload)
+        );
+        assert_eq!(disk.slots, slots, "anchored S2 overwritten");
+        let (booted, how) = boot(&mut disk, &mut anchor).unwrap();
+        assert_eq!((how, booted.state), (Startup::Accept, s2));
+    }
+
+    /// Bytes read back but not flushed are never rolled forward.
+    #[test]
+    fn failed_flush_at_startup_denies_without_a_roll_forward() {
+        let (mut disk, mut anchor, mut session, _, s1) = at_s1();
+        let s2 = child(&s1, 3);
+        disk.fail_flush = true;
+        assert_eq!(
+            session.commit(&mut disk, &mut Mac, &mut anchor, &record(&s2), &s2),
+            Err(CommitError::Media(MediaError))
+        );
+        let writes = anchor.writes;
+        assert_eq!(boot(&mut disk, &mut anchor).err(), Some(Denied::Media));
+        assert_eq!(anchor.writes, writes);
     }
 
     #[test]
