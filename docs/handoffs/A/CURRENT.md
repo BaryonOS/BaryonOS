@@ -1,7 +1,7 @@
 # Workstream A handoff (Applications, SDK, Installation and Ecosystem)
 
-Owner session: BaryonOS - Specialist A (session ref `f2d7d9`, resumed 2026-11-25 ~18:15Z;
-the earlier `local_163a86f0` session is retired).
+Owner session: BaryonOS - Specialist A (session ref `be8f7a`, resumed 2026-11-25 ~19:55Z;
+the earlier `f2d7d9` and `local_163a86f0` sessions are retired).
 Coordination: BaryonOS - PR Bewaker. Merge mandate: recorded on main in
 ADR-SPECIALIST-TEAM-20261125 clause 2 (#527, 9cc1b86f), which extends
 ADR-MERGE-DELEGATION-20261123 to A; squash with --match-head-commit after the
@@ -94,6 +94,47 @@ notice is a fixture; no full A03 acceptance.
   freeze continues after #544; the lane comes only via the safety valve (a
   genuinely blocked CI PR) or the CI end criterion. Then merge current
   main once more, re-validate, push once, ask CI for the ci.yml delta, merge.
+
+- 25 Nov: main is c04ea98d (#544 landed). `git merge-tree` dry run of
+  c04ea98d into local d1475f34: clean, no conflicts. T2c-1 is developed in the
+  separate worktree `~/projects/BaryonOS-worktrees/a-track-t2c1` (branch
+  `claude/a03-t2c1-volume-broker-20261125`, stacked on d1475f34), so #535 stays
+  'merge main, re-validate, push once'. S was asked to agree to the broker
+  being the sole volume domain-0 client (T2c-2 prerequisite).
+
+- 25 Nov 18:38Z: **T2c-1 done locally** (d0b034c2 + db76a416) on
+  `claude/a03-t2c1-volume-broker-20261125` (stacked on d1475f34; NOT pushed,
+  no PR yet). Host: broker tests 22/22 (request shape pinned: STAT/READ only,
+  known object, READ selector 0), clippy, fmt, task-grant-core 12/12; native
+  regression native-task-grant normal + denied raw exit 33 (source 5a0431f3).
+  Assessment `2026-11-25-a03-volume-read-broker-host.json`, score 43 unchanged.
+  Open: native bin still on a labelled FixtureVolume; a failed READ revokes all
+  holders' grants on that object (fail closed; Stale + failed/not-newer re-STAT
+  now tested). Submit as its own PR after #535 merges (retarget to main).
+- T2c-2 inputs: S read-only interface + seeded-read image 6206b8c8 (T2C-SPEC.md).
+  T2c-3: owner chose A (reply-endpoint closure), 25 Nov; PIDs are monotonic,
+  `crates/kernel-core/src/user.rs:147`, so no PID-reuse risk for A.
+- Native runs: NOS_BUILD_DIR must lie inside the checkout (default `build/`).
+- 25 Nov ~20:10Z: main is 9dcbcc69 (#547). Trial merge of 16e0dfa2 with it in a
+  throwaway worktree (removed): clean; main's non-doc delta is CI tooling only
+  (`tools/ci_impact.py`, `tools/merge_hold.py`), so kernel/build inputs are
+  unchanged. Host checks on the trial merge: `test_ci_workflows.py` 65 OK,
+  `progress.py --check` 0 (43/100), broker tests 10/10, clippy 0, fmt 0.
+  `ci_impact.py plan` selects core 10 + rwa 35 (task-grant via ci.yml), shadow only.
+- 25 Nov ~20:15Z: **T2c-3 contract pin done locally**: branch
+  `claude/a03-t2c3-exit-pin-20261125` @7c734f1c off 9dcbcc69, worktree
+  `~/projects/BaryonOS-worktrees/a-track-t2c3pin`, NOT pushed, no PR. One test in
+  `crates/capability-core/src/tests.rs`
+  (`a03_owned_reply_endpoint_closes_no_later_than_owner_exit`): owner exit makes
+  the broker's reply SEND fail atomically with Revoked and drops the queued
+  message; another client is unaffected; RECV is never delegable or transferable
+  (`lib.rs` `subset`, Access). A mutant skipping exit cleanup fails it. Crate tests,
+  clippy and fmt pass. PR guard checked all open PRs: no capability-core overlap.
+  Submit through the lane after #535 (or fold into the T2c-1 PR if the guard
+  prefers fewer PRs).
+- The T2c-3 option-A decision is recorded only in this handoff (215cadac); a fresh
+  resume prompt still described it as pending. Confirm it with the project owner
+  before any T2c-3 kernel work.
 
 ## Next action
 
