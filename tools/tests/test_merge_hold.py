@@ -170,19 +170,32 @@ def gate_run(head, conclusion="success", run_id=1, status="completed", path=".gi
 E = "e" * 40
 
 
+def per_read(*answers):
+    """One answer per read, in turn; the last one holds (run_group rereads and group_jobs)."""
+    reads = []
+
+    def answer():
+        reads.append(1)
+        return answers[min(len(reads), len(answers)) - 1]
+    return answer
+
+
 class MergeGroupTests(TestCase):
     """PR 7 is ahead of PR 8; group commit GROUP contains both."""
 
     def run_group(self, nodes, labels=None, comments=None, trees=None,
                   env=None, answer=None, checks=None, ahead=None, on_sleep=None,
-                  commits=None, gate_runs=None, group_runs=None, group_jobs=None, plan=None, ancestor=0):
+                  commits=None, gate_runs=None, group_runs=None, group_jobs=None, plan=None, ancestor=0,
+                  rereads=None):
         """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest.
 
         Run listings are keyed by the URL's event and head_sha and returned verbatim, as
         GitHub would list them: gate_runs[sha] answers event=pull_request (default: one
         successful merge-hold run), group_runs[sha] answers event=merge_group (default:
-        the passing gate runs of GROUP); group_jobs[run id] lists their jobs. plan is
-        what the mocked selector returns (default: group_plan()); self.plans records its calls.
+        the passing gate runs of GROUP); group_jobs[run id] lists their jobs. rereads[run id]
+        overlays the fields a re-read of that listed run shows (a callable: one answer per
+        re-read, see per_read). plan is what the mocked selector returns (default:
+        group_plan()); self.plans records its calls.
         """
         labels, comments, trees = labels or {}, comments or {}, trees or {}
         polls = {sha: list(answers) for sha, answers in (commits or {}).items()}
@@ -231,7 +244,9 @@ class MergeGroupTests(TestCase):
                 return {"total_count": len(listed), "workflow_runs": listed}
             if "/actions/runs/" in url:  # re-read of one listed merge_group run
                 run_id = int(url.rsplit("/", 1)[1])
-                return next(dict(run) for listed in group_runs.values() for run in listed if run["id"] == run_id)
+                listed = next(dict(run) for listed in group_runs.values() for run in listed if run["id"] == run_id)
+                change = (rereads or {}).get(run_id) or {}
+                return {**listed, **(change() if callable(change) else change)}
             if url.endswith("/graphql"):
                 self.assertEqual(payload["variables"], {"owner": "o", "name": "r"})
                 return answer if answer is not None else {"data": {"repository": {
@@ -934,7 +949,8 @@ class MergeGroupTests(TestCase):
     def test_unheld_member_lands_another_tree_only_after_an_enforced_clean_report(self):
         trees = {GROUP: "1" * 40, OTHER: "2" * 40}
         rule = (f"#8: ::error::The applicable gates ran on {OTHER}, but its queue entry {GROUP} lands a "
-                "different tree, and merge-hold does not yet judge the gates on merge_group. Update the branch.")
+                "different tree, and the queue-commit gate report is not an enforced clean pass, so it does not "
+                "cover that tree. Update the branch.")
         failed = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]}
         pending = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", None, "in_progress")]}
         code, out, _ = self.run_group(self.ONE, trees=trees)
@@ -1082,6 +1098,59 @@ class MergeGroupTests(TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("queue or check-run read failed: run 2 has no start or creation time", out)
         self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    # The settle step (#494) runs on the queue commit too; no early report reads these runs here.
+    def test_a_queue_gate_run_that_moved_on_once_is_judged_on_its_settled_state(self):
+        for why, settled, later, expected, line in (
+                ("settled success", {"run_attempt": 2}, job(24, 2, "quality (viewer)"), 0,
+                 "Passed: quality (viewer): success in run 2 attempt 2"),
+                ("settled failure", {"run_attempt": 2, "conclusion": "failure"},
+                 job(24, 2, "quality (viewer)", "failure"), 1,
+                 f"::error::Failed: quality (viewer): failure in run 2 attempt 2 ({LEAVES})")):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(self.QUEUE, rereads={2: settled},
+                                                  group_jobs={**GOOD_JOBS, 2: per_read(GOOD_JOBS[2], [later])})
+                self.assertEqual(code, expected, out)
+                self.assertIn(line, out)
+                self.assertNotIn("changed while it was read", out)
+                self.assertNotIn("sleep", calls)
+
+    def test_a_queue_gate_run_that_keeps_changing_stays_pending_and_fails_the_group(self):
+        # Green listing and jobs: only the settle comparison keeps this run from passing.
+        code, out, _ = self.run_group(self.QUEUE, rereads={2: per_read({"run_attempt": 2}, {"run_attempt": 3})})
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"::error::Pending: {LEAVES}: run 2 attempt 1 changed while it was read "
+                      "(now attempt 2, completed); re-run merge-hold", out)
+        self.assertNotIn("Passed: quality (viewer)", out)
+        # An early report (for a failed check run) keeps it pending as well, never Failed, so a
+        # gate run that stays open fails closed at the deadline.
+        with mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+            code, out, calls = self.run_group(
+                self.QUEUE, checks=[{"check_runs": DONE["check_runs"] + [
+                    {"id": 99, "name": "quality (viewer)", "status": "completed", "conclusion": "failure"}]}],
+                group_runs={GROUP: [group_run(1, CI), group_run(2, LEAVES, status="in_progress", conclusion=None)]},
+                group_jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]},
+                rereads={2: per_read({"run_attempt": 2, "status": "completed", "conclusion": "failure"},
+                                     {"run_attempt": 3, "status": "queued", "conclusion": None})})
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"did not complete in time: ['applicable gate runs on {GROUP}", out)
+        self.assertNotIn("Failed:", out)
+        self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_a_settled_queue_run_that_no_longer_matches_the_binding_is_not_counted(self):
+        # The re-read moved on to attempt 2 and held it; only the binding of that record differs.
+        for why, over in (("pull_request event", {"event": "pull_request", "pull_requests": OWN_PULL}),
+                          ("another queue commit", {"head_sha": E}),
+                          ("other queue branch", {"head_branch": f"gh-readonly-queue/main/pr-9-{BASE}"}),
+                          ("other repository", {"repository": {"full_name": "x/r"}}),
+                          ("other head repository", {"head_repository": {"full_name": "fork/r"}})):
+            with self.subTest(why=why):
+                code, out, _ = self.run_group(self.QUEUE, rereads={2: {"run_attempt": 2, **over}})
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"::error::Pending: {LEAVES}: run 2 attempt 2 no longer matches {GROUP} when "
+                              "read again; re-run merge-hold", out)
+                self.assertNotIn("Passed: quality (viewer)", out)
+                self.assertNotIn("changed while it was read", out)
 
 
 class FetchTests(TestCase):
@@ -1771,6 +1840,14 @@ class GateTests(TestCase):
         self.assertFalse(passed)
         self.assertIn("Failed: quality (viewer): failure in run 2 attempt 2", out)
         self.assertNotIn("run 99", out)
+
+    def test_a_settled_record_that_no_longer_lists_this_pull_request_is_not_counted(self):
+        """The settled record replaces the listed one, so it must keep the pull_request binding too."""
+        passed, out, _ = self.decide(settle_during_read={2: {"run_attempt": 2, "pull_requests": []}})
+        self.assertFalse(passed)
+        self.assertIn(f"Pending: {LEAVES}: run 2 attempt 2 no longer matches {HEAD} when read again; "
+                      "re-run merge-hold", out)
+        self.assertNotIn("Passed: quality (viewer)", out)
 
     def test_the_jobs_re_read_keeps_only_jobs_of_the_run_that_was_read(self):
         """A job of another run in the second jobs read must not decide this run's gate."""

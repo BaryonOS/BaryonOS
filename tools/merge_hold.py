@@ -717,6 +717,12 @@ def gate_report(token, repo, pull, head_sha, plan, queue_branch=None):
             # the one these reads were made for.
             run = dict(settled, id=run["id"])
             where = f"run {run['id']} attempt {run.get('run_attempt')}"
+            # The settled record replaces the listed one, so it must keep the listing's binding
+            # (run_matches: pull request, or merge_group queue commit); otherwise it never counts.
+            if not run_matches(run, repo, pull, head_sha, queue_branch):
+                pending.append(f"{workflow}: {where} no longer matches {head_sha} when read again; "
+                               "re-run merge-hold")
+                continue
             running = run.get("status") != "completed"
         if running and workflow in gated:
             pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
@@ -910,7 +916,8 @@ def merge_group_hold(token, repo):
         elif passed and not same_tree and not (enforce and clean):
             passed, message = False, (
                 f"The applicable gates ran on {pr_head}, but its queue entry {entry_commit} lands a "
-                "different tree, and merge-hold does not yet judge the gates on merge_group. Update the branch.")
+                "different tree, and the queue-commit gate report is not an enforced clean pass, so it does "
+                "not cover that tree. Update the branch.")
         elif passed and not pull_request_gates_passed(token, repo, pr_head, number):
             passed, message = False, (
                 f"No successful pull_request merge-hold verified the applicable gates on {pr_head}.")
