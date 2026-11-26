@@ -1190,13 +1190,15 @@ class GateTests(TestCase):
         self.assertEqual(state["sleeps"], 0)
 
     def test_a_rerun_that_finishes_during_the_report_after_polling_is_refreshed(self):
-        """CodeRabbit on #517: after a poll the next stale report still gets one refresh."""
+        """CodeRabbit on #517: after a poll the next stale report still gets one refresh.
+
+        CodeRabbit on #560 (M4): the settle step can resolve the stale report by itself, so run 2's
+        jobs stay at attempt 1 through the settle read of the first report after the poll (Pending:
+        jobs of another attempt) and show attempt 2 only from the refresh report on."""
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
         running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
         done = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="success", attempt=2)]
-        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", None, "in_progress")]}
-        later = {2: [job(24, 2, "quality (viewer)", attempt=2)]}
-        reads = {"n": 0}
+        reads = {"n": 0, "jobs": 0}
         real = merge_hold.fetch_listing
 
         def listing(token, url, key):
@@ -1204,12 +1206,18 @@ class GateTests(TestCase):
                 reads["n"] += 1
                 if reads["n"] == 4:  # the report after the poll (read 3) still sees attempt 1 running
                     return running
+            elif "/actions/runs/2/jobs?" in url:
+                reads["jobs"] += 1  # reads 1-3: report 1, then the report after the poll and its settle read
+                return ([job(21, 2, "quality (viewer)", None, "in_progress")] if reads["jobs"] <= 3
+                        else [job(24, 2, "quality (viewer)", attempt=2)])
             return real(token, url, key)
 
         with mock.patch.object(merge_hold, "fetch_listing", listing):
-            passed, out, state = self.decide(plan=plan, polls=[running, done], jobs=jobs, later_jobs=later)
+            passed, out, state = self.decide(plan=plan, polls=[running, done])
         self.assertTrue(passed, out)
         self.assertEqual(state["sleeps"], 1)
+        # The refresh report happened: a sixth run listing and a fourth jobs read of run 2.
+        self.assertEqual((reads["n"], reads["jobs"]), (6, 4))
 
     def test_a_superseded_open_run_does_not_hold_the_wait(self):
         """CodeRabbit on #517: the wait poll applies gate_report's newest-run rule."""
@@ -1667,6 +1675,8 @@ class GateTests(TestCase):
         self.assertIn(f"Pending: {workflow}: run {run_id} attempt {attempt} listed jobs of another attempt; "
                       "re-run merge-hold", out)
         self.assertIn("1 pending; 0 failed.", out)
+        self.assertIn("a failure with only Pending lines needs no fix", out)
+        self.assertNotIn('says "if it persists"', out)
         self.assertNotIn("Passed: quality (viewer)", out)
 
     def test_a_settled_attempt_is_not_judged_on_lagging_jobs_of_the_listed_one(self):
@@ -1729,6 +1739,9 @@ class GateTests(TestCase):
         self.assertIn(f"Pending: {LEAVES}: run 2 attempt 2 concluded failure but lists no such job; "
                       "re-run merge-hold; if it persists, re-run that workflow run", out)
         self.assertIn("1 pending; 0 failed.", out)
+        # The footer says a Pending-only failure needs no fix; this line may need a workflow re-run.
+        self.assertIn('::error::Exception: a Pending line that says "if it persists" may need a re-run of that '
+                      "workflow run when a merge-hold re-run does not clear it.", out)
 
     def assert_run_without_any_job(self, passed, out, workflow, run_id, attempt, conclusion="failure"):
         self.assertFalse(passed)

@@ -788,6 +788,9 @@ def pull_request_gates(token, repo, number, head_sha):
         if any(NEVER_STARTS in line for line in pending):
             lines.append(f"{prefix}Exception: a gate with an unknown path-filter result may never start, "
                          "so waiting for it does not help; its Pending line names the remedy.")
+        if any("if it persists" in line for line in pending):
+            lines.append(f"{prefix}Exception: a Pending line that says \"if it persists\" may need a re-run of "
+                         "that workflow run when a merge-hold re-run does not clear it.")
     lines += ["Passed: " + line for line in passed] + ["Not a pass: " + line for line in skipped]
     return (not failed and not pending) or not enforce, lines
 
