@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "60b1aac784dffc65fbbb256bf96e6193c85539d0",
+  "assessment_basis": "parent_commit",
+  "branch": "ci/d1s2-merge-group-gates-20261126",
+  "task": "CI D1 option B step 2 (#494): on merge_group, merge-hold binds its inputs to the merge_group base and queue commit and binds runs by event, head SHA, queue branch and repository. It waits for, and judges with the pull_request rules, every applicable gate on the queue commit. The wait ends early when the group leaves the queue or a gate has failed. Member rules: each member keeps its hold decision and a successful pull_request merge-hold on its own head; a released hold needs an equal tree; an unheld member needs an equal tree unless the enforced queue-commit report is clean; a lifted member ahead needs a successful merge_group merge-hold on its entry commit. ADR-CI-MERGE-GROUP-GATES-20261126 is proposed and the ci-impact catalogue moves to revision 18. The merge queue is not enabled.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI tooling, tests and documentation only; no criterion, native evidence or acceptance result changes."
+}

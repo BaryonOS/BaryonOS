@@ -527,7 +527,7 @@ jobs:
     # A hung upload must not hold a runner for hours (#494 B8).
     timeout-minutes: 10
     if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       contents: read
       code-quality: write
@@ -547,7 +547,7 @@ jobs:
     needs: host-quality
     timeout-minutes: 10
     if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       contents: read
       code-quality: write
@@ -567,7 +567,7 @@ jobs:
     needs: host-quality
     timeout-minutes: 10
     if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       contents: read
       code-quality: write
