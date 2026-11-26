@@ -2879,7 +2879,7 @@
       "criterion": "H05",
       "milestone": "M9",
       "executor": "lead",
-      "status": "active",
+      "status": "verified",
       "title": "virtio-blk lane 0 kernel re-initialisation after an S3 wake, quarantine on refusal (test-system-s3-blk-reinit, slice 1)",
       "goal": "After a validated wake and the virtio-rng re-init, re-validate and re-initialise the virtio-blk primary lane fail-closed (full identity, no BAR sizing, acknowledged reset, same Policy with epoch + 1) and run a discarded kernel canary READ; a refusal quarantines lane 0 (-24) and the system continues to S5 and cold recovery. No ring-3 block capability and no relaxation of block_objects == 0.",
       "deps": [
@@ -2904,10 +2904,18 @@
         "python3 -B -u tools/test_volume.py (M6e gate, unchanged by this slice)",
         "O13 carryover mutants: a fresh lane Policy on the re-init success path and on the capacity quarantine path each fail with SYSTEM:FAIL:S3_BLK_LATCH_CARRIED (raw 35)"
       ],
-      "evidence_level": "Local native QEMU/TCG only (QEMU 10.2.1, pc-q35-8.2, BARS=RESTORED) on the main 2289a271 merge: success path and four labelled kernel-side injections (busy, identity, capacity, no-reset-ack) reach the real quarantine path; the O13 latch table of lane 0 is carried through re-init and quarantine; 22-stage local POWER gate and 34-stage M6e gate pass. Hosted native-power runs on the PR head.",
+      "evidence_level": "Local native QEMU/TCG only (QEMU 10.2.1, pc-q35-8.2, BARS=RESTORED) on the main 2289a271 merge: success path and four labelled kernel-side injections (busy, identity, capacity, no-reset-ack) reach the real quarantine path; the O13 latch table of lane 0 is carried through re-init and quarantine; 22-stage local POWER gate and 34-stage M6e gate pass. Hosted native-power, power-system-gate, native-system and m6e-native-volume green on the merged head 0e9e1b91.",
       "non_claimable": "No ring-3 block re-grant, remount or key-erasure SUSPEND gate (slices 2-4). The canary READ is kernel-driven and discarded. Injections are kernel-side labels, not device faults; BARS=KEPT, real BAR/capacity changes, IOMMU/DMA isolation and physical S3 are unmeasured. The O13 latch is registered after the wake and before the reset, so the carryover check proves the same Policy through re-init and quarantine, not survival across the sleep itself; no production profile registers a latch. The native stale-ticket peek is tautological (nothing pending); the evidence is the old-epoch publish refusal plus the ticket-floor check. Re-init is one-shot and safe only because SUSPEND is granted once per boot; any multi-cycle S3 slice must reset this state on each wake.",
-      "next": "Hosted native-power gate on the PR head, then independent review; slice 2 (H05-T5d) follows.",
-      "blocker": null
+      "next": "Slice 2 (H05-T5d): the Q3 key-erasure SUSPEND gate, after workstream B delivers the keyring LOCK/UNLOCK contract.",
+      "blocker": null,
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-26",
+          "reason": "PR #556 squash-merged as 945847d8; tested head 0e9e1b91 passed all applicable hosted gates including native-power, power-system-gate, native-system, m6e-native-volume and merge-hold. An independent AI verifier (not a human audit) re-ran the gates on c61a1fe0..be12038e and found no blocking or major findings; the later O13 carryover commit is covered by the gates and its two mutants."
+        }
+      ],
+      "source_commit": "945847d83ec0fd060292bf675d820c80f4c18e78"
     },
     {
       "id": "H05-T5d",
