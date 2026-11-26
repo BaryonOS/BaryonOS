@@ -392,6 +392,7 @@ def power_transcript(case="power", tail=None, **changes):
                       SUSPEND_BLK_PIC_MASTER=0 if quarantined else 0xfe,
                       SUSPEND_BLK_PIC_SLAVE=0 if quarantined else 0xff,
                       SUSPEND_BLK_INTX_LINE=0 if quarantined else 10,
+                      SUSPEND_BLK_LATCH_CARRIED=1,
                       SUSPEND_LOST_BLOCK=24 if quarantined else 6,
                       **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0,
                       SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=0 if case.endswith("-busy") else 8)
@@ -659,6 +660,10 @@ class PowerS3BlkReinitHarnessTests(unittest.TestCase):
                              ("power-s3-blk-reinit", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=None)),
                              ("power-s3-blk-reinit", dict(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
                              ("power-s3-blk-reinit", dict(SUSPEND_BLK_INTX_LINE=None)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_LATCH_CARRIED=0)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_LATCH_CARRIED=None)),
+                             ("power-s3-blk-reinit-capacity", dict(SUSPEND_BLK_LATCH_CARRIED=0)),
+                             ("power-s3-blk-reinit-busy", dict(SUSPEND_BLK_LATCH_CARRIED=None)),
                              ("power-s3-blk-reinit-capacity", dict(SUSPEND_LOST_BLOCK=14)),
                              ("power-s3-blk-reinit-capacity", dict(SUSPEND_LOST_BLOCK=6)),
                              ("power-s3-blk-reinit-capacity", dict(SUSPEND_BLK_QUARANTINED=0)),

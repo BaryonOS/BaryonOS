@@ -295,7 +295,7 @@ REINIT_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "REIN
 # INTx line seen after the wake, then block at authority (-6) or quarantined (-24);
 # last the volume re-init's accounted device accesses.
 BLK_ORDER = (*REINIT_ORDER[:7], "BLK_QUARANTINED", "BLK_STALE_TICKET", "BLK_PIC_MASTER", "BLK_PIC_SLAVE",
-             "BLK_INTX_LINE", "LOST_BLOCK", *DEVICE_ORDER, "DEVICE_IO_ACCOUNTED_VOLUME")
+             "BLK_INTX_LINE", "BLK_LATCH_CARRIED", "LOST_BLOCK", *DEVICE_ORDER, "DEVICE_IO_ACCOUNTED_VOLUME")
 
 
 def check_power(case: str, stdout: str, found: dict) -> None:
@@ -330,6 +330,7 @@ def check_power(case: str, stdout: str, found: dict) -> None:
                                 SUSPEND_BLK_STALE_TICKET=0 if quarantined else 1,
                                 SUSPEND_BLK_PIC_MASTER=0 if quarantined else 0xfe,
                                 SUSPEND_BLK_PIC_SLAVE=0 if quarantined else 0xff,
+                                SUSPEND_BLK_LATCH_CARRIED=1,
                                 SUSPEND_LOST_BLOCK=QUARANTINED if quarantined else 6)
                 if quarantined:
                     expected.update(SUSPEND_BLK_INTX_LINE=0)

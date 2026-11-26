@@ -2018,6 +2018,9 @@ struct BlkReinit {
     floor: u64,
     stale: i64,
     pic: [u8; 3],
+    /// O13 carryover: the lane-0 latch table right after the test-only latch
+    /// was registered and latched, before any reset; `None` if that failed.
+    latches: Option<[Option<virtio_core::LatchEntry>; virtio_core::LATCH_ENTRIES]>,
 }
 #[cfg(feature = "test-system-s3-blk-reinit")]
 static mut BLK_REINIT: BlkReinit = BlkReinit {
@@ -2029,6 +2032,7 @@ static mut BLK_REINIT: BlkReinit = BlkReinit {
     floor: 0,
     stale: 0,
     pic: [0; 3],
+    latches: None,
 };
 #[cfg(feature = "test-system-s3-blk-reinit")]
 fn blk_state() -> &'static mut BlkReinit {
@@ -2049,11 +2053,27 @@ pub(super) fn blk_reinit_settled() -> bool {
     blk_state().stage >= BLK_DONE
 }
 /// (quarantined, stale-ticket result, PIC master mask, PIC slave mask,
-/// interrupt line) once settled.
+/// interrupt line, O13 latch carried) once settled.
 #[cfg(feature = "test-system-s3-blk-reinit")]
-pub(super) fn blk_reinit_evidence() -> Option<(bool, i64, [u8; 3])> {
+pub(super) fn blk_reinit_evidence() -> Option<(bool, i64, [u8; 3], bool)> {
     let p = blk_state();
-    (p.stage >= BLK_DONE).then_some((p.stage == BLK_QUARANTINED, p.stale, p.pic))
+    (p.stage >= BLK_DONE).then(|| {
+        (
+            p.stage == BLK_QUARANTINED,
+            p.stale,
+            p.pic,
+            blk_latch_carried(),
+        )
+    })
+}
+
+/// O13 carryover (S09 2.7): re-init and quarantine keep the same lane Policy,
+/// so the latch table is unchanged and the canary sector is still latched.
+/// A replaced (freshly constructed) Policy has an empty table and fails this.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_latch_carried() -> bool {
+    let policy = &runtime().lanes[0].policy;
+    blk_state().latches == Some(policy.latches()) && policy.write_latched(CANARY_SECTOR)
 }
 
 /// The next ticket of `policy`, observed on a copy; the lane Policy itself is
@@ -2152,6 +2172,12 @@ pub(super) fn blk_reinit_poll(s: &State) {
                 }
             }
             let lane = &mut runtime().lanes[0];
+            // O13 carryover, test-only: latch the never-granted canary sector
+            // before any check or reset, so every outcome (re-init or each
+            // quarantine) must carry it. No device access.
+            p.latches = (lane.policy.register_latch(CANARY_SECTOR, 1).is_ok()
+                && lane.policy.latch_scope(CANARY_SECTOR, 1).is_ok())
+            .then(|| lane.policy.latches());
             // I1: the storage gate admitted the suspend only with this state.
             let quiescent = lane.policy.request().is_none()
                 && lane.policy.phase() == Phase::Ready

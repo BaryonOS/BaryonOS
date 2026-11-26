@@ -1327,7 +1327,7 @@ fn finish(s: &mut State) -> ! {
         }
         #[cfg(feature = "test-system-s3-blk-reinit")]
         {
-            let (quarantined, stale, [master, slave, line]) =
+            let (quarantined, stale, [master, slave, line], carried) =
                 m5::blk_reinit_evidence().unwrap_or_else(|| fail(b"S3_BLK_REINIT"));
             require(
                 quarantined == BLK_QUARANTINE_EXPECTED,
@@ -1338,6 +1338,9 @@ fn finish(s: &mut State) -> ! {
             print_number(b"SYSTEM:SUSPEND_BLK_PIC_MASTER:", u64::from(master));
             print_number(b"SYSTEM:SUSPEND_BLK_PIC_SLAVE:", u64::from(slave));
             print_number(b"SYSTEM:SUSPEND_BLK_INTX_LINE:", u64::from(line));
+            // O13: the lane-0 latch table survived the re-init or quarantine.
+            require(carried, b"S3_BLK_LATCH_CARRIED");
+            print_number(b"SYSTEM:SUSPEND_BLK_LATCH_CARRIED:", u64::from(carried));
         }
         // The logged magnitudes, so a host oracle can tell -14 from 0.
         #[cfg(not(feature = "test-system-s3-reinit"))]
