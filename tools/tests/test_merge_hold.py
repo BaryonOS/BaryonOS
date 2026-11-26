@@ -350,8 +350,8 @@ class MergeGroupTests(TestCase):
 
     def test_a_slow_plan_shortens_the_gate_wait(self):
         """The budget is counted from before the plan and keeps the decision reserve back:
-        (45 min - 3 min - plan) / 1 min polls, rounded up, so the wait ends past its deadline."""
-        for plan_seconds, sleeps in ((0, 42), (7, 42), (merge_hold.SELECTOR_TIMEOUT, 32)):
+        (80 min - 3 min - plan) / 1 min polls, rounded up, so the wait ends past its deadline."""
+        for plan_seconds, sleeps in ((0, 77), (7, 77), (merge_hold.SELECTOR_TIMEOUT, 67)):
             with self.subTest(plan_seconds=plan_seconds):
                 code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN], plan_seconds=plan_seconds)
                 self.assertEqual(code, 1, out)
@@ -360,13 +360,13 @@ class MergeGroupTests(TestCase):
                 self.assertEqual(self.clock[0], plan_seconds + sleeps * merge_hold.POLL_SECONDS)
                 self.assertFalse([url for url in calls if url.endswith("/labels")])
         # The two git calls before the wait, the ancestry check and the catalogue read
-        # (base_wait_seconds), are inside the clock too: (45 min - 3 min - 2 x 120 s) / 1 min.
+        # (base_wait_seconds), are inside the clock too: (80 min - 3 min - 2 x 120 s) / 1 min.
         code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN], git_seconds=120)
         self.assertEqual(code, 1, out)
         self.assertEqual([args[:2] for args in self.gits], [("merge-base", "--is-ancestor"),
                                                             ("cat-file", "blob")])
-        self.assertEqual(calls.count("sleep"), 38)
-        self.assertEqual(self.clock[0], 2 * 120 + 38 * merge_hold.POLL_SECONDS)
+        self.assertEqual(calls.count("sleep"), 73)
+        self.assertEqual(self.clock[0], 2 * 120 + 73 * merge_hold.POLL_SECONDS)
 
     def test_plan_wait_and_decision_stay_within_the_budget_plus_the_reserve(self):
         """For every catalogue budget B and plan time P (polls take no time here): the plan and
@@ -414,17 +414,17 @@ class MergeGroupTests(TestCase):
         """plan + wait + reserve < job timeout: the docstring of merge_group_hold, against merge-hold.yml."""
         workflow = (Path(__file__).resolve().parents[2] / merge_hold.GATE_WORKFLOW).read_text(encoding="utf-8")
         timeouts = re.findall(r"^\s+timeout-minutes: (\d+)$", workflow, re.M)
-        self.assertEqual(timeouts, ["50"])
-        self.assertEqual((merge_hold.WAIT_SECONDS, merge_hold.MAX_WAIT_SECONDS), (45 * 60, 45 * 60))
+        self.assertEqual(timeouts, ["90"])
+        self.assertEqual((merge_hold.WAIT_SECONDS, merge_hold.MAX_WAIT_SECONDS), (80 * 60, 80 * 60))
         self.assertGreaterEqual(merge_hold.DECISION_RESERVE_SECONDS, merge_hold.POLL_SECONDS)
         longest_plan = merge_hold.SELECTOR_TIMEOUT + 2 * 120  # the selector and two git calls
         self.assertLess(max(merge_hold.MAX_WAIT_SECONDS, longest_plan + merge_hold.POLL_SECONDS)
                         + merge_hold.DECISION_RESERVE_SECONDS, int(timeouts[0]) * 60)
-        # The docstring's assumption: up to the wait's last poll at most 43 minutes, so the last
-        # poll, the decision and the steps before the script have about 7 minutes.
+        # The docstring's assumption: up to the wait's last poll at most 78 minutes, so the last
+        # poll, the decision and the steps before the script have about 12 minutes.
         before_last_poll = max(merge_hold.MAX_WAIT_SECONDS - merge_hold.DECISION_RESERVE_SECONDS
                                + merge_hold.POLL_SECONDS, longest_plan)
-        self.assertEqual((before_last_poll, int(timeouts[0]) * 60 - before_last_poll), (43 * 60, 7 * 60))
+        self.assertEqual((before_last_poll, int(timeouts[0]) * 60 - before_last_poll), (78 * 60, 12 * 60))
 
     def test_the_decision_after_the_wait_makes_the_counted_requests(self):
         """The requests of the decision after the wait, counted from the moment the wait returns (one
@@ -1293,7 +1293,7 @@ class MergeGroupTests(TestCase):
                                                               E: listed})
                 self.assertEqual(code, 1, out)
                 self.assertIn(f"required checks did not complete in time: ['merge-hold on {E}']", out)
-                self.assertEqual(calls.count("sleep"), 42)
+                self.assertEqual(calls.count("sleep"), 77)
                 self.assertFalse([url for url in calls if url.endswith("/labels")
                                   or f"head_sha={E}&event=merge_group" in url])
 

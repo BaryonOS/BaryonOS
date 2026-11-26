@@ -84,7 +84,7 @@ are rejected.
     everything (see "Tooling metadata"), while merge-hold still verifies every
     applicable gate.
 - `[policy.budgets]` (required): `pull_request_wait_minutes` and
-  `merge_group_wait_minutes`, integers from 0 to 45 (below the 50-minute
+  `merge_group_wait_minutes`, integers from 0 to 80 (below the 90-minute
   merge-hold timeout). merge-hold reads them from the trusted base.
 - `always_full`: globs whose change forces a full plan (all of `.github/**`,
   every `Cargo.lock`, `rust-toolchain.toml`, root `Cargo.toml`,
@@ -697,7 +697,7 @@ push. A positive budget still works that way: once a minute merge-hold reads
 only the head's run listing and makes the next full decision once no gated
 workflow run is open or the budget ends; a failed poll counts as open, and
 pending gates with nothing left running decide at once. `merge_group` keeps
-`merge_group_wait_minutes = 45` and still waits that way; that budget now
+`merge_group_wait_minutes = 80` and still waits that way; that budget now
 also covers the plan and every gate run of the queue commit (see
 **merge_group** below).
 
@@ -913,14 +913,14 @@ itself:
 - Under `shadow` the group neither waits for gate runs nor blocks on them, and
   no gate ends its wait early.
 
-The 45-minute budget is counted from before the plan. The plan and the
+The 80-minute budget is counted from before the plan. The plan and the
 catalogue read, the group's own checks, every gate run of the queue commit and
 the chain of entries ahead share it, less a 3-minute reserve kept back for the
 decision after the wait; the deadline fails closed. Up to the wait's last poll
-the script, whose clock starts before the plan, therefore takes at most 43
+the script, whose clock starts before the plan, therefore takes at most 78
 minutes; the workflow steps before the script are outside that clock. The last
-poll, the decision and those steps must fit the remaining 7 minutes of the
-50-minute job timeout. Counted one page each, the decision makes 2 + 2N + 4M
+poll, the decision and those steps must fit the remaining 12 minutes of the
+90-minute job timeout. Counted one page each, the decision makes 2 + 2N + 4M
 requests for N counted runs and M members when no member is lifted, at most
 4N + 8M - 1; a lifted member ahead adds four reads of its entry's merge-hold.
 In an ordinary queue every member ahead but the first is lifted, which gives
@@ -930,9 +930,9 @@ of 1 + 2N to 1 + 4N requests when a new failure trigger appears that the report
 does not count, such as an advisory check-run failure; the decision then makes
 its own. For N = 24 and M = 5 the last poll (one entry walked) and the decision
 make about 86 requests in an ordinary queue and about 240 at worst, so, less
-the steps before the script, under about 5 s and
-1.7 s per request on average. Each blocking socket read times out after 20 s, so
-a single request has no hard ceiling. Those 7 minutes are an assumption, not a
+the steps before the script, under about 8 s and
+3 s per request on average. Each blocking socket read times out after 20 s, so
+a single request has no hard ceiling. Those 12 minutes are an assumption, not a
 guarantee; the job timeout stays the fail-closed backstop. A
 queue trial with at least two entries (D1 step 3) is still required before the
 queue may be enabled. merge-hold reads every page of a queue commit's check

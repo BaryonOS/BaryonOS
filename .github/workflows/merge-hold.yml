@@ -11,7 +11,7 @@
 # Every gate poll also reads the queue: a group that was removed or rebuilt, or
 # (enforcing) a gate that has already failed, ends the wait with a failure.
 # It then judges the gates on the queue commit, checks every pull request in it
-# and fails closed if they cannot be identified or the 45-minute budget, counted
+# and fails closed if they cannot be identified or the 80-minute budget, counted
 # from before the plan and less a 3-minute decision reserve, runs out.
 # A hold added after that final read is not seen. See ADR-MERGE-HOLD-20261113.
 #
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-24.04
     # Above the 30-minute host-quality and qemu-smoke budgets plus queueing,
     # below the planned 60-minute merge-queue check timeout.
-    timeout-minutes: 50
+    timeout-minutes: 90
     permissions:
       actions: read
       checks: read

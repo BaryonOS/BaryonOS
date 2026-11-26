@@ -15,6 +15,10 @@ hold, labels, release comments and queue walk stay in force. It does not enable
 the merge queue. Enabling the queue still needs a passing trial with at least
 two entries (D1 step 3) and the owner's explicit confirmation at that moment.
 
+**Budget (project owner, 26 November 2026):** the `merge_group` wait is 80 minutes
+(`MAX_WAIT_SECONDS`, `merge_group_wait_minutes`) and the merge-hold job timeout 90
+minutes, because `native-window-session` reached p90 59 and max 72 minutes.
+
 **Source:** branch `ci/d1s2-merge-group-gates-20261126` on base `main`
 `2289a271`. Implementation commits: `524ea570` (round 1), `1ae6b57e` and
 `9e10d7ec` (round 2), `f7743f06` (stacked on CI-SETTLE), `7d387a80` to

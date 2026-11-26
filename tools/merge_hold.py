@@ -20,7 +20,7 @@ about the entries ahead of it, so those are checked too. The queue merges in
 order, so this group can merge only after those entries; labels and comments
 are therefore read close to this group's merge, not when its own checks end.
 A hold added after that final read, until GitHub merges the group, is not seen
-(ADR-MERGE-HOLD-20261113). The 45-minute budget is counted from before the
+(ADR-MERGE-HOLD-20261113). The 80-minute budget is counted from before the
 plan: the plan, the group's own checks and gate runs and the whole chain ahead
 (each position adding up to one poll) share it, less a 3-minute reserve kept for
 the decision after the wait (see merge_group_hold).
@@ -126,7 +126,7 @@ WAIT_CHECKS = ("host-quality", "qemu-smoke")
 AHEAD_CHECKS = WAIT_CHECKS + ("merge-hold",)
 ACTIONS_APP_ID = 15368
 POLL_SECONDS = 60
-WAIT_SECONDS = 45 * 60
+WAIT_SECONDS = 80 * 60
 # Kept back from the merge_group budget for the work after the wait (merge_group_hold); at
 # least one poll interval, because the wait may end one sleep past its deadline.
 DECISION_RESERVE_SECONDS = 3 * POLL_SECONDS
@@ -158,7 +158,7 @@ UNUSABLE_FALLBACKS = ("unknown-event", "invalid-sha", "fetch-failed", "merge-ref
 # A gate that ended like this did not pass; "skipped" also blocks an expected gate.
 BLOCKING_CONCLUSIONS = ("failure", "cancelled", "timed_out", "startup_failure", "action_required", "stale")
 SELECTOR_TIMEOUT = 600
-MAX_WAIT_SECONDS = 45 * 60
+MAX_WAIT_SECONDS = 80 * 60
 # As tools/ci_impact.py FILTER_FILE_LIMIT: GitHub evaluates a path filter on the first 300 files only.
 FILTER_FILE_LIMIT = 300
 NEVER_STARTS = "so GitHub may never start it"
@@ -1023,18 +1023,18 @@ def merge_group_hold(token, repo):
     """Return (passed, lines) for the gates of the queue commit and every pull request in the group.
 
     Time budget. The clock starts here, before the plan. B is the base catalogue's
-    merge_group budget (0 to MAX_WAIT_SECONDS, 45 min), P the time up to the wait
+    merge_group budget (0 to MAX_WAIT_SECONDS, 80 min), P the time up to the wait
     (the plan and the catalogue read: at most SELECTOR_TIMEOUT plus two git calls of
     at most 120 s each, about 14 min), R = DECISION_RESERVE_SECONDS (3 min). The wait
     gets B - P - R. It checks its deadline after each poll, so it ends at most one
     POLL_SECONDS sleep plus one poll past it, and makes one poll even when
     B - P - R <= 0. Up to that last poll this script, not the job, therefore takes at
-    most max(B - R + POLL_SECONDS, P) <= max(43, 14) = 43 min, for every catalogue budget;
+    most max(B - R + POLL_SECONDS, P) <= max(78, 14) = 78 min, for every catalogue budget;
     the workflow steps before the script are outside this clock.
 
     Assumption, not a proof: the last poll, the decision after the wait and the
-    workflow steps before this script together take at most about 7 minutes, the
-    50-minute job timeout (merge-hold.yml timeout-minutes) less those 43 minutes.
+    workflow steps before this script together take at most about 12 minutes, the
+    90-minute job timeout (merge-hold.yml timeout-minutes) less those 78 minutes.
     Counted one page each, the decision makes one run listing and two requests per
     counted run of the queue commit (its jobs and a re-read; four for a run that moved
     on and is read again), one GraphQL query for the members, and per member four
@@ -1051,13 +1051,13 @@ def merge_group_hold(token, repo):
     own. With the 24 gate workflows besides merge-hold that have a merge_group trigger
     (26 November 2026) and five members, the last poll (one entry walked) and the
     decision make about 86 requests in an ordinary queue and about 240 at worst, so
-    the 7 minutes, less the steps before the script, need under about 5 s per request
-    on average, under about 1.7 s at worst. A check-run read of a queue commit with
+    the 12 minutes, less the steps before the script, need under about 8 s per request
+    on average, under about 3 s at worst. A check-run read of a queue commit with
     more than 100 check runs takes more pages. Each blocking socket read in call()
     times out after 20 s, so a single request has no hard ceiling and the assumption
     can fail; the job timeout then stays the fail-closed backstop. In the usual case
     (quick polls, a decision within R) the script's total stays within
-    max(B, P) + R, 48 min.
+    max(B, P) + R, 83 min.
     """
     start = time.monotonic()
     head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
