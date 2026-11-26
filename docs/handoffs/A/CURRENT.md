@@ -140,8 +140,8 @@ notice is a fixture; no full A03 acceptance.
 
 - Branch `claude/a03-t2c2-volume-native-20261126`, worktree
   `~/projects/BaryonOS-worktrees/a-track-t2c2`: T2c-1 db76a416 + main 2289a271 +
-  S seed 6206b8c8 (merged locally with S's consent) + #535 5159f8cc; T2c-2 commit
-  16384b01. **Push only after S's seeded-read PR is on main and main is merged
+  S seed 6206b8c8 (merged locally with S's consent) + #535 5159f8cc; T2c-2 commits
+  16384b01 + oracle tightening 1af1a516. **Push only after S's seeded-read PR is on main and main is merged
   in again** (S's squash has another SHA; content expected identical).
 - Write set: new `kernel/src/m2/m3/task_grant_volume.rs`; `m3.rs` 2 lines (path
   swap at `mod system;`, `SYSTEM_WORKER_ELF` exclusion); `kernel/Cargo.toml`
@@ -149,14 +149,19 @@ notice is a fixture; no full A03 acceptance.
   `tools/build.py` new lines only; new `tools/build_task_grant_volume.py`;
   `tools/run.py` optional `volume_variant`; `run_task_grant.py` cases
   `volume`/`volume-denied`; broker bin volume mode (word 80). No `volume.rs`.
-- Evidence (QEMU x86_64, build/t2c2/): volume and volume-denied raw exit 33;
-  mutations skip-authorise (FAIL:BROKER_LOG) and skip-retire
-  (FAIL:EXIT_RETIREMENT) raw 35; regressions native-task-grant normal/denied,
+- Evidence (QEMU x86_64, build/t2c2/, final.log at 1af1a516): volume and
+  volume-denied raw exit 33 (kernel disk reads 544 -> 548 normal, 544 -> 544
+  denied); mutations skip-authorise (FAIL:BROKER_LOG), skip-retire
+  (FAIL:EXIT_RETIREMENT), touch-volume-then-deny (FAIL:VOLUME_REQUESTS, both
+  cases) and touch with uncounted broker calls (denied FAIL:VOLUME_STATE, disk
+  reads 548 > 544) all raw 35; regressions native-task-grant normal/denied,
   native-sdk-app normal and the 4-stage NAS gate pass; host: broker 22/22,
   clippy/fmt 0, test_ci_workflows 70 OK, test_ci_impact 114 OK, coverage clean,
   progress --check 43/100. Assessment `2026-11-26-a03-volume-native.json`.
-- Evidence limits: volume `rejected` is 1 after startup (checked unchanged, not
-  0); domain 1 names the helper's PID with its send closed (nas.rs pattern), no
+- Evidence limits: volume `rejected` is 1 after startup: the broker's startup
+  STAT of absent object 2 answers NotFound (service.rs dispatch error path), so
+  UNKNOWN_OBJECT_DENIED is about an absent object, not an existing ungranted
+  one; domain 1 names the helper's PID with its send closed (nas.rs pattern), no
   separate silent process; Stale path host-only; dialog and exit notice remain
   fixtures. A CI job for the new cases is a `.github` request to CI.
 

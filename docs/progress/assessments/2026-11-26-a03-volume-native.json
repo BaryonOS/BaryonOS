@@ -1,6 +1,6 @@
 {
   "date": "2026-11-26",
-  "source_commit": "16384b01f574c4aa541c1d8a9e152f7910ae3615",
+  "source_commit": "1af1a516746a08c865c5c04cd71f4894caaa3cfd",
   "assessment_basis": "parent_commit",
   "branch": "claude/a03-t2c2-volume-native-20261126",
   "task": "A03-T2c-2 native task-grant broker as sole client of a read-only volume domain 0",
