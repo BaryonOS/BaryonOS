@@ -17,5 +17,9 @@ image = bytearray(path.read_bytes())
 at = disk.FIRST * disk.SECTOR
 image[at:at + len(raw)] = raw
 path.write_bytes(image)
-result = disk_oracle.check_image(bytes(image), 11, 12)
+stage = sys.argv[2] if len(sys.argv) > 2 else None
+if stage is None:
+    result = disk_oracle.check_image(bytes(image), 11, 12)
+else:
+    result = disk_oracle.check_interrupted_image(bytes(image), 11, 12, stage)
 print(json.dumps(result))

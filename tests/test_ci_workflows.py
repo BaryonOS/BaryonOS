@@ -1231,12 +1231,44 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         gated = [workflow["path"] for workflow in catalogue["workflow"]
                  if any(job["class"] in ("core", "rwa") and job["activation"] == "automatic"
                         for job in workflow.get("job", []))]
-        self.assertGreaterEqual(len(gated), 25)
+        # #494: exact, so adding or removing a gated workflow is a deliberate edit; no other
+        # workflow runs on the queue commit.
+        self.assertEqual(len(gated), 25)
+        self.assertEqual({path for path, workflow in self.workflows.items()
+                          if isinstance(workflow.get("on"), dict) and "merge_group" in workflow["on"]},
+                         set(gated))
         for path in gated:
             with self.subTest(path=path):
                 # Exactly this mapping: no paths, paths-ignore or branches filter.
                 self.assertEqual(self.workflows[path]["on"]["merge_group"],
                                  {"types": ["checks_requested"]})
+                # A queue ref is refs/heads/gh-readonly-queue/..., so its group never cancels a
+                # pull_request or main run. The fallback form resolves to github.ref on a queue commit.
+                group = self.workflows[path]["concurrency"]["group"]
+                self.assertTrue("${{ github.ref }}" in group or (
+                    "${{ github.event_name }}" in group
+                    and "${{ github.event.pull_request.number || github.ref }}" in group), group)
+
+    def test_select_steps_plan_a_queue_commit_from_its_own_head_and_base(self):
+        """#494: every select-ci step and BASE_REF use ci.yml's exact pull_request, merge_group and push values."""
+        head = "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}"
+        base = "${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}"
+        ref = "${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref_name }}"
+        steps = [(path, job_id, step) for path, job_id, step in self.steps() if path in self.workflows]
+        selects = [(path, job_id, step) for path, job_id, step in steps
+                   if step.get("uses") == "./.github/actions/select-ci"]
+        base_refs = [(path, job_id, step["env"]["BASE_REF"]) for path, job_id, step in steps
+                     if "BASE_REF" in step.get("env", {})]
+        # ci.yml has two select steps (enforced and candidate); the three select jobs one each.
+        self.assertEqual((len(selects), len(base_refs)), (5, 3))
+        for path, job_id, step in selects:
+            with self.subTest(path=path, job=job_id, step=step.get("name")):
+                self.assertEqual((step["with"]["head-sha"], step["with"]["base-sha"]), (head, base))
+                # ci.yml passes no base-ref; where one is passed it is exactly this.
+                self.assertEqual(step["with"].get("base-ref", ref), ref)
+        for path, job_id, value in base_refs:
+            with self.subTest(path=path, job=job_id):
+                self.assertEqual(value, ref)
 
     def test_waited_queue_check_names_are_unique_on_the_queue_commit(self):
         """merge-hold keys queue-commit check runs by name, so each waited name has one producer."""
@@ -1421,24 +1453,48 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         path = ".github/workflows/merge-hold-recheck.yml"
         workflow = self.workflows[path]
         # The trigger list is exactly the name of every gate workflow, so each gate run that
-        # the script waits for starts another re-check when it completes.
+        # the script waits for starts another re-check when it completes, plus every other
+        # catalogue workflow with a pull_request trigger: merge-hold counts their runs too, so
+        # one that ends after the last gate can leave it Pending (#494 B10).
+        others = {row["path"] for row in catalogue["workflow"] if "pull_request" in row["events"]}
+        triggers = (gates | others) - {".github/workflows/merge-hold.yml"}
+        self.assertIn(".github/workflows/windows-qemu-test-version.yml", triggers)
+        self.assertNotIn(path, triggers)
         self.assertEqual(list(workflow["on"]), ["workflow_run"])
         trigger = workflow["on"]["workflow_run"]
-        self.assertEqual(set(trigger), {"workflows", "types"})
-        self.assertEqual(trigger["types"], ["completed"])
-        self.assertEqual(sorted(trigger["workflows"]), sorted({self.workflows[gate]["name"] for gate in gates}))
-        self.assertEqual(len(trigger["workflows"]), len(gates))
+        self.assertEqual(set(trigger), {"workflows", "types", "branches-ignore"})
+        self.assertEqual(trigger["types"], ["in_progress", "completed"])
+        self.assertEqual(trigger["branches-ignore"], ["main"])
+        self.assertEqual(sorted(trigger["workflows"]), sorted({self.workflows[item]["name"] for item in triggers}))
+        self.assertEqual(len(trigger["workflows"]), len(triggers))
+        self.assertNotIn(workflow["name"], trigger["workflows"])
+        self.assertNotIn(self.workflows[".github/workflows/merge-hold.yml"]["name"], trigger["workflows"])
         self.assertEqual(workflow["permissions"], {"contents": "read"})
         self.assertEqual(workflow["concurrency"], {
             "group": "merge-hold-recheck-${{ github.event.workflow_run.event }}-"
                      "${{ github.event.workflow_run.head_repository.full_name }}-"
-                     "${{ github.event.workflow_run.head_sha }}",
+                     "${{ github.event.workflow_run.head_sha }}-"
+                     "${{ github.event.workflow_run.run_attempt > 1 && "
+                     "format('{0}-{1}-{2}', github.event.workflow_run.id, "
+                     "github.event.workflow_run.run_attempt, github.event.action) || "
+                     "github.event.action }}",
             "cancel-in-progress": "false"})
         self.assertEqual(list(workflow["jobs"]), ["recheck"])
         job = workflow["jobs"]["recheck"]
         self.assertEqual(job["if"], "github.event.workflow_run.event == 'pull_request' && "
-                                    "github.event.workflow_run.head_repository.full_name == github.repository")
+                                    "github.event.workflow_run.head_repository.full_name == github.repository && "
+                                    "(github.event.action == 'completed' || "
+                                    "github.event.workflow_run.run_attempt > 1)")
         self.assertEqual(job["timeout-minutes"], "5")
+        # Either lifecycle path, including conflict confirmation, stays below the timeout.
+        rerun_budget = (recheck.RERUN_POST_LIMIT * (recheck.RERUN_CONFIRM_POLLS - 1)
+                        * recheck.RERUN_CONFIRM_SECONDS)
+        completed_budget = recheck.WAIT_POLLS * recheck.POLL_SECONDS + rerun_budget
+        cancel_budget = ((recheck.CANCEL_CONFIRM_POLLS
+                          + recheck.FORCE_CANCEL_CONFIRM_POLLS - 2)
+                         * recheck.RERUN_CONFIRM_SECONDS + rerun_budget)
+        wait_budget = max(completed_budget, cancel_budget)
+        self.assertLessEqual(wait_budget, 5 * 60)
         self.assertEqual(job["permissions"],
                          {"actions": "write", "contents": "read", "pull-requests": "read"})
         for key in ("needs", "continue-on-error", "strategy", "defaults", "container", "services", "env"):
@@ -2168,6 +2224,34 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
 
 SHADOW_SELECTOR = ROOT / "tools/ci_impact.py"
 SELECT_ACTION = ".github/actions/select-ci/action.yml"
+CANDIDATE_INCREMENT = "# Candidate increment:"
+
+
+def candidate_drift(candidate, catalogue):
+    """Why the candidate breaks its declared increment state (#494 C3), or None.
+
+    Its leading comment block declares `# Candidate increment: <none or a name>` once.
+    With none, the candidate is that comment header plus a verbatim copy of the catalogue.
+    """
+    leading = []
+    for line in candidate.splitlines():
+        if not line.startswith("#"):
+            break
+        leading.append(line)
+    declared = [line[len(CANDIDATE_INCREMENT):].strip() for line in leading
+                if line.startswith(CANDIDATE_INCREMENT)]
+    if len(declared) != 1 or not declared[0]:
+        return f"the header must declare '{CANDIDATE_INCREMENT} <none or a name>' exactly once"
+    if declared[0] != "none":
+        # A declared increment names its issue, so a look-alike such as "None" cannot switch the check off.
+        return None if re.search(r"#[0-9]+", declared[0]) else "a declared increment names its issue (#<number>)"
+    header = candidate[:len(candidate) - len(catalogue)]
+    if not candidate.endswith(catalogue) or not header.endswith("\n") \
+            or any(not line.startswith("#") for line in header.splitlines()):
+        return "with no declared increment the candidate must be its header plus a verbatim catalogue copy"
+    return None
+
+
 SHADOW_CATALOGUE = """\
 schema_version = 1
 revision = 1
@@ -2244,6 +2328,10 @@ class CiImpactShadowTests(unittest.TestCase):
                                              "catalogue": ".github/ci-impact.candidate.toml",
                                              "out": "build/ci-impact/plan-candidate.json"})
         self.assertNotIn("id", candidate)
+        self.assertEqual(select["id"], "select")
+        for key in ("if", "continue-on-error"):  # a failed candidate step stays a failed job
+            self.assertNotIn(key, candidate)
+            self.assertNotIn(key, select)
         preserve, = [step for step in steps if step.get("uses") == "./.github/actions/preserve-evidence"]
         self.assertEqual(preserve["if"], "${{ always() }}")
         self.assertEqual(preserve["with"], {
@@ -2257,6 +2345,9 @@ class CiImpactShadowTests(unittest.TestCase):
         self.assertNotIn("${{", coverage["run"])
         self.assertNotIn("--strict", coverage["run"])
         self.assertNotIn("continue-on-error", coverage)
+        # It depends on the enforced plan only: a failed advisory candidate step does not skip it.
+        self.assertEqual(coverage["if"], "${{ !cancelled() && steps.select.outcome == 'success' }}")
+        self.assertLess(steps.index(candidate), steps.index(coverage))
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
 
     def test_only_the_shadow_job_reads_the_candidate_catalogue(self):
@@ -2279,6 +2370,34 @@ class CiImpactShadowTests(unittest.TestCase):
             ["python3", "-B", "-I", str(SHADOW_SELECTOR), "validate", str(ROOT / ".github/ci-impact.candidate.toml")],
             capture_output=True, text=True, check=False).returncode, 0)
         self.assertEqual(candidate["schema_version"], 1)
+
+    def test_the_candidate_copies_the_catalogue_until_an_increment_is_declared(self):
+        """#494 C3: the candidate never drifts silently; an intentional increment is declared in its header."""
+        catalogue = (ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8")
+        candidate = (ROOT / ".github/ci-impact.candidate.toml").read_text(encoding="utf-8")
+        self.assertIsNone(candidate_drift(candidate, catalogue))
+        # The rule itself, on a synthetic candidate around the real catalogue.
+        marker = CANDIDATE_INCREMENT + " none\n"
+        copy = "# CI impact CANDIDATE catalogue (fixture)\n" + marker + "#\n" + catalogue
+        self.assertIsNone(candidate_drift(copy, catalogue))
+        drifted = copy.replace("\nrevision = ", "\nrevision = 1", 1)
+        self.assertNotEqual(tomllib.loads(drifted), tomllib.loads(catalogue))
+        cases = {"candidate data drift": (drifted, catalogue),
+                 "catalogue change not copied": (copy, catalogue.replace("\nrevision = ", "\nrevision = 1", 1)),
+                 "data in the header": (copy.replace(marker, marker + "revision = 1\n", 1), catalogue),
+                 "comment drift in the copy": (copy + "# extra\n", catalogue),
+                 "no declaration": (copy.replace(marker, "", 1), catalogue),
+                 "empty declaration": (copy.replace(marker, CANDIDATE_INCREMENT + "\n", 1), catalogue),
+                 "two declarations": (copy.replace(marker, marker + marker, 1), catalogue),
+                 "look-alike of none": (copy.replace(marker, CANDIDATE_INCREMENT + " None\n", 1), catalogue),
+                 "increment without an issue": (drifted.replace(marker, CANDIDATE_INCREMENT + " C4\n", 1),
+                                                catalogue)}
+        for label, (text, base) in cases.items():
+            with self.subTest(case=label):
+                self.assertIsNotNone(candidate_drift(text, base))
+        # A declared increment may differ from the catalogue (validate still checks its data).
+        increment = drifted.replace(marker, CANDIDATE_INCREMENT + " C4 example (#494)\n", 1)
+        self.assertIsNone(candidate_drift(increment, catalogue))
 
     def test_host_quality_fails_on_an_invalid_or_drifted_catalogue(self):
         """Phase 3 (#494): merge-hold enforces plans, so catalogue drift must fail a required gate."""
@@ -2417,6 +2536,13 @@ class CiImpactShadowTests(unittest.TestCase):
                                             "tested": tested})
             self.assertEqual(outputs["plan-id"], plan["plan_id"])
             self.assertEqual(plan["ref"], "")  # no base-ref: the phase-2 command line
+            # The summary names the catalogue, so the enforced plan is never mistaken for the candidate.
+            summary = (repo.parent / "pull-request" / "summary.md").read_text(encoding="utf-8")
+            self.assertTrue(summary.startswith("\n# Plan from the enforced catalogue `.github/ci-impact.toml`\n"),
+                            summary)
+            self.assertIn("\nSelector source for the enforced catalogue `.github/ci-impact.toml`: `base`. "
+                          "merge-hold recomputes and enforces its own plan.\n", summary)
+            self.assertNotIn("candidate", summary)
 
             # Phase 4: the target branch reaches the base selector as --base-ref.
             result, outputs = self.run_action(repo, {
@@ -2477,11 +2603,19 @@ class CiImpactShadowTests(unittest.TestCase):
             plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
             self.assertEqual((outputs["mode"], plan["fallback"]), ("select", None))
             self.assertEqual(plan["catalogue"]["path"], ".github/ci-impact.candidate.toml")
+            summary = (repo.parent / "candidate" / "summary.md").read_text(encoding="utf-8")
+            self.assertTrue(summary.startswith("\n# Plan from the advisory candidate catalogue "
+                                               "`.github/ci-impact.candidate.toml`\n"), summary)
+            self.assertIn("\nSelector source for the advisory candidate catalogue "
+                          "`.github/ci-impact.candidate.toml`: `base`. Advisory: nothing consumes this plan.\n",
+                          summary)
+            self.assertNotIn("enforce", summary)
             for index, (key, value) in enumerate((("OUT", "../plan.json"), ("OUT", "build/ci-impact/sub/plan.json"),
                                                   ("CATALOGUE", "--catalogue=x.toml"),
                                                   ("CATALOGUE", "tools/x.toml"))):
                 result, _ = self.run_action(repo, {**candidate_env, key: value}, f"reject-{index}")
                 self.assertEqual(result.returncode, 2, (key, value))
+                self.assertEqual((repo.parent / f"reject-{index}" / "summary.md").read_text(encoding="utf-8"), "")
 
             # A malformed base is rejected before it reaches git; the plan widens.
             result, outputs = self.run_action(repo, {
