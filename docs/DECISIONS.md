@@ -66,8 +66,8 @@ commit of #572.
   that plan. A selected gate that is skipped, missing, failed or still running
   blocks as before. Under a `select` plan a workflow is neither awaited nor
   judged on the queue commit only when its non-applicability is established
-  by two sources: every `core` or `rwa` gate of it is excluded as
-  `no-input-match` with none selected (catalogue), and its own
+  by two sources: a `core` or `rwa` gate of it is excluded as
+  `no-input-match` and none is selected (catalogue), and its own
   `pull_request` path filter, as T's catalogue records it, certainly keeps
   it from starting for the diff T..queue commit. The selector of T lists the
   latter workflows in the plan as `pull_request_filter_blocked`. Any doubt

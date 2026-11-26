@@ -962,6 +962,7 @@ class PullRequestFilterBlockedTests(TestCase):
         self.assertEqual(self.blocked(["docs/a.md"], paths, ignore),
                          [".github/workflows/ignore.yml", ".github/workflows/paths.yml"])
         self.assertEqual(self.blocked(["kernel/x.rs"], paths, ignore), [])
+        self.assertEqual(self.blocked(["kernel/x.rs", "docs/a.md"], paths), [])  # one path matches: it starts
         self.assertEqual(self.blocked(["LICENSE", "docs/a.md"], ignore), [])  # one path not ignored: it starts
         for why, workflow in (("no pull_request trigger", self.wf("push", events=("push",), paths=["kernel/**"])),
                               ("no path filter", self.wf("plain")),
