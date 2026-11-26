@@ -662,7 +662,10 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   newest-run tie (equal start, then higher id) over a run of the same workflow
   that started in the same second; this was seen once in the last 300
   `pull_request` runs of the Materiaal probe (`materiaal-probe.yml`), read on
-  26 November 2026; the id of that run was not recorded. A merge-hold re-run does not clear that case; re-running
+  26 November 2026: run
+  [45808037891](https://github.com/BaryonOS/BaryonOS/actions/runs/45808037891)
+  (cancelled, no jobs) and the skipped run 45808037846 both started at
+  2026-11-26T11:09:49Z on head `9d632e11` of #555. A merge-hold re-run does not clear that case; re-running
   that workflow run, or the next pull request event, does. The rule makes no
   extra API read.
   Advisory, manual, operational and publication jobs never block by their
