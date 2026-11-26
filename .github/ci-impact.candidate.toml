@@ -32,7 +32,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 19
+revision = 20
 
 [policy]
 mode = "select"
@@ -1005,7 +1005,7 @@ name = "native-window-session (${{ matrix.leg }})"
 class = "rwa"
 activation = "automatic"
 timeout_minutes = "${{ matrix.timeout }}"
-max_parallel = 3
+max_parallel = 5
 input_sets = ["native"]
 evidence = []
 variant = [
