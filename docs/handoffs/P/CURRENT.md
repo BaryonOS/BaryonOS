@@ -61,6 +61,11 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   handoff commits stay local and go out in the single catch-up push when the
   PR guard grants #533 the lane.
 
+- Lane (26 Nov): the PR guard granted #533 the lane at 10:20Z. The catch-up
+  head 8a8348e0 (main 29a159cc) passed the local native gate 4/4, raw exit
+  33. #552 (CI priority) then moved main to c44134c6; the lane was reset to
+  11:29Z and main is merged in once more.
+
 ## Local stacked cycle: P02-T3 slice 1 (not pushed)
 
 - branch `claude/p02-t3-nasp-head-20261125`, worktree
@@ -93,7 +98,7 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   - evidence limit: host dispatch tests plus a native regression run; slice 1
     makes no native Head call and no offline reconcile in QEMU.
 
-## P02-T3 slice 2 scope (proposal, no code yet)
+## P02-T3 slice 2 (2a and 2b implemented and committed locally, not pushed)
 
 Finding: `native-client` drives `Service<S>` in-process (`prepare`, `commit`,
 `cancel`, `reconcile`, `reconcile_latest` take `&mut Service` and a
@@ -187,11 +192,16 @@ restarts processes.
 
 ## Next
 
-1. Wait for the PR guard's lane signal for #533. Then merge main into the
-   branch, re-run the native gate (`python3 -B -u tools/test_nas.py`; its
-   NOS_BUILD_DIR must lie inside the checkout, e.g. `build/<name>`, or
-   `private_path` refuses it), and make one push. Rerun only infra failures,
-   then squash with `--match-head-commit <new head>`.
+1. #533 holds the merge lane (granted 26 Nov 10:20Z, reset to 11:29Z after
+   #552 moved main to c44134c6). The live checkpoint is the PR: its head
+   already merges main, so do not merge or push again unless main moves and
+   the PR guard says so. Wait for the gates on that head; act only on
+   "Failed:" (rerun infra failures with `gh run rerun --failed`). The
+   open-run check must return exactly `[]`; then squash with
+   `--match-head-commit <head>`, check the tree, set Project #5 to Done and
+   report the landing to the PR guard. A native gate rerun needs
+   `NOS_BUILD_DIR` inside the checkout, e.g. `build/<name>`, or
+   `private_path` refuses it.
 2. P02-T3 slices 1, 2a and 2b are committed locally on
    `claude/p02-t3-nasp-head-20261125` (stacked on this branch). It becomes its
    own PR after #533 lands; merge main in, never rebase. Slice 3 (guest queue
