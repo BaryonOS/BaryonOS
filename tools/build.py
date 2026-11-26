@@ -26,7 +26,9 @@ VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", 
                         "archive-full", "archive-ustar",
                         # S09 test-only second disk (kernel feature test-volume-archive-device).
                         "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
-                        "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify")
+                        "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify",
+                        # S09 O13 N38 slice 1: kernel write latch on the second disk.
+                        "o13-latch", "o13-latch-0x44")
 # S09 phase 3 L2 portal on the device-1 disk (docs/implementation/S09-L2-NATIVE-EXPORT.md).
 VOLUME_L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")
 # U05-N1 settings app replaces volume-app in these cases (tools/run_settings.py).
@@ -50,7 +52,7 @@ TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
 WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe", "test-window-session-readonly")
 MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
-NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
+NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover", "test-system-nas-interrupt", "test-system-nas-repair")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
@@ -71,7 +73,7 @@ HWINV_FEATURES = ("native-hw-inventory", "test-hwinv-panic", "test-hwinv-m2-faul
                   "test-hwinv-serial-timeout")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "native-hw-inventory",
                    "test-hwinv-panic", "test-hwinv-m2-fault", "test-hwinv-fail", "test-hwinv-serial-timeout",
-                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "test-usb-hid-readonly-fault",
+                   "native-xhci-probe", "test-xhci-dma-fault", "test-xhci-no-dmar", "native-usb-hid-probe", "native-usb-hid-reattach", "native-usb-hid-mouse-reattach", "native-usb-hid-refusal", "test-usb-hid-readonly-fault",
                    "native-virtio-snd-probe", "test-snd-fence-reinit", "test-snd-quarantine",
                    "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
                    "native-smp-m3-load", "native-smp-m3-soak", "native-smp-m4-quotas", "native-smp-qsim", "native-smp-m3-kill",

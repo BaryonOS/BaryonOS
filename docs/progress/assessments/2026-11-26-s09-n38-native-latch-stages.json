@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "29a159cc23757e90caccf360a0bc218ca4d64217",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "claude/s09-n38-latch-main-20261126",
+  "task": "S09 O13 N38: native latch stages o13-latch (cases a, b, c, e) and o13-latch-0x44 (case f) in the M6e gate (34 stages)",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: the M6e gate now runs two test-only O13 stages on a fresh image with a fresh disk 1 of canaries. o13-latch injects one labelled, simulated WRITE device error and requires the broker latch markers and an untouched disk 1; o13-latch-0x44 requires the exact syscall 0x44 and disk-1 WRITE event sequence. Both are local native evidence on this branch until the hosted volume-acceptance job passes on the PR head; latch entries are still registered only in test-only profiles. S09 stays open: catalog v2 (O3/O5) after owner questions V1-V9, O12, O1, R5, native K5 fixtures and a human audit."
+}

@@ -576,7 +576,21 @@ jobs:
           head-sha: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
           # Empty on pull_request (the action uses the merge ref's first parent) and on dispatch.
           base-sha: ${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}
+      - name: Plan the candidate catalogue (advisory, never consumed)
+        # #494 phase 5 C3: the base selector evaluates the base commit's candidate; merge-hold
+        # and the select jobs read only the enforced catalogue.
+        uses: ./.github/actions/select-ci
+        with:
+          event-name: ${{ github.event_name }}
+          tested-sha: ${{ github.sha }}
+          head-sha: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          base-sha: ${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}
+          catalogue: .github/ci-impact.candidate.toml
+          out: build/ci-impact/plan-candidate.json
       - name: Report catalogue coverage (shadow, never a gate)
+        # Depends on the enforced plan only: a failed advisory candidate step still fails the job,
+        # but does not skip this report.
+        if: ${{ !cancelled() && steps.select.outcome == 'success' }}
         run: |
           set -euo pipefail
           python3 -B -I tools/ci_impact.py coverage --repo "$GITHUB_WORKSPACE" > build/ci-impact/coverage.json
@@ -599,5 +613,6 @@ jobs:
           if-no-files-found: error
           path: |
             build/ci-impact/plan.json
+            build/ci-impact/plan-candidate.json
             build/ci-impact/coverage.json
           required-paths: build/ci-impact/plan.json
