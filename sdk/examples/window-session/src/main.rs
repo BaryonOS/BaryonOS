@@ -287,7 +287,7 @@ fn run() -> ! {
     loop {
         // One clock read for this turn's shell clock and input polling; a
         // second one below covers SUR1 expiry and the ingress batch. Every
-        // monotonic_ticks call is a scheduler switch point on one CPU.
+        // monotonic_ticks call is a scheduler switch point on the single-CPU path.
         let turn_now = tick();
         if turn_now.saturating_sub(clock_tick) >= 6000 {
             clock_tick = turn_now;
