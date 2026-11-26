@@ -3,7 +3,7 @@
 use nieuw_os_input_client::{NativeTransport, ServiceError};
 use nieuw_os_input_core::wire::{self, Operation, Request};
 use nieuw_os_sdk_runtime::{
-    native, Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
+    native, Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, SendEndpoint, Transport,
 };
 use nieuw_os_surface_protocol::client::{Error as SurfaceError, Session as Surface};
 
@@ -58,8 +58,8 @@ pub fn stale(handles: &[Handle; 4]) -> Result<u64, Error> {
 /// Call after SUR INFO and before constructing InputSession. WrongRole must
 /// leave request id1 unused so the real InputSession's first PEEK still works.
 /// The caller retains ownership of both input handles on every outcome.
-pub fn run(
-    surface: &mut Surface<NativeTransport>,
+pub fn run<T: Transport>(
+    surface: &mut Surface<T>,
     input_send: SendEndpoint,
     input_receive: ReceiveEndpoint,
     compositor_pid: u64,
