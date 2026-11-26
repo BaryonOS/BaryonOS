@@ -38,10 +38,12 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   catch-up push outside the lane. Since B9, merge-hold first fails with only
   "Pending:" lines and restarts itself; act only on "Failed:", and rerun only
   infra failures with `gh run rerun --failed`.
-- Before `gh pr merge` (owner, 26 Nov): `gh run list --commit <full head SHA>`
-  filtered to non-completed runs other than "Merge hold" must return exactly
-  `[]`. A Copilot "Agent Merge" run started through the owner account counts
-  too (seen on #533 at 10:59Z). Squash with `--match-head-commit`; never
+- Before `gh pr merge` (owner, 26 Nov): every workflow run for the full head
+  SHA, other than "Merge hold", must be completed. Query exhaustively, since
+  `gh run list` returns 20 runs by default:
+  `gh api --paginate "repos/BaryonOS/BaryonOS/actions/runs?head_sha=<sha>&per_page=100" --jq '.workflow_runs[] | select(.status != "completed" and .name != "Merge hold") | .id'`
+  must print nothing. A Copilot "Agent Merge" run started through the owner
+  account counts too (seen on #533 at 10:59Z). Squash with `--match-head-commit`; never
   `--admin` or auto-merge.
 - After a squash of a branch that another local branch stacks on, merge the
   tested head first, then main with `-s ours` once main's tree equals that
