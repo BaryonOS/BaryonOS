@@ -121,7 +121,7 @@ jobs:
           root = Path(os.environ["NOS_BUILD_DIR"])
           patterns = {
               "system": ("run/system-*/result.json", 2, "system-gate.json"),
-              "volume": ("run/volume-*/result.json", 32, "volume-gate.json"),
+              "volume": ("run/volume-*/result.json", 34, "volume-gate.json"),
               "window": ("window-session-report.json", 1, None),
           }
           pattern, count, summary = patterns[gate]

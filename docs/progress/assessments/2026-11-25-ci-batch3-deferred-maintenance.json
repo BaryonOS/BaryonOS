@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "0fe66b51d9fccc07daff5676066bb2835742e139",
+  "assessment_basis": "parent_commit",
+  "branch": "ci/b10-deferred-maintenance-20261125",
+  "task": "CI batch 3a (#494): deferred maintenance from B9, C2 and batch 2. The merge-hold re-check gets a bounded wait for a running merge-hold, non-gate pull_request triggers and a head re-read before the re-run. Select-ci summary headings, the coverage step's independence from the candidate, the Pending note above 300 changed files, the @nonnative push backstop rule in validate and the candidate drift check are added. merge_group select-input, concurrency-group and gated-count pins are added, the check-run page cap is set to 5, and the catalogue moves to revision 15.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI tooling, tests and documentation maintenance only; the merge queue stays disabled. No criterion, native evidence or acceptance result changes."
+}

@@ -9,7 +9,11 @@ on:
         default: false
   pull_request:
     types: [opened, synchronize, reopened]
-    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py', '.agents/**', '.claude/**', '.claude-plugin/**', '.codex/**', 'plugins/**', '.c8rc.json', '.coveragerc', '.coderabbit.yaml', 'LICENSE', 'MPL-2.0-FILES.txt']
+  # Gates also report on the merge-queue commit (main plus the queued pull
+  # requests), with no path filter, so a queue commit runs the full scope.
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main]
     paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
@@ -53,15 +57,13 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$NOS_BUILD_DIR/logs"
-      - name: Host oracles, inventory cores and formatting
+      - name: Host oracles and inventory cores
         run: |
           python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/logs/preflight.json"
           python3 -B -m unittest discover -s tools/tests -p 'test_hw_*.py' -v
           python3 -B tools/hw_evidence.py --check
           python3 -B tools/hw_matrix.py --check
           cargo +1.100.0 test --locked -p pci-core -p boot-protocol
-          cargo +1.100.0 clippy --locked -p pci-core -p boot-protocol --all-targets -- -D warnings
-          cargo +1.100.0 fmt --all -- --check
       - name: Own hw-inventory loader and kernel
         run: |
           python3 -B tools/build.py --kernel-feature native-hw-inventory

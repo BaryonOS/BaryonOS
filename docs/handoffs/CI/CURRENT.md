@@ -18,14 +18,25 @@ this file.
     an independent AI review is enough. It must come from a separate agent
     without write access, after the bot findings are resolved.
   - Policy, register and security files need the project owner's review on the pull request.
+  - Proportional review (owner, 25 November 2026, every CI acceleration batch):
+    a valid independent D2 GO leads to integration once the applicable
+    conditions are met, not to another general review round. The CI specialist
+    checks small textual corrections and non-blocking findings itself with a
+    targeted diff check. An extra independent delta review is needed only when
+    a change materially affects implementation, security, test coverage,
+    permissions or acceptance conditions, or when repository policy requires
+    one. Real blocking findings are always fixed; non-essential improvements
+    wait for regular maintenance.
 - **Phase 5 (owner, 25 November 2026):** a permanent cycle of integrated CI
   optimisation. It minimises the time from a verified change to its landing
-  on `main`, with the least necessary runner use and no loss of quality.
+  on `main`, with the least necessary runner use and no loss of quality,
+  security, functional acceptance or reliability.
   - Work areas: A, selective native tests; B, less duplicate work;
     C, the critical path, with a KVM pilot alongside Specialist R; D, the merge flow.
-  - Selection stays fail-closed. An unknown dependency means a full run. A
-    central change runs every applicable gate. A PR never shrinks its own
-    required set, and a skipped gate is never acceptance evidence.
+  - The KVM pilot does not replace TCG acceptance without evidence.
+  - Selection stays fail-closed. An unknown or incomplete dependency means a
+    full run. A central change runs every applicable gate. A PR never shrinks
+    its own required set, and a skipped gate is never acceptance evidence.
   - Every gain is measured, with its sample size and uncertainty. No timeout,
     sleep, test duration or criterion is shortened.
 - **Never:** bypass protections, weaken gates or tests, change a ruleset or
@@ -53,6 +64,17 @@ this file.
 2. merge-hold waits for running gates with a cheap poll (#517). Without a
    merge queue, a long-gated pull request needs one catch-up round for each
    landing on `main`. This is the evidence for D1.
+3. `.github/ci-impact.candidate.toml` (C3) carries its own line citations;
+   re-anchor it together with the catalogue after every test shift.
+4. After B9, a merge-hold failure with only "Pending:" lines is expected while
+   gates run. Do not push a fix; the re-check re-runs it. If it is still
+   failed once every gate has finished (the re-check can miss a merge-hold
+   that was still running), re-run it by hand: `gh run rerun <run id> --failed`.
+5. While its header says `# Candidate increment: none`,
+   `.github/ci-impact.candidate.toml` is its own header plus a verbatim copy of
+   the catalogue, and a host-quality test enforces that. Every catalogue change,
+   including a revision bump, is copied into it in the same pull request. An
+   intentional increment replaces `none` with its name and #494 reference.
 
 ## Resume procedure
 
