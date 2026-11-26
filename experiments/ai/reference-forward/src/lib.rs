@@ -4,6 +4,8 @@
 
 mod decoder;
 pub use decoder::{Bf16, DecoderLayer, LayerConfig, Model};
+mod tokenizer;
+pub use tokenizer::{pre_tokenize, Pieces, TokenError, Tokenizer, ADDED_TOKENS, MAGIC};
 
 pub const MAX_MACS: usize = 1_048_576;
 
