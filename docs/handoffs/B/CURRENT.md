@@ -9,8 +9,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Mandate: specialist owner under ADR-MERGE-DELEGATION-20261123. May commit, push,
   open and repair PRs, resolve review threads with evidence and squash-merge
   (expected-head procedure). No direct main push, force-push, admin bypass,
-  auto-merge without proven checks, or weakened tests. Old roadmap runner and
-  merge queue stay disabled.
+  auto-merge without proven checks, or weakened tests. The old roadmap runner stays
+  disabled; the merge queue is active (ADR-MERGE-QUEUE-AUTONOMY-20261126).
 - At most one primary open PR (plus one managed child only when demonstrably needed).
 - TEST keys/profiles grant no release signing, production anchors or new trust boundaries.
 - Extra AI review is not external human audit (B05).
@@ -28,18 +28,20 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: local "BaryonOS - Specialist B [92db76]" (26 Nov; before that [3d498e], 25 Nov, resumed ~20:15Z from this file at b4aa7304 and #524
-  CHECKPOINT 7173038286; registered with the PR guard [a1de4b], acknowledged; [2a403f] retired).
-- cycle: B03-REL05 trial boot with a TPM anchor, M1-HAUTH under owner decision option 1 (TEST profile,
-  QEMU/swtpm only; ADR-B03-REL05-TPM-20261125, C665 identity binding).
-- branch: claude/b03-rel05-tpm-20261125, worktree ~/projects/BaryonOS-worktrees/b03-rel05-tpm.
-- PR: #524 (draft). Live head, checks and evidence: the newest HANDOFF/CHECKPOINT comment on #524.
-- Merge order satisfied (#518 and N's N03/N04 decisions are on `main`). D2 done: on 26 November 2026 the project owner
-  approved ADR-B03-REL05-TPM-20261125 for the TEST/QEMU/swtpm profile, including C665 and M1-HAUTH, with C665
-  taking precedence over decision 6 (session [ea7388]; ADR amendment and model change e0bd1690).
-- B03-F1 (#514) is merged; its REL-05 characterization is the input to this cycle.
+- Session: local "BaryonOS - Specialist B" (26 Nov, resumed after the 21:20Z rotation from the #573 HANDOFF comment
+  7203525158). Merge queue autonomy (ADR-MERGE-QUEUE-AUTONOMY-20261126): B enqueues its own merge-ready PRs; the PR
+  guard coordinates and does not approve.
+- #524 (B03-REL05 trial boot with a TPM anchor, M1-HAUTH, ADR-B03-REL05-TPM-20261125 with C665 and the §7.9
+  fail-closed decision) landed on `main` as ce562ddc on 26 Nov. REL-05 stays open (§7.9 loader conditions below).
+- cycle: B01-LOCK L1 (issue #564; contract `docs/implementation/B01-KEYRING-LOCK.md`, ADR-KEYRING-LOCK-20261126 via #563).
+- branch: claude/b01-lock-l1-20261126, worktree ~/projects/BaryonOS-worktrees/b01-lock-l1.
+- PR: #573. Live head, checks and evidence: the PR body and the newest HANDOFF comment on #573.
+- Review fix round (26 Nov): `latch()` defers while the exit-path scrub is pending, so a ring-3 `0x92` cannot halt in
+  its own kernel entry; the fixture calls `latch()` right after its successful LOCK in that order (a mutant without
+  the deferral halts with `LOCK_CANARY_RESIDUE`); `teardown`, `fixture` and `check_and_print` hold no `LOCK_STATE`
+  borrow across nested accessors.
 
-## Evidence / NOT RUN
+## Evidence / NOT RUN (B03-REL05, landed via #524)
 
 - Evidence: host model `crates/update-core/tests/anchor_chain_model.rs`, `drivers/tpm-crb` codec and transport
   tests, swtpm probes under `docs/verification/b03-rel05-*-20261125/`, native `tools/run_tpm.py` normal/absent and
@@ -100,7 +102,13 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Queued B work (no PR yet)
 
-- After #524: B02-T3 cold rollback anchor consumers and B04 production custody (both need owner decisions).
+- After #573 lands: one small PR for H05-T5d-T: kernel feature `test-system-s3-lock-noscrub = ["test-system-s3",
+  "native-system-lock"]` in `kernel/Cargo.toml`, its `tools/build.py` entry, and the `cfg` at the `m3_scrub_pending`
+  write in `system_lock.rs` widened to it (B owns all three; H waits for it and otherwise marks the case NOT RUN).
+- Then the TEST M1-HAUTH loader (`boot/loader/src/tpm_hauth.rs`) must halt with `BOOT:FAIL:TPM_ANCHOR` +
+  `BOOT:RECOVERY:REQUIRED` on a cleared provisioned TPM instead of re-provisioning (§7.9 conditions 1 and 2).
+- Later: B02-T3 cold rollback anchor consumers and B04 production custody (both need owner decisions); SUSPEND and
+  UNLOCK for B01-LOCK (UNLOCK blocked on O2, O5 and O8; no production LOCK before O5).
 
 ## Lessons
 
@@ -110,66 +118,9 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- Done locally (25 Nov, not pushed): M1-HAUTH BOUND provisioning slice (spec steps 1-5). Commits 8f45c07e (frozen Names,
-  frame sizes), 1a46fa21 (loader, runner, tests), fe21707e (evidence), then an evidence-wording commit. Gate parity at
-  1a46fa21 source (Rust 1.100.0, `GIT_EDITOR` unset): root fmt; tpm-crb test/clippy/fmt/scalar `x86_64-unknown-none`
-  build; update-core test/clippy; `compileall`; `tools/tests` (1178 OK, 15 skipped); the ci.yml `tests/` patterns;
-  `tools/test.py` (boot acceptance). `agent_gate.py --job ci.yml#host-quality` cannot resolve locally (`uses:` step). Observed: undefine of a missing index =
-  `0x28B`; refused owner command = `0x9A2` (`BAD_AUTH`; lockout counter `0x20E` unchanged at 0, sensitivity unproven); policy read after the extend =
-  `0x99D`.
-- Done locally: 89d00679 halt path + DA counter (`loader-hauth-no-rng`), fbe0e81c evidence, then this handoff update.
-  At source 1438acd9: six native cases pass (`loader-hauth` repeated, identical); `tools/tests` 1179 OK; `compileall`;
-  loader build, fmt, clippy (only the known `main_default.rs:818` errors).
-- Done locally: 4e2eda89 pre-seeded cases (`tools/tpm_seed.py`, four `run_tpm.py` cases, halts keyed per (case, boot)),
-  e1c749a3 evidence. At source a9bd4cef: ten native cases pass; the six existing cases keep their stdout hashes, so the
-  1438acd9 loader evidence carries over; `tools/tests` 1181 OK (15 skipped); `test_tpm` 10 OK; `compileall`.
-- Done locally: 38453a5f `loader-hauth-owner-squat` (owner AUTHREAD | AUTHWRITE `HAUTH` + foreign ownerAuth, halt
-  `FAIL:PUBLIC:0100b304`, seeded state unchanged), then the evidence/handoff commit. At source bb091002: eleven native
-  cases pass, the ten earlier ones with unchanged stdout hashes; gate results are in the newest #524 CHECKPOINT comment.
-- Done locally: 06b7528a `loader-hauth-owner-squat-empty` and `loader-hauth-da-counted` (seed `observe()` records
-  `0x20E`; `evaluate` pins 0 on every other provisioned boot; seed `server()` socket-path guard), then the evidence/handoff
-  commit. At source 99347dfa: thirteen native cases pass, the eleven earlier ones with unchanged stdout hashes; loader
-  `5bbcc2fa…` and kernel `ba349c3b…` unchanged; `tools/tests` 1181 OK (15 skipped); `test_tpm` 10 OK; `compileall`;
-  `progress.py --check` 43/100.
-- Done locally: 2c9fdec9 PCR 13 bank read-back (codec `PcrReadBank`, loader `LOADER-HAUTH:PCR13:BANK:` lines for the
-  `GetActivePcrBanks` banks before the `0x20E` reads, `run_tpm.closed_banks`), then the evidence/handoff commit. Results
-  and hashes: `docs/verification/b03-rel05-pcr13-banks-20261125/` (thirteen cases pass at source 16ff8409; provisioned
-  boots now `7a4c0d5c…`/`08a3f833…`, da-counted `14145a63…`, all halt/probe/kernel-only hashes unchanged; loader
-  `da716d06…`, kernel `c6cef6ab…`; tpm-crb 1.100.0 test/clippy/fmt/scalar, `tools/tests` 1181 OK, `progress.py --check` 43/100).
-- Done locally: 94acc222 `loader-hauth-lockout-cut` (seed `lockout-cut`: host TEST `HAUTH` secret, BOUND `LREC` through
-  the PCR 13 = 0 write policy with the `trial.rs` encoding pinned in `test_tpm`, ownerAuth = `HAUTH[:32]`, lockoutAuth
-  empty; runner `REPAIRED` table and an after-boot check that only lockoutAuthSet changed), then the evidence/handoff
-  commit, then the assessment/spec commit (CHECKPOINT 7173740570, ~20:30Z). Fourteen native cases at source
-  6817b4e7; results in the new evidence directory. #524 checks on 5e126571: 69 pass, 10 skipped, only merge-hold
-  red (BEHIND); 0 unresolved review threads.
-- Done locally: fa2d7f58 remaining cut points (seeds `hauth-defined`, `hauth-written`, `lrec-written` as one helper
-  chain; cases `loader-hauth-cut-*`; `check_state()` with unit tests and the fresh-`LREC` rule), then the
-  evidence/assessment commit. Seventeen native cases at source 2816266d; `tools/tests` 1184 OK.
-- Done locally: 477674bf event log check (`drivers/tpm-crb` `event_log` parser with four tests, loader
-  `Tpm::closed_event()`, `run_tpm.closed_events`, six negative transcripts), then the evidence/assessment commit.
-  Seventeen native cases at source 42e48d3c; `tools/tests` 1184 OK (15 skipped); `tools/test.py` PASS.
-- Done locally (26 Nov, session [ea7388]): e0bd1690 C665 precedence (S1 model halts Absent/Fault/PcrDirty with
-  `TPM_IDENTITY`; spec, ADR amendment, anchor contract), 1d4b5905 assessment, merge of `main` ffea3883, then one
-  follow-up commit with review wording fixes and REL-05 §7.9 (owner decision 26 Nov: `DEGRADED` removed, `Halt::TpmAnchor`,
-  `BOOT:FAIL:TPM_ANCHOR`, `BOOT:RECOVERY:REQUIRED`; spec sections 7.8/7.9, second ADR amendment, anchor contract).
-  Host checks green; native cases stay bound to 42e48d3c.
-- Next on #524: one bundled push on the PR guard's grant, then ready and the merge queue on the guard's signal. First
-  follow-up after that: the TEST M1-HAUTH loader must halt on a cleared provisioned TPM instead of re-provisioning
-  (it currently violates §7.9 conditions 1 and 2). Then: the loader halts for an unverified TPM and for anchor loss
-  (S6, §7.9 table), native S5 with N's joint tests;
-  S3/U27 still waits for the owner. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
-- When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
-  body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the seventeen
-  `run_tpm.py` cases (six + eleven seeded) on the merged head, or state in the PR body that the loader evidence is bound to 42e48d3c; `native-system.yml` runs the
-  `tpm-crb` tests and `tools.tests.test_tpm` (TpmSeedTests on swtpm 0.7.3, not run locally; the noble OVMF 2024.02
-  image is not run either); the D2 owner review of `docs/DECISIONS.md` was given on 26 Nov.
-
-Lane: the owner lifted the main freeze at 20:19Z (main 0fe66b51, #524 BEHIND by 8, no TPM-file overlap). Lane order from the
-PR guard: #515 (H) -> #539 -> #533 -> #543 -> #535 -> #525 / #523 / #540 / #524 / #538; one lane holder at a time, no
-catch-up outside the lane; the PR guard announces the grant explicitly. The repository moved to GitHub Enterprise Cloud
-(hosted job limit 60 -> 500, being verified by CI): report runner, required-check, permission, billing or hosted swtpm
-anomalies to the PR guard; merge as soon as the lane is held and the applicable gates and reviews are done.
-Earlier: owner correction ~18:05Z; #548 at 19:58Z. #548 changes merge-hold to decide at once and
-re-check after the gates finish, so the 25 Nov merge-hold lesson below may be outdated; re-read it before the lane merge. CI keeps priority until every CI batch is resolved; the main freeze ended at 20:19Z.
-#524 (draft, BEHIND main) does not catch up or push until the PR guard grants the lane. Infra reruns on 5e126571
-(runs 45649628744, 45649628788, 45649628817) all succeeded; merge-hold stays red only because the branch is BEHIND.
+- #573: after the hosted gates are green, 0 unresolved threads, `mergeStateStatus` CLEAN/HAS_HOOKS/BEHIND,
+  `autoMergeRequest` null and the open-run check `[]`: enqueue with GraphQL `enqueuePullRequest` (never `gh pr merge`
+  while BLOCKED). Report the landing SHA to the PR guard; H starts T5d-T on it.
+- Then the queued items above, one PR at a time. TEST/QEMU/swtpm only; the progress score stays 43/100.
+- The detailed #524 slice history (M1-HAUTH provisioning, seeded cases, PCR 13 banks, event log) is in the #524
+  HANDOFF/CHECKPOINT comments and the `docs/verification/b03-rel05-*` directories.
