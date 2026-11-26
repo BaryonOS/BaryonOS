@@ -968,3 +968,21 @@ TPM; `run_tpm.py` (`check_state`) requires that every such boot ends with a
 freshly written `LREC`, never the seeded one. After the ownerAuth change it
 sets lockoutAuth only. The states are host-built, not fault-injected, and a
 torn NV write (U22) is not modelled.
+
+### Loader PCR 13 event log check (26 November 2026)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-hauth-eventlog-20261126](../verification/b03-rel05-hauth-eventlog-20261126/README.md).
+On the pass path, after the PCR 13 bank read-back, the TEST loader reads the
+crypto-agile firmware event log (`EFI_TCG2_PROTOCOL.GetEventLog`, format
+`TCG_2`) without a TPM command. The bounded, safe parser
+`drivers/tpm-crb/src/event_log.rs` requires a `Spec ID Event03` header, whole
+entries up to `EventLogLastEntry` with no PCR 13 entry among them, and as the
+last entry exactly PCR 13, `EV_IPL` and `BARYON-TRIAL-CLOSED-V1` with one
+digest per header algorithm. The loader prints each digest
+(`LOADER-HAUTH:EVENTLOG:DIGEST:<alg>:<hex>`), requires SHA-256 to equal
+`DIGEST_CLOSED` and prints `LOADER-HAUTH:EVENTLOG:CLOSED`; `run_tpm.py`
+requires the digest lines to equal `H(CLOSED)` for exactly the active banks.
+U2 is thereby observed for the log on the local Ubuntu OVMF 2025.11 with four
+banks only. Halt paths, the SHA-1-format log, the final events table and the
+hosted OVMF image remain NOT RUN.
