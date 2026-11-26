@@ -754,8 +754,10 @@ def wf_run(run_id, path, status="completed", conclusion="success", attempt=1, **
     return run
 
 
-def job(job_id, run_id, name, conclusion="success", status="completed"):
-    return {"id": job_id, "run_id": run_id, "name": name, "status": status, "conclusion": conclusion}
+def job(job_id, run_id, name, conclusion="success", status="completed", attempt=1):
+    """A listed job; like GitHub's, it names the attempt it belongs to (wf_run's default is 1 too)."""
+    return {"id": job_id, "run_id": run_id, "name": name, "status": status, "conclusion": conclusion,
+            "run_attempt": attempt}
 
 
 GOOD_RUNS = [wf_run(1, CI), wf_run(2, LEAVES)]
@@ -957,7 +959,7 @@ class GateTests(TestCase):
         running = [wf_run(1, CI), wf_run(2, LEAVES), wf_run(3, LEAVES, "in_progress", None)]
         self.assertFalse(self.decide(runs_=running)[0])
         rerun = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="success", attempt=2)]
-        jobs = {**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)")]}
+        jobs = {**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)", attempt=2)]}
         passed, out, _ = self.decide(runs_=rerun, jobs=jobs)
         self.assertTrue(passed, out)
         self.assertIn("run 2 attempt 2", out)
@@ -1192,7 +1194,8 @@ class GateTests(TestCase):
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
         running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
         done = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="success", attempt=2)]
-        jobs = {**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)")]}
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", None, "in_progress")]}
+        later = {2: [job(24, 2, "quality (viewer)", attempt=2)]}
         reads = {"n": 0}
         real = merge_hold.fetch_listing
 
@@ -1204,7 +1207,7 @@ class GateTests(TestCase):
             return real(token, url, key)
 
         with mock.patch.object(merge_hold, "fetch_listing", listing):
-            passed, out, state = self.decide(plan=plan, polls=[running, done], jobs=jobs)
+            passed, out, state = self.decide(plan=plan, polls=[running, done], jobs=jobs, later_jobs=later)
         self.assertTrue(passed, out)
         self.assertEqual(state["sleeps"], 1)
 
@@ -1310,7 +1313,7 @@ class GateTests(TestCase):
         """The first jobs read belongs to the old attempt; a failed new attempt must not pass on it."""
         passed, out, _ = self.decide(
             settle_during_read={2: {"run_attempt": 2, "conclusion": "failure"}},
-            later_jobs={2: [job(24, 2, "quality (viewer)", "failure")]})
+            later_jobs={2: [job(24, 2, "quality (viewer)", "failure", attempt=2)]})
         self.assertFalse(passed)
         self.assertIn("Failed: quality (viewer): failure in run 2 attempt 2", out)
 
@@ -1328,10 +1331,8 @@ class GateTests(TestCase):
     def test_a_failed_gate_that_settles_in_a_new_running_attempt_is_pending(self):
         """The failure belongs to the old attempt; the new one runs and lists no job yet.
 
-        Assumption: once the re-reads show the new attempt running, `filter=latest` no longer lists
-        the old attempt's jobs. Should it still list the old failed job, the run is reported Failed,
-        as base already reports it once the run listing shows the re-run; that case is known, low
-        priority and deliberately left unchanged."""
+        Should `filter=latest` still list the old attempt's failed job, the jobs belong to another
+        attempt and the run stays pending as well: see the P2 test below."""
         failed = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")]
         jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]}
         passed, out, _ = self.decide(
@@ -1438,7 +1439,7 @@ class GateTests(TestCase):
         passed, out, _ = self.decide(
             plan=plan, runs_=GOOD_RUNS + [wf_run(5, advisory)], jobs={**GOOD_JOBS, 5: [job(51, 5, "a")]},
             settle_during_read={5: {"run_attempt": 2, "status": "in_progress", "conclusion": None}},
-            later_jobs={5: [job(52, 5, "a", None, "in_progress")]})
+            later_jobs={5: [job(52, 5, "a", None, "in_progress", attempt=2)]})
         self.assertTrue(passed, out)
         self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 0 failed.", out)
         self.assertNotIn("run 5", out)
@@ -1447,9 +1448,102 @@ class GateTests(TestCase):
         """A job of another run in the second jobs read must not decide this run's gate."""
         passed, out, _ = self.decide(
             settle_during_read={2: {"run_attempt": 2}},
-            later_jobs={2: [job(24, 2, "quality (viewer)"), job(31, 3, "quality (viewer)", "failure")]})
+            later_jobs={2: [job(24, 2, "quality (viewer)", attempt=2), job(31, 3, "quality (viewer)", "failure")]})
         self.assertTrue(passed, out)
         self.assertIn("quality (viewer): success in run 2 attempt 2", out)
+
+    def assert_jobs_of_another_attempt(self, passed, out, attempt, workflow=LEAVES, run_id=2):
+        """D2 on CI-SETTLE: jobs listed for another attempt than the judged run hold it as a whole."""
+        self.assertFalse(passed)
+        self.assertIn(f"Pending: {workflow}: run {run_id} attempt {attempt} listed jobs of another attempt; "
+                      "re-run merge-hold", out)
+        self.assertIn("1 pending; 0 failed.", out)
+        self.assertNotIn("Passed: quality (viewer)", out)
+
+    def test_a_settled_attempt_is_not_judged_on_lagging_jobs_of_the_listed_one(self):
+        """N1: the listing shows attempt 1 green, both re-reads attempt 2 failed, and both jobs reads
+        still return attempt 1's green jobs; they say nothing about attempt 2."""
+        passed, out, _ = self.decide(settle_during_read={2: {"run_attempt": 2, "conclusion": "failure"}})
+        self.assert_jobs_of_another_attempt(passed, out, 2)
+
+    def test_an_unchanged_run_is_not_judged_on_jobs_of_an_older_attempt(self):
+        """N2: listing and re-read agree on a failed attempt 2; the jobs read lags at attempt 1."""
+        runs_ = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure", attempt=2)]
+        passed, out, _ = self.decide(runs_=runs_)
+        self.assert_jobs_of_another_attempt(passed, out, 2)
+
+    def test_a_run_is_not_judged_on_jobs_of_a_newer_attempt(self):
+        """N3: jobs of attempt 3 (carried-over green jobs, its re-run job not listed yet) say nothing
+        about a completed attempt 2, nor does attempt 2's success cover attempt 3."""
+        newer = {2: [job(25, 2, "quality (viewer)", attempt=3)]}
+        cases = {"unchanged": ([wf_run(1, CI), wf_run(2, LEAVES, attempt=2)], {**GOOD_JOBS, **newer}, None, None),
+                 "settled": ([wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")], None, newer,
+                             {2: {"run_attempt": 2, "conclusion": "success"}})}
+        for name, (runs_, jobs, later, settle) in cases.items():
+            with self.subTest(name):
+                passed, out, _ = self.decide(runs_=runs_, jobs=jobs, later_jobs=later, settle_during_read=settle)
+                self.assert_jobs_of_another_attempt(passed, out, 2)
+
+    def test_a_listed_running_attempt_that_settles_is_not_judged_on_older_jobs(self):
+        """regress2: the listing shows attempt 2 running, the re-reads attempt 2 completed and failed,
+        and the jobs read still returns attempt 1's green jobs."""
+        runs_ = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None, attempt=2)]
+        passed, out, _ = self.decide(runs_=runs_,
+                                     settle_during_read={2: {"status": "completed", "conclusion": "failure"}})
+        self.assert_jobs_of_another_attempt(passed, out, 2)
+
+    def test_a_condition_false_workflow_is_not_judged_on_a_stale_skipped_job(self):
+        """G4: a condition-false rwa workflow holds no gate, but its attempt 2 failed; the stale
+        skipped job of attempt 1 must not let that failure go unseen."""
+        cond = ".github/workflows/cond.yml"
+        plan = plan_fixture(excluded=plan_fixture()["excluded"] + [
+            {"id": "cond#c", "class": "rwa", "workflow": cond, "job": "c", "check_name": "c",
+             "reason": "condition-false"}])
+        runs_ = GOOD_RUNS + [wf_run(5, cond, conclusion="skipped")]
+        passed, out, _ = self.decide(plan=plan, runs_=runs_, jobs={**GOOD_JOBS, 5: [job(51, 5, "c", "skipped")]},
+                                     settle_during_read={5: {"run_attempt": 2, "conclusion": "failure"}})
+        self.assertFalse(passed)
+        self.assertIn(f"Pending: {cond}: run 5 attempt 2 listed jobs of another attempt; re-run merge-hold", out)
+        self.assertIn("2 applicable gate(s) passed; 1 filtered out; 1 pending; 0 failed.", out)
+
+    def test_a_job_without_an_integer_attempt_holds_its_run(self):
+        """A job that does not name its attempt as an integer cannot be bound to the judged run,
+        also when the run names none either or both name it as the same string."""
+        for listed, attempt in ((1, None), (None, None), ("1", "1")):
+            with self.subTest(listed=listed, attempt=attempt):
+                bare = job(21, 2, "quality (viewer)", attempt=attempt)
+                if attempt is None:
+                    del bare["run_attempt"]
+                passed, out, _ = self.decide(runs_=[wf_run(1, CI), wf_run(2, LEAVES, attempt=listed)],
+                                             jobs={**GOOD_JOBS, 2: [bare]})
+                self.assert_jobs_of_another_attempt(passed, out, listed)
+
+    def test_a_partial_re_run_whose_latest_jobs_carry_the_new_attempt_passes(self):
+        """After "re-run failed jobs" GitHub copies the carried-over jobs into the new attempt, so
+        every latest job names it (live check of 26 November 2026); such a re-run still passes."""
+        carried = {1: [job(13, 1, "host-quality", attempt=2), job(14, 1, "advice", attempt=2)]}
+        cases = {"unchanged": ([wf_run(1, CI, attempt=2), wf_run(2, LEAVES)], {**GOOD_JOBS, **carried}, None, None),
+                 "settled": ([wf_run(1, CI, conclusion="failure"), wf_run(2, LEAVES)],
+                             {**GOOD_JOBS, 1: [job(11, 1, "host-quality", "failure"), job(12, 1, "advice")]},
+                             carried, {1: {"run_attempt": 2, "conclusion": "success"}})}
+        for name, (runs_, jobs, later, settle) in cases.items():
+            with self.subTest(name):
+                passed, out, _ = self.decide(runs_=runs_, jobs=jobs, later_jobs=later, settle_during_read=settle)
+                self.assertTrue(passed, out)
+                self.assertIn("Passed: host-quality: success in run 1 attempt 2", out)
+
+    def test_a_new_running_attempt_is_not_failed_on_the_old_attempts_failed_job(self):
+        """P2: a new attempt runs while `filter=latest` still lists the old attempt's failed job;
+        that failure is no longer the run's outcome, so the run stays pending, not failed."""
+        old = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]}
+        cases = {"listed": ([wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None, attempt=2)], None),
+                 "settled": ([wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")],
+                             {2: {"run_attempt": 2, "status": "in_progress", "conclusion": None}})}
+        for name, (runs_, settle) in cases.items():
+            with self.subTest(name):
+                passed, out, _ = self.decide(runs_=runs_, jobs=old, settle_during_read=settle)
+                self.assert_jobs_of_another_attempt(passed, out, 2)
+                self.assertNotIn("Failed:", out)
 
     def test_rendered_runtime_matrix_names_inherit_their_template_class(self):
         """CodeRabbit on #504: a dynamic advisory job must not count as an unregistered gate."""
@@ -1486,7 +1580,8 @@ class GateTests(TestCase):
         """Review N3: newest by the start of the latest attempt, not by id alone."""
         runs_ = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure", attempt=2, run_started_at="2026-11-24T22:00:00Z"),
                  wf_run(3, LEAVES, run_started_at="2026-11-24T21:00:00Z")]
-        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")], 3: [job(31, 3, "quality (viewer)")]}
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure", attempt=2)],
+                3: [job(31, 3, "quality (viewer)")]}
         passed, out, _ = self.decide(runs_=runs_, jobs=jobs)
         self.assertFalse(passed)
         self.assertIn("quality (viewer): failure in run 2 attempt 2", out)
