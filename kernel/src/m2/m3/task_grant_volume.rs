@@ -55,8 +55,10 @@ const NONE: ClientEvidence = ClientEvidence {
 };
 struct Evidence {
     clients: [ClientEvidence; 2],
-    /// Volume read_sectors and rejected when the broker finished its STATs.
-    baseline: Option<(u64, u64)>,
+    /// Volume read_sectors and rejected (its NotFound STAT of absent object 2)
+    /// and the kernel block broker's completed reads when the broker finished
+    /// its STATs.
+    baseline: Option<(u64, u64, u64)>,
     kernel_tables: usize,
 }
 static mut EVIDENCE: Evidence = Evidence {
@@ -346,14 +348,15 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     // The broker STATs first and serves no request before this snapshot.
     if word(s, BROKER, BROKER_READY) == 1 && evidence().baseline.is_none() {
         require(word(s, VOLUME, 192) == 1, b"VOLUME_NOT_SERVING");
-        evidence().baseline = Some((word(s, VOLUME, 344), word(s, VOLUME, 352)));
+        let (published, _, _) = m5::broker_summary();
+        evidence().baseline = Some((word(s, VOLUME, 344), word(s, VOLUME, 352), published[0]));
         put(s, BROKER, KERNEL_ACK, 1);
     }
     let [owner_evidence, helper_evidence] = evidence().clients;
     if !owner_evidence.exited || !helper_evidence.exited || done != 1 {
         return None;
     }
-    let Some((read_sectors, rejected)) = evidence().baseline else {
+    let Some((read_sectors, rejected, startup_reads)) = evidence().baseline else {
         fail(b"NO_BASELINE");
     };
     require(
@@ -444,12 +447,17 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         b"CONTENT",
     );
 
-    // Volume-side evidence, independent of the broker's own claims.
+    // Volume-side evidence beyond the broker's own claims: the volume's
+    // counters (ring 3) and the kernel block broker's own read count.
     let sectors = word(s, VOLUME, 344);
     print_number(b"TASKGRANT:VOLUME_STARTUP_READ_SECTORS:", read_sectors);
     print_number(b"TASKGRANT:VOLUME_READ_SECTORS:", sectors);
     print_number(b"TASKGRANT:VOLUME_CALLS:", word(s, BROKER, 432));
     print_number(b"TASKGRANT:VOLUME_REJECTED:", word(s, VOLUME, 352));
+    // Printed before any verdict so a failing run still shows the kernel count.
+    let (published, completed, block_idle) = m5::broker_summary();
+    print_number(b"TASKGRANT:STARTUP_DISK_READS:", startup_reads);
+    print_number(b"TASKGRANT:DISK_READS:", published[0]);
     require(
         word(s, VOLUME, 192) == 1
             && word(s, VOLUME, 376) == 0
@@ -464,22 +472,29 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
             },
         b"VOLUME_STATE",
     );
-    let (published, completed, block_idle) = m5::broker_summary();
     require(
-        block_idle && published == completed && published[0] > 0 && published[1..] == [0, 0],
+        block_idle && published == completed && startup_reads > 0 && published[1..] == [0, 0],
         b"BLOCK_READ_ONLY",
     );
-    print_number(b"TASKGRANT:DISK_READS:", published[0]);
+    // Kernel-counted: no disk read at all after startup without a grant.
+    require(
+        if DENIED {
+            published[0] == startup_reads
+        } else {
+            published[0] > startup_reads
+        },
+        b"DISK_READS_AFTER_STARTUP",
+    );
 
     if DENIED {
         serial::write(b"TASKGRANT:DENIED:PASS\nTASKGRANT:HELPER_DENIED:PASS\n");
     } else {
         serial::write(
             b"TASKGRANT:VOLUME_READ_OK:PASS\nTASKGRANT:OWNER_READ:PASS\n\
-TASKGRANT:OWNER_LIMITS:PASS\nTASKGRANT:UNGRANTED_OBJECT_DENIED:PASS\n\
+TASKGRANT:OWNER_LIMITS:PASS\nTASKGRANT:UNKNOWN_OBJECT_DENIED:PASS\n\
 TASKGRANT:FORGED_ACTOR_DENIED:PASS\nTASKGRANT:HELPER_DENIED:PASS\n\
 TASKGRANT:CLOSE_REVOKES:PASS\nTASKGRANT:FORGED_RETIRE_DENIED:PASS\n\
-TASKGRANT:EXIT_RETIRES:PASS\nTASKGRANT:READ_AFTER_RETIREMENT_DENIED:PASS\n",
+TASKGRANT:EXIT_RETIRES:PASS\n",
         );
     }
     serial::write(b"TASKGRANT:DENIED_NO_VOLUME_REQUEST:PASS\n");

@@ -127,8 +127,9 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
         # A03-T2c-2: a fresh generated image, attached writable so that only the
         # guest's read-only enforcement keeps it unchanged.
         from volume_disk import create_image
-        if hid_input_probe or m5_case is not None:
-            raise ValueError("a seeded volume excludes the HID and M5 disk fixtures")
+        if (hid_input_probe or m5_case is not None or xhci_case is not None
+                or usb_hid_case is not None):
+            raise ValueError("a seeded volume excludes the HID, M5, xHCI and USB fixtures at 00:05.0")
         seeded_volume = run_dir / "volume.img"
         create_image(seeded_volume, volume_variant)
         seeded_volume_initial = sha256(seeded_volume)

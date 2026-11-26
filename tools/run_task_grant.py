@@ -23,13 +23,16 @@ DENIED = ("TASKGRANT:DENIED:PASS", "TASKGRANT:HELPER_DENIED:PASS")
 END = ("TASKGRANT:CLEANUP:PASS", "TASKGRANT:PASS", "M1:PASS")
 VOLUME_START = ("TASKGRANT:VOLUME_READ_ONLY:PASS", "TASKGRANT:NO_VOLUME_HANDLE:PASS")
 VOLUME_NORMAL = ("TASKGRANT:VOLUME_READ_OK:PASS", "TASKGRANT:OWNER_READ:PASS",
-                 "TASKGRANT:OWNER_LIMITS:PASS", "TASKGRANT:UNGRANTED_OBJECT_DENIED:PASS",
+                 "TASKGRANT:OWNER_LIMITS:PASS", "TASKGRANT:UNKNOWN_OBJECT_DENIED:PASS",
                  "TASKGRANT:FORGED_ACTOR_DENIED:PASS", "TASKGRANT:HELPER_DENIED:PASS",
                  "TASKGRANT:CLOSE_REVOKES:PASS", "TASKGRANT:FORGED_RETIRE_DENIED:PASS",
-                 "TASKGRANT:EXIT_RETIRES:PASS", "TASKGRANT:READ_AFTER_RETIREMENT_DENIED:PASS")
+                 "TASKGRANT:EXIT_RETIRES:PASS")
 FEATURES = {"normal": "native-task-grant", "denied": "test-task-grant-denied",
             "volume": "native-task-grant-volume", "volume-denied": "test-task-grant-volume-denied"}
 NUMERIC = re.compile(r"TASKGRANT:[A-Z0-9_]+:[0-9]{20}")
+VOLUME_NUMBERS = frozenset(f"TASKGRANT:{label}:" for label in (
+    "VOLUME_STARTUP_READ_SECTORS", "VOLUME_READ_SECTORS", "VOLUME_CALLS", "VOLUME_REJECTED",
+    "STARTUP_DISK_READS", "DISK_READS"))
 OWNER = "TASKGRANT:OWNER_COUNTER:"
 HELPER = "TASKGRANT:HELPER_COUNTER:"
 
@@ -95,6 +98,8 @@ def main() -> int:
                     raise ValueError(f"duplicate numeric evidence: {label}")
                 numbers[label] = number(line, label)
         structural = tuple(line for line in tail if not NUMERIC.fullmatch(line))
+        if set(numbers) != (VOLUME_NUMBERS if volume else {OWNER, HELPER}):
+            raise ValueError("unexpected numeric evidence labels")
         if structural != required:
             raise ValueError("task-grant evidence sequence mismatch")
         if volume:
