@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "source_commit": "9cc1b86f73e2d23dd37811e54571d7ad57c0c91a",
+  "source_commit": "657f522f99537288d89c539a7604e460a4c8b4f8",
   "assessment_basis": "parent_commit",
   "branch": "claude/n04-durable-extend-chain-20261125",
   "task": "Port the N04 durable-store freshness model to B's extend-chain anchor contract (#524 at 5db011cc); M1 regression tests green against a hostile extend (#529)",

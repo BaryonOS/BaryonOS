@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "3b9a94c52bb4d3ada5a9c6499817560b71d0e4d0",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/a-track-20261125",
+  "task": "A03-T2a native task-grant broker gate authenticated by kernel sender PID",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. A03 stays open: native QEMU now shows a ring-3 broker authorizing by kernel sender PID, hostile-helper denial and close revocation, but the trusted dialog, per-object Materiaal volume enforcement and lifecycle retirement are not implemented."
+}

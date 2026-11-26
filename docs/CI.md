@@ -36,10 +36,11 @@ execution result.
 |---|---|
 | PR opened, changed or reopened, including drafts | Required `host-quality` and `qemu-smoke`; applicable specialist workflows also run |
 | Draft PR marked ready for review | No rerun of the same source |
-| Push to main | Required checks on the integrated source; specialist workflows use the same documentation filters as PRs |
-| Only `docs/**` or root Markdown changed | Required CI remains available; broad specialist workflows do not rerun |
+| Push to main | Required checks on the integrated source; specialist workflows skip only documentation and project metadata, so tooling-metadata changes skipped on the PR run here |
+| Only `docs/**` or root Markdown changed | Required CI remains available; broad specialist workflows do not rerun. On PRs, tooling metadata (the catalogue's `core_only` paths, such as `.agents/**`, `plugins/**` or `LICENSE`) also skips 13 native workflows with a main backstop (`@nonnative`, docs/CI-CONTRACT.md); workflows without `@nonnative` keep their own filters, so `native-hid-input` and `native-xhci` still run (docs/CI-CONTRACT.md) |
 | Manual run through Actions | Each regular workflow can be started separately; evidence workflows provide `full_evidence` |
 | Copilot setup changed | Targeted setup check; after merging, the configuration becomes the Copilot development environment |
+| A gate workflow is re-run, or a listed catalogue workflow finishes, for a PR from this repository | At the start and completion of a watched gate re-run, `merge-hold-recheck.yml` invalidates older passing (`success`, `neutral` or `skipped`) evidence, even while another gate is open. An older active hold is cancelled, followed by exact run identity and force-cancelled if necessary; a passing completion race is re-run. A confirmed blocking hold is retried only after no gate run remains open. Initial starts are skipped and `main` activities are filtered. A `merge-hold` failure with only "Pending:" lines is expected and needs no code fix; act only on "Failed:" lines. If it is still failed once every gate has finished, re-run it by hand (`gh run rerun <run id> --failed`) ([Waiting and Re-check](CI-CONTRACT.md#enforcement-phase-3)) |
 
 `ci.yml` deliberately has no path filters. The existing main and release
 rules require `host-quality` and `qemu-smoke`; skipping an entire workflow

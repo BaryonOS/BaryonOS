@@ -195,6 +195,7 @@ kernel/src/m2/m3/sdk_app.rs
 kernel/src/m2/m3/snapshot_wipe.rs
 kernel/src/m2/m3/supervisor.rs
 kernel/src/m2/m3/system.rs
+kernel/src/m2/m3/task_grant.rs
 kernel/src/m2/m3/tpm_fixture.rs
 kernel/src/m2/m3/update.rs
 kernel/src/m2/m3/volume.rs
@@ -429,6 +430,13 @@ sdk/examples/table-editor/src/main.rs
 sdk/examples/table-editor/tests/cli.rs
 sdk/examples/table-editor/tests/interop.py
 sdk/examples/table-editor/tests/table.rs
+sdk/examples/task-grant-broker/Cargo.toml
+sdk/examples/task-grant-broker/build.py
+sdk/examples/task-grant-broker/linker.ld
+sdk/examples/task-grant-broker/src/broker.rs
+sdk/examples/task-grant-broker/src/client.rs
+sdk/examples/task-grant-broker/src/lib.rs
+sdk/examples/task-grant-broker/src/support.rs
 sdk/examples/tcp-probe/Cargo.toml
 sdk/examples/tcp-probe/build.py
 sdk/examples/tcp-probe/linker.ld
@@ -782,6 +790,7 @@ tools/run_smp.py
 tools/run_supervisor.py
 tools/run_system.py
 tools/run_system_clock.py
+tools/run_task_grant.py
 tools/run_tcp_system.py
 tools/run_tpm.py
 tools/run_update.py

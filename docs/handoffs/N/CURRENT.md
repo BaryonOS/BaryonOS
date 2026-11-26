@@ -47,19 +47,20 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Current cycle
 
-- cycle_id: `N-20261125-n03-n04-adr`
-- task: record the N03 and N04 owner decisions (ADRs), the N03-T2 host
-  handshake against an OpenSSL peer, and the host-only N04 durable-store
-  freshness model (`services/net-broker/src/durable.rs`)
-- branch: `claude/n03-n04-adr-20261125`; tracking issue #529
+- cycle_id: `N-20261126-n04-extend-chain`
+- task: port the host-only N04 durable-store freshness model to B's
+  extend-chain anchor contract (`docs/implementation/COLD-FRESHNESS-ANCHOR.md`
+  on #524, basis `5db011cc`); amendment to ADR-NET-ISSUER-20261125
+- branch: `claude/n04-durable-extend-chain-20261125`; tracking issue #529
 - pull request, tested source SHA, hosted runs: recorded in the pull request
   description, not in this file
-- evidence: host tests only. `durable.rs` binds a store to the anchor
-  instance (`Foreign` on a mismatch) and models the protected slot with a
-  fake; the three M1 residual cases stay as ignored red tests until the port
-  to B's extend-chain contract. No native evidence; N03 and N04 stay open.
-- previous cycle `N-20261125-open-deadline-tick` (N01 OpenTcp tick fix)
-  merged as `a571d87c` (#518).
+- evidence: host tests only. `durable.rs` computes the real SHA-256 extend
+  chain in a fake anchor and reproduces B's golden vectors; the M1
+  regression tests now pass against a hostile extend. No kernel anchor
+  service, swtpm run or torn-A1 store recovery (C143) exists; N04 stays open
+  and 5A remains the product behaviour.
+- previous cycle `N-20261125-n03-n04-adr` (N03/N04 ADRs, N03-T2 host
+  handshake) merged as `657f522f` (#543).
 
 ## Blockers
 
