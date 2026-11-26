@@ -855,9 +855,15 @@ itself:
   its head's, the member also needs the newest merge-hold run on E to have
   concluded `success`: event `merge_group`, head SHA E, a queue branch of that
   pull request, and this repository as repository and head repository. That
-  run judged the gates on E. A missing, running or failed run fails the member
-  at the decision; the wait before it already waits for E's merge-hold check
-  run when the walk reaches E. The ruleset's "Only merge non-failing pull
+  run judged the gates on E. It is read as strictly as the queue-commit runs:
+  its jobs must all belong to its attempt and have succeeded, a re-read by id
+  must show the same id, attempt and status, still bound and successful, and
+  E's `merge-hold` check run, read again at the decision, must have concluded
+  `success`. A missing, running or failed run, or any disagreement between
+  these reads (a stale listing, a run that moved on, jobs of another attempt,
+  a failed check run), fails the member at the decision; the wait before it
+  already waits for E's merge-hold check run when the walk reaches E. The
+  ruleset's "Only merge non-failing pull
   requests" setting, which the merge-queue rule must enable, keeps E from
   merging without that success.
 - Under `shadow` the group neither waits for gate runs nor blocks on them, and
@@ -867,11 +873,20 @@ The 45-minute budget is counted from before the plan. The plan and the
 catalogue read, the group's own checks, every gate run of the queue commit and
 the chain of entries ahead share it, less a 3-minute reserve kept back for the
 decision after the wait; the deadline fails closed. Up to the wait's last poll
-the job therefore takes at most 43 minutes. The last poll, the decision and the
-workflow steps before the script must fit the remaining 7 minutes of the
-50-minute job timeout. The decision makes 2 + 2N + 4M requests for N counted
-runs and M members, at most 2 + 4N + 5M. Those 7 minutes are an assumption, not
-a guarantee; the job timeout stays the fail-closed backstop. A
+the script, whose clock starts before the plan, therefore takes at most 43
+minutes; the workflow steps before the script are outside that clock. The last
+poll, the decision and those steps must fit the remaining 7 minutes of the
+50-minute job timeout. Counted one page each, the decision makes 2 + 2N + 4M
+requests for N counted runs and M members, at most 4N + 8M - 1 (a lifted member
+ahead adds four reads of its entry's merge-hold). A poll makes three requests
+plus one per entry walked, and the last poll may itself make a full gate report
+of 1 + 2N to 1 + 4N requests when a new failure trigger appears that the report
+does not count, such as an advisory check-run failure; the decision then makes
+its own. For N = 24 and M = 5 that is about 77 requests in the usual case and
+about 240 at worst, so, less the steps before the script, under about 5 s and
+1.7 s per request on average. Each blocking socket read times out after 20 s, so
+a single request has no hard ceiling. Those 7 minutes are an assumption, not a
+guarantee; the job timeout stays the fail-closed backstop. A
 queue trial with at least two entries (D1 step 3) is still required before the
 queue may be enabled. merge-hold reads every page of a queue commit's check
 runs, up to `CHECK_RUN_MAX_PAGES` (five pages of 100); a full fifth page fails
