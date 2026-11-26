@@ -174,16 +174,13 @@ restarts processes.
 ## Next
 
 1. P02-T3 slices 1, 2a and 2b sit on `claude/p02-t3-nasp-head-20261125`
-   (worktree `~/projects/BaryonOS-worktrees/p02-t3-head`), merged with main
-   e68612f5 (no content change; the diff against main is the P02-T3 work
-   only). Not pushed: it needs its own issue/PR and a lane from the PR guard.
-   Before the first push, re-run the six-stage native gate
-   (`NOS_BUILD_DIR` inside the checkout, e.g. `build/<name>`, or
-   `private_path` refuses it) and the nas-workspace steps on 1.100.0.
-   Last local result (2d81de8a, main e68612f5): native gate 6/6 raw 33
-   (source `ce651335…`); nas-workspace steps for all four NAS crates, probe
-   native clippy and the NAS Python unittests exit 0 (145 Rust tests).
-   Tracking issue #554; lane queued after H (overlap with S/H only in
-   `kernel/Cargo.toml` and `tools/build.py`).
+   (worktree `~/projects/BaryonOS-worktrees/p02-t3-head`), tracking issue
+   #554, with main ffea3883 merged in. Under the owner's autonomous merge
+   queue decision (26 Nov ~20:10Z) P opens and queues its own merge-ready PR;
+   the PR guard coordinates order but grants no per-PR approval. Re-run the
+   six-stage native gate (`NOS_BUILD_DIR` inside the checkout, e.g.
+   `build/<name>`, or `private_path` refuses it) and the nas-workspace steps
+   on 1.100.0 after every main catch-up. The progress assessment is
+   `docs/progress/assessments/2026-11-26-p02-t3-offline-resume.json`.
 2. Slice 3 (guest queue persistence across a guest restart) is an OWNER
    question before any code.
