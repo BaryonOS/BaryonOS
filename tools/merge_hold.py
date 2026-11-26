@@ -81,10 +81,14 @@ run payload. Every member still needs its hold decision, a released hold an
 entry tree equal to the released head tree, and a successful `pull_request`
 merge-hold on its own head (defense in depth). An unheld member may land a tree
 other than its head's only when the queue-commit report was enforced and clean
-(no Pending or Failed line), because only then does it cover that tree; under
-`shadow`, or with any Pending or Failed line, its entry tree must equal its head
-tree as before step 2. Under `shadow` the group neither waits for gate runs nor
-blocks on them, as before step 2.
+(no Pending or Failed line); under `shadow`, or with any Pending or Failed line,
+its entry tree must equal its head tree as before step 2. For this group's own
+entry that report judges the landing tree itself, the queue commit. A member
+ahead of this group lands tree(E) of its own entry E, which this report does not
+judge; its landing is covered by that entry's own required merge-hold, which
+judges the gates on E, together with the ruleset's "Only merge non-failing pull
+requests" setting, which the merge-queue rule must enable. Under `shadow` the
+group neither waits for gate runs nor blocks on them, as before step 2.
 """
 
 import json
@@ -941,7 +945,11 @@ def merge_group_hold(token, repo):
         # A released hold covers only the tree it ran on, so this PR's own queue
         # entry (the commit main becomes when it merges) must land that tree. An
         # unheld member may land another tree only when the enforced queue-commit
-        # report above is clean, because only then do its gates cover that tree.
+        # report above is clean. For this group's own entry that report judges the
+        # landing tree itself. A member ahead lands tree(E) of its own entry E,
+        # which this report does not judge; its landing is covered by that entry's
+        # own required merge-hold together with the ruleset's "Only merge
+        # non-failing pull requests" setting (the merge-queue rule must enable it).
         same_tree = tree(token, repo, entry_commit) == tree(token, repo, pr_head)
         if passed and LABEL in labels and not same_tree:
             passed, message = False, (

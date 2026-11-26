@@ -1049,6 +1049,33 @@ class MergeGroupTests(TestCase):
                 self.assertEqual(code, 1, out)
                 self.assertIn("#8: No acceptance hold is set.", out)
 
+    def test_unheld_member_ahead_may_land_its_own_entry_tree_after_an_enforced_clean_report(self):
+        """PR 7 is ahead and unheld; its own entry E lands a tree other than its head's. This group's
+        report judges GROUP's tree, not E's, and PR 7 still passes here. That is sound: E's tree lands
+        only when PR 7's own entry merges, which needs E's own required merge-hold (it judges the gates
+        on E, and this group's walk waits for it) under the ruleset's "Only merge non-failing pull
+        requests" setting; failing PR 7 here would only eject this group. Under shadow, or with a
+        Pending or Failed line, PR 7 keeps the equal-tree rule as before step 2."""
+        queue = [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)]
+        trees = {E: "1" * 40, HEAD: "2" * 40, GROUP: "3" * 40, OTHER: "3" * 40}
+        rule = (f"#7: ::error::The applicable gates ran on {HEAD}, but its queue entry {E} lands a "
+                "different tree, and the queue-commit gate report is not an enforced clean pass, so it does not "
+                "cover that tree. Update the branch.")
+        code, out, calls = self.run_group(queue, trees=trees)
+        self.assertEqual(code, 0, out)
+        self.assertIn("#7: No acceptance hold is set.", out)
+        self.assertIn("#8: No acceptance hold is set.", out)
+        self.assertTrue([url for url in calls if f"/commits/{E}/check-runs?" in url])  # E's own merge-hold
+        failed = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]}
+        pending = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", None, "in_progress")]}
+        for why, plan, jobs in (("shadow", group_plan(policy_mode="shadow"), GOOD_JOBS),
+                                ("failed", None, failed), ("pending", None, pending)):
+            with self.subTest(report=why):
+                code, out, _ = self.run_group(queue, trees=trees, plan=plan, group_jobs=jobs)
+                self.assertEqual(code, 1, out)
+                self.assertIn(rule, out)
+                self.assertIn("#8: No acceptance hold is set.", out)  # its own entry lands its head tree
+
     def test_group_that_leaves_the_queue_during_the_gate_wait_fails_after_two_reads(self):
         # Gate runs stay open, so only the queue read of every gate poll can end this wait early.
         def remove(labels, comments, nodes):
