@@ -15,8 +15,9 @@ inputs:
     required: true
   base-sha:
     description: >-
-      Merge-group base or push 'before'. Leave empty on pull_request: the base is
-      the tested merge commit's first parent. Empty otherwise means no trusted base.
+      Merge-group base (the trusted base T for the select jobs) or push 'before'. Leave
+      empty on pull_request: the base is the tested merge commit's first parent. Empty
+      otherwise means no trusted base.
     default: ''
   base-ref:
     description: >-

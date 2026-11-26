@@ -1,0 +1,61 @@
+name: Merge-group gate
+description: >-
+  On merge_group, decide whether the jobs of the calling workflow may skip (PR B of
+  ADR-CI-MERGE-GROUP-SELECT-20261126). The answer comes from merge_group_skip in the
+  trusted base copy of tools/merge_hold.py (T, via ./.github/actions/trusted-base):
+  the same checked plan and two-source rule with which merge-hold leaves a workflow
+  out. Only an explicit True gives run=false. Any doubt gives run=true: an older
+  merge_hold.py without merge_group_skip (this change itself in the queue), an
+  error, or any other answer. A failed step fails the job, and the jobs wired below
+  it then run as well.
+inputs:
+  workflow:
+    description: Repository-relative path of the calling workflow (.github/workflows/<name>.yml).
+    required: true
+outputs:
+  run:
+    description: "'false' when merge-hold leaves the workflow out of this queue commit, else 'true'."
+    value: ${{ steps.decide.outputs.run }}
+runs:
+  using: composite
+  steps:
+    - name: Load merge-hold and the selector from the trusted base
+      id: base
+      uses: ./.github/actions/trusted-base
+      with:
+        event-name: ${{ github.event_name }}
+        merge-group-base-sha: ${{ github.event.merge_group.base_sha }}
+    - name: Ask merge-hold whether this workflow is left out
+      id: decide
+      shell: bash
+      env:
+        WORKFLOW: ${{ inputs.workflow }}
+        BASE_SHA: ${{ steps.base.outputs.base-sha }}
+        TESTED_SHA: ${{ steps.base.outputs.tested-sha }}
+        MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+        MERGE_GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
+        MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
+        MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+      run: |
+        set -euo pipefail
+        python3 -B -I - "$RUNNER_TEMP/merge-hold-base/merge_hold.py" <<'PY'
+        import importlib.util
+        import os
+        import sys
+
+        run, reason = "true", "every job runs"
+        try:
+            spec = importlib.util.spec_from_file_location("merge_hold", sys.argv[1])
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            skip = getattr(module, "merge_group_skip", None)
+            if skip is None:
+                reason = "merge-hold at the trusted base has no merge_group_skip, so every job runs"
+            elif skip(os.environ["WORKFLOW"]) is True:
+                run, reason = "false", "merge-hold leaves this workflow out of the queue commit, so its jobs skip"
+        except BaseException as error:  # any doubt runs every job; merge-hold still judges them
+            run, reason = "true", f"{type(error).__name__}: {error}; every job runs"
+        print(f"::notice::merge-group gate: {reason}.")
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+            output.write(f"run={run}\n")
+        PY

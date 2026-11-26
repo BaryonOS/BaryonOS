@@ -26,8 +26,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  merge-group-gate:
+    # PR B of ADR-CI-MERGE-GROUP-SELECT-20261126: on merge_group only, merge-hold's own plan from
+    # the trusted base T says whether this workflow is left out; only then do the jobs below skip.
+    name: nas-core merge-group gate
+    if: ${{ github.event_name == 'merge_group' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history: T is the merge base of the queue commit and main.
+          fetch-depth: 0
+      - name: Decide from merge-hold's plan
+        id: gate
+        uses: ./.github/actions/merge-group-gate
+        with:
+          workflow: .github/workflows/nas-core.yml
+
   nas-workspace:
     name: nas-${{ matrix.crate }}-host-target
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     strategy:
@@ -87,6 +113,8 @@ jobs:
 
   nas-native-normal-cold:
     name: nas-native-normal-cold
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:

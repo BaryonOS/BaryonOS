@@ -41,6 +41,15 @@ jobs:
           fetch-depth: 0
       - name: Pinned Python
         uses: ./.github/actions/setup-python
+      - name: Trusted base of the queue commit
+        # merge_group plans from T, as merge-hold does, never from merge_group.base_sha
+        # (ADR-CI-MERGE-GROUP-SELECT-20261126); a failure fails this job, and merge-hold blocks.
+        if: ${{ github.event_name == 'merge_group' }}
+        id: trusted
+        uses: ./.github/actions/trusted-base
+        with:
+          event-name: ${{ github.event_name }}
+          merge-group-base-sha: ${{ github.event.merge_group.base_sha }}
       - name: Plan with the trusted base selector
         id: plan
         uses: ./.github/actions/select-ci
@@ -49,7 +58,7 @@ jobs:
           tested-sha: ${{ github.sha }}
           head-sha: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
           # Empty on pull_request (the action uses the merge ref's first parent) and on dispatch.
-          base-sha: ${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}
+          base-sha: ${{ steps.trusted.outputs.base-sha || (github.event_name == 'push' && github.event.before) || '' }}
           base-ref: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref_name }}
       - name: Jobs and variants to run
         id: jobs

@@ -51,9 +51,34 @@ defaults:
     shell: bash
 
 jobs:
+  merge-group-gate:
+    # PR B of ADR-CI-MERGE-GROUP-SELECT-20261126: on merge_group only, merge-hold's own plan from
+    # the trusted base T says whether this workflow is left out; only then do the jobs below skip.
+    name: native-smp merge-group gate
+    if: ${{ github.event_name == 'merge_group' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history: T is the merge base of the queue commit and main.
+          fetch-depth: 0
+      - name: Decide from merge-hold's plan
+        id: gate
+        uses: ./.github/actions/merge-group-gate
+        with:
+          workflow: .github/workflows/native-smp.yml
+
   artifact-download-contract:
     name: Artifact download contract (fixtures only)
-    if: ${{ github.event_name != 'workflow_dispatch' }}
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') && (github.event_name != 'workflow_dispatch') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -65,7 +90,8 @@ jobs:
         uses: ./.github/actions/artifact-download-contract
 
   native-smp:
-    if: ${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') && (!inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix)) }}
     runs-on: ubuntu-24.04
     # 16 min 16 s on ed05150; the ADR-082 fixtures add five builds and boots.
     timeout-minutes: 30
@@ -1058,7 +1084,8 @@ jobs:
   experimental-m3-m4-smp:
     name: experimental-m3-m4-smp
     # Same trigger as the ordinary native-smp job; never part of the section 9 matrix.
-    if: ${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') && (!inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix)) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:

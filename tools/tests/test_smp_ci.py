@@ -112,12 +112,18 @@ class SmpCiAggregationTests(unittest.TestCase):
                          ["clock_diagnostic"]["default"], "false")
         jobs = workflow["jobs"]
 
-        def eligible(expression, event, full, diagnostic, margin=False):
+        def eligible(expression, event, full, diagnostic, margin=False, gate_run="true"):
+            # The merge-group gate runs only on merge_group; elsewhere it is skipped and so lets
+            # the jobs below it run (ADR-CI-MERGE-GROUP-SELECT-20261126).
+            expression = (expression.replace("needs.merge-group-gate.result", "gate.result")
+                          .replace("needs.merge-group-gate.outputs.run", "gate.run"))
             expression = expression[3:-2].strip().replace("&&", " and ").replace("||", " or ")
             expression = expression.replace("!=", " NE ").replace("!", " not ").replace(" NE ", "!=")
             values = {("github", "event_name"): event, ("inputs", "full_matrix"): full,
                       ("inputs", "clock_diagnostic"): diagnostic,
-                      ("inputs", "margin_diagnostic"): margin}
+                      ("inputs", "margin_diagnostic"): margin,
+                      ("gate", "result"): "success" if event == "merge_group" else "skipped",
+                      ("gate", "run"): gate_run}
 
             def visit(node):
                 if isinstance(node, ast.Constant):
@@ -138,8 +144,9 @@ class SmpCiAggregationTests(unittest.TestCase):
                     if isinstance(node.ops[0], ast.NotEq):
                         return left != right
                 if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-                        and node.func.id == "always" and not node.args and not node.keywords):
-                    return True
+                        and node.func.id in ("always", "cancelled") and not node.args
+                        and not node.keywords):
+                    return node.func.id == "always"  # the run itself is not cancelled
                 raise self.failureException(f"Unsupported workflow condition: {ast.dump(node)}")
 
             return visit(ast.parse(expression.strip(), mode="eval").body)
@@ -148,7 +155,8 @@ class SmpCiAggregationTests(unittest.TestCase):
                      "smp-matrix-aggregate", "smp-final-gate"}
         for event, full, diagnostic, expected in (
             ("pull_request", False, False, {"artifact-download-contract", "native-smp", "experimental-m3-m4-smp"}),
-            ("merge_group", False, False, {"artifact-download-contract", "native-smp", "experimental-m3-m4-smp"}),
+            ("merge_group", False, False, {"merge-group-gate", "artifact-download-contract", "native-smp",
+                                           "experimental-m3-m4-smp"}),
             ("workflow_dispatch", False, False, {"native-smp", "experimental-m3-m4-smp"}),
             ("workflow_dispatch", True, False, full_jobs),
             ("workflow_dispatch", False, True, {"diagnostic-clock"}),
@@ -158,6 +166,10 @@ class SmpCiAggregationTests(unittest.TestCase):
                 actual = {name for name, job in jobs.items()
                           if eligible(job["if"], event, full, diagnostic)}
                 self.assertEqual(actual, expected)
+        # Only an explicit run=false from the gate skips the queue-commit jobs.
+        self.assertEqual({name for name, job in jobs.items()
+                          if eligible(job["if"], "merge_group", False, False, gate_run="false")},
+                         {"merge-group-gate"})
         # A margin diagnostic excludes every acceptance and clock job, whatever else is set.
         for full in (False, True):
             for diagnostic in (False, True):

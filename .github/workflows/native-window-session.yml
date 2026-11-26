@@ -30,7 +30,33 @@ defaults:
     shell: bash
 
 jobs:
+  merge-group-gate:
+    # PR B of ADR-CI-MERGE-GROUP-SELECT-20261126: on merge_group only, merge-hold's own plan from
+    # the trusted base T says whether this workflow is left out; only then do the jobs below skip.
+    name: native-window-session merge-group gate
+    if: ${{ github.event_name == 'merge_group' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history: T is the merge base of the queue commit and main.
+          fetch-depth: 0
+      - name: Decide from merge-hold's plan
+        id: gate
+        uses: ./.github/actions/merge-group-gate
+        with:
+          workflow: .github/workflows/native-window-session.yml
+
   host-checks:
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}
     runs-on: ubuntu-24.04
     # Scale-independent host gate: no step reads NOS_WINDOW_SCALE or a window
     # feature, so it runs once. Run 45424451804 measured about 1.5 min of setup
@@ -143,6 +169,8 @@ jobs:
 
   native-window-session:
     name: native-window-session (${{ matrix.leg }})
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}
     # Larger-runner measurement (owner, 26 November 2026): only a manual run on main, only the
     # longest leg, only while BARYON_HEAVY_ENABLED is 'true'; every other run stays on ubuntu-24.04.
     # The Baryon-Heavy runner group admits only this file at refs/heads/main, so no PR reaches it.
@@ -496,6 +524,8 @@ jobs:
             build/window-session-ci/${{ matrix.leg }}/window-fixture-*/*.ppm
 
   readonly-compile:
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}
     runs-on: ubuntu-24.04
     # Compile only: 15 s build plus about 2 min setup on run 45424451804.
     timeout-minutes: 20
@@ -578,6 +608,8 @@ jobs:
     # read-only gate passed. Packaging reads only this job's normal build
     # directory; it never sees the fault-injection probe image.
     needs: [host-checks, native-window-session, readonly-compile]
+    # Explicit: a skipped merge-group gate must not skip this job through implicit success().
+    if: ${{ !cancelled() && needs.host-checks.result == 'success' && needs.native-window-session.result == 'success' && needs.readonly-compile.result == 'success' }}
     runs-on: ubuntu-24.04
     # Normal build (4 s) and packaging (1 s) plus about 2 min setup on run 45424451804.
     timeout-minutes: 20

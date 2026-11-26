@@ -219,15 +219,26 @@ path = ".github/workflows/artifact-store-quality.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "merge_group", "push", "workflow_dispatch"]
-obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1896", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
+obligation = [{ cite = "crates/AGENTS.md:3", anchor = "(`app-management-quality.yml`, `artifact-store-quality.yml`)" }, { cite = "tests/test_ci_workflows.py:1899", anchor = "(\"artifact-store-quality.yml\", \"artifact-store-core\", \"artifact-store-core\")" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
 trigger.push = { branches = ["main"], paths = ["Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**", ".github/actions/**", "crates/artifact-store-core/**", ".github/workflows/artifact-store-quality.yml"] }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "artifact-store-quality merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "artifact-store-core"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 15
 cargo = ["crates/artifact-store-core/Cargo.toml"]
 evidence = []
@@ -343,7 +354,7 @@ path = ".github/workflows/component-leaves.yml"
 owner = "ci-owner"
 granularity = "variant"
 events = ["pull_request", "merge_group", "push", "workflow_dispatch"]
-obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1888", anchor = "leaves = next(wf for wf in catalogue[\"workflow\"] if wf[\"path\"] == \".github/workflows/component-leaves.yml\")" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
+obligation = [{ cite = "experiments/AGENTS.md:4", anchor = "is gated in `component-leaves.yml`" }, { cite = "services/AGENTS.md:7", anchor = "(`net-broker-quality.yml`, `component-leaves.yml`)" }, { cite = "tests/test_ci_workflows.py:1891", anchor = "leaves = next(wf for wf in catalogue[\"workflow\"] if wf[\"path\"] == \".github/workflows/component-leaves.yml\")" }, { cite = "AGENTS.md:160", anchor = "**Merge conditions:**" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@metadata" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
@@ -508,10 +519,21 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "entropy-keys merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "b01-native-supervisor"
 name = "b01-native-supervisor"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 40
 input_sets = ["native"]
 evidence = ["b01-supervisor-reports"]
@@ -541,7 +563,7 @@ path = ".github/workflows/materiaal-probe.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "pull_request"]
-obligation = [{ cite = "tests/test_ci_workflows.py:1834", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
+obligation = [{ cite = "tests/test_ci_workflows.py:1837", anchor = "workflow = self.workflows[\".github/workflows/materiaal-probe.yml\"]" }]
 trigger.pull_request = { types = ["opened", "reopened", "synchronize", "labeled", "ready_for_review"], branches = ["main"] }
 
 [[workflow.job]]
@@ -598,10 +620,21 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "nas-core merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "nas-workspace"
 name = "nas-${{ matrix.crate }}-host-target"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 10
 input_sets = ["native"]
 evidence = []
@@ -617,6 +650,8 @@ id = "nas-native-normal-cold"
 name = "nas-native-normal-cold"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 20
 input_sets = ["native"]
 evidence = ["nas-native-normal-cold-evidence"]
@@ -626,15 +661,26 @@ path = ".github/workflows/native-display-input.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
-obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1897", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
+obligation = [{ cite = "drivers/AGENTS.md:6", anchor = "Native gates: `native-rtc.yml`, `native-power.yml`, `native-display-input.yml` and `native-system.yml`" }, { cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "tests/test_ci_workflows.py:1900", anchor = "(\"native-display-input.yml\", \"native-display-input\", \"ui/native/Cargo.toml\")" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-display-input merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "native-display-input"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 30
 input_sets = ["native"]
 evidence = ["native-display-input-evidence"]
@@ -650,9 +696,20 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-foundation merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "native-foundation"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 40
 input_sets = ["native"]
 evidence = ["native-foundation-evidence"]
@@ -668,9 +725,20 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-hid-input merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "native-hid-input"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 20
 input_sets = ["native"]
 # tools/tokenguard.py runs this core_only script for the builds and boots (#494 C1, D-2).
@@ -688,9 +756,20 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-hw-inventory merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "native-hw-inventory"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 25
 input_sets = ["native"]
 evidence = ["native-hw-inventory-evidence"]
@@ -706,9 +785,20 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-power merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "native-power"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 15
 input_sets = ["native"]
 evidence = ["native-power-evidence"]
@@ -717,6 +807,8 @@ evidence = ["native-power-evidence"]
 id = "power-system-gate"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 45
 input_sets = ["native"]
 evidence = ["power-system-gate-report"]
@@ -732,9 +824,20 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-rtc merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "native-rtc"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 15
 input_sets = ["native"]
 evidence = ["native-rtc-evidence"]
@@ -750,11 +853,21 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-smp merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "artifact-download-contract"
 name = "Artifact download contract (fixtures only)"
 class = "rwa"
 activation = "automatic"
-condition = "${{ github.event_name != 'workflow_dispatch' }}"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') && (github.event_name != 'workflow_dispatch') }}"
 timeout_minutes = 5
 input_sets = ["native"]
 evidence = []
@@ -763,7 +876,8 @@ evidence = []
 id = "native-smp"
 class = "rwa"
 activation = "automatic"
-condition = "${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') && (!inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix)) }}"
 timeout_minutes = 30
 input_sets = ["native"]
 evidence = ["native-smp-evidence"]
@@ -942,7 +1056,8 @@ id = "experimental-m3-m4-smp"
 name = "experimental-m3-m4-smp"
 class = "rwa"
 activation = "automatic"
-condition = "${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') && (!inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix)) }}"
 timeout_minutes = 45
 input_sets = ["native"]
 evidence = ["experimental-smp-evidence"]
@@ -958,9 +1073,20 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-system merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "native-system"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 55
 input_sets = ["native"]
 evidence = ["native-system-evidence"]
@@ -970,15 +1096,26 @@ path = ".github/workflows/native-window-session.yml"
 owner = "ci-owner"
 granularity = "workflow"
 events = ["workflow_dispatch", "pull_request", "merge_group", "push"]
-obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:244", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1811", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
+obligation = [{ cite = "ui/AGENTS.md:7", anchor = "Native UI gates: `native-display-input.yml` and `native-window-session.yml`" }, { cite = "docs/PROGRESS.md:244", anchor = "| Native keyboard, pointer and focus operation |" }, { cite = "tests/test_ci_workflows.py:1814", anchor = "workflow = self.workflows[\".github/workflows/native-window-session.yml\"]" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ignore = "@nonnative" }
 trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-window-session merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "host-checks"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 30
 input_sets = ["native"]
 evidence = ["native-window-session-host-checks-evidence"]
@@ -988,6 +1125,8 @@ id = "native-window-session"
 name = "native-window-session (${{ matrix.leg }})"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = "${{ matrix.timeout }}"
 max_parallel = 5
 input_sets = ["native"]
@@ -1004,6 +1143,8 @@ variant = [
 id = "readonly-compile"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 20
 input_sets = ["native"]
 evidence = ["native-window-session-readonly-compile-evidence"]
@@ -1013,6 +1154,7 @@ id = "normal-and-package"
 class = "rwa"
 activation = "automatic"
 needs = ["host-checks", "native-window-session", "readonly-compile"]
+condition = "${{ !cancelled() && needs.host-checks.result == 'success' && needs.native-window-session.result == 'success' && needs.readonly-compile.result == 'success' }}"
 timeout_minutes = 20
 input_sets = ["native"]
 evidence = []
@@ -1032,9 +1174,20 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "native-xhci merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "native-xhci"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 30
 input_sets = ["native"]
 # tools/tokenguard.py runs this core_only script for the builds and boots (#494 C1, D-2).
@@ -1052,9 +1205,20 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "net-broker-quality merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "net-broker-quality"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 15
 cargo = ["services/net-broker/Cargo.toml", "services/net-stack/Cargo.toml", "services/network-service/Cargo.toml"]
 evidence = []
@@ -1064,6 +1228,7 @@ id = "native-network-service"
 class = "rwa"
 activation = "automatic"
 needs = ["net-broker-quality"]
+condition = "${{ !cancelled() && needs.net-broker-quality.result == 'success' }}"
 timeout_minutes = 20
 input_sets = ["native"]
 evidence = ["native-network-service-evidence"]
@@ -1073,6 +1238,7 @@ id = "native-network-extensions"
 class = "rwa"
 activation = "automatic"
 needs = ["net-broker-quality"]
+condition = "${{ !cancelled() && needs.net-broker-quality.result == 'success' }}"
 timeout_minutes = 20
 input_sets = ["native"]
 evidence = ["native-network-extensions-evidence"]
@@ -1083,6 +1249,7 @@ id = "native-network-slirp"
 class = "advisory"
 activation = "automatic"
 needs = ["net-broker-quality"]
+condition = "${{ !cancelled() && needs.net-broker-quality.result == 'success' }}"
 timeout_minutes = 15
 evidence = ["native-network-slirp-evidence"]
 
@@ -1142,10 +1309,21 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "process-management merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "k05-native-supervisor"
 name = "k05-native-supervisor"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 40
 input_sets = ["native"]
 evidence = ["k05-supervisor-reports"]
@@ -1174,9 +1352,20 @@ trigger.pull_request = { types = ["opened", "synchronize", "reopened"], paths_ig
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "resource-pressure merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "k07-native"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 30
 input_sets = ["native"]
 evidence = []
@@ -1208,10 +1397,21 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "signed-updates merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "b03-native-update"
 name = "b03-native-update"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 60
 input_sets = ["native"]
 evidence = ["b03-update-reports"]
@@ -1226,10 +1426,21 @@ trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "storage-resilience merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "s08"
 name = "s08-native-resilience"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 30
 input_sets = ["native"]
 evidence = ["s08-storage-resilience-report"]
@@ -1244,10 +1455,21 @@ trigger.pull_request = { paths = ["tools/**", "kernel/**", "boot/**", "userspace
 trigger.merge_group = { types = ["checks_requested"] }
 
 [[workflow.job]]
+id = "merge-group-gate"
+name = "volume-acceptance merge-group gate"
+class = "operational"
+activation = "automatic"
+condition = "${{ github.event_name == 'merge_group' }}"
+timeout_minutes = 20
+evidence = []
+
+[[workflow.job]]
 id = "m6e"
 name = "m6e-native-volume"
 class = "rwa"
 activation = "automatic"
+needs = ["merge-group-gate"]
+condition = "${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}"
 timeout_minutes = 40
 input_sets = ["native"]
 evidence = ["m6e-volume-reports"]
