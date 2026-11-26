@@ -1,9 +1,0 @@
-{
-  "date": "2026-11-25",
-  "source_commit": "c37218944af8ab2c1223cc69d822df78d0c2a20a",
-  "assessment_basis": "parent_commit",
-  "branch": "claude/r02-dirty-repaint-20261125",
-  "task": "R02 Materiaal changed-region repaint with local KVM A/B",
-  "previous_score": 43,
-  "summary": "43/100 unchanged. A client paint-path performance change with host tests and local KVM A/B evidence; R02 budgets still need an owner decision (R02-L1) and physical measurements, and the Materiaal recover probe has not run, so no criterion is accepted."
-}

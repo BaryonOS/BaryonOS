@@ -149,8 +149,10 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   menu-open generation is superseded by Esc after its menu tiles were already
   blitted (GEN 24→26, one completed frame); the base never reached those tiles,
   so its ≈0.05 s only shows that the expected image equals the pre-input one.
-- `ab3` at `a155749c`: B2 timed out in `calculator-restored` (Calculator
-  EVALUATIONS stayed 2, compositor FOCUSED 0; guest alive). Base: 20/20
+- `ab3` at `a155749c`: B2 timed out in `calculator-restored`. Corrected 26 Nov:
+  the Calculator was in its expected state (focus 1, EVALUATIONS 2) and the
+  compositor had reached its final commit count; this is a probe observation
+  gap, tracked in #545 (see the 26 Nov update). Base: 20/20
   passes over three batches; fix: 11/12. Treat as an open regression signal
   until the final 10+10 batch (`r/ab4`, `--timeout 240`) is read.
 - #526 is green at `b59c1294`; update it from `main` once, after #527, then
@@ -177,13 +179,31 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   was pushed with the review commits. Local `--workspace` scale 1/2, fix and
   base: raw 33. U review of `0797f42d` requested.
 
+## Update 26 Nov 2026
+
+- Session "BaryonOS - Specialist R" [41c0ee] resumed the R workstream after a
+  context clear and is registered with the PR guard.
+- #526 merged 25 Nov 14:36:38Z as `af0c6f72` (squash of `c02dbded`).
+- #540: one `main` merge (`55eeccc7`, includes #523) at `e55e71ac`.
+  materiaal-app `.text` 0x27eb3 (< 0x28000). Materiaal host suite green
+  (3 unit, 41 chain, 4 retained_digest, 2 semantic_actions); clippy (host
+  and native `x86_64-unknown-none`) and fmt green; ui/native 139 passed
+  (2 ignored), clippy and fmt green. Native materiaal-probe normal and recover
+  raw 33 under the runner's fixed QEMU TCG profile (recover readonly phase:
+  ERRORS 1, SAVE_ACKS 0; end: DISK_WRITES 0, DISK_FLUSHES 0). Use the repo
+  toolchain 1.100.0: `+1.90.0` fails on kernel-core (`atomic_try_update`).
+- `sdk/examples/materiaal/verify.py` is stale on `main` (expects 20 host
+  scenarios, 50 run) and no workflow calls it; run its cargo commands directly.
+- `calculator-restored` timeout: probe observation gap, not a Calculator or
+  compositor fault. `kernel/src/m2/m3/window_session.rs::snapshots` omits the
+  completed-frame words 464/480 from `activity`, and window-session answers
+  RETAIN without counting a commit. Pre-existing on `main`; #545 (owner U).
+
 ## Next action
 
-1. When U reports #523 merged: in `r-dirty` merge `origin/main` once, re-measure
-   `.text` (< 0x28000), rerun the host suite, then U's normal + recover
-   sequence (see 13:30Z update); record results in the PR; push; update
-   the PR verification table.
-2. #526: updated from `main` once after #527 (merge commit plus this
-   handoff); squash-merge with the expected head once its applicable checks pass
-   and the PR guard confirms the order.
-3. Keep the `calculator-restored` timeout signal open.
+1. #540: hosted `native-window-session` green at the pushed merge head, then
+   ready, Project #5 In Review, and `gh pr merge --squash --match-head-commit
+   <head>` (merge queue) after the PR guard confirms the order.
+2. After #540 lands: retire worktrees `r-track`, `r-dirty`, `r-base`; next R02
+   bottleneck (unconditional `yield_now`, one ack per tile) from
+   `docs/verification/r02-window-baseline-20261125/`.
