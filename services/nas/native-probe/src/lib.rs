@@ -5,6 +5,7 @@
 
 pub mod volume_transport;
 
+use nieuw_os_nas_client::Remote;
 use nieuw_os_nas_core::{
     Error, Invitation, Principal, Service, Session, Storage, Upload, Usage, TOKEN_BYTES,
 };
@@ -31,6 +32,7 @@ pub enum Op {
     UsageAt = 12,
     Close = 13,
     Cancel = 14,
+    Head = 15,
 }
 
 impl Op {
@@ -50,6 +52,7 @@ impl Op {
             12 => Ok(Self::UsageAt),
             13 => Ok(Self::Close),
             14 => Ok(Self::Cancel),
+            15 => Ok(Self::Head),
             _ => Err(Error::Invalid),
         }
     }
@@ -153,14 +156,16 @@ impl Frame {
     fn validate_request(&self) -> Result<(), Error> {
         use Op::*;
         let namespace = matches!(self.op, Accept | Open | Usage | SetQuota | Revoke | Evict);
-        let session = matches!(self.op, Stage | Commit | Read | Close | Cancel);
+        let session = matches!(self.op, Stage | Commit | Read | Close | Cancel | Head);
         let upload = matches!(self.op, Commit | Cancel);
         if (self.namespace != [0; 32]) != namespace
             || (self.session != [0; TOKEN_BYTES]) != session
             || (self.upload != [0; TOKEN_BYTES]) != upload
             || (!matches!(self.op, Stage | Read) && self.revision != 0)
-            || (!matches!(self.op, Invite | Accept | Stage | Read | SetQuota | UsageAt)
-                && self.value != 0)
+            || (!matches!(
+                self.op,
+                Invite | Accept | Stage | Read | SetQuota | UsageAt | Head
+            ) && self.value != 0)
             || match self.op {
                 Accept => self.length != 32,
                 Stage => self.length == 0,
@@ -196,7 +201,8 @@ impl Frame {
         if (self.namespace != [0; 32]) != matches!(self.op, Invite | Usage | UsageAt)
             || (self.session != [0; TOKEN_BYTES]) != (self.op == Open)
             || (self.upload != [0; TOKEN_BYTES]) != (self.op == Stage)
-            || (self.revision != 0) != matches!(self.op, Commit | Usage | UsageAt)
+            || (self.op != Head
+                && (self.revision != 0) != matches!(self.op, Commit | Usage | UsageAt))
             || (self.value != 0) != matches!(self.op, Invite | Usage | UsageAt)
             || match self.op {
                 Invite => self.length != 32 || self.data[..32] == [0; 32],
@@ -376,6 +382,15 @@ pub fn dispatch<S: Storage>(
                 Session::from_bytes(&request.session)?,
                 Upload::from_bytes(&request.upload)?,
             )?,
+            // Read-only: latest committed revision through the core's session
+            // authority; zero means never published, staging stays invisible.
+            Op::Head => {
+                reply.revision = service.head(
+                    caller,
+                    Session::from_bytes(&request.session)?,
+                    usize::try_from(request.value).map_err(|_| Error::Invalid)?,
+                )?;
+            }
             Op::Shutdown => {
                 // Check the core's administrator authority even if there is
                 // no namespace yet; NotFound does not authorize a guest.
@@ -393,6 +408,130 @@ pub fn dispatch<S: Storage>(
     }
     let shutdown = request.op == Op::Shutdown && reply.status.is_none();
     Ok((reply.encode(true)?, shutdown))
+}
+
+/// How one NASP exchange failed. `NotSent` queued nothing; after `Sent` the
+/// NAS may have applied the request although no valid reply arrived.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Delivery {
+    NotSent(Error),
+    Sent,
+}
+
+/// `native-client` over encoded NASP frames. No principal travels in a frame:
+/// the NAS derives the caller from the kernel-supplied sender. A request that
+/// was sent without a matching valid reply is `Unknown` and never replayed.
+pub struct NaspRemote<F> {
+    caller: Principal,
+    call: F,
+    next: u64,
+}
+
+impl<F: FnMut(&[u8; SIZE]) -> Result<[u8; SIZE], Delivery>> NaspRemote<F> {
+    /// `caller` is this process's own trusted-ingress identity, used only for
+    /// the client's ticket routing.
+    pub fn new(caller: Principal, call: F) -> Self {
+        Self {
+            caller,
+            call,
+            next: 1,
+        }
+    }
+
+    fn exchange(&mut self, mut request: Frame) -> Result<Frame, Error> {
+        request.request = self.next;
+        self.next = self.next.checked_add(1).ok_or(Error::Invalid)?;
+        let bytes = request.encode(false)?;
+        let reply = match (self.call)(&bytes) {
+            Ok(reply) => reply,
+            Err(Delivery::NotSent(error)) => return Err(error),
+            Err(Delivery::Sent) => return Err(Error::Unknown),
+        };
+        let reply = Frame::decode(&reply, true).map_err(|_| Error::Unknown)?;
+        if reply.op != request.op || reply.request != request.request {
+            return Err(Error::Unknown);
+        }
+        match reply.status {
+            Some(error) => Err(error),
+            None => Ok(reply),
+        }
+    }
+
+    fn with_session(op: Op, session: Session) -> Frame {
+        let mut frame = Frame::new(op, 1);
+        frame.session = session.to_bytes();
+        frame
+    }
+}
+
+impl<F: FnMut(&[u8; SIZE]) -> Result<[u8; SIZE], Delivery>> Remote for NaspRemote<F> {
+    fn caller(&self) -> Principal {
+        self.caller
+    }
+
+    fn open(&mut self, namespace: &[u8; 32]) -> Result<Session, Error> {
+        let mut open = Frame::new(Op::Open, 1);
+        open.namespace = *namespace;
+        Session::from_bytes(&self.exchange(open)?.session).map_err(|_| Error::Unknown)
+    }
+
+    fn stage(
+        &mut self,
+        session: Session,
+        object: usize,
+        expected: u64,
+        ciphertext: &[u8],
+    ) -> Result<Upload, Error> {
+        // Probe limit: refuse before sending rather than truncate.
+        if ciphertext.is_empty() || ciphertext.len() > DATA {
+            return Err(Error::Invalid);
+        }
+        let mut stage = Self::with_session(Op::Stage, session);
+        stage.value = object as u64;
+        stage.revision = expected;
+        stage.length = ciphertext.len();
+        stage.data[..ciphertext.len()].copy_from_slice(ciphertext);
+        Upload::from_bytes(&self.exchange(stage)?.upload).map_err(|_| Error::Unknown)
+    }
+
+    fn commit(&mut self, session: Session, upload: Upload) -> Result<u64, Error> {
+        let mut commit = Self::with_session(Op::Commit, session);
+        commit.upload = upload.to_bytes();
+        Ok(self.exchange(commit)?.revision)
+    }
+
+    fn cancel(&mut self, session: Session, upload: Upload) -> Result<(), Error> {
+        let mut cancel = Self::with_session(Op::Cancel, session);
+        cancel.upload = upload.to_bytes();
+        self.exchange(cancel).map(|_| ())
+    }
+
+    fn close(&mut self, session: Session) -> Result<(), Error> {
+        self.exchange(Self::with_session(Op::Close, session))
+            .map(|_| ())
+    }
+
+    fn head(&mut self, session: Session, object: usize) -> Result<u64, Error> {
+        let mut head = Self::with_session(Op::Head, session);
+        head.value = object as u64;
+        Ok(self.exchange(head)?.revision)
+    }
+
+    fn read(
+        &mut self,
+        session: Session,
+        object: usize,
+        revision: u64,
+        out: &mut [u8],
+    ) -> Result<usize, Error> {
+        let mut read = Self::with_session(Op::Read, session);
+        read.value = object as u64;
+        read.revision = revision;
+        let reply = self.exchange(read)?;
+        let out = out.get_mut(..reply.length).ok_or(Error::Invalid)?;
+        out.copy_from_slice(&reply.data[..reply.length]);
+        Ok(reply.length)
+    }
 }
 
 fn put_usage(reply: &mut Frame, usage: Usage) {
