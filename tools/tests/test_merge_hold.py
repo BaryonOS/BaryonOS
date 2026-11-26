@@ -429,9 +429,10 @@ class MergeGroupTests(TestCase):
     def test_the_decision_after_the_wait_makes_the_counted_requests(self):
         """The requests of the decision after the wait, counted from the moment the wait returns (one
         page each), as merge_group_hold's docstring states them for its 7-minute assumption: 2 + 2N + 4M
-        for N counted runs and M members, at most 4N + 8M - 1 (every run read again; every member ahead
-        lifted, which reads its entry's merge-hold run, that run's jobs, a re-read of it and the entry's
-        check runs, and this group's own entry labelled and released)."""
+        for N counted runs and M members with no member lifted; 2 + 2N + 8M - 8 (M >= 2) in an ordinary
+        queue, where every member ahead but the first is lifted; at most 4N + 8M - 1 (every run read again;
+        every member ahead lifted, which reads its entry's merge-hold run, that run's jobs, a re-read of it
+        and the entry's check runs, and this group's own entry labelled and released)."""
         ends = []
         real = merge_hold.wait_for_checks
 
@@ -450,8 +451,11 @@ class MergeGroupTests(TestCase):
             queue = [entry(i + 1, 10 + i, commits[i], heads[i]) for i in range(m - 1)] + [entry(m, 8, GROUP, OTHER)]
             gate_runs = {head: [dict(gate_run(head), pull_requests=[{"number": 10 + i, "base": {"ref": "main"}}])]
                          for i, head in enumerate(heads)}
-            for worst in (False, True):
-                with self.subTest(n=n, m=m, worst=worst), mock.patch.object(merge_hold, "wait_for_checks", wait):
+            expected = {"none lifted": 2 + 2 * n + 4 * m, "ordinary": 2 + 2 * n + 4 * m + 4 * max(m - 2, 0),
+                        "worst": 4 * n + 8 * m - 1}
+            for case, lifted in (("none lifted", []), ("ordinary", heads[1:]), ("worst", heads)):
+                worst = case == "worst"
+                with self.subTest(n=n, m=m, case=case), mock.patch.object(merge_hold, "wait_for_checks", wait):
                     ends.clear()
                     attempt = 2 if worst else 1
                     code, out, calls = self.run_group(
@@ -460,16 +464,17 @@ class MergeGroupTests(TestCase):
                                                       for i, commit in enumerate(commits)}},
                         group_jobs={i: [job(10 * i, i, f"g{i}", attempt=attempt)] for i in range(1, n + 1)},
                         rereads={i: {"run_attempt": 2} for i in range(1, n + 1)} if worst else None,
-                        trees={sha: "2" * 40 for sha in heads} if worst else None,
+                        trees={sha: "2" * 40 for sha in lifted},
                         labels={8: [merge_hold.LABEL]} if worst else None,
                         comments={8: [comment("acceptance-released: " + OTHER)]} if worst else None)
                     self.assertEqual(code, 0, out)
                     self.assertEqual(len(ends), 1)
                     after = calls[ends[0]:]
                     self.assertNotIn("sleep", after)
-                    self.assertEqual(len(after), 4 * n + 8 * m - 1 if worst else 2 + 2 * n + 4 * m, after)
-                    if worst:
-                        self.assertEqual(len([url for url in after if "/runs/7" in url]), 2 * (m - 1))
+                    self.assertEqual(len(after), expected[case], after)
+                    if m >= 2 and case == "ordinary":
+                        self.assertEqual(len(after), 2 + 2 * n + 8 * m - 8)
+                    self.assertEqual(len([url for url in after if "/runs/7" in url]), 2 * len(lifted))
 
     def test_released_pr_with_the_landing_tree_passes(self):
         code, out, _ = self.run_group(
@@ -1158,7 +1163,8 @@ class MergeGroupTests(TestCase):
         """D2 on fix round 3: this group's report does not judge tree(E), so a lifted PR 7 ahead also
         needs the newest merge_group merge-hold run on E, bound to E, a queue ref of PR 7 and this
         repository, to have concluded success. E's check runs are done in every case here, so the walk
-        ends and only that one run listing at the decision differs."""
+        ends and only the run listing at the decision differs; the jobs, the re-read and the check runs
+        read after it agree with the listed run (the next test varies them)."""
         queue = [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)]
         trees = {E: "1" * 40, HEAD: "2" * 40, GROUP: "3" * 40, OTHER: "3" * 40}
         good = [group_run(1, CI), group_run(2, LEAVES)]

@@ -88,10 +88,11 @@ ahead of this group lands tree(E) of its own entry E, which this report does not
 judge; such a lifted member ahead therefore also needs the newest merge-hold run
 on E to have concluded success (entry_hold_passed: event `merge_group`, head SHA
 E, a queue branch of that pull request, this repository), because that run
-judged the gates on E. The ruleset's "Only merge non-failing pull requests"
-setting, which the merge-queue rule must enable, keeps E from merging without
-it. Under `shadow` the group neither waits for gate runs nor blocks on them, as
-before step 2.
+judged the gates on E; its listing, its jobs, a re-read of it and E's check runs
+must all agree, or the member fails. The ruleset's "Only merge non-failing pull
+requests" setting, which the merge-queue rule must enable, keeps E from merging
+without it. Under `shadow` the group neither waits for gate runs nor blocks on
+them, as before step 2.
 """
 
 import json
@@ -994,19 +995,23 @@ def merge_group_hold(token, repo):
     (labels, two trees, its pull_request merge-hold) plus one for the comments of a
     labelled member, or four (entry_hold_passed) for a lifted member ahead; a labelled
     member is never lifted, and this group's own entry never is. For N counted runs and
-    M members that is 2 + 2N + 4M requests, at most 4N + 8M - 1. A poll makes three
-    (this commit's check runs, the queue, its run listing) plus one per entry walked,
-    and the last poll may itself make a full gate report, 1 + 2N to 1 + 4N, when a new
-    failure trigger appears that the report does not count (an advisory check-run
-    failure, for example); the decision then makes its own. With the 24 gate workflows
-    besides merge-hold that have a merge_group trigger (26 November 2026) and five
-    members, the last poll and the decision make about 77 requests in the usual case
-    and about 240 at worst, so the 7 minutes, less the steps before the script, need
-    under about 5 s per request on average, under about 1.7 s at worst. A check-run read of a queue commit with more than 100 check
-    runs takes more pages. Each blocking socket read in call() times out after 20 s, so
-    a single request has no hard ceiling and the assumption can fail; the job timeout
-    then stays the fail-closed backstop. In the usual case (quick polls, a decision
-    within R) the script's total stays within max(B, P) + R, 48 min.
+    M members that is 2 + 2N + 4M requests with no member lifted, at most 4N + 8M - 1.
+    In an ordinary queue every member ahead but the first is lifted (its entry also
+    carries the entries before it), which gives 2 + 2N + 8M - 8 for M >= 2. A poll
+    makes three requests (this commit's check runs, the queue, its run listing) plus
+    one per entry walked, and the last poll may itself make a full gate report,
+    1 + 2N to 1 + 4N, when a new failure trigger appears that the report does not
+    count (an advisory check-run failure, for example); the decision then makes its
+    own. With the 24 gate workflows besides merge-hold that have a merge_group trigger
+    (26 November 2026) and five members, the last poll (one entry walked) and the
+    decision make about 86 requests in an ordinary queue and about 240 at worst, so
+    the 7 minutes, less the steps before the script, need under about 5 s per request
+    on average, under about 1.7 s at worst. A check-run read of a queue commit with
+    more than 100 check runs takes more pages. Each blocking socket read in call()
+    times out after 20 s, so a single request has no hard ceiling and the assumption
+    can fail; the job timeout then stays the fail-closed backstop. In the usual case
+    (quick polls, a decision within R) the script's total stays within
+    max(B, P) + R, 48 min.
     """
     start = time.monotonic()
     head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]

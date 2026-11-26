@@ -877,13 +877,16 @@ the script, whose clock starts before the plan, therefore takes at most 43
 minutes; the workflow steps before the script are outside that clock. The last
 poll, the decision and those steps must fit the remaining 7 minutes of the
 50-minute job timeout. Counted one page each, the decision makes 2 + 2N + 4M
-requests for N counted runs and M members, at most 4N + 8M - 1 (a lifted member
-ahead adds four reads of its entry's merge-hold). A poll makes three requests
+requests for N counted runs and M members when no member is lifted, at most
+4N + 8M - 1; a lifted member ahead adds four reads of its entry's merge-hold.
+In an ordinary queue every member ahead but the first is lifted, which gives
+2 + 2N + 8M - 8 for M >= 2. A poll makes three requests
 plus one per entry walked, and the last poll may itself make a full gate report
 of 1 + 2N to 1 + 4N requests when a new failure trigger appears that the report
 does not count, such as an advisory check-run failure; the decision then makes
-its own. For N = 24 and M = 5 that is about 77 requests in the usual case and
-about 240 at worst, so, less the steps before the script, under about 5 s and
+its own. For N = 24 and M = 5 the last poll (one entry walked) and the decision
+make about 86 requests in an ordinary queue and about 240 at worst, so, less
+the steps before the script, under about 5 s and
 1.7 s per request on average. Each blocking socket read times out after 20 s, so
 a single request has no hard ceiling. Those 7 minutes are an assumption, not a
 guarantee; the job timeout stays the fail-closed backstop. A
