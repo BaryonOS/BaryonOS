@@ -1509,6 +1509,8 @@ class GateTests(TestCase):
                 "failure to success": (job(22, 2, "late-gate", "failure"), job(22, 2, "late-gate")),
                 "completed to running": (job(22, 2, "late-gate", "failure"),
                                          job(22, 2, "late-gate", None, "in_progress")),
+                "completed to running, same conclusion": (job(22, 2, "late-gate", "failure"),
+                                                          job(22, 2, "late-gate", "failure", "in_progress")),
                 "no integer attempt": (job(22, 2, "late-gate", "failure", attempt="1"),
                                        job(22, 2, "late-gate", attempt="1"))}.items():
             with self.subTest(name):
@@ -1579,16 +1581,19 @@ class GateTests(TestCase):
         """CodeRabbit on #560 (B): the listing shows attempt 1 completed and both re-reads show that
         same attempt in progress. Judged as running, a failed run would skip the conclusion
         cross-check, and a workflow outside gated_workflows would pass with its failed job omitted."""
-        cases = {"gated": (None, GOOD_RUNS, GOOD_JOBS, LEAVES, 2, "success"),
-                 "not gated": (self.cond_plan(), GOOD_RUNS + [wf_run(5, self.COND, conclusion="failure")],
-                               {**GOOD_JOBS, 5: [job(51, 5, "c", "skipped")]}, self.COND, 5, "failure")}
-        for name, (plan, runs_, jobs, workflow, run_id, conclusion) in cases.items():
+        cond = (self.cond_plan(), GOOD_RUNS + [wf_run(5, self.COND, conclusion="failure")],
+                {**GOOD_JOBS, 5: [job(51, 5, "c", "skipped")]}, self.COND, 5, "failure")
+        cases = {"gated": ((None, GOOD_RUNS, GOOD_JOBS, LEAVES, 2, "success"), None),
+                 "not gated": (cond, None),
+                 # The re-read keeps the listed conclusion and only its status says running.
+                 "not gated, conclusion kept": (cond, "failure")}
+        for name, ((plan, runs_, jobs, workflow, run_id, conclusion), reread) in cases.items():
             with self.subTest(name):
                 passed, out, _ = self.decide(plan=plan, runs_=runs_, jobs=jobs, settle_during_read={
-                    run_id: {"status": "in_progress", "conclusion": None}})
+                    run_id: {"status": "in_progress", "conclusion": reread}})
                 self.assertFalse(passed)
                 self.assertIn(f"Pending: {workflow}: run {run_id} attempt 1 was listed completed ({conclusion}) but "
-                              "re-read as in_progress (None) in the same attempt; re-run merge-hold", out)
+                              f"re-read as in_progress ({reread}) in the same attempt; re-run merge-hold", out)
                 self.assertIn("1 pending; 0 failed.", out)
 
     def test_a_same_attempt_conclusion_change_is_not_judged(self):
