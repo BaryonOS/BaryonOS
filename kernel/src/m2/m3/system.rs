@@ -1584,7 +1584,7 @@ fn finish(s: &mut State) -> ! {
         } else if cfg!(feature = "test-system-s3-blk-reinit-capacity") {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT_CAPACITY:PASS\nM1:PASS\n"
         } else if cfg!(feature = "test-system-s3-blk-reinit-no-reset-ack") {
-            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT_NO_RESET_ACK:PASS\nM1:PASS\n"
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT_NO_ACK:PASS\nM1:PASS\n"
         } else if cfg!(feature = "test-system-s3-blk-reinit") {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT:PASS\nM1:PASS\n"
         } else if cfg!(feature = "test-system-s3-reinit") {

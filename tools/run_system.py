@@ -42,7 +42,7 @@ POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-syst
                  "power-s3-blk-reinit-busy": "test-system-s3-blk-reinit-busy",
                  "power-s3-blk-reinit-identity": "test-system-s3-blk-reinit-identity",
                  "power-s3-blk-reinit-capacity": "test-system-s3-blk-reinit-capacity",
-                 "power-s3-blk-reinit-no-reset-ack": "test-system-s3-blk-reinit-no-reset-ack"}
+                 "power-s3-blk-reinit-no-ack": "test-system-s3-blk-reinit-no-reset-ack"}
 POWER_CASES = tuple(POWER_FEATURE)
 # B02-T4 (ADR-B02-KEY1-RELAY-20261123): the Key Service commits key state through
 # init's commit ingress. Kept out of FEATURE (capture/gate iterate it as FR-I01).
@@ -56,7 +56,7 @@ RELAY_CASES = (*RELAY_FEATURE, *RELAY_RED)
 BLK_CASES = {"power-s3-blk-reinit": None, "power-s3-blk-reinit-busy": ("BUSY", "BROKER_BUSY"),
              "power-s3-blk-reinit-identity": ("IDENTITY", "REDISCOVER"),
              "power-s3-blk-reinit-capacity": ("CAPACITY", "CAPACITY"),
-             "power-s3-blk-reinit-no-reset-ack": ("NO_RESET_ACK", "RESET_ACK")}
+             "power-s3-blk-reinit-no-ack": ("NO_RESET_ACK", "RESET_ACK")}
 S3_CASES = ("power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
 # Cases with the virtio-rng re-init (the blk re-init builds on it).
 RNG_REINIT_CASES = ("power-s3-reinit", *BLK_CASES)
@@ -685,9 +685,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     # Reject unknown files/links in the source before copytree can follow them.
     # Checking only the copied known files would expose extra host data to FAT.
     check_esp(BUILD / "esp", manifest)
-    # 64 random bits keep run directories unique and the relative QMP socket
-    # path below the 108-byte AF_UNIX limit for the longest case name.
-    run_dir = private_path(BUILD / "run" / f"system-{case}-{uuid.uuid4().hex[:16]}")
+    run_dir = private_path(BUILD / "run" / f"system-{case}-{uuid.uuid4().hex}")
     run_dir.mkdir(parents=True, exist_ok=False)
     # Runners only support generated paths inside this checkout.
     run_dir.resolve().relative_to(ROOT.resolve())
@@ -746,6 +744,8 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         # Private QMP socket inside this run directory (relative to QEMU's
         # cwd). The link harness is its only client and permits nothing but
         # qmp_capabilities and set_link; no HMP, TAP or other listener.
+        # AF_UNIX paths stop at 107 bytes; case names stay short enough for
+        # build/power-system-gate (capture_system pins the 32-hex suffix).
         if len(f"{rel}/qmp.sock".encode()) >= 108:
             raise ValueError("Private QMP socket path too long; choose a shorter NOS_BUILD_DIR")
         command += ["-qmp", f"unix:{rel}/qmp.sock,server=on,wait=off"]
