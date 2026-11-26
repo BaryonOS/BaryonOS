@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "55eeccc7c0d7539f51bbfa154a4467808a19edcd",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/n03-n04-adr-20261125",
+  "task": "Record ADR-N03-PROVIDER-20261125 and ADR-NET-ISSUER-20261125 (5B, M1 protected slot), N03-T2 host handshake against an OpenSSL peer, and the host-only N04 durable-store freshness model (#529)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Owner decisions and host-only tests: N03 and N04 have no native evidence, the M1 residual cases remain ignored red tests, and no criterion changes."
+}

@@ -1,0 +1,50 @@
+A1 passed=True raw=33 duration_s=26.56 source=3b9a94c5
+A2 passed=True raw=33 duration_s=25.68 source=3b9a94c5
+A3 passed=True raw=33 duration_s=27.15 source=3b9a94c5
+A4 passed=True raw=33 duration_s=27.58 source=3b9a94c5
+A5 passed=True raw=33 duration_s=27.10 source=3b9a94c5
+A6 passed=True raw=33 duration_s=26.41 source=3b9a94c5
+A7 passed=True raw=33 duration_s=27.13 source=3b9a94c5
+A8 passed=True raw=33 duration_s=26.76 source=3b9a94c5
+A9 passed=True raw=33 duration_s=27.12 source=3b9a94c5
+A10 passed=True raw=33 duration_s=26.14 source=3b9a94c5
+B1 passed=True raw=33 duration_s=18.68 source=c3721894
+B2 passed=True raw=33 duration_s=18.69 source=c3721894
+B3 passed=True raw=33 duration_s=18.92 source=c3721894
+B4 passed=True raw=33 duration_s=19.44 source=c3721894
+B5 passed=True raw=33 duration_s=18.87 source=c3721894
+B6 passed=True raw=33 duration_s=18.61 source=c3721894
+B7 passed=True raw=33 duration_s=18.55 source=c3721894
+B8 passed=True raw=33 duration_s=18.60 source=c3721894
+B9 passed=True raw=33 duration_s=18.57 source=c3721894
+B10 passed=True raw=33 duration_s=18.81 source=c3721894
+A passed 10/10 duration median 26.93 range 25.68-27.58
+B passed 10/10 duration median 18.69 range 18.55-19.44
+
+last_input_to_verified_app_image_s: median [min-max] over passing runs, A | B
+initial                      0.05 [0.05-0.05]   | 0.05 [0.05-0.07]
+editor                       0.83 [0.83-0.85]   | 0.63 [0.63-0.65]
+dirty                        0.11 [0.10-0.15]   | 0.08 [0.08-0.10]
+read-tool                    0.43 [0.43-0.44]   | 0.23 [0.23-0.25]
+read-tool-blocked            0.03 [0.03-0.03]   | 0.04 [0.03-0.05]
+write-tool-restored          0.44 [0.43-0.45]   | 0.25 [0.23-0.25]
+document-menu                0.86 [0.84-0.86]   | 0.23 [0.23-0.25]
+document-menu-next           0.66 [0.66-0.66]   | 0.25 [0.25-0.25]
+document-menu-read           0.86 [0.84-0.86]   | 0.25 [0.25-0.25]
+document-menu-blocked        0.05 [0.03-0.05]   | 0.03 [0.03-0.05]
+document-menu-cancelled      0.03 [0.03-0.05]   | 0.25 [0.23-0.25]
+document-menu-write          0.45 [0.43-0.46]   | 0.24 [0.23-0.25]
+clipboard-copied             0.88 [0.88-0.90]   | 0.27 [0.27-0.29]
+clipboard-rejected           0.29 [0.27-0.29]   | 0.29 [0.27-0.29]
+clipboard-numeric            0.99 [0.95-1.05]   | 0.27 [0.24-0.29]
+clipboard-pasted             0.22 [0.22-0.24]   | 0.29 [0.27-0.42]
+clipboard-calculator-copied  0.22 [0.17-0.24]   | 0.07 [0.07-0.09]
+clipboard-back               1.08 [1.08-1.13]   | 0.27 [0.27-0.28]
+clipboard-empty              0.87 [0.86-0.89]   | 0.25 [0.25-0.28]
+clipboard-reset              0.85 [0.84-0.89]   | 0.15 [0.13-0.44]
+rebound-editor               0.06 [0.06-0.07]   | 0.06 [0.06-0.06]
+restored-editor              0.87 [0.87-0.89]   | 0.26 [0.25-0.26]
+clipboard-recovered-empty    0.89 [0.87-0.89]   | 0.27 [0.26-0.28]
+saved                        0.87 [0.84-0.89]   | 0.10 [0.10-0.16]
+list                         0.85 [0.81-0.87]   | 0.61 [0.59-0.65]
+reopened                     0.85 [0.82-0.87]   | 0.67 [0.64-0.67]
