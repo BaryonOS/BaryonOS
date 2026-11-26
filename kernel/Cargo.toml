@@ -28,6 +28,9 @@ usb-hid-reattach-core = ["native-usb-hid-probe"]
 native-usb-hid-reattach = ["usb-hid-reattach-core"]
 # H02-T4: same-port USB mouse reattach; a separate boot from the keyboard profile.
 native-usb-hid-mouse-reattach = ["usb-hid-reattach-core"]
+# H02-T5: per-port refusal of an out-of-profile device on root port 1, service of
+# the port-2 mouse, and same-port recovery with an in-profile keyboard.
+native-usb-hid-refusal = ["native-usb-hid-probe"]
 test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
 test-xhci-dma-fault = ["native-xhci-probe"]
 test-xhci-no-dmar = ["native-xhci-probe"]
@@ -180,6 +183,9 @@ native-qsim = ["milestone-m3"]
 native-qsim-job = ["milestone-m4"]
 native-sdk-app = ["milestone-m4"]
 test-sdk-app-denied = ["native-sdk-app"]
+# A03 grant broker; reuses the sdk-app dispatch with a three-process manifest.
+native-task-grant = ["native-sdk-app"]
+test-task-grant-denied = ["native-task-grant"]
 # K05 process management: supervisor/worker/client ELFs, spawn/kill/status.
 native-supervisor = ["milestone-m4"]
 test-supervisor-crash = ["native-supervisor"]
