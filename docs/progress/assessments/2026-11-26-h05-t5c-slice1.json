@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "2289a271071d0a39bff8b28bc3b116bc50c32537",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/h05-t5c-blk-reinit-20261125",
+  "task": "H05-T5c slice 1: virtio-blk lane 0 kernel re-initialisation after an S3 wake, quarantine on refusal, O13 latch carryover",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Test-profile-only slice: after a validated S3 wake the kernel re-validates and re-initialises virtio-blk lane 0 fail-closed or quarantines it (-24); the O13 latch table survives both outcomes. Evidence is local native QEMU/TCG with labelled kernel-side injections. H05 stays open: no ring-3 block re-grant, remount or key-erasure SUSPEND gate (slices 2-4), no physical S3, BARS=KEPT unobserved, no IOMMU, no human acceptance."
+}

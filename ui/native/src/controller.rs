@@ -1836,7 +1836,12 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
         if event.modifiers.control() && press && self.screen == Screen::Editor {
             if event.key == PhysicalKey::S {
-                return if self.view().can_save {
+                // A read-only grant must show the SDK's ReadOnly refusal (UX-SR
+                // negative cases, NATIVE-MATERIAAL-PROBE recover); the Read
+                // tool and other disabled states stay silent.
+                return if self.view().can_save
+                    || (!self.editable && self.tool == DocumentTool::Write)
+                {
                     self.save()
                 } else {
                     Ok(())
