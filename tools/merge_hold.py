@@ -701,9 +701,23 @@ def gate_report(token, repo, pull, head_sha, plan, queue_branch=None):
         # A re-run between the two reads would pair this run state with another attempt's jobs.
         again = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
         if (again.get("run_attempt"), again.get("status")) != (run.get("run_attempt"), run.get("status")):
-            pending.append(f"{workflow}: {where} changed while it was read (now attempt "
-                           f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
-            continue
+            # The run moved on (a skipped run that completed, a new attempt), and its completion may
+            # start no later re-check: read its jobs once more and judge that newer state only if
+            # the run held it across that read. A run that keeps changing stays pending.
+            jobs = [job for job in fetch_listing(
+                token, f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
+                if job.get("run_id") == run["id"]]
+            settled = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
+            if (settled.get("run_attempt"), settled.get("status")) != (again.get("run_attempt"),
+                                                                        again.get("status")):
+                pending.append(f"{workflow}: {where} changed while it was read (now attempt "
+                               f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
+                continue
+            # Judge the settled record as a whole, never fields of the stale listing; the id is
+            # the one these reads were made for.
+            run = dict(settled, id=run["id"])
+            where = f"run {run['id']} attempt {run.get('run_attempt')}"
+            running = run.get("status") != "completed"
         if running and workflow in gated:
             pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
                            "including jobs GitHub has not created yet")
