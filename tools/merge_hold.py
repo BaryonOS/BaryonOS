@@ -645,7 +645,14 @@ def gate_report(token, repo, pull, head_sha, plan):
             else:
                 # Failed, not Pending: a run without any job (startup_failure, or cancelled before a
                 # job started) ran no gate, re-running merge-hold cannot change that, and the loop below
-                # already fails such a run that has an expected gate ("missing from").
+                # already fails such a run that has an expected gate ("missing from"). This applies to
+                # every counted workflow, trigger-only and advisory-only too: an unregistered or omitted
+                # failed job of such a run would otherwise pass. Two other causes reach this line: a
+                # jobs listing that lags behind a run with jobs (a merge-hold re-run clears it), and a
+                # run cancelled by concurrency without any job that wins run_order's same-second tie by
+                # its higher id (materiaal-probe, 1 in its last 300 pull_request runs on 26 November
+                # 2026); a re-run of that workflow run or the next pull request event clears that one,
+                # a merge-hold re-run does not.
                 failed.append(f"{workflow}: {where} concluded {conclusion} without any job, so its gates "
                               "never ran; re-run that workflow run or push a new head")
         if running and workflow in gated:

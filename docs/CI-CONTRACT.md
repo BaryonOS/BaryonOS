@@ -614,15 +614,25 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   `timed_out`, `startup_failure`, `action_required` or `stale`) while none of
   its listed jobs, in any class, has such a conclusion: **pending** ("concluded
   … but lists no such job; re-run merge-hold; if it persists, re-run that
-  workflow run"), because `filter=latest` can
-  omit the failed job. An advisory job's failure explains the run, so that run
-  still passes. A run that lists no job at all (a `startup_failure`, or a run
-  cancelled before any job started) ran no gate: **failed**, not pending,
+  workflow run"), because `filter=latest` can omit the failed job. An advisory
+  job's failure explains the run, so that run still passes. Under the same
+  omission premise, such a failure can mask an omitted failure of a job the
+  plan does not expect; an expected gate stays covered, because a missing
+  expected job fails. A run that lists no job at all (a `startup_failure`, or a
+  run cancelled before any job started) ran no gate: **failed**, not pending,
   because re-running merge-hold cannot change it; an expected gate of that run
-  is also "missing" as before. The cost: should an empty listing only lag
-  behind a run that did have jobs, that run is failed too, and a merge-hold
-  re-run then clears it. This also holds for an advisory-only or trigger-only
-  workflow, and it makes no extra API read.
+  is also "missing" as before. This applies to every counted workflow,
+  trigger-only and advisory-only ones included, because an unregistered or
+  omitted failed job of such a run would otherwise pass. The cost: two other
+  causes reach this failure. Should an empty listing only lag behind a run that
+  did have jobs, that run is failed too, and a merge-hold re-run then clears
+  it. A run cancelled by concurrency before any job started can also win the
+  newest-run tie (equal start, then higher id) over a run of the same workflow
+  that started in the same second; this was seen once in the last 300
+  `pull_request` runs of the Materiaal probe (`materiaal-probe.yml`), read on
+  26 November 2026. A merge-hold re-run does not clear that case; re-running
+  that workflow run, or the next pull request event, does. The rule makes no
+  extra API read.
   Advisory, manual, operational and publication jobs never block by their
   own conclusion, and merge-hold's own earlier runs are ignored.
 
