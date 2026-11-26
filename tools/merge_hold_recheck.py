@@ -5,17 +5,25 @@ Issue #494, item B9. On `pull_request` merge-hold decides at once
 (`policy.budgets.pull_request_wait_minutes = 0` in .github/ci-impact.toml) and
 fails with "Pending" while gates still run, so it no longer holds a runner while
 it waits. `.github/workflows/merge-hold-recheck.yml` runs this script from the
-default branch whenever a gate workflow (one that owns an automatic `core` or
-`rwa` job in the catalogue) completes. For a `pull_request` run from this
+default branch whenever a catalogue workflow with a `pull_request` trigger
+completes: every gate workflow (one that owns an automatic `core` or `rwa` job in
+the catalogue) and, as a trigger only, every other one, because a run of those
+can still leave merge-hold at Pending (a run that changed while it was read, or
+a job the base catalogue does not know). For a `pull_request` run from this
 repository it re-runs the newest merge-hold run of each listed pull request
 whose current head is still the run's head, but only when
 
 - no run of a gate workflow is still open for that head (each open one normally
-  starts another re-check when it completes; runs of other workflows never do,
-  so they are ignored),
+  starts another re-check when it completes; open runs of other workflows do
+  not hold merge-hold, so the re-check does not wait for them),
 - that merge-hold run ended `failure`, `timed_out` or `cancelled`, and
 - its latest attempt started before the triggering run finished (a later
   attempt already saw that result).
+
+A merge-hold run that is still open but started before the triggering run
+finished may have read the gate state too early: the re-check reads the run
+listing again, at most WAIT_POLLS times POLL_SECONDS apart, and then applies the
+same rules. The pull request head is read again just before a re-run request.
 
 It never passes or fails a check itself: the re-run merge-hold decides again on the
 same head and push-time merge commit, with live run, job, label and comment data,
@@ -27,6 +35,7 @@ import json
 import os
 import re
 import sys
+import time
 import tomllib
 from datetime import datetime
 from urllib import error, request
@@ -39,12 +48,17 @@ SHA = re.compile(r"[0-9a-f]{40}")
 MAX_PAGES = 50
 # Conclusions worth one more decision, and the endpoint that re-runs them.
 RERUN = {"failure": "rerun-failed-jobs", "timed_out": "rerun-failed-jobs", "cancelled": "rerun"}
+# Wait for a merge-hold that may have reported too early: at most 2 minutes for all
+# pull requests together, far below the job's 5-minute timeout (tests/test_ci_workflows.py).
+WAIT_POLLS = 8
+POLL_SECONDS = 15
 
 
 def gate_workflows(catalogue):
     """Paths of the workflows that own an automatic core or rwa job, merge-hold excluded.
 
-    merge-hold-recheck.yml lists exactly their names (tests/test_ci_workflows.py).
+    merge-hold-recheck.yml lists their names plus those of the other catalogue
+    workflows with a pull_request trigger (tests/test_ci_workflows.py).
     """
     return {workflow["path"] for workflow in catalogue["workflow"]
             if workflow["path"] != GATE_WORKFLOW
@@ -99,6 +113,13 @@ def head_runs(get, repo, sha):
     return list(runs.values())
 
 
+def newest_hold(runs, number):
+    """The newest merge-hold run of one pull request, or None."""
+    holds = [run for run in runs if run.get("path") == GATE_WORKFLOW
+             and any(item.get("number") == number for item in run.get("pull_requests") or [])]
+    return max(holds, key=run_order) if holds else None
+
+
 def rerun(post, repo, run):
     """Ask GitHub to re-run one merge-hold run; an attempt that already runs is enough."""
     endpoint = RERUN[run["conclusion"]]
@@ -113,8 +134,20 @@ def rerun(post, repo, run):
     return f"re-ran merge-hold run {run['id']} ({run['conclusion']}, {endpoint})"
 
 
-def recheck(event, repo, watched, get, post):
-    """Re-run stale merge-hold runs for the head of a finished gate run; return report lines."""
+def open_gates(runs, trigger, watched, repo):
+    """Gate runs of this head, other than the triggering attempt, that have not completed."""
+    # The listing may still show the finished triggering attempt as open; a re-run keeps the
+    # run id with a new attempt, which must still count. Workflow names come from the pull
+    # request branch: JSON-escape them so no log line starts with a workflow command.
+    finished = (trigger["id"], trigger.get("run_attempt"))
+    return sorted(f"{json.dumps(run.get('name'))} (run {run['id']}, {run.get('status')})" for run in runs
+                  if run.get("path") in watched and (run["id"], run.get("run_attempt")) != finished
+                  and (run.get("head_repository") or {}).get("full_name") == repo
+                  and run.get("status") != "completed")
+
+
+def recheck(event, repo, watched, get, post, sleep=time.sleep):
+    """Re-run stale merge-hold runs for the head of a finished watched run; return report lines."""
     trigger = event["workflow_run"]
     if (trigger.get("event") != "pull_request"
             or (trigger.get("repository") or {}).get("full_name") != repo
@@ -142,31 +175,48 @@ def recheck(event, repo, watched, get, post):
         return lines + ["No listed pull request is still at this head; nothing to re-check."]
     runs = head_runs(get, repo, sha)
     # The triggering run has finished even if the listing still lags behind.
-    still_open = sorted(f"{json.dumps(run.get('name'))} (run {run['id']}, {run.get('status')})" for run in runs
-                        if run.get("path") in watched and run["id"] != trigger["id"]
-                        and (run.get("head_repository") or {}).get("full_name") == repo
-                        and run.get("status") != "completed")
+    still_open = open_gates(runs, trigger, watched, repo)
     if still_open:
         return lines + ["Gate runs still open; their completion re-checks again: " + ", ".join(still_open)]
+    polls = WAIT_POLLS  # one budget for all listed pull requests
     for number in current:
-        holds = [run for run in runs if run.get("path") == GATE_WORKFLOW
-                 and any(item.get("number") == number for item in run.get("pull_requests") or [])]
-        if not holds:
+        newest = newest_hold(runs, number)
+        # An open merge-hold that started before this run finished may have reported Pending
+        # just before it: wait for its verdict, then apply the rules below to the fresh listing.
+        while (newest and newest.get("status") != "completed"
+               and run_order(newest)[0] < finished and polls):
+            sleep(POLL_SECONDS)
+            polls -= 1
+            runs = head_runs(get, repo, sha)
+            newest = newest_hold(runs, number)
+        if not newest:
             lines.append(f"#{number}: no merge-hold run yet; it decides when it runs.")
             continue
-        newest = max(holds, key=run_order)
         where = f"#{number}: merge-hold run {newest['id']} attempt {newest.get('run_attempt')}"
-        if newest.get("status") != "completed":
-            # shortcut: a merge-hold that is still running decides itself; if its report
-            # predates this gate's end, it stays Pending until a manual re-run or the next
-            # gate completion. Add a short wait here if that is ever seen.
-            lines.append(f"{where} is still {newest.get('status')}; it decides itself.")
+        if newest.get("status") != "completed" and run_order(newest)[0] >= finished:
+            lines.append(f"{where} is {newest.get('status')} and started after this run finished; "
+                         "it decides itself.")
+        elif newest.get("status") != "completed":
+            lines.append(f"{where} is still {newest.get('status')} after a wait of up to "
+                         f"{WAIT_POLLS * POLL_SECONDS} seconds; it decides itself. If it ends "
+                         "with only Pending lines, re-run it once the gates have finished "
+                         f"(gh run rerun {newest['id']} --failed).")
         elif newest.get("conclusion") not in RERUN:
             lines.append(f"{where} concluded {newest.get('conclusion')}; nothing to re-run.")
         elif run_order(newest)[0] >= finished:
             lines.append(f"{where} started after this run finished; its verdict already covers it.")
+        elif reopened := open_gates(runs, trigger, watched, repo):
+            # A gate can start a new attempt during the wait; its completion re-checks again.
+            lines.append(f"#{number}: gate runs open again after the wait; their completion "
+                         "re-checks again: " + ", ".join(reopened))
         else:
-            lines.append(f"#{number}: " + rerun(post, repo, newest))
+            # Narrow the window in which a push makes this re-run cancel the new head's merge-hold.
+            head = get(f"/repos/{repo}/pulls/{number}")["head"]["sha"]
+            if head != sha:
+                lines.append(f"#{number}: its head moved to {head} before the re-run; "
+                             "the runs of that head decide.")
+            else:
+                lines.append(f"#{number}: " + rerun(post, repo, newest))
     return lines
 
 

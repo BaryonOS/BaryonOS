@@ -1034,6 +1034,39 @@ class CatalogueValidationTests(TestCase):
             with self.subTest(core_only=pattern):
                 self.assertProblem(catalogue, "policy.core_only overlaps always_full, which @nonnative would hide")
 
+    def test_nonnative_gates_that_run_on_pull_request_must_run_on_push(self):
+        # #494 C2 review (B4): a pull_request-only gate would lose the push backstop silently.
+        backstop = {"branches": ["main"], "paths_ignore": "@metadata"}
+        rejected = "@nonnative needs every gate that runs on pull_request to run on push to main too"
+
+        def leaves(condition=None, prep=None, pull_filter="@nonnative"):
+            catalogue = valid_catalogue()
+            workflow = catalogue["workflow"][1]
+            workflow["trigger"] = {"pull_request": {"paths_ignore": pull_filter}, "push": backstop}
+            if condition:
+                workflow["job"][0]["condition"] = condition
+            if prep:
+                workflow["job"].insert(0, {"id": "prep", "class": "rwa", "activation": "automatic",
+                                           "condition": prep, "inputs": ["apps/prep/**"]})
+                workflow["job"][1]["needs"] = ["prep"]
+            return catalogue
+
+        def backstop_problems(catalogue):
+            return [problem for problem in ci_impact.validate(catalogue) if rejected in problem]
+
+        self.assertEqual(ci_impact.validate(leaves()), [])
+        pull_only = "${{ github.event_name == 'pull_request' }}"
+        self.assertEqual(backstop_problems(leaves(pull_only)), [f"leaves#quality: {rejected} (the backstop)"])
+        # Through a needs prerequisite: the gate and its prerequisite both lose the push run.
+        self.assertEqual(backstop_problems(leaves(prep="${{ github.event_name != 'push' }}")),
+                         [f"leaves#prep: {rejected} (the backstop)", f"leaves#quality: {rejected} (the backstop)"])
+        # Push-only gates and gates of a workflow without @nonnative are not affected.
+        self.assertEqual(ci_impact.validate(leaves("${{ github.event_name == 'push' }}")), [])
+        self.assertEqual(ci_impact.validate(leaves(pull_only, pull_filter="@metadata")), [])
+        for path in (REAL_CATALOGUE, REAL_CATALOGUE.with_name("ci-impact.candidate.toml")):
+            with self.subTest(catalogue=path.name), path.open("rb") as handle:
+                self.assertEqual(ci_impact.validate(tomllib.load(handle)), [])
+
     def test_real_central_changes_start_every_native_workflow_with_a_paths_ignore_filter(self):
         # #494 phase 5 C2 (N3): catalogue, selector, merge-hold, candidate and workflow changes
         # give a full plan that no @metadata or @nonnative filter hides.

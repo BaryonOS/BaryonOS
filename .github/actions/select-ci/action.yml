@@ -82,6 +82,15 @@ runs:
           echo "ci-impact: out must be build/ci-impact/<name>.json and catalogue .github/<name>.toml" >&2
           exit 2
         fi
+        # A heading per plan: the enforced and the advisory summary must not be confused.
+        if [[ -n "${CATALOGUE:-}" ]]; then
+          role="advisory candidate catalogue \`$CATALOGUE\`"
+          note="Advisory: nothing consumes this plan."
+        else
+          role="enforced catalogue \`.github/ci-impact.toml\`"
+          note="merge-hold recomputes and enforces its own plan."
+        fi
+        printf '\n# Plan from the %s\n' "$role" >> "$GITHUB_STEP_SUMMARY"
         # --base-ref only when set, so a caller without one keeps the phase-2 command line.
         ref_args=()
         if [[ -n "${BASE_REF:-}" ]]; then ref_args=(--base-ref="$BASE_REF"); fi
@@ -89,8 +98,8 @@ runs:
         python3 -B -I "$selector" plan --repo "$GITHUB_WORKSPACE" --event="$EVENT_NAME" \
           --base-sha="$BASE_SHA" --head-sha="$HEAD_SHA" --tested-sha="$TESTED_SHA" \
           "${ref_args[@]}" "${catalogue_args[@]}" --out "$plan_path" --summary "$GITHUB_STEP_SUMMARY"
-        printf '\nSelector source: `%s`. merge-hold recomputes and enforces its own plan.\n' \
-          "$source" >> "$GITHUB_STEP_SUMMARY"
+        printf '\nSelector source for the %s: `%s`. %s\n' \
+          "$role" "$source" "$note" >> "$GITHUB_STEP_SUMMARY"
         python3 -B -I - "$plan_path" "$source" >> "$GITHUB_OUTPUT" <<'PY'
         import json
         import re
