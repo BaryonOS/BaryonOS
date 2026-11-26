@@ -35,7 +35,7 @@ NAMES = {"window-init", "window-compositor", "materiaal-app", "calculator-app",
          "keyring-service", "volume-service", "input-source", "input-policy"}
 SERIAL_LIMIT = 4 * 1024 * 1024
 BODY = (28, 114, 880, 510)
-FIXTURE_PHASES = ("initial", "editor", "dirty", "saved", "list", "reopened",
+FIXTURE_PHASES = ("initial", "initial-focus-lost", "editor", "dirty", "saved", "list", "reopened",
                   "read-tool", "read-tool-blocked", "write-tool-restored",
                   "document-menu", "document-menu-next", "document-menu-read",
                   "document-menu-blocked", "document-menu-cancelled", "document-menu-write",
@@ -1172,8 +1172,11 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         shell_key(char)
                     workspace_wait("search")
                     shell_key("ret")
-                    wait("workspace-selected", lambda raw, s: comp(raw).get("FOCUSED") == 0,
-                         image_check=lambda image: material_matches(image, fixture["frames"]["initial"], body)
+                    # Interim until #541: F6 moved focus away, so Material shows its
+                    # input-lost banner once its latest generation is presented.
+                    wait("workspace-selected", lambda raw, s: comp(raw).get("FOCUSED") == 0 and
+                         s["MATERIAL"] and comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"],
+                         image_check=lambda image: material_matches(image, fixture["frames"]["initial-focus-lost"], body)
                          and workspace_matches(image, fixture["frames"]["workspace-selected"], "selected", scale))
                 # Extra shell tasks deliberately change calculator focus/caret.
                 # Start the unmodified whole-exterior app-isolation comparison

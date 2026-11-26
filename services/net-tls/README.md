@@ -96,6 +96,19 @@ TLS 1.3 handshake signatures are still verified through the provider; TLS 1.2
 signatures are refused. Application data is written only after an acceptance
 gate re-checks version, group, suite, ALPN and peer pin on both sides.
 
+**H2 peer (ADR-N03-PROVIDER-20261125, H3).** The same profile sides also
+handshake over real loopback TCP with an independent peer: Node.js's bundled
+OpenSSL (3.5 or later; CI pins Node 24.22.1) driven by `tests/openssl_peer.mjs`.
+Three tests (`h2_*`) cover the profile client against an OpenSSL server, an
+OpenSSL client against the profile server, both mutually pinned with
+X25519MLKEM768 and TLS13_AES_256_GCM_SHA384 checked on both ends, and an
+OpenSSL server offering only X25519, which the profile client refuses without
+fallback. The OpenSSL peer validates against the pinned self-signed leaf and
+compares the exact certificate bytes; a mutant that breaks that comparison
+fails both positive tests. `NOS_NODE` selects the node binary; a missing or
+older peer fails the tests rather than skipping them. OpenSSL's randomness is
+the host-test exception the ADR allows for test oracles only.
+
 Project code exercised: `KeyServiceRandom` (over a synthetic Key-Service
 transport) is the rustls `SecureRandom` of every profile side, and
 `CertificateClock` is the rustls `TimeProvider` in the unavailable-time negative.

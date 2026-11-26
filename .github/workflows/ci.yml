@@ -21,7 +21,10 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Only superseded PR heads are cancelled: a running main push run completes, so main keeps
+  # its post-merge evidence and host cache save (#494 B1, B2). GitHub keeps one pending run
+  # per group, so a newer push still replaces a main run that has not started.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   host-quality:
@@ -76,8 +79,24 @@ jobs:
           rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Coverage tooling (cargo-llvm-cov, coverage.py, c8)
         shell: bash
+        # The checksum-pinned upstream release replaces a from-source build on every
+        # run (#494 B3); provenance is in docs/CI-EVIDENCE.md.
+        env:
+          CARGO_LLVM_COV_VERSION: '0.9.1'
+          CARGO_LLVM_COV_SHA256: b3f68e625481fed9b16444174f3fa5ebcdbde4a1878803a35eabe2dcefcdc41a
         run: |
-          cargo +1.100.0 install cargo-llvm-cov --version 0.9.1 --locked
+          set -euo pipefail
+          llvm_cov_archive="${RUNNER_TEMP}/cargo-llvm-cov-${CARGO_LLVM_COV_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            --output "${llvm_cov_archive}" \
+            "https://github.com/taiki-e/cargo-llvm-cov/releases/download/v${CARGO_LLVM_COV_VERSION}/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz"
+          printf '%s  %s\n' "${CARGO_LLVM_COV_SHA256}" "${llvm_cov_archive}" \
+            | sha256sum --check --strict
+          mkdir --parents "${HOME}/.cargo/bin"
+          tar --extract --gzip --file "${llvm_cov_archive}" \
+            --directory "${HOME}/.cargo/bin" cargo-llvm-cov
+          chmod 0755 "${HOME}/.cargo/bin/cargo-llvm-cov"
+          cargo +1.100.0 llvm-cov --version | grep -F "${CARGO_LLVM_COV_VERSION}"
           python3 -m pip install --disable-pip-version-check --only-binary=:all: 'coverage==7.11.3'
           npm install --global c8@10.1.3
       - name: Cache Cargo downloads
@@ -88,41 +107,81 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache host Rust build intermediates
+      - name: Restore host Rust build intermediates
         id: host-build-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        # Restore on every event; only a push to main saves (#494 B2): PR and merge-queue
+        # refs are invisible to other pull requests, so their saves only evicted main's entries.
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           # Host-only outputs: never native images, acceptance reports or secrets.
+          # cargo-llvm-cov builds in target/llvm-cov-target and by default cleans the
+          # artifacts that could affect coverage results before each run; upstream
+          # treats a failed clean as a warning, so this is best effort (#494 B3).
           path: |
             target/debug
             sdk/target/debug
             services/net-protocol/target/debug
             experiments/quantum/target/debug
             experiments/quantum/job-protocol/target/debug
-          key: host-rust-v3-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}-${{ github.sha }}
+            target/llvm-cov-target
+          key: host-rust-v4-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}-${{ github.sha }}
           restore-keys: |
-            host-rust-v3-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}-
+            host-rust-v4-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}-
       - name: Fetch locked workspace dependencies before offline Python harnesses
         # The snapshot-wipe harness builds capability-core offline. Cargo still
         # resolves the workspace closure, including update-core's dependencies.
         run: cargo +1.100.0 fetch --locked --manifest-path Cargo.toml
       - name: Python syntax and DocumentSession host tests
+        # A hung lane fails this step well inside the 30-minute job (244-363 s measured),
+        # so the next step can still print the unprinted lane logs.
+        timeout-minutes: 15
         env:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           mkdir -p build/coverage-raw/python
           python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev
-          python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'
-          coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'
-          python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'
-          python3 -B -m unittest discover -s tests -p 'test_tokenguard*.py'
-          python3 -B tools/package_token_guard.py
-          coverage run --parallel-mode -m unittest discover -s tests -p 'test_document_session_*.py'
-          coverage run --parallel-mode -m unittest discover -s tests -p 'test_volume_*.py'
-          coverage run --parallel-mode -m unittest discover -s tests -p 'test_system_*.py'
-          coverage run --parallel-mode -m unittest discover -s tools/tests -p 'test_*.py'
-          python3 .agents/skills/os-dev/scripts/validate_skill.py
-          coverage run --parallel-mode -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
+          # #494: three independent lanes run concurrently. tools/tests stays in the foreground:
+          # a `&` job inherits ignored SIGINT/SIGQUIT, which test_roadmap_runner's signal test rejects.
+          (
+            set -e
+            coverage run --parallel-mode -m unittest discover -s tests -p 'test_volume_*.py'
+            coverage run --parallel-mode -m unittest discover -s tests -p 'test_system_*.py'
+            python3 .agents/skills/os-dev/scripts/validate_skill.py
+            coverage run --parallel-mode -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
+          ) >"$RUNNER_TEMP/python-lane-b.log" 2>&1 &
+          lane_b=$!
+          (
+            set -e
+            python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'
+            coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'
+            python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'
+            python3 -B -m unittest discover -s tests -p 'test_tokenguard*.py'
+            python3 -B tools/package_token_guard.py
+            coverage run --parallel-mode -m unittest discover -s tests -p 'test_document_session_*.py'
+          ) >"$RUNNER_TEMP/python-lane-c.log" 2>&1 &
+          lane_c=$!
+          rc=0
+          coverage run --parallel-mode -m unittest discover -s tools/tests -p 'test_*.py' || rc=1
+          wait "$lane_b" || rc=1
+          wait "$lane_c" || rc=1
+          for lane in b c; do
+            echo "::group::lane-$lane"
+            cat "$RUNNER_TEMP/python-lane-$lane.log" && rm -f "$RUNNER_TEMP/python-lane-$lane.log" || rc=1
+            echo "::endgroup::"
+          done
+          exit "$rc"
+      # #494: a lane log still present was never printed (step timeout or cancellation).
+      - name: Python lane logs left by an interrupted run
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          for log in "$RUNNER_TEMP"/python-lane-*.log; do
+            if [ -f "$log" ]; then
+              echo "::group::unprinted $(basename "$log") (interrupted run)"
+              cat "$log"
+              echo "::endgroup::"
+            fi
+          done
       - name: Runner and QEMU harness host tests
         shell: bash
         env:
@@ -235,6 +294,18 @@ jobs:
           job-status: ${{ job.status }}
           if-no-files-found: error
           path: build/coverage-raw/node/report/cobertura-coverage.xml
+      - name: Save host Rust build intermediates (push to main only)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.host-build-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            target/debug
+            sdk/target/debug
+            services/net-protocol/target/debug
+            experiments/quantum/target/debug
+            experiments/quantum/job-protocol/target/debug
+            target/llvm-cov-target
+          key: ${{ steps.host-build-cache.outputs.cache-primary-key }}
       - name: Cache diagnostics (not test evidence)
         if: ${{ always() }}
         shell: bash
@@ -453,8 +524,10 @@ jobs:
   upload-coverage-rust:
     name: upload-coverage-rust
     needs: host-quality
+    # A hung upload must not hold a runner for hours (#494 B8).
+    timeout-minutes: 10
     if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       contents: read
       code-quality: write
@@ -472,8 +545,9 @@ jobs:
   upload-coverage-python:
     name: upload-coverage-python
     needs: host-quality
+    timeout-minutes: 10
     if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       contents: read
       code-quality: write
@@ -491,8 +565,9 @@ jobs:
   upload-coverage-javascript:
     name: upload-coverage-javascript
     needs: host-quality
+    timeout-minutes: 10
     if: ${{ !cancelled() && needs.host-quality.result == 'success' && github.event_name != 'merge_group' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       contents: read
       code-quality: write
@@ -535,7 +610,21 @@ jobs:
           head-sha: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
           # Empty on pull_request (the action uses the merge ref's first parent) and on dispatch.
           base-sha: ${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}
+      - name: Plan the candidate catalogue (advisory, never consumed)
+        # #494 phase 5 C3: the base selector evaluates the base commit's candidate; merge-hold
+        # and the select jobs read only the enforced catalogue.
+        uses: ./.github/actions/select-ci
+        with:
+          event-name: ${{ github.event_name }}
+          tested-sha: ${{ github.sha }}
+          head-sha: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          base-sha: ${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}
+          catalogue: .github/ci-impact.candidate.toml
+          out: build/ci-impact/plan-candidate.json
       - name: Report catalogue coverage (shadow, never a gate)
+        # Depends on the enforced plan only: a failed advisory candidate step still fails the job,
+        # but does not skip this report.
+        if: ${{ !cancelled() && steps.select.outcome == 'success' }}
         run: |
           set -euo pipefail
           python3 -B -I tools/ci_impact.py coverage --repo "$GITHUB_WORKSPACE" > build/ci-impact/coverage.json
@@ -558,5 +647,6 @@ jobs:
           if-no-files-found: error
           path: |
             build/ci-impact/plan.json
+            build/ci-impact/plan-candidate.json
             build/ci-impact/coverage.json
           required-paths: build/ci-impact/plan.json

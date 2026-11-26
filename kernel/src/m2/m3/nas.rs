@@ -9,6 +9,26 @@ const NAS: usize = 1;
 const VOLUME: usize = 2;
 const GUEST: usize = 3;
 const RECOVER: bool = cfg!(feature = "test-system-nas-recover");
+/// P04-T1 (LP-25): the NAS dies after evict's WRITE ACK, before its PURGE.
+const INTERRUPT: bool = cfg!(feature = "test-system-nas-interrupt");
+/// P04-T1: writable boot on the interrupted image; explicit history repair.
+const REPAIR: bool = cfg!(feature = "test-system-nas-repair");
+const NORMAL: bool = !(RECOVER || INTERRUPT || REPAIR);
+/// Role startup word 112: 0 normal, 1 cold, 2 interrupt, 3 repair.
+const STAGE: u64 = if RECOVER {
+    1
+} else if INTERRUPT {
+    2
+} else if REPAIR {
+    3
+} else {
+    0
+};
+/// NAS startup word 208: 1 only after its explicit repair.
+const REPAIRED: u64 = 208;
+/// Probe exit code and word 40 for the fixture interruption, never success.
+const INTERRUPTED_EXIT: u64 = 3;
+const INTERRUPTED: u64 = 2;
 const WORDS: [u64; 8] = [40, 240, 400, 408, 416, 424, 448, 192];
 
 /// Exact boot-1 token replay (#110): private test handoff, never a product
@@ -122,10 +142,12 @@ mod replay {
 struct Evidence {
     roles: [Option<[u64; 8]>; 4],
     kernel_tables: usize,
+    repaired: u64,
 }
 static mut EVIDENCE: Evidence = Evidence {
     roles: [None; 4],
     kernel_tables: 0,
+    repaired: 0,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: KERNEL held, interrupts disabled; borrow ends before scheduling.
@@ -212,7 +234,7 @@ pub(super) fn manifest(s: &mut State) {
         (80, nas_guest_reply),
         (88, nas_volume),
         (96, volume_reply),
-        (112, u64::from(RECOVER)),
+        (112, STAGE),
         (120, 1),
         (160, admin),
         (168, guest),
@@ -247,7 +269,7 @@ pub(super) fn manifest(s: &mut State) {
             (64, reply),
             (72, coord_send),
             (80, coord_recv),
-            (112, u64::from(RECOVER)),
+            (112, STAGE),
             (120, role),
             (160, nas),
             (168, peer),
@@ -315,13 +337,24 @@ pub(super) fn manifest(s: &mut State) {
 pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
     require([ADMIN, NAS, GUEST].contains(&slot), b"UNEXPECTED_EXIT");
     let words = WORDS.map(|offset| word(s, slot, offset));
-    if s.last_event.code != 0 || words[0] != 1 {
+    if INTERRUPT && slot == NAS {
+        // Only the exact fixture crash point counts; any other NAS exit fails.
+        if s.last_event.code != INTERRUPTED_EXIT || words[0] != INTERRUPTED || words[1] != 0 {
+            print_number(b"NAS:ERROR:SLOT:", slot as u64);
+            print_number(b"NAS:ERROR:STEP:", words[1]);
+            fail(b"INTERRUPT_RESULT");
+        }
+        serial::write(b"NAS:PURGE_INTERRUPTED:PASS\n");
+    } else if s.last_event.code != 0 || words[0] != 1 {
         print_number(b"NAS:ERROR:SLOT:", slot as u64);
         print_number(b"NAS:ERROR:STEP:", words[1]);
         fail(b"ROLE_RESULT");
     }
     require(evidence().roles[slot].is_none(), b"DUPLICATE_EXIT");
-    if slot == GUEST && !RECOVER {
+    if slot == NAS {
+        evidence().repaired = word(s, slot, REPAIRED);
+    }
+    if slot == GUEST && NORMAL {
         // Snapshot before process cleanup: the guest's own published pair.
         let mut payload = [0; replay::BYTES];
         for (index, chunk) in payload.chunks_exact_mut(8).enumerate() {
@@ -336,7 +369,7 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
     }
     evidence().roles[slot] = Some(words);
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
-    if slot == GUEST && !RECOVER {
+    if slot == GUEST && NORMAL {
         // Fixture-only observation; a userland readiness message is not exit.
         require(word(s, ADMIN, 200) == 0, b"OFFLINE_FLAG");
         put(s, ADMIN, 200, 1);
@@ -360,15 +393,35 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         }
         fail(b"TIMEOUT");
     }
+    if INTERRUPT
+        && [NAS, GUEST]
+            .iter()
+            .all(|slot| evidence().roles[*slot].is_some())
+    {
+        // The administrator still waits for the evict reply the dead NAS never
+        // sent. Record its words, then reap it like the volume service.
+        require(evidence().roles[ADMIN].is_none(), b"ADMIN_EXITED");
+        let words = WORDS.map(|offset| word(s, ADMIN, offset));
+        require(words[0] == INTERRUPTED, b"ADMIN_NOT_WAITING");
+        evidence().roles[ADMIN] = Some(words);
+        s.processes[ADMIN].status = Status::Dying;
+        s.cleanup(ADMIN);
+    }
     if [ADMIN, NAS, GUEST]
         .iter()
         .any(|slot| evidence().roles[*slot].is_none())
     {
         return None;
     }
+    require(evidence().repaired == u64::from(REPAIR), b"REPAIR_STATE");
     // Cold: the guest's exact-token COMMIT replay adds one Stale reply.
+    // Interrupt: the evict request is never answered. Repair: no replay.
     let expected = if RECOVER {
         [(4, 0), (4, 5), (0, 5)]
+    } else if INTERRUPT {
+        [(2, 0), (6, 2), (4, 2)]
+    } else if REPAIR {
+        [(4, 0), (4, 3), (0, 3)]
     } else {
         [(16, 1), (27, 7), (11, 6)]
     };
@@ -448,6 +501,10 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     serial::write(b"NAS:CLEANUP:PASS\n");
     serial::write(if RECOVER {
         b"NAS:CASE:RECOVER:PASS\n"
+    } else if INTERRUPT {
+        b"NAS:CASE:INTERRUPT:PASS\n"
+    } else if REPAIR {
+        b"NAS:CASE:REPAIR:PASS\n"
     } else {
         b"NAS:CASE:NORMAL:PASS\n"
     });

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local NAS normal/cold acceptance using real guest IPC and an independent disk oracle."""
+"""Local NAS normal/cold and interrupt/repair acceptance using real guest IPC and an independent disk oracle."""
 from __future__ import annotations
 
 import hashlib
@@ -22,10 +22,18 @@ import volume_disk
 
 sys.path.insert(0, str(ROOT / "services/nas/native-probe"))
 sys.path.insert(0, str(ROOT / "services/nas/native-probe/tests"))
-from disk_oracle import check_image as check_nas_disk
+from disk_oracle import check_image as check_nas_disk, check_interrupted_image
 import replay_handoff
 
-FEATURES = {"normal": "native-system-nas-probe", "recover": "test-system-nas-recover"}
+FEATURES = {"normal": "native-system-nas-probe", "recover": "test-system-nas-recover",
+            "interrupt": "test-system-nas-interrupt", "repair": "test-system-nas-repair"}
+# Each non-root stage boots on its passing same-source parent's exact disk.
+PARENTS = {"recover": "normal", "repair": "interrupt"}
+# Expected (ok, error) RPC replies for administrator, NAS and guest. Cold: the
+# exact-token COMMIT replay adds one Stale reply at NAS and guest. Interrupt
+# (P04-T1, LP-25): the NAS dies before answering evict. Repair: no replay.
+COUNTS = {"normal": [(16, 1), (27, 7), (11, 6)], "recover": [(4, 0), (4, 5), (0, 5)],
+          "interrupt": [(2, 0), (6, 2), (4, 2)], "repair": [(4, 0), (4, 3), (0, 3)]}
 # #110 private handoff. Token bytes only ever exist in files inside a private
 # 0700 directory outside the checkout; reports, serial and CI artifacts carry
 # at most their SHA-256 (provenance binding, not a credential).
@@ -159,12 +167,14 @@ def safe_serial_evidence(serial: str) -> str:
     markers = set(BOOT) | {
         "M1:PASS", "NAS:MANIFEST:PASS", "NAS:REPLAY_EXPORT:PASS",
         "NAS:REPLAY_INPUT:PASS", "NAS:GUEST_OFFLINE:PASS", "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
-        "NAS:CASE:NORMAL:PASS", "NAS:CASE:RECOVER:PASS",
+        "NAS:CASE:NORMAL:PASS", "NAS:CASE:RECOVER:PASS", "NAS:PURGE_INTERRUPTED:PASS",
+        "NAS:CASE:INTERRUPT:PASS", "NAS:CASE:REPAIR:PASS",
     }
     failures = {
         "REPLAY_INPUT_ZERO", "REPLAY_INPUT", "REPLAY_INPUT_IN_NORMAL",
         "MANIFEST_ENGINE", "UNEXPECTED_EXIT", "ROLE_RESULT", "DUPLICATE_EXIT",
         "PROCESS_FAULT", "UNEXPECTED_EVENT", "TIMEOUT", "NAS_READY", "OFFLINE_FLAG",
+        "INTERRUPT_RESULT", "ADMIN_EXITED", "ADMIN_NOT_WAITING", "REPAIR_STATE",
     }
     number = re.compile(
         r"NAS:(?:ADMIN_PID|GUEST_PID|ROLE_SLOT|RPC_OK|RPC_ERRORS|RIGHTS_DENIED|"
@@ -219,16 +229,16 @@ def evaluate(case, serial, raw_exit, timed_out):
         raise ValueError("NAS guest did not complete successfully")
     if any(marker in serial for marker in ("FAIL", "PANIC")):
         raise ValueError("NAS guest failure, including post-success output")
-    if case == "normal":
-        expected = (*BOOT, "NAS:MANIFEST:PASS", "NAS:REPLAY_EXPORT:PASS", "NAS:GUEST_OFFLINE:PASS", "NAS:BROKERS:PASS",
-                    "NAS:CLEANUP:PASS", "NAS:CASE:NORMAL:PASS", "M1:PASS")
-    else:
-        expected = (*BOOT, "NAS:REPLAY_INPUT:PASS", "NAS:MANIFEST:PASS", "NAS:BROKERS:PASS",
-                    "NAS:CLEANUP:PASS", f"NAS:CASE:{case.upper()}:PASS", "M1:PASS")
+    middle = {"normal": ("NAS:MANIFEST:PASS", "NAS:REPLAY_EXPORT:PASS", "NAS:GUEST_OFFLINE:PASS"),
+              "recover": ("NAS:REPLAY_INPUT:PASS", "NAS:MANIFEST:PASS"),
+              "interrupt": ("NAS:MANIFEST:PASS", "NAS:PURGE_INTERRUPTED:PASS"),
+              "repair": ("NAS:MANIFEST:PASS",)}[case]
+    expected = (*BOOT, *middle, "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
+                f"NAS:CASE:{case.upper()}:PASS", "M1:PASS")
     controlled = [line for line in serial.splitlines()
                   if line in BOOT or line == "M1:PASS"
                   or line.startswith(("NAS:MANIFEST:", "NAS:BROKERS:", "NAS:CLEANUP:", "NAS:CASE:",
-                                      "NAS:REPLAY_", "NAS:GUEST_OFFLINE:"))]
+                                      "NAS:REPLAY_", "NAS:GUEST_OFFLINE:", "NAS:PURGE_"))]
     if controlled != list(expected):
         raise ValueError("NAS marker sequence differs")
     numbers = []
@@ -243,8 +253,7 @@ def evaluate(case, serial, raw_exit, timed_out):
     admin, guest = (value for _, value in numbers[:2])
     if not admin or not guest or admin == guest:
         raise ValueError("Invalid actual caller identities")
-    # Cold: the exact-token COMMIT replay adds one Stale reply at NAS and guest.
-    counts = [(16, 1), (27, 7), (11, 6)] if case == "normal" else [(4, 0), (4, 5), (0, 5)]
+    counts = COUNTS[case]
     roles = []
     for index, (slot, (ok, errors)) in enumerate(zip((0, 1, 3), counts)):
         group = numbers[2 + index * 5:7 + index * 5]
@@ -262,7 +271,7 @@ def evaluate(case, serial, raw_exit, timed_out):
         raise ValueError("No actual entropy/disk completion")
     writes, flushes = broker["DISK_WRITES"], broker["DISK_FLUSHES"]
     if ((case == "recover" and (writes or flushes))
-            or (case == "normal" and (not writes or not flushes))):
+            or (case != "recover" and (not writes or not flushes))):
         raise ValueError("Wrong block mode/completions")
     return {"admin_pid": admin, "guest_pid": guest, "roles": roles, "brokers": broker}
 
@@ -284,18 +293,20 @@ def run_case(case, parent=None, handoff=None):
     shutil.copyfile(code, run / "OVMF_CODE.fd")
     shutil.copyfile(variables, run / "OVMF_VARS.fd")
     image = run / "volume.img"
-    if case == "normal":
+    if case not in PARENTS:
         if parent is not None:
-            raise ValueError("Normal NAS run must create a new disk")
+            raise ValueError(f"{case.capitalize()} NAS run must create a new disk")
         volume_disk.create_image(image, "empty")
     else:
-        if (parent is None or parent.get("passed") is not True or parent.get("case") != "normal"
+        if (parent is None or parent.get("passed") is not True
+                or parent.get("case") != PARENTS[case]
                 or parent.get("source_sha256") != frozen):
-            raise ValueError("Cold NAS run requires a passing same-source normal parent")
+            raise ValueError(f"{case.capitalize()} NAS run requires a passing same-source "
+                             f"{PARENTS[case]} parent")
         source = private_path(ROOT / parent["image"], regular=True)
         check_image(source)
         if sha256(source) != parent["after_sha256"]:
-            raise ValueError("Normal disk bytes changed before cold run")
+            raise ValueError(f"{PARENTS[case].capitalize()} disk bytes changed before {case} run")
         shutil.copyfile(source, image)
     check_image(image)
     before = sha256(image)
@@ -337,7 +348,9 @@ def run_case(case, parent=None, handoff=None):
         "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
     ]
     capture = cold_input = cold_digest = payload = None
-    if case == "normal":
+    if case in ("interrupt", "repair"):
+        pass  # No token handoff: neither channel is attached to these VMs.
+    elif case == "normal":
         # A new normal run starts a new handoff; nothing from an earlier
         # attempt may be bound to this run's cold child.
         for name in ("normal-capture.bin", "payload.bin", "manifest.json", "cold-input.bin"):
@@ -378,19 +391,27 @@ def run_case(case, parent=None, handoff=None):
         if case == "normal":
             captured = read_capture(capture)
             reference = None if captured is None else leak_references(captured)
-        else:
+        elif case == "recover":
             captured, reference = None, pair_references(payload)
+        else:
+            captured, reference = None, []  # No exported token exists to search for.
         serial = archive_output(run, stdout, stderr, reference)
         check_immutable(run, manifest, platform, code, variables)
         evidence = evaluate(case, serial, raw, timed_out)
         if parent and (evidence["admin_pid"], evidence["guest_pid"]) != (
                 parent["evidence"]["admin_pid"], parent["evidence"]["guest_pid"]):
             raise ValueError("Cold local caller identities changed")
-        report["oracle"] = check_nas_disk(
-            image.read_bytes(), evidence["admin_pid"], evidence["guest_pid"],
-            parent["after_sha256"] if parent else None)
+        if case in ("interrupt", "repair"):
+            report["oracle"] = check_interrupted_image(
+                image.read_bytes(), evidence["admin_pid"], evidence["guest_pid"], case)
+        else:
+            report["oracle"] = check_nas_disk(
+                image.read_bytes(), evidence["admin_pid"], evidence["guest_pid"],
+                parent["after_sha256"] if parent else None)
         report["evidence"] = evidence
-        if case == "normal":
+        if case in ("interrupt", "repair"):
+            pass
+        elif case == "normal":
             report["replay_handoff"] = export_handoff(handoff, capture, captured, report)
         else:
             replay_handoff.verify_cold_input(cold_input, cold_digest, ROOT)
@@ -417,8 +438,10 @@ def main():
     handoff = None
     try:
         handoff = private_handoff_dir()
+        by_case = {}
         for case in FEATURES:
-            stage = run_case(case, summary["stages"][0] if case == "recover" else None, handoff)
+            stage = run_case(case, by_case.get(PARENTS.get(case)), handoff)
+            by_case[case] = stage
             summary["stages"].append(stage)
             save_json(path, summary)
             if stage["passed"] is not True:
