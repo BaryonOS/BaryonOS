@@ -718,11 +718,11 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_all_jobs_use_standard_hosted_ubuntu(self):
         """No custom label, dynamic selector or persistent runner can return."""
-        # ubuntu-26.04 is a standard hosted image; the K06 matrix pins QEMU 10.2.1 there.
+        # ubuntu-26.04 pins QEMU 10.2.1 for K06; ubuntu-slim (1 vCPU, hard 15-minute cap) only for short jobs.
         self.assertTrue(self.workflows)
         for path, job_id, job in self.jobs():
             with self.subTest(path=path, job=job_id):
-                self.assertIn(job.get("runs-on"), ("ubuntu-24.04", "ubuntu-26.04"))
+                self.assertTrue(job.get("runs-on") in ("ubuntu-24.04", "ubuntu-26.04") or (job.get("runs-on") == "ubuntu-slim" and int(job.get("timeout-minutes", 360)) <= 15), job.get("runs-on"))
 
     def test_volume_gate_stage_counts_match_plan(self):
         """Pin the volume report count and step label to the real gate PLAN."""
