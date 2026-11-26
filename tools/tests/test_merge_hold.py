@@ -21,6 +21,7 @@ ENV = {"GH_TOKEN": "x", "REPO": "o/r", "EVENT_NAME": "pull_request",
 GROUP = "c" * 40
 BASE = "d" * 40
 QUEUE_BRANCH = f"gh-readonly-queue/main/pr-8-{BASE}"
+AHEAD = "5" * 40  # an unlanded queue commit of the entry ahead: merge_group.base_sha of a stacked group
 GROUP_ENV = {"GH_TOKEN": "x", "REPO": "o/r", "EVENT_NAME": "merge_group",
              "PR_NUMBER": "", "HEAD_SHA": "",
              "BASE_SHA": BASE, "TESTED_SHA": GROUP,
@@ -188,7 +189,7 @@ class MergeGroupTests(TestCase):
     def run_group(self, nodes, labels=None, comments=None, trees=None,
                   env=None, answer=None, checks=None, ahead=None, on_sleep=None,
                   commits=None, gate_runs=None, group_runs=None, group_jobs=None, plan=None, ancestor=0,
-                  rereads=None, plan_seconds=0, decision_seconds=0, git_seconds=0):
+                  rereads=None, plan_seconds=0, decision_seconds=0, git_seconds=0, trusted=BASE):
         """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest.
 
         Run listings are keyed by the URL's event and head_sha and returned verbatim, as
@@ -200,6 +201,8 @@ class MergeGroupTests(TestCase):
         rereads[run id] overlays the fields a re-read of that run, as last listed, shows (a
         callable: one answer per re-read, see per_read). plan is what the mocked selector
         returns (default: group_plan()); self.plans records its calls, self.gits the git calls.
+        `git merge-base <queue commit> origin/main` prints trusted (None: no merge base), and
+        `--is-ancestor` exits ancestor, or 1 for the (older, newer) pairs in a set ancestor.
         Fake clock: only sleeps, the selector (plan_seconds), each git call (git_seconds) and
         the decision after the wait (decision_seconds, charged at the first label read) take
         time; self.clock[0] is the time at which main() returned. self.calls is the call
@@ -224,7 +227,12 @@ class MergeGroupTests(TestCase):
             # Ancestry as given; no base catalogue, so the wait budget is WAIT_SECONDS.
             self.gits.append(args)
             clock[0] += git_seconds
-            return (ancestor, "") if args[0] == "merge-base" else (128, "")
+            if args[:2] == ("merge-base", "--is-ancestor"):
+                return (ancestor if isinstance(ancestor, int) else int(tuple(args[2:]) in ancestor), "")
+            if args[0] == "merge-base":
+                self.assertEqual(args[1:], (GROUP, merge_hold.MAIN_REF))
+                return (0, trusted) if trusted else (1, "")
+            return (128, "")
 
         def fetch(token, url):
             calls.append(url)
@@ -359,14 +367,23 @@ class MergeGroupTests(TestCase):
                 self.assertEqual(calls.count("sleep"), sleeps)
                 self.assertEqual(self.clock[0], plan_seconds + sleeps * merge_hold.POLL_SECONDS)
                 self.assertFalse([url for url in calls if url.endswith("/labels")])
-        # The two git calls before the wait, the ancestry check and the catalogue read
-        # (base_wait_seconds), are inside the clock too: (80 min - 3 min - 2 x 120 s) / 1 min.
+        # The git calls before the wait, the trusted-base checks and the catalogue read
+        # (base_wait_seconds), are inside the clock too: (80 min - 3 min - n x 120 s) / 1 min.
+        # Unstacked, T is the merge group base and needs no ancestry check of its own (n = 3).
         code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN], git_seconds=120)
         self.assertEqual(code, 1, out)
-        self.assertEqual([args[:2] for args in self.gits], [("merge-base", "--is-ancestor"),
+        self.assertEqual([args[:2] for args in self.gits], [("merge-base", GROUP), ("merge-base", "--is-ancestor"),
                                                             ("cat-file", "blob")])
-        self.assertEqual(calls.count("sleep"), 73)
-        self.assertEqual(self.clock[0], 2 * 120 + 73 * merge_hold.POLL_SECONDS)
+        self.assertEqual(calls.count("sleep"), 71)
+        self.assertEqual(self.clock[0], 3 * 120 + 71 * merge_hold.POLL_SECONDS)
+        # Stacked on an unlanded entry ahead, T is also checked against the merge group base (n = 4).
+        code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN], git_seconds=120,
+                                          env=dict(GROUP_ENV, MERGE_GROUP_BASE_SHA=AHEAD))
+        self.assertEqual(code, 1, out)
+        self.assertEqual(self.gits[1:3], [("merge-base", "--is-ancestor", BASE, AHEAD),
+                                          ("merge-base", "--is-ancestor", AHEAD, GROUP)])
+        self.assertEqual(calls.count("sleep"), 69)
+        self.assertEqual(self.clock[0], 4 * 120 + 69 * merge_hold.POLL_SECONDS)
 
     def test_plan_wait_and_decision_stay_within_the_budget_plus_the_reserve(self):
         """For every catalogue budget B and plan time P (polls take no time here): the plan and
@@ -1097,6 +1114,90 @@ class MergeGroupTests(TestCase):
         self.assertIn(f"does not contain the base {BASE}", out)
         self.assertFailsAtOnce(out, calls)
 
+    # ADR-CI-MERGE-GROUP-SELECT-20261126: the trusted base T, not merge_group.base_sha.
+    def test_a_stacked_group_plans_from_the_trusted_base_not_the_entry_ahead(self):
+        code, out, calls = self.run_group(self.QUEUE, env=dict(GROUP_ENV, MERGE_GROUP_BASE_SHA=AHEAD))
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.plans, [((BASE, GROUP, GROUP, "main"), {"event": "merge_group"})])
+        self.assertIn(("cat-file", "blob", f"{BASE}:{merge_hold.CATALOGUE}"), self.gits)  # the budget too
+        self.assertIn(f"trusted base {BASE} (merge base with main), merge group base {AHEAD}, "
+                      f"queue commit {GROUP} ({QUEUE_BRANCH})", out)
+        # A full plan whose diff was indeterminate (no merge base recorded) still decides, with every gate.
+        shallow = group_plan(fallback={"code": "shallow-history", "detail": [], "reasons": ["shallow-history"]},
+                             shas={"base": BASE, "merge_base": None, "head": GROUP, "tested": GROUP})
+        code, out, _ = self.run_group(self.QUEUE, plan=shallow)
+        self.assertEqual(code, 0, out)
+        self.assertIn("mode full, fallback shallow-history", out)
+
+    def test_the_trusted_base_is_checked_before_it_is_used(self):
+        stacked = dict(GROUP_ENV, MERGE_GROUP_BASE_SHA=AHEAD)
+        from_ahead = group_plan(mode="select", fallback=None,
+                                shas={"base": BASE, "merge_base": AHEAD, "head": GROUP, "tested": GROUP})
+        for why, env, kwargs, message in (
+                ("BASE_SHA is not the merge base with main", GROUP_ENV, {"trusted": OTHER},
+                 f"BASE_SHA {BASE} is not the merge base ({OTHER})"),
+                ("no merge base with main", GROUP_ENV, {"trusted": None}, "is not the merge base (none)"),
+                ("T is not an ancestor of the merge group base", stacked, {"ancestor": {(BASE, AHEAD)}},
+                 f"the trusted base {BASE} is not an ancestor of the merge group base {AHEAD}"),
+                ("the queue commit lacks the merge group base", stacked, {"ancestor": {(AHEAD, GROUP)}},
+                 f"does not contain the base {AHEAD}"),
+                ("malformed merge group base", dict(GROUP_ENV, MERGE_GROUP_BASE_SHA="g" * 40), {},
+                 "merge group base SHA is missing or malformed")):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(self.QUEUE, env=env, **kwargs)
+                self.assertEqual(code, 1, out)
+                self.assertIn(message, out)
+                self.assertFailsAtOnce(out, calls)
+                self.assertEqual(self.plans, [])  # no tool of an unchecked base ran
+        code, out, calls = self.run_group(self.QUEUE, env=stacked, plan=from_ahead)
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"the plan diffs from {AHEAD}, not from the trusted base {BASE}", out)
+        self.assertFailsAtOnce(out, calls)
+
+    NATIVE = ".github/workflows/native-foundation.yml"
+
+    def docs_only_group(self, mode="select", native_selected=False):
+        """host-quality and qemu-smoke pass; the leaves fail and a native suite still runs on GROUP."""
+        selected = [row("ci#host-quality", CI, "host-quality", "core"), row("ci#qemu-smoke", CI, "qemu-smoke", "core"),
+                    row("merge-hold#merge-hold", merge_hold.GATE_WORKFLOW, "merge-hold", "core")]
+        native = row("native-foundation#native", self.NATIVE, "native")
+        excluded = [{"id": "leaves#quality/viewer", "class": "rwa", "workflow": LEAVES, "job": "quality",
+                     "check_name": "quality (viewer)", "reason": "no-input-match"}]
+        if native_selected:
+            selected.append(native)
+        else:
+            excluded.append({key: native[key] for key in ("id", "class", "workflow", "job", "check_name")}
+                            | {"reason": "no-input-match"})
+        plan = group_plan(mode=mode, fallback=None if mode == "select" else group_plan()["fallback"],
+                          selected=selected, excluded=excluded)
+        failed_check = {"name": "quality (viewer)", "status": "completed", "conclusion": "failure", "id": 99}
+        return self.run_group(
+            self.QUEUE, plan=plan, checks=[{"check_runs": DONE["check_runs"] + [failed_check]}],
+            group_runs={GROUP: [group_run(1, CI), group_run(2, LEAVES, conclusion="failure"),
+                                group_run(3, self.NATIVE, status="in_progress", conclusion=None)]},
+            group_jobs={1: [job(11, 1, "host-quality"), job(12, 1, "qemu-smoke")],
+                        2: [job(21, 2, "quality (viewer)", "failure")],
+                        3: [job(31, 3, "native", None, "in_progress")]})
+
+    def test_a_docs_only_group_passes_on_core_without_awaiting_or_judging_unselected_suites(self):
+        code, out, calls = self.docs_only_group()
+        self.assertEqual(code, 0, out)
+        self.assertIn("2 applicable gate(s) passed; 0 filtered out; 0 pending; 0 failed.", out)
+        self.assertIn("Passed: qemu-smoke: success in run 1 attempt 1", out)
+        self.assertIn(f"Not applicable, neither awaited nor judged (no selected gate): {LEAVES}, {self.NATIVE}.", out)
+        self.assertNotIn("sleep", calls)
+        self.assertFalse([url for url in calls if "/runs/2" in url or "/runs/3" in url])
+        # Under a full plan the same runs are awaited and judged: the failed leaves gate fails the group.
+        code, out, _ = self.docs_only_group(mode="full")
+        self.assertEqual(code, 1, out)
+        self.assertIn("::error::Failed: quality (viewer): failure in run 2 attempt 1", out)
+        self.assertNotIn("Not applicable, neither awaited", out)
+        # A selected suite that is still running is awaited and fails closed at the deadline.
+        with mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+            code, out, _ = self.docs_only_group(native_selected=True)
+        self.assertEqual(code, 1, out)
+        self.assertIn("required checks did not complete in time", out)
+
     # Round 2 (#494): shadow keeps the base's equal-tree rule; the gate wait ends early.
     def test_unheld_member_lands_another_tree_only_after_an_enforced_clean_report(self):
         trees = {GROUP: "1" * 40, OTHER: "2" * 40}
@@ -1632,7 +1733,7 @@ def entry_hold_run(commit, number, conclusion="success", run_id=70, path=merge_h
 
 
 def group_plan(**over):
-    """The selector's merge_group plan for GROUP on BASE: mode full, fallback merge-group."""
+    """The selector's merge_group plan for GROUP on BASE under merge_group = "full": mode full, fallback merge-group."""
     return plan_fixture(**{"event": "merge_group", "mode": "full",
                            "fallback": {"code": "merge-group", "detail": ["merge_group"], "reasons": ["merge-group"]},
                            "shas": {"base": BASE, "merge_base": BASE, "head": GROUP, "tested": GROUP}, **over})
@@ -2913,6 +3014,54 @@ class RecomputeTests(TestCase):
         self.assertEqual([row["id"] for row in merge_hold.expected_gates(queue)], ["ci#host-quality"])
         with self.assertRaises(ValueError):  # bound to its event
             merge_hold.check_plan(queue, base, tested, tested, "main")
+
+    def test_real_selector_plans_a_stacked_group_from_the_trusted_base(self):
+        """ADR-CI-MERGE-GROUP-SELECT-20261126 end to end: real git, the real selector, a select catalogue."""
+        import test_ci_impact as fixture  # noqa: PLC0415 - shared git fixture
+
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = fixture.Repo(tmp)
+            files = dict(fixture.BASE_FILES)
+            files[".github/ci-impact.toml"] = fixture.MERGE_GROUP_SELECT
+            files["tools/ci_impact.py"] = fixture.SELECTOR.read_bytes()
+            base = repo.commit("base", files)
+            repo.git("update-ref", merge_hold.MAIN_REF, base)
+
+            def stack(name, ahead_files):
+                repo.git("checkout", "-q", "-B", name, base)
+                return repo.commit("entry ahead", ahead_files), repo.commit("queue commit", {"docs/guide.md": "g 2\n"})
+
+            native_ahead, native_group = stack("q1", {"kernel/main.rs": "fn main() { 2 }\n"})
+            policy_ahead, policy_group = stack("q2", {"tools/ci_impact.py": fixture.SELECTOR.read_bytes() + b"# x\n"})
+            repo.git("checkout", "-q", "--orphan", "unrelated")
+            unrelated = repo.commit("unrelated")
+            cwd = os.getcwd()
+            os.chdir(tmp)
+            try:
+                with mock.patch.object(merge_hold, "__file__", str(fixture.SELECTOR.parent / "merge_hold.py")):
+                    def plan(ahead, group, trusted=base):
+                        with mock.patch.dict(os.environ, {"BASE_SHA": trusted, "TESTED_SHA": group}):
+                            return merge_hold.merge_group_plan(ahead, group)
+
+                    native = plan(native_ahead, native_group)
+                    policy = plan(policy_ahead, policy_group)
+                    for why, args in (("T not protected main's merge base", (native_ahead, native_group, native_ahead)),
+                                      ("T not an ancestor of the merge group base", (unrelated, native_group)),
+                                      ("merge group base not in the queue commit", (policy_ahead, native_group))):
+                        with self.subTest(why=why), self.assertRaises(ValueError):
+                            plan(*args)
+                    repo.git("update-ref", merge_hold.MAIN_REF, unrelated)  # no merge base with main
+                    with self.assertRaises(ValueError):
+                        plan(native_ahead, native_group)
+            finally:
+                os.chdir(cwd)
+        self.assertEqual((native["mode"], native["shas"]["base"], native["shas"]["merge_base"]), ("select", base, base))
+        self.assertEqual([row["id"] for row in merge_hold.expected_gates(native)],
+                         ["ci#host-quality", "net#broker", "net#native"])  # the native path ahead counts
+        self.assertEqual((policy["mode"], policy["fallback"]["code"]), ("full", "always-full"))
+        self.assertEqual(policy["catalogue"]["source_sha"], base)
+        self.assertEqual([row["id"] for row in merge_hold.expected_gates(policy)],
+                         ["ci#host-quality", "net#broker", "net#native"])
 
 
 if __name__ == "__main__":
