@@ -53,6 +53,7 @@ MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "
 WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe", "test-window-session-readonly")
 MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
 NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover", "test-system-nas-interrupt", "test-system-nas-repair")
+TASK_GRANT_VOLUME_FEATURES = ("native-task-grant-volume", "test-task-grant-volume-denied")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
@@ -99,6 +100,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "nat
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait",
                    "native-task-grant", "test-task-grant-denied",
+                   *TASK_GRANT_VOLUME_FEATURES,
                    "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
                    *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input", "native-dispi-probe"]
 
@@ -246,6 +248,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     if kernel_feature in NAS_FEATURES:
         from build_nas import build_users as build_nas_users
         extra_env, qsim_report = build_nas_users()
+    elif kernel_feature in TASK_GRANT_VOLUME_FEATURES:
+        from build_task_grant_volume import build_users as build_task_grant_volume_users
+        extra_env, qsim_report = build_task_grant_volume_users()
     elif kernel_feature in MATERIAAL_FEATURES:
         from build_materiaal import build_users as build_materiaal_users
         extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature in ("native-window-session-probe", "native-window-session-hidpi-probe", "test-window-session-readonly"), session_preview=kernel_feature=="native-session-route", hid_probe=kernel_feature=="native-hid-input-probe")
@@ -477,6 +482,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     if qsim_report is not None:
         if kernel_feature in NAS_FEATURES:
             manifest["nas_probe"] = qsim_report
+        elif kernel_feature in TASK_GRANT_VOLUME_FEATURES:
+            manifest["task_grant_volume"] = qsim_report
         elif kernel_feature in MATERIAAL_FEATURES:
             manifest["materiaal"] = qsim_report
         elif kernel_feature == "native-display-probe":

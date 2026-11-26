@@ -98,6 +98,7 @@ mod supervisor;
 #[cfg(feature = "native-system")]
 #[cfg_attr(feature = "native-system-materiaal", allow(dead_code))]
 #[cfg_attr(feature = "native-system-nas-probe", path = "m3/nas.rs")]
+#[cfg_attr(feature = "native-task-grant-volume", path = "m3/task_grant_volume.rs")]
 #[cfg_attr(
     all(feature = "native-net-service", not(feature = "test-net-service-dhcp")),
     path = "m3/network_service.rs"
@@ -316,7 +317,8 @@ const SYSTEM_APP_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_APP_ELF"));
 #[cfg(all(
     feature = "native-system",
     not(feature = "native-system-materiaal"),
-    not(feature = "native-system-nas-probe")
+    not(feature = "native-system-nas-probe"),
+    not(feature = "native-task-grant-volume")
 ))]
 #[cfg_attr(feature = "native-net-service", allow(dead_code))]
 const SYSTEM_WORKER_ELF: &[u8] = include_bytes!(env!("NOS_SYSTEM_WORKER_ELF"));
