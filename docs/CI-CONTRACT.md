@@ -580,8 +580,45 @@ an older success never masks a newer running or failed run, and a later
 re-run of an older run counts. Its jobs come from
 `/actions/runs/<id>/jobs?filter=latest` (every page, `run_id` checked), which
 reflects the latest attempt after a re-run. The run is read again after its
-jobs; if its attempt or status changed in between, it counts as pending. A
-job's class comes only from rows of its own workflow. Per expected execution exactly one
+jobs. If its id, attempt, status, conclusion or head SHA changed in between,
+merge-hold reads the jobs once more and the run a third time, and judges that
+third record only if the second and third reads agree on those five fields,
+name the requested run id and the listing's head SHA, and show an attempt no
+older than the listing; otherwise the run counts as pending ("changed while it
+was read"). Within one attempt a completed run does not run again or change
+its conclusion, and a running run gains a conclusion only when it completes:
+a re-read of the listed attempt that says otherwise is pending too ("was
+listed … but re-read as … in the same attempt"), because judging it could
+skip the conclusion check below. The settle step then compares its two jobs
+reads, so within that step a failed job of the judged attempt is never lost:
+a job that the first read lists for the judged attempt, or without an integer
+`run_attempt`, must still be listed by the second read ("dropped job(s)"), and
+a job that was completed in the first read must keep its status, conclusion
+and name ("changed the completed record of job(s)"), so a gate that had
+already failed in the first read cannot be re-listed under another job's name;
+a job that completes
+between the two reads is judged on the second read. A job of a newer attempt
+than the settled record in the first read leaves the run pending as well
+("first listed jobs of a newer attempt"). Jobs of an older attempt in the
+first read are neither compared nor carried into the judged attempt: a newer
+attempt replaces an older attempt's failure, which is how a re-run clears it.
+The judged record and its jobs must also
+belong together: a listed job whose `run_attempt` is missing, not an integer
+(a JSON boolean or a float is none) or another attempt than the judged
+record's, or a judged record without an integer attempt, leaves the run
+pending as a whole ("listed jobs of another attempt"). After a partial "re-run failed jobs"
+GitHub listed the carried-over jobs with the new attempt's number in three
+sampled runs,
+[45644765624](https://github.com/BaryonOS/BaryonOS/actions/runs/45644765624),
+[45649628788](https://github.com/BaryonOS/BaryonOS/actions/runs/45649628788)
+and
+[45629883279](https://github.com/BaryonOS/BaryonOS/actions/runs/45629883279),
+read on 26 November 2026, so such a re-run passes. merge-hold requests REST API
+version `2022-11-28` (`X-GitHub-Api-Version`); the version used for those
+sample reads was not recorded. GitHub does not
+document that copied attempt number, and it is not guaranteed for every
+partial re-run: a carried-over job listed under its old attempt leaves the run
+pending ("listed jobs of another attempt"). A job's class comes only from rows of its own workflow. Per expected execution exactly one
 job with the rendered check name must have concluded `success`; a runtime
 matrix (`id = "*"`) needs at least one matching job, all successful. Then:
 
@@ -600,8 +637,40 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   runtime matrix may not be listed yet; a runtime-matrix row never passes
   while its run is running. A running run of an advisory-only workflow does
   not hold merge-hold.
-  Advisory, manual, operational and publication jobs never block, and
-  merge-hold's own earlier runs are ignored.
+- a completed run whose own conclusion is blocking (`failure`, `cancelled`,
+  `timed_out`, `startup_failure`, `action_required` or `stale`) while none of
+  its listed jobs, in any class, has such a conclusion: the run adds a
+  **pending** line ("concluded … but lists no such job; re-run merge-hold; if
+  it persists, re-run that workflow run"), because `filter=latest` can omit the
+  failed job. That line does not replace the gate checks below: an expected
+  gate that this non-empty listing does not contain still adds its **failed**
+  "missing from" line (fail-closed), and the decision is then failed, not
+  pending. An advisory job's failure explains the run, so that run still
+  passes. Under the same omission premise, such a failure can mask an omitted
+  failure of a job the plan does not expect; an expected gate stays covered,
+  because a missing expected job fails. A run for which GitHub lists no job at
+  all is **failed**, not pending ("concluded …, but GitHub listed no job for
+  it"): a `startup_failure`, or a run cancelled before any job started, ran no
+  gate, and re-running merge-hold cannot change that; an expected gate of that
+  run is also "missing" as before. The line names both remedies: re-run
+  merge-hold if the jobs listing lagged, or re-run that workflow run (or push a
+  new head) if the run ended before any job started. This applies to every counted workflow,
+  trigger-only and advisory-only ones included, because an unregistered or
+  omitted failed job of such a run would otherwise pass. The cost: two other
+  causes reach this failure. Should an empty listing only lag behind a run that
+  did have jobs, that run is failed too, and a merge-hold re-run then clears
+  it. A run cancelled by concurrency before any job started can also win the
+  newest-run tie (equal start, then higher id) over a run of the same workflow
+  that started in the same second; this was seen once in the last 300
+  `pull_request` runs of the Materiaal probe (`materiaal-probe.yml`), read on
+  26 November 2026: run
+  [45808037891](https://github.com/BaryonOS/BaryonOS/actions/runs/45808037891)
+  (cancelled, no jobs) and the skipped run 45808037846 both started at
+  2026-11-26T11:09:49Z on head `9d632e11` of #555. A merge-hold re-run does not clear that case; re-running
+  that workflow run, or the next pull request event, does. The rule makes no
+  extra API read.
+  Advisory, manual, operational and publication jobs never block by their
+  own conclusion, and merge-hold's own earlier runs are ignored.
 
 The pull request also fails when its head does not contain the base tip: the
 gates then did not test the tree that would merge. GitHub's strict
@@ -615,7 +684,11 @@ pull request: merge-hold turns red with "Pending" shortly after a push, and
 turns green only when the re-check below re-runs it after the gates have
 finished. A merge-hold failure whose error lines are all "Pending:" is
 therefore expected and needs no action: do not push a fix, wait for the
-re-check, and re-run by hand only after every gate has finished. Watchers and
+re-check, and re-run by hand only after every gate has finished. One exception:
+a Pending line that says "if it persists" (a blocking run conclusion that the
+listed jobs do not explain) may need a re-run of that workflow run when a
+merge-hold re-run does not clear it; merge-hold then adds a footer line that
+says so. Watchers and
 Auto-fix act only on "Failed:" lines. Before B9 the budget was 40 minutes: a merge-hold run then held a
 runner while it polled, which over the last 100 `pull_request` merge-hold runs
 (5.4 hours, measured on 25 November 2026) came to 1,567 runner-minutes, about
@@ -636,8 +709,12 @@ filtered before GitHub creates a re-check run; they cannot change a pull request
 hold. The other workflows
 (today the Copilot environment, the Materiaal probe, the security alert summary
 and the Windows QEMU bundle) are triggers only: merge-hold counts their runs
-too, and a run that changed while merge-hold read it, or a running job that the
-base catalogue does not know, leaves merge-hold at "Pending". Its script,
+too, and a run that did not settle while merge-hold read it (including a
+same-attempt re-read that contradicts the listing, a job that was dropped or
+whose completed record changed between two jobs reads, and jobs of a newer
+attempt than the settled record), a run whose listed jobs belong to another
+attempt or do not explain its blocking conclusion, or a running job that the
+base catalogue does not know, leaves merge-hold at "Pending"; a run of theirs that ended blocking without any job fails it. Its script,
 `tools/merge_hold_recheck.py`, handles the two activities separately.
 
 When an attempt greater than one of a gate workflow enters `in_progress`, the
@@ -720,8 +797,13 @@ check stays at "Pending". The same holds after a failed or timed-out re-check
 run, and for a pull request that renames a watched workflow, whose renamed runs
 start no re-check until the rename merges. The fallback is
 unchanged: re-run the failed merge-hold job once the gates have finished
-(`gh run rerun <run id> --failed`, or any label change). An expected gate
-workflow that GitHub never starts keeps merge-hold at "Pending"; re-runs
+(`gh run rerun <run id> --failed`, or any label change). A hold that started
+after the last watched gate finished and is still Pending on an unsettled run
+(including a dropped or changed job between two jobs reads, or jobs of a newer
+attempt than the settled record), on jobs of another attempt or on a
+conclusion its jobs do not explain is never
+re-run by the re-check either, so it needs `gh run rerun <id> --failed`.
+An expected gate workflow that GitHub never starts keeps merge-hold at "Pending"; re-runs
 cannot resolve that, so push a new head or investigate the missing run. Only a
 push between the head read immediately before either re-run request and that
 request can still make the re-check re-run the old head's merge-hold, which
@@ -751,7 +833,8 @@ a label is added.
 
 API use: a full decision costs about one pull request read, one or two
 run-list pages, and one job list and one re-read per counted workflow run
-(about 30 today). A re-check costs one pull request read and one or two
+(about 30 today); a run that changed between those reads costs two job lists
+and two run reads. A re-check costs one pull request read and one or two
 run-list pages, one or two more pages per wait poll (at most eight), and one
 more pull request read per re-run request. It normally makes one request; a
 conflict adds at most six exact-run reads per request and at most one replacement
