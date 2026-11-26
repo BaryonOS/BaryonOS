@@ -158,6 +158,69 @@ SHA256 digest and thereby proves no lineage. That belongs later to the
 reviewed key/provisioning service outside the kernel. Error responses have
 exactly the fitting 10 B header; no partial data is accepted.
 
+### REL-05 policy-session, NV and PCR codecs (B03 step S3)
+
+For REL-05 (`docs/implementation/B03-REL05-TRIAL-BOOT-TPM.md`, section 13,
+step S3) the codec additionally encodes: `StartAuthSession` for a policy
+session only (tpmKey and bind `TPM_RH_NULL`, i.e. unsalted and unbound, empty
+salt, symmetric `TPM_ALG_NULL`, authHash SHA-256, caller nonce 16–32 B);
+`PolicyPCR` with an empty `pcrDigest` over one SHA-256 PCR 0–23;
+`PolicyCommandCode`; owner-authorized `NV_DefineSpace` with an explicit
+public area (ordinary 1–64 B or counter 8 B, nameAlg SHA-256, empty index
+authValue, `authPolicy` empty or 32 B); `NV_Write` of 1–64 B with
+`authHandle` = the index and either a password or a policy session;
+`NV_Increment` with the same two authorization forms (a policy session for a
+POLICYWRITE counter such as `GEN`; the counter attributes are not widened);
+`FlushContext` of a policy session; password `NV_Read` of 1–64 B; `PCR_Read` and `PCR_Extend` of one SHA-256 PCR; and
+`NV_ReadPublic` decoded into attributes (with type), size and `authPolicy`.
+Maximum command sizes are 59, 26, 18, 109, 99, 67, 20, 97, 14, 63 (password
+`NV_Increment`), 31 (policy `NV_Increment`) and 14 B (`FlushContext`); a
+combination above 128 B (for example a 32 B password with 64 B of NV data)
+is refused before any output byte changes.
+
+For the cold-freshness anchor and M1-HAUTH
+(`docs/implementation/COLD-FRESHNESS-ANCHOR.md`, TEST profile only) the codec
+additionally encodes: `NV_DefineSpace` of an extend index (exactly 32 B);
+`NV_Extend` of one 32 B digest with `authHandle` = the index (password);
+owner-authorized `NV_UndefineSpace`; `HierarchyChangeAuth` for the owner and
+lockout hierarchies only (endorsement and platform are not encodable);
+owner-authorised `NV_Write` of 1–64 B at offset 0 (`authHandle` =
+`TPM_RH_OWNER`, `Request::NvWriteOwner`, for the OWNERWRITE `HAUTH`); and the
+policy-session read of the 64 B `HAUTH` secret (`Request::NvReadSecret`).
+Maximum sizes are 97, 63, 93, 128 and 35 B (a 30 B ownerAuth with 64 B of
+data is refused). `HierarchyChangeAuth`, `NV_UndefineSpace`, the owner
+`NV_Write` and the `HAUTH` read carry the hierarchy secret in clear in the
+command or response buffer; the caller wipes those buffers and never formats
+them. A policy-session `NV_Read` exists only as that secret read: its
+response decodes only through `Command::decode_secret` into a caller-owned
+64 B buffer that is written after every check has passed; `Command::decode`
+returns `Error::Input` for it, and `Transport::execute` refuses it before any
+register or buffer access, because the kernel maps the CRB buffer.
+Golden bytes are the commands swtpm 0.10.1 accepted
+(`docs/verification/b03-rel05-hauth-probe-20261125/`,
+`docs/verification/b03-rel05-squat-probe-20261125/`). No `TPM2_Clear`,
+`ClearControl` or platform-hierarchy command is encoded.
+
+A policy session is sent with an empty nonce, empty HMAC and
+continueSession clear, so the TPM flushes it after one successful use; after
+a failed command (for example `TPM_RC_POLICY_FAIL`) it stays loaded and the
+caller flushes it with `FlushContext`. The TPM sizes nonceTPM to the caller's
+initial nonce (TPM 2.0 Part 1, 16.6.3.2), so the `StartAuthSession` reply must
+carry a nonceTPM of exactly the requested 16–32 B, and the handle records that
+size. Every policy-authorized response must then carry a nonceTPM of that size,
+attributes 0 and an empty HMAC (2 + n + 3 B). Golden fixtures for a 16 B session
+(`StartAuthSession`, policy `NV_Write`, policy `NV_Increment`, `FlushContext`)
+are the swtpm bytes in
+`docs/verification/b03-rel05-probe-20261125/transcript-u1u7.txt`. `PCR_Read` refuses an empty or different selection, which is
+how an unallocated SHA-256 bank appears. `NV_ReadPublic` still returns the
+name unverified; REL-05 callers compare the decoded fields with
+`update_core::trial_tpm::NvSpec::matches`. `Command::decode` exposes the same
+response validation for a transport other than CRB (the loader's firmware
+TCG2 path, S6). Host tests in `drivers/tpm-crb/tests/codec.rs` check golden
+bytes, every size bound, truncated and malformed responses, and that the
+`NV_DefineSpace` public area equals `NvSpec::encode_public` for all REL-05
+and anchor indices. This is host evidence only; swtpm acceptance is S5.
+
 ## Rollback, boot, updates and privacy
 
 `services/keyring/src/persistent.rs` requires an independently trusted
