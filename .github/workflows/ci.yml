@@ -137,17 +137,36 @@ jobs:
         run: |
           mkdir -p build/coverage-raw/python
           python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev
-          python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'
-          coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'
-          python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'
-          python3 -B -m unittest discover -s tests -p 'test_tokenguard*.py'
-          python3 -B tools/package_token_guard.py
-          coverage run --parallel-mode -m unittest discover -s tests -p 'test_document_session_*.py'
-          coverage run --parallel-mode -m unittest discover -s tests -p 'test_volume_*.py'
-          coverage run --parallel-mode -m unittest discover -s tests -p 'test_system_*.py'
-          coverage run --parallel-mode -m unittest discover -s tools/tests -p 'test_*.py'
-          python3 .agents/skills/os-dev/scripts/validate_skill.py
-          coverage run --parallel-mode -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
+          # #494: three independent lanes run concurrently. tools/tests stays in the foreground:
+          # a `&` job inherits ignored SIGINT/SIGQUIT, which test_roadmap_runner's signal test rejects.
+          (
+            set -e
+            coverage run --parallel-mode -m unittest discover -s tests -p 'test_volume_*.py'
+            coverage run --parallel-mode -m unittest discover -s tests -p 'test_system_*.py'
+            python3 .agents/skills/os-dev/scripts/validate_skill.py
+            coverage run --parallel-mode -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'
+          ) >"$RUNNER_TEMP/python-lane-b.log" 2>&1 &
+          lane_b=$!
+          (
+            set -e
+            python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'
+            coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'
+            python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'
+            python3 -B -m unittest discover -s tests -p 'test_tokenguard*.py'
+            python3 -B tools/package_token_guard.py
+            coverage run --parallel-mode -m unittest discover -s tests -p 'test_document_session_*.py'
+          ) >"$RUNNER_TEMP/python-lane-c.log" 2>&1 &
+          lane_c=$!
+          rc=0
+          coverage run --parallel-mode -m unittest discover -s tools/tests -p 'test_*.py' || rc=1
+          wait "$lane_b" || rc=1
+          wait "$lane_c" || rc=1
+          for lane in b c; do
+            echo "::group::lane-$lane"
+            cat "$RUNNER_TEMP/python-lane-$lane.log" || rc=1
+            echo "::endgroup::"
+          done
+          exit "$rc"
       - name: Runner and QEMU harness host tests
         shell: bash
         env:

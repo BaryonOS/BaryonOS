@@ -16,7 +16,9 @@ import os
 from pathlib import Path
 import re
 import shlex
+import signal
 import subprocess
+import sys
 import tarfile
 import tempfile
 import tomllib
@@ -36,6 +38,44 @@ ACTIONLINT_TAG_COMMIT = "914e7df21a07ef503a81201c76d2b11c789d3fca"
 CARGO_LLVM_COV_VERSION = "0.9.1"
 CARGO_LLVM_COV_SHA256 = "b3f68e625481fed9b16444174f3fa5ebcdbde4a1878803a35eabe2dcefcdc41a"
 CARGO_LLVM_COV_TAG_COMMIT = "0dc905679ae6b4740b186f6e2c2ef1ab78fb76d7"
+HOST_PYTHON_STEP = "Python syntax and DocumentSession host tests"
+# #494: the step's serial commands before it ran lanes, byte-identical; lanes may only regroup them.
+HOST_PYTHON_COMMANDS = (
+    "mkdir -p build/coverage-raw/python",
+    "python3 -m compileall -q tools tests userspace/tests experiments/quantum/native "
+    "experiments/quantum/native/job .agents/skills/os-dev",
+    "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'",
+    "coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'",
+    "python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'",
+    "python3 -B -m unittest discover -s tests -p 'test_tokenguard*.py'",
+    "python3 -B tools/package_token_guard.py",
+    "coverage run --parallel-mode -m unittest discover -s tests -p 'test_document_session_*.py'",
+    "coverage run --parallel-mode -m unittest discover -s tests -p 'test_volume_*.py'",
+    "coverage run --parallel-mode -m unittest discover -s tests -p 'test_system_*.py'",
+    "coverage run --parallel-mode -m unittest discover -s tools/tests -p 'test_*.py'",
+    "python3 .agents/skills/os-dev/scripts/validate_skill.py",
+    "coverage run --parallel-mode -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'",
+)
+# test_roadmap_runner needs default SIGINT/SIGQUIT, which a `&` job of a non-interactive shell loses.
+HOST_PYTHON_FOREGROUND = "coverage run --parallel-mode -m unittest discover -s tools/tests -p 'test_*.py'"
+# Stands in for coverage and python3: records argv and ignored signals, fails on FAKE_FAIL.
+HOST_PYTHON_FAKE = f"""#!{sys.executable} -I
+import json, os, shlex, signal, sys
+argv = [os.path.basename(sys.argv[0])] + sys.argv[1:]
+ignored = [s.name for s in (signal.SIGINT, signal.SIGQUIT) if signal.getsignal(s) == signal.SIG_IGN]
+record = os.open(os.environ["FAKE_RECORD"], os.O_WRONLY | os.O_APPEND | os.O_CREAT)
+os.write(record, (json.dumps({{"argv": argv, "ignored": ignored}}) + "\\n").encode())
+print("ran:", shlex.join(argv))
+sys.exit(1 if shlex.join(argv) == os.environ["FAKE_FAIL"] else 0)
+"""
+
+
+def default_entry_signals():
+    """Enter the step shell as a runner does, with SIGINT and SIGQUIT at their defaults."""
+    for number in (signal.SIGINT, signal.SIGQUIT):
+        signal.signal(number, signal.SIG_DFL)
+
+
 # Non-required workflows skip only documentation and project metadata. The
 # required ci.yml gates stay unfiltered (see test_required_gates_...).
 METADATA_PATHS_IGNORE = [
@@ -958,6 +998,89 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertNotEqual(code, 0)
             self.assertFalse(installed)
             self.assertNotEqual(run("wrong-version", good_hash, "0.0.1")[0], 0)
+
+    def host_python_step(self):
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        step, = [step for step in steps if step.get("name") == HOST_PYTHON_STEP]
+        return step
+
+    def assert_host_python_lanes(self, run):
+        """Run the step against fakes: every command once, tools/tests in front, any failing lane fails."""
+        lines = [line.strip() for line in run.splitlines()]
+        commands = [line.removesuffix(" || rc=1") for line in lines
+                    if line.startswith(("mkdir ", "python3 ", "coverage "))]
+        self.assertEqual(sorted(commands), sorted(HOST_PYTHON_COMMANDS))
+        self.assertEqual(lines[:2], list(HOST_PYTHON_COMMANDS[:2]))
+        self.assertIn(HOST_PYTHON_FOREGROUND + " || rc=1", lines)
+        launches = [line for line in lines if re.search(r"(^|[^&])&$", line)]
+        pids = [match.group(1) for line in lines if (match := re.fullmatch(r"(\w+)=\$!", line))]
+        waits = [line for line in lines if re.match(r"wait\b", line)]
+        self.assertEqual(len(pids), len(launches))
+        self.assertEqual(waits, [f'wait "${pid}" || rc=1' for pid in pids])
+        self.assertEqual(lines[-1], 'exit "$rc"')
+        with tempfile.TemporaryDirectory(prefix="host-python-lanes-") as directory:
+            root = Path(directory)
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            for name in ("coverage", "python3"):
+                (fake_bin / name).write_text(HOST_PYTHON_FAKE, encoding="utf-8")
+                (fake_bin / name).chmod(0o755)
+
+            def run_step(label, failing=""):
+                work = root / label
+                (work / "temp").mkdir(parents=True)
+                record = work / "record.jsonl"
+                environment = dict(os.environ, PATH=f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+                                   RUNNER_TEMP=str(work / "temp"), FAKE_RECORD=str(record),
+                                   FAKE_FAIL=shlex.join(shlex.split(failing)))
+                result = subprocess.run(["bash", "-e", "-c", run], cwd=work, env=environment,
+                                        preexec_fn=default_entry_signals, capture_output=True,
+                                        text=True, timeout=60, check=False)
+                records = [json.loads(line) for line in record.read_text().splitlines()]
+                self.assertEqual(result.stdout.count("::group::"), len(launches), result.stdout)
+                for entry in records:  # also the output of the background lanes
+                    self.assertIn("ran: " + shlex.join(entry["argv"]), result.stdout)
+                return work, result, [entry["argv"] for entry in records], records
+
+            work, result, ran, records = run_step("success")
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((work / "build/coverage-raw/python").is_dir())
+            self.assertEqual(sorted(ran), sorted(shlex.split(command) for command in HOST_PYTHON_COMMANDS[1:]))
+            self.assertEqual(ran[0], shlex.split(HOST_PYTHON_COMMANDS[1]))
+            serial = (shlex.split(HOST_PYTHON_COMMANDS[1]), shlex.split(HOST_PYTHON_FOREGROUND))
+            for entry in records:  # the background entries prove the probe sees an ignored signal
+                self.assertEqual(entry["ignored"], [] if entry["argv"] in serial else ["SIGINT", "SIGQUIT"],
+                                 entry["argv"])
+            for index, command in enumerate(HOST_PYTHON_COMMANDS[2:]):  # no subTest: callers expect a raise
+                _, result, ran, _ = run_step(f"fail-{index}", command)
+                self.assertNotEqual(result.returncode, 0, command)
+                self.assertIn(shlex.split(command), ran)
+
+    def test_host_python_suites_run_in_waited_lanes_with_tools_tests_in_front(self):
+        """#494: concurrent lanes keep every command; the step fails when any lane fails."""
+        step = self.host_python_step()
+        for key in ("if", "continue-on-error", "shell"):
+            self.assertNotIn(key, step)
+        self.assertEqual(step["env"], {"PYTHONDONTWRITEBYTECODE": "1"})
+        self.assert_host_python_lanes(step["run"])
+
+    def test_host_python_lane_contract_rejects_weakened_steps(self):
+        """The lane pin fails for a dropped command, a backgrounded tools/tests run, a bare wait or a lost failure."""
+        run = self.host_python_step()["run"]
+        foreground = HOST_PYTHON_FOREGROUND + " || rc=1\n"
+        mutations = {
+            "dropped command": run.replace("  python3 .agents/skills/os-dev/scripts/validate_skill.py\n", "", 1),
+            "background tools/tests": run.replace(foreground, "", 1).replace(
+                "  set -e\n", f"  set -e\n  {foreground}", 1),
+            "bare wait": run.replace('wait "$lane_b" || rc=1\nwait "$lane_c" || rc=1\n', "wait\n", 1),
+            "unrecorded tools/tests failure": run.replace(foreground, HOST_PYTHON_FOREGROUND + "\n", 1),
+            "lane continues after a failure": run.replace("  set -e\n", "  set +e\n", 1),
+        }
+        for label, mutated in mutations.items():
+            with self.subTest(mutation=label):
+                self.assertNotEqual(mutated, run)
+                with self.assertRaises(AssertionError):
+                    self.assert_host_python_lanes(mutated)
 
     def test_actionlint_is_pinned_in_required_host_gate(self):
         """Workflow validation is required, checksum-pinned and narrowly scoped."""
