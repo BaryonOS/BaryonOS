@@ -180,5 +180,10 @@ restarts processes.
    Before the first push, re-run the six-stage native gate
    (`NOS_BUILD_DIR` inside the checkout, e.g. `build/<name>`, or
    `private_path` refuses it) and the nas-workspace steps on 1.100.0.
+   Last local result (2d81de8a, main e68612f5): native gate 6/6 raw 33
+   (source `ce651335…`); nas-workspace steps for all four NAS crates, probe
+   native clippy and the NAS Python unittests exit 0 (145 Rust tests).
+   Tracking issue #554; lane queued after H (overlap with S/H only in
+   `kernel/Cargo.toml` and `tools/build.py`).
 2. Slice 3 (guest queue persistence across a guest restart) is an OWNER
    question before any code.
