@@ -670,9 +670,15 @@ id = "native-hid-input"
 class = "rwa"
 activation = "automatic"
 timeout_minutes = 20
-input_sets = ["native"]
-# tools/tokenguard.py runs this core_only script for the builds and boots (#494 C1, D-2).
-inputs = ["plugins/token-guard/skills/token-guard/scripts/**"]
+# CI-PATHNARROW (#494): what this job builds and runs, not the native set.
+# cargo: every root and sdk workspace member (build.py, build_materiaal.py and the fetch step)
+# and the usb, input-core, Materiaal, input-service, window-session, calculator and ui
+# workspaces it fetches, builds or tests.
+# inputs: the Python execution closure of its steps outside always_full and the token-guard
+# script that tools/tokenguard.py runs (#494 C1, D-2).
+# tests/test_ci_workflows.py pins that the pull_request paths cover all of it.
+cargo = ["boot/loader/Cargo.toml", "kernel/Cargo.toml", "crates/boot-protocol/Cargo.toml", "crates/elf-loader-core/Cargo.toml", "crates/kernel-core/Cargo.toml", "crates/smp-lock/Cargo.toml", "crates/capability-core/Cargo.toml", "crates/driver-core/Cargo.toml", "crates/pci-core/Cargo.toml", "crates/virtio-core/Cargo.toml", "crates/ui-core/Cargo.toml", "crates/update-core/Cargo.toml", "crates/app-package-core/Cargo.toml", "crates/artifact-store-core/Cargo.toml", "tools/update-tool/Cargo.toml", "drivers/virtio-blk/Cargo.toml", "drivers/virtio-rng/Cargo.toml", "drivers/virtio-net/Cargo.toml", "services/block/Cargo.toml", "services/objects/Cargo.toml", "services/catalog/Cargo.toml", "services/volume/Cargo.toml", "services/keyring/Cargo.toml", "services/destination/Cargo.toml", "sdk/Cargo.toml", "sdk/keyring-random-client/Cargo.toml", "sdk/runtime/Cargo.toml", "sdk/catalog-client/Cargo.toml", "sdk/document-session/Cargo.toml", "sdk/task-grant-core/Cargo.toml", "sdk/examples/catalog-read/Cargo.toml", "sdk/examples/task-grant-broker/Cargo.toml", "sdk/examples/volume-docs/Cargo.toml", "sdk/examples/supervisor/Cargo.toml", "sdk/examples/keyring/Cargo.toml", "sdk/examples/update/Cargo.toml", "sdk/examples/system/Cargo.toml", "sdk/settings-core/Cargo.toml", "sdk/search-index/Cargo.toml", "drivers/usb/Cargo.toml", "services/input-core/Cargo.toml", "sdk/examples/materiaal/Cargo.toml", "sdk/examples/input-service/Cargo.toml", "sdk/examples/window-session/Cargo.toml", "sdk/examples/calculator/Cargo.toml", "ui/graphics/Cargo.toml", "ui/native/Cargo.toml", "ui/surface-protocol/Cargo.toml"]
+inputs = ["plugins/token-guard/skills/token-guard/scripts/**", "**/build.py", "experiments/quantum/native/tests/test_build_gate.py", "plugins/token-guard/skills/token-guard/scripts/tokenguard.py", "services/image-codec/verify_vendor.py", "tests/test_volume_*.py", "tools/build_materiaal.py", "tools/build_nas.py", "tools/ci/build_qemu_apt_bundle.sh", "tools/destination_disk.py", "tools/gate_contract.py", "tools/m5_disk.py", "tools/m6c_disk.py", "tools/m6c_faults.py", "tools/net_test_peer.py", "tools/run.py", "tools/run_display_probe.py", "tools/run_fpu.py", "tools/run_graphics.py", "tools/run_hid_input.py", "tools/run_memory.py", "tools/run_net_link.py", "tools/run_net_system.py", "tools/run_settings.py", "tools/run_sleep.py", "tools/run_system.py", "tools/run_usb_hid.py", "tools/run_volume.py", "tools/test_display_probe.py", "tools/test_volume.py", "tools/tests/test_hid_input_probe.py", "tools/tokenguard.py", "tools/volume_archive.py", "tools/volume_disk.py"]
 evidence = ["native-hid-input-evidence"]
 
 [[workflow]]
@@ -1034,9 +1040,14 @@ id = "native-xhci"
 class = "rwa"
 activation = "automatic"
 timeout_minutes = 30
-input_sets = ["native"]
-# tools/tokenguard.py runs this core_only script for the builds and boots (#494 C1, D-2).
-inputs = ["plugins/token-guard/skills/token-guard/scripts/**"]
+# CI-PATHNARROW (#494): what this job builds and runs, not the native set.
+# cargo: every root workspace member (build.py builds os-loader and os-kernel there, test -p
+# boot-protocol kernel-core) and the xhci, usb and virtio-snd workspaces it tests.
+# inputs: the Python execution closure of its steps outside always_full and the token-guard
+# script that tools/tokenguard.py runs (#494 C1, D-2).
+# tests/test_ci_workflows.py pins that the pull_request paths cover all of it.
+cargo = ["boot/loader/Cargo.toml", "kernel/Cargo.toml", "crates/boot-protocol/Cargo.toml", "crates/elf-loader-core/Cargo.toml", "crates/kernel-core/Cargo.toml", "crates/smp-lock/Cargo.toml", "crates/capability-core/Cargo.toml", "crates/driver-core/Cargo.toml", "crates/pci-core/Cargo.toml", "crates/virtio-core/Cargo.toml", "crates/ui-core/Cargo.toml", "crates/update-core/Cargo.toml", "crates/app-package-core/Cargo.toml", "crates/artifact-store-core/Cargo.toml", "tools/update-tool/Cargo.toml", "drivers/virtio-blk/Cargo.toml", "drivers/virtio-rng/Cargo.toml", "drivers/virtio-net/Cargo.toml", "services/block/Cargo.toml", "services/objects/Cargo.toml", "services/catalog/Cargo.toml", "services/volume/Cargo.toml", "services/keyring/Cargo.toml", "services/destination/Cargo.toml", "drivers/xhci/Cargo.toml", "drivers/usb/Cargo.toml", "drivers/virtio-snd/Cargo.toml"]
+inputs = ["plugins/token-guard/skills/token-guard/scripts/**", "**/build.py", "experiments/quantum/native/tests/test_build_gate.py", "plugins/token-guard/skills/token-guard/scripts/tokenguard.py", "services/image-codec/verify_vendor.py", "tests/test_volume_*.py", "tools/build_materiaal.py", "tools/build_nas.py", "tools/ci/build_qemu_apt_bundle.sh", "tools/destination_disk.py", "tools/gate_contract.py", "tools/m5_disk.py", "tools/m6c_disk.py", "tools/m6c_faults.py", "tools/net_test_peer.py", "tools/run.py", "tools/run_display_probe.py", "tools/run_fpu.py", "tools/run_graphics.py", "tools/run_keyring.py", "tools/run_memory.py", "tools/run_net_link.py", "tools/run_net_system.py", "tools/run_settings.py", "tools/run_sleep.py", "tools/run_system.py", "tools/run_usb_hid.py", "tools/run_virtio_snd.py", "tools/run_volume.py", "tools/run_xhci.py", "tools/test_volume.py", "tools/tests/test_usb_hid_probe.py", "tools/tests/test_virtio_snd.py", "tools/tests/test_xhci.py", "tools/tokenguard.py", "tools/volume_archive.py", "tools/volume_disk.py"]
 evidence = ["native-xhci-evidence"]
 
 [[workflow]]
@@ -1176,7 +1187,14 @@ id = "k07-native"
 class = "rwa"
 activation = "automatic"
 timeout_minutes = 30
-input_sets = ["native"]
+# CI-PATHNARROW (#494): what this job builds and runs, not the native set.
+# cargo: every root workspace member (build.py) and the qsim-native workspace that
+# experiments/quantum/native/build.py builds; userspace/**: build_users.py compiles the
+# test-m4-quotas probe and IPC fixtures from it with rustc.
+# inputs: the Python execution closure of its steps outside always_full.
+# tests/test_ci_workflows.py pins that the pull_request paths cover all of it.
+cargo = ["boot/loader/Cargo.toml", "kernel/Cargo.toml", "crates/boot-protocol/Cargo.toml", "crates/elf-loader-core/Cargo.toml", "crates/kernel-core/Cargo.toml", "crates/smp-lock/Cargo.toml", "crates/capability-core/Cargo.toml", "crates/driver-core/Cargo.toml", "crates/pci-core/Cargo.toml", "crates/virtio-core/Cargo.toml", "crates/ui-core/Cargo.toml", "crates/update-core/Cargo.toml", "crates/app-package-core/Cargo.toml", "crates/artifact-store-core/Cargo.toml", "tools/update-tool/Cargo.toml", "drivers/virtio-blk/Cargo.toml", "drivers/virtio-rng/Cargo.toml", "drivers/virtio-net/Cargo.toml", "services/block/Cargo.toml", "services/objects/Cargo.toml", "services/catalog/Cargo.toml", "services/volume/Cargo.toml", "services/keyring/Cargo.toml", "services/destination/Cargo.toml", "experiments/quantum/native/Cargo.toml"]
+inputs = ["userspace/**", "**/build.py", "experiments/quantum/native/tests/test_build_gate.py", "services/image-codec/verify_vendor.py", "tests/test_volume_*.py", "tools/build_materiaal.py", "tools/build_nas.py", "tools/ci/build_qemu_apt_bundle.sh", "tools/destination_disk.py", "tools/gate_contract.py", "tools/m5_disk.py", "tools/m6c_disk.py", "tools/m6c_faults.py", "tools/net_test_peer.py", "tools/run.py", "tools/run_display_probe.py", "tools/run_fpu.py", "tools/run_graphics.py", "tools/run_memory.py", "tools/run_net_link.py", "tools/run_net_system.py", "tools/run_qsim.py", "tools/run_settings.py", "tools/run_sleep.py", "tools/run_system.py", "tools/run_usb_hid.py", "tools/run_volume.py", "tools/test_resource_pressure.py", "tools/test_volume.py", "tools/volume_archive.py", "tools/volume_disk.py"]
 evidence = []
 
 [[workflow]]
