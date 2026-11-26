@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "aa6d1c70a1bf86af45bc9f0143dec6700cc5d3a5",
+  "assessment_basis": "parent_commit",
+  "branch": "ci/accel-batch1-20261125",
+  "task": "CI acceleration batch 1 (#494): C1 fail-closed path-filter rule in merge-hold, storage and volume allowlists cover their native inputs, token-guard script registered for its native users, obligation citations re-anchored; B2 host Rust cache saved only from a push to main; B1 a running CI main push run is not cancelled; B5 native workflows leave shared fmt and clippy to host-quality; B3 checksum-pinned cargo-llvm-cov release binary and cached llvm-cov target; B8 upload-coverage jobs bounded to 10 minutes; #421 settle-floor test pin",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI selection, merge-hold, cache, duplicate-step and timeout maintenance only. No criterion, native evidence or acceptance result changes."
+}

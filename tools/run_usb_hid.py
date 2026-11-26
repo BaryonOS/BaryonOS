@@ -16,7 +16,14 @@ from common import BUILD, save_json, sha256, source_hash
 from run_graphics import QmpPipe
 
 FEATURES = {"reports": "native-usb-hid-probe", "readonly": "test-usb-hid-readonly-fault",
-            "reattach": "native-usb-hid-reattach", "reattach-mouse": "native-usb-hid-mouse-reattach"}
+            "reattach": "native-usb-hid-reattach", "reattach-mouse": "native-usb-hid-mouse-reattach",
+            "refuse-hub": "native-usb-hid-refusal", "refuse-tablet": "native-usb-hid-refusal",
+            "refuse-hs-kbd": "native-usb-hid-refusal", "refuse-storage": "native-usb-hid-refusal"}
+# H02-T5: the guest-visible refusal reason per out-of-profile device on root
+# port 1. High-speed keyboard and storage share SPEED: QEMU attaches usb-storage
+# at high speed on this USB2-only controller, so its class is never reached.
+REFUSALS = {"refuse-hub": "HUB", "refuse-tablet": "NOT_BOOT", "refuse-hs-kbd": "SPEED",
+            "refuse-storage": "SPEED"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS")
 START = ("USB:BEGIN", "USB:PAGING:PASS", "USB:DOMAIN:PASS", "USB:BUS_MASTER:CONTAINED")
 REPORTS = ("USB:ENUM:KEYBOARD", "USB:ENUM:MOUSE", "USB:PROTOCOL:PASS", "USB:READY",
@@ -35,6 +42,11 @@ REATTACH_MOUSE = ("USB:REATTACH:HELD_BUTTON", "USB:REATTACH:DETACHED", "USB:REAT
                   "USB:REATTACH:SLOT_REUSED:KEYBOARD", "USB:REATTACH:STALE_DENIED",
                   "USB:REATTACH:READY", "USB:REATTACH:MOUSE_DOWN", "USB:REATTACH:MOUSE_UP",
                   "USB:REATTACH:UNPLUG:PASS", "USB:ATTACH:BUDGET_DENIED", "USB:RETIRED:UNCHANGED")
+# After the refusal: port-2 mouse service, the refused device's unplug, and
+# same-port recovery with an in-profile keyboard as a new generation.
+REFUSAL = ("USB:REFUSE:PORT_HELD", "USB:ENUM:MOUSE", "USB:REFUSE:READY", "USB:REFUSE:MOUSE_DOWN",
+           "USB:REFUSE:MOUSE_UP", "USB:REFUSE:UNPLUG:PASS", "USB:REFUSE:RECOVER:KEYBOARD",
+           "USB:REFUSE:RECOVER:READY", "USB:REFUSE:RECOVER:KEY_DOWN", "USB:REFUSE:RECOVER:KEY_UP")
 END = ("USB:GUARD:UNCHANGED", "USB:QUIESCE:PASS", "USB:PAGES:RETAINED", "USB:PASS")
 MAX_OUTPUT = 4 * 1024 * 1024
 
@@ -42,9 +54,28 @@ MAX_OUTPUT = 4 * 1024 * 1024
 def markers(case: str) -> tuple[str, ...]:
     if case not in FEATURES:
         raise ValueError("Unknown USB HID fixture case")
+    if case in REFUSALS:
+        # A refusal after Enable Slot must first prove the slot is disabled.
+        slot = ("USB:REFUSE:SLOT_DISABLED",) if REFUSALS[case] != "SPEED" else ()
+        return START + slot + ("USB:REFUSE:" + REFUSALS[case],) + REFUSAL + END
     body = {"reports": REPORTS, "reattach": REPORTS + REATTACH, "reattach-mouse": REPORTS + REATTACH_MOUSE,
             "readonly": ("USB:READONLY:WRITE_DENIED",)}[case]
     return START + body + END
+
+
+def refused_device(case: str, image: str) -> list[str]:
+    """QEMU arguments for the out-of-profile device on root port 1."""
+    if case not in REFUSALS:
+        raise ValueError("Not a USB refusal case")
+    device = {"refuse-hub": "usb-hub,id=usb-refused,bus=xhci.0,port=1",
+              "refuse-tablet": "usb-tablet,id=usb-refused,bus=xhci.0,port=1,usb_version=1",
+              "refuse-hs-kbd": "usb-kbd,id=usb-refused,bus=xhci.0,port=1,usb_version=2",
+              "refuse-storage": "usb-storage,id=usb-refused,drive=refused-disk,bus=xhci.0,port=1"}[case]
+    if case != "refuse-storage":
+        return ["-device", device]
+    if "," in image:
+        raise ValueError("Unexpected USB storage image path")
+    return ["-drive", f"if=none,id=refused-disk,format=raw,file={image}", "-device", device]
 
 
 def _keyboard(device_id: str) -> dict:
@@ -185,6 +216,23 @@ def controlled_guest(args: list[str], *, cwd, env, timeout, run_dir, case: str) 
                 _wait_marker(process, stdout_path, "USB:REATTACH:UNPLUG:PASS", deadline)
                 # The guest must refuse this third identity by attach budget.
                 control.command("device_add", _mouse("hid-mouse-g3"))
+            if case in REFUSALS:
+                _wait_marker(process, stdout_path, "USB:REFUSE:READY", deadline)
+                held_button = True
+                control.command("input-send-event", {"events": [_move("x", 7), _move("y", -3), _button(True)]})
+                _wait_marker(process, stdout_path, "USB:REFUSE:MOUSE_DOWN", deadline)
+                control.command("input-send-event", {"events": [_button(False)]})
+                held_button = False
+                _wait_marker(process, stdout_path, "USB:REFUSE:MOUSE_UP", deadline)
+                control.command("device_del", {"id": "usb-refused"})
+                _wait_marker(process, stdout_path, "USB:REFUSE:UNPLUG:PASS", deadline)
+                control.command("device_add", _keyboard("hid-kbd-g2"))
+                _wait_marker(process, stdout_path, "USB:REFUSE:RECOVER:READY", deadline)
+                held_keys.add("a")
+                control.command("input-send-event", {"events": [_key("a", True)]})
+                _wait_marker(process, stdout_path, "USB:REFUSE:RECOVER:KEY_DOWN", deadline)
+                control.command("input-send-event", {"events": [_key("a", False)]})
+                held_keys.remove("a")
             process.wait(timeout=max(0, deadline - time.monotonic()))
         except (TimeoutError, subprocess.TimeoutExpired) as exc:
             timed_out = True
@@ -232,10 +280,12 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     controlled = tuple(line for line in lines if line.startswith(("USB:", "XHCI:")))
     if controlled != ("XHCI:BEGIN",) + expected + ("XHCI:PASS",):
         raise ValueError("Wrong case, duplicate, unknown or reordered USB evidence")
-    return {"markers": list(expected), "usb_reports": case != "readonly",
+    return {"markers": list(expected), "usb_reports": case != "readonly" and case not in REFUSALS,
             "readonly_write_denied": case == "readonly",
             "same_port_reattach": case in ("reattach", "reattach-mouse"),
             "reattach_device": {"reattach": "keyboard", "reattach-mouse": "mouse"}.get(case),
+            "refusal_reason": REFUSALS.get(case),
+            "refusal_recovery": case in REFUSALS,
             "input_policy_authority": False}
 
 
@@ -247,6 +297,9 @@ def run_case(case: str) -> dict:
               "scope": "QEMU native USB2 HID completions and directional VT-d; no IPC broker, IRQ or physical acceptance"}
     if case in ("reattach", "reattach-mouse"):
         report["scope"] += "; same-port reattach uses QEMU device_add/device_del, not physical hotplug"
+    if case in REFUSALS:
+        report["scope"] += ("; port-1 refusal of a QEMU out-of-profile device, then device_del/device_add "
+                            "recovery, not physical hotplug or hub support")
     save_json(destination, report)
     try:
         frozen = source_hash()
