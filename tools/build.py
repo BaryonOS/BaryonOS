@@ -27,7 +27,7 @@ VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", 
                         # S09 test-only second disk (kernel feature test-volume-archive-device).
                         "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
                         "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify",
-                        # S09 O13 N38 slice 1: kernel write latch on the second disk.
+                        # S09 O13 N38 slices 1 and 2: kernel write latch on the second disk.
                         "o13-latch", "o13-latch-0x44")
 # S09 phase 3 L2 portal on the device-1 disk (docs/implementation/S09-L2-NATIVE-EXPORT.md).
 VOLUME_L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")
@@ -233,6 +233,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         raise ValueError("signed-policy-probe-test requires native-update-policy-probe")
     elif image_version is not None:
         raise ValueError("--image-version applies to update kernels only")
+    if loader_feature in ("tpm-loader-probe-test", "tpm-hauth-provision-test") and kernel_feature != "native-tpm-crb":
+        raise ValueError(f"{loader_feature} requires the native-tpm-crb kernel")
     extra_env = None
     sdk_selection = os.environ.get("NOS_SDK_RUNTIME", "0")
     if sdk_selection not in ("0", "1"):
@@ -530,7 +532,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff", "hw-inventory"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff", "hw-inventory", "tpm-loader-probe-test", "tpm-hauth-provision-test"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()

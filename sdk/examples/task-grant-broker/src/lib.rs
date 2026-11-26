@@ -18,6 +18,9 @@ pub const DATA_MAX: usize = 16;
 pub const OP_READ: u64 = 1;
 pub const OP_WRITE: u64 = 2;
 pub const OP_CLOSE: u64 = 3;
+/// A request claiming to report a process exit. Always denied: retirement is
+/// driven only by the kernel's lifecycle notice, never by an app message.
+pub const OP_RETIRE: u64 = 4;
 
 pub const STATUS_OK: u64 = 1;
 pub const STATUS_DENIED: u64 = 2;
@@ -67,7 +70,7 @@ pub fn decode_request(payload: &[u8]) -> Option<Request> {
         object: get(payload, 1),
         claimed_actor: get(payload, 2),
     };
-    matches!(request.op, OP_READ | OP_WRITE | OP_CLOSE).then_some(request)
+    matches!(request.op, OP_READ | OP_WRITE | OP_CLOSE | OP_RETIRE).then_some(request)
 }
 
 pub fn encode_request(request: Request) -> [u8; REQUEST_SIZE] {
@@ -219,6 +222,35 @@ impl Broker {
                 .authorize(*handle, actor, object, operation)
                 .is_ok()
         })
+    }
+
+    /// Live grants held by `pid` on any known object, derived from the table.
+    pub fn live_grants(&self, pid: u64) -> u64 {
+        let actor = actor(pid);
+        self.handles
+            .iter()
+            .flatten()
+            .filter(|(holder, object, handle)| {
+                *holder == actor
+                    && [Operation::Read, Operation::Write, Operation::Export]
+                        .into_iter()
+                        .any(|operation| {
+                            self.grants
+                                .authorize(*handle, actor, *object, operation)
+                                .is_ok()
+                        })
+            })
+            .count() as u64
+    }
+
+    /// Trusted lifecycle operation: `pid` must come from an authenticated
+    /// kernel exit notice, never from a request. Returns the grants retired.
+    pub fn retire_process(&mut self, pid: u64) -> Result<u64, Error> {
+        let before = self.live_grants(pid);
+        self.grants.retire_process(actor(pid))?;
+        let after = self.live_grants(pid);
+        self.reclaim();
+        Ok(before - after)
     }
 
     /// Decides one request. `sender` must be the kernel-supplied sender PID.
@@ -383,6 +415,44 @@ mod tests {
     }
 
     #[test]
+    fn forged_retire_is_denied_and_retires_nothing() {
+        let mut broker = granted();
+        for sender in [HELPER, OWNER] {
+            assert_eq!(
+                broker
+                    .handle(sender, request(OP_RETIRE, OBJECT_ONE, OWNER))
+                    .0,
+                STATUS_DENIED
+            );
+        }
+        assert_eq!(broker.live_grants(OWNER), 1);
+        assert_eq!(
+            broker.handle(OWNER, request(OP_READ, OBJECT_ONE, OWNER)).0,
+            STATUS_OK
+        );
+    }
+
+    #[test]
+    fn exit_retires_only_that_process() {
+        let mut broker = granted();
+        broker
+            .trusted_grant(HELPER, OBJECT_TWO, REVISION, RIGHT_READ, DURATION_SESSION)
+            .unwrap();
+        assert_eq!(broker.retire_process(OWNER), Ok(1));
+        assert_eq!(broker.live_grants(OWNER), 0);
+        assert_eq!(broker.live_grants(HELPER), 1);
+        assert_eq!(
+            broker.handle(HELPER, request(OP_READ, OBJECT_ONE, OWNER)).0,
+            STATUS_DENIED
+        );
+        assert_eq!(
+            broker.handle(OWNER, request(OP_READ, OBJECT_ONE, OWNER)).0,
+            STATUS_DENIED
+        );
+        assert_eq!(broker.retire_process(OWNER), Ok(0));
+    }
+
+    #[test]
     fn no_fixture_grant_denies_everything() {
         let mut broker = Broker::new();
         for op in [OP_READ, OP_WRITE, OP_CLOSE] {
@@ -427,7 +497,7 @@ mod tests {
         let mut long = [0u8; REQUEST_SIZE + 1];
         long[..REQUEST_SIZE].copy_from_slice(&good);
         assert_eq!(decode_request(&long), None);
-        for op in [0, 4, u64::MAX] {
+        for op in [0, 5, u64::MAX] {
             assert_eq!(
                 decode_request(&encode_request(request(op, OBJECT_ONE, OWNER))),
                 None

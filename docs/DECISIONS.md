@@ -5,6 +5,64 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-KEYRING-LOCK-20261126 — Key erasure before S3 by kernel teardown of the Key Service instance
+
+**Status:** this ADR records decisions at two levels of authority.
+- **Project owner, 26 November 2026, question O1:** "Yes, with a label". In
+  TEST profiles, SUSPEND may pass on the kernel-verified fact "instance
+  erased" alone, with a mandatory label; every non-TEST profile also
+  requires "no unwrap path".
+- **Workstreams B and H, technical decision:** the LOCK mechanism, its codes
+  and the work split. They act within the project-owner mandate Q3 of
+  25 November 2026 (amendment H05-T5c of ADR-H05-S3-SYSTEM-20261123), which
+  requires key erasure before S3 through the B keyring architecture.
+
+UNLOCK and questions O2, O5 and O8 remain open. Nothing is implemented yet.
+Specification: [B01-KEYRING-LOCK](implementation/B01-KEYRING-LOCK.md).
+
+**Context.** RAM stays powered during S3. The SUSPEND storage gate proves an
+idle, closed storage path but observes no key material. The ring-3
+Key Service holds the master key, the DRBG key and the RANDOM pool for its
+whole lifetime. Kernel service-stack buffers keep copies of IPC and entropy
+payloads.
+
+**Decision.**
+1. The kernel keeps a keyring lock state, LIVE or LOCKED. Only the kernel's
+   own LOCK path sets LOCKED. An exit or fault of the Key Service outside
+   LOCK stays `UNEXPECTED_EXIT` and never counts as LOCKED.
+2. Syscall `0x92` LOCK(power handle, 0, 0, 0, 0, 0) is init-only under the
+   non-delegable POWER object, with the validation order of `0x90` and
+   `0x91`.
+   - Preconditions are checked without side effects: an idle entropy broker
+     with no pending or completed request, and no queued message from the
+     instance in any endpoint it can send to.
+   - A failed precondition returns -8 (retry). A LOCK while LOCKED returns
+     -14.
+   - LOCK ends the instance through kernel process teardown, which zeroes its
+     frames. It also wipes or scrubs the kernel copies of Key Service
+     payloads and entropy, and never passes through `observe_exit`.
+3. While the state is not LOCKED, SUSPEND returns -25. The check runs after
+   `sleep::ready()` and before `storage_closed()` and any I/O. In TEST
+   profiles a pass carries the label "instance erased; unwrap secret is a
+   public TEST constant". Non-TEST profiles also require that no unwrap path
+   remains.
+4. B lands LOCK first, without changing SUSPEND. H then lands the SUSPEND
+   check, init's LOCK-then-SUSPEND sequence and the post-wake re-init target
+   in one change. Each step takes its own merge lane.
+5. UNLOCK is a fresh instance. It serves keys only after fresh startup
+   entropy and a restore with a session-authenticated secret, and after the
+   key-free read-only remount. Its mechanism is a separate decision.
+
+**Consequences.**
+- TEST profiles show the mechanism, not confidentiality.
+- The system runs without key service between LOCK and UNLOCK.
+- Key state that is not durable at LOCK is lost (O5).
+- The volume after a wake is checked for integrity, not authenticity (O7).
+
+**Falsified if:** SUSPEND passes while the state is not LOCKED; a frame of the
+ended instance is not zero after LOCK; a Key Service exit or fault yields
+LOCKED; or a TEST-profile S3 pass lacks the label.
+
 ## ADR-CI-MERGE-GROUP-GATES-20261126 — merge-hold judges the applicable gates on the merge-queue commit
 
 **Status:** proposed by the CI specialist for issue #494 on 26 November 2026 (D1
@@ -336,11 +394,274 @@ recovery; native verification is required in addition to host tests. 5A stays
 in force until the protected slot and the complete 5B integration are
 demonstrably safe.
 
+**Amendment (25 November 2026): the protected slot is an extend chain.** B
+implements the M1 route as a per-domain `TPM_NT_EXTEND` hash chain (contract
+`docs/implementation/COLD-FRESHNESS-ANCHOR.md` on #524, basis `5db011cc`;
+P1–P3 agreed with N). The generation counter, the rewritable slot binding and
+the `Pending` state above are replaced: a store records `prev`, the chain value
+it was committed on top of; the kernel derives `E(S)` from the domain and
+`D(S)`; startup accepts `chain == H(S.prev ‖ E(S))`, rolls forward once on
+`chain == S.prev` (a never-acknowledged store) and otherwise denies the store
+as `Stale`; `Foreign` covers an instance mismatch. `services/net-broker/src/durable.rs`
+follows this contract in a host model whose fake computes the real SHA-256
+chain and reproduces B's golden vectors. The M1 regression tests are kept
+under B's names and now pass against a hostile extend:
+`hostile_extend_cannot_revive_a_stale_store_at_the_same_position` (formerly
+`hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation`),
+`crashed_sibling_cannot_displace_a_rolled_forward_store` (the two
+`reseal_multi_boot_*` cases and the multi-boot protected-slot case),
+`every_crash_prefix_of_a_commit` and
+`replaced_tpm_rejects_the_store_until_authorised_genesis`. A stray extend now
+denies every store until authorised genesis (fail closed). Host evidence only;
+native S5 verification on swtpm, torn-A1 store recovery (C143, #529) and the
+residuals listed in B's contract remain open, and 5A stays in force. One
+residual passes N04's own checks: if both copies of the accepted pair are
+lost (TPM clear plus UEFI NVRAM reset, open U13c item), the old `ENROLL`
+authorises a second genesis under the old instance, so the instance check
+does not reject that instance's revived first store.
+
 **Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
 N04 stays open until its native evidence exists; the score is unchanged.
 
 **Rollback:** reverting this entry restores the 23 November hold; no shipped
 grant format depends on it yet.
+
+## ADR-B03-REL05-TPM-20261125 — Trial boot with TPM 2.0 health confirmation (REL-05 option A)
+
+**Status:** the requirements (option A, items 1–9 on issue #41) were decided
+by the project owner on 25 November 2026. The mechanism below (PCR 13, NV
+layout, kernel confirmation grant, amendment of ADR-049 decision 4) is
+**adopted by the B workstream under the owner's execution mandate of the same
+day, for the TEST profile only**; the specification
+is [B03-REL05-TRIAL-BOOT-TPM.md](implementation/B03-REL05-TRIAL-BOOT-TPM.md).
+Design only: nothing is implemented or tested. It would amend ADR-049
+decisions 2 and 4 for a new loader feature `signed-boot-trial`; `signed-boot`
+keeps ADR-049 semantics, including the REL-05 hazard, until gate migration.
+On 26 November 2026 the project owner approved this ADR in substance for the
+strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH (last
+amendment below).
+
+**Problem:** the signed loader raises `NieuwOsMinVersion` when a slot
+verifies, before the kernel runs, so a signed but broken release makes the
+previous good release a permanent `DOWNGRADE` (REL-05).
+
+**Decision:**
+
+1. The floor is raised only by the loader, before ExitBootServices, on the
+   boot **after** a durable TPM-held health confirmation that binds the exact
+   generation, version, slot and manifest digest of the trial (owner items
+   5–6). It is never raised at selection time and never lowered.
+2. A candidate (verified slot above the effective floor and above every
+   rejected version) runs at most three times; each attempt is made durable in
+   TPM NV before the candidate executes. After three unconfirmed attempts it is
+   recorded as rejected and the known-good release boots; user data is not
+   touched (items 3, 7).
+3. TPM objects (TEST profile, disposable swtpm): loader-only `TRIAL` and
+   `FLOOR` records and a `GEN` counter, writable only while PCR 13 is at its
+   reset value; a `CONFIRM` record writable only while PCR 13 holds the fixed
+   trial-open value. The loader always extends PCR 13 before handover. The
+   effective floor is `max(UEFI copy, TPM FLOOR)`.
+4. The kernel calls no UEFI runtime service (item 2). In profile
+   `native-update-trial` it performs, as narrowly scoped privileged policy
+   recorded by this ADR (`kernel/AGENTS.md`), one confirmation write and one PCR seal per trial boot through a
+   one-shot capability held by a ring-3 health service. The kernel copies the
+   loader-supplied binding; ring-3 supplies only a verdict for the versioned
+   list `HEALTH-LIST-1`. The kernel still contains no cryptography.
+5. While a trial is pending the update service does not write slots (amends
+   ADR-049 decision 4).
+6. *(Superseded in full: C665 takes precedence, and the REL-05 §7.9
+   amendment of 26 November 2026 below removes `DEGRADED`.)* A missing, faulty, cleared, replaced or
+   inconsistent TPM gives a degraded
+   boot (known-good only, no trial, no floor write, explicit markers), except
+   that a reachable TPM whose phase PCR cannot be extended halts the boot
+   (`BOOT:FAIL:TPM_EXTEND`): handing over with PCR 13 at its reset value would
+   grant the kernel loader-phase write rights, so halting is the fail-closed
+   choice. This TEST-profile grant is not a product kernel TPM grant
+   (`docs/contracts/TPM2-CRB.md`). TPM state
+   behind the UEFI copy is treated as rollback. A TPM counter alone is not
+   full rollback protection: clearing the TPM together with the firmware
+   variables, or a boot-path attacker before B04, defeats it (item 9).
+
+**Not authorized:** production keys, signing or activation; physical TPM or
+firmware changes; a production TPM provisioning or owner-authorization
+procedure; CI workflow changes without a separate owner-reviewed request. TPM 2.0 is the
+intended D3 backend of ADR-B03-B04-TARGET for this TEST profile only; its
+production approval remains open. Use of the anchor for N04 is authorized
+separately by ADR-NET-ISSUER-20261125 Decision 5B (owner, 25 November 2026)
+under its conditions 1–9; the contract is
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
+
+**Amendment, 25 November 2026 (owner decision C665, PR #524):** the owner
+authorises a strictly bounded extension of the trust architecture: TPM
+identity binding (U13) through an authorised enrollment record signed under
+the compiled-in update trust anchors (an anchor independent of TPM, UEFI
+variables and disk), with an EK-salted session per boot. Until that binding
+is demonstrably reliable, an unknown, replaced, reset or unverifiable TPM
+blocks the normal boot route (`BOOT:FAIL:TPM_IDENTITY`; an unenrolled TPM halts
+with `BOOT:FAIL:TPM_UNENROLLED`, since a deleted record cannot be told apart from
+no enrollment; an NVRAM reset halts with `BOOT:FAIL:UEFI_FLOOR_MISSING` instead
+of healing automatically) and only an authenticated recovery proceeds. The UEFI floor is
+never raised from an unverified TPM and the anti-rollback floor is never
+lowered silently. Legitimate TPM or motherboard replacement and NVRAM reset
+go through authorised recovery without touching user data. The anchor domains
+B02, B03/B04 and N04 stay separate; N04 re-anchors from genesis after
+recovery (agreed with workstream N). Native tests C23–C30 are required before
+acceptance. Specification section 10.5; TEST profile only.
+
+**Amendment M1-HAUTH, 25 November 2026 (project-owner decision, option 1,
+PR #524):** relayed by the PR guard session at about 11:58Z and confirmed by
+the project owner in the B session. Quoted decision:
+
+> I explicitly approve option 1: changing ownerAuth and lockoutAuth within
+> the isolated TEST/QEMU/swtpm profile to address the M1
+> undefine/redefine/replay vulnerability. This is a strictly bounded
+> extension of the previously approved TPM trust architecture. The following
+> requirements are binding: Preserve the per-domain TPM_NT_EXTEND hash-chain
+> architecture and logical separation between B02, B03/B04 and N04. Protect
+> TPM hierarchy authorization against unauthorized runtime access. Generate
+> appropriate authorization secrets using approved entropy. Never hardcode,
+> log or expose them to ordinary services. Preserve authorized loader-phase
+> recovery, including undefine and re-genesis with a fresh, authenticated
+> anchor instance. Ensure that recovery cannot revive previously revoked
+> grants or silently lower anti-rollback protection. Verify that the
+> PCR13-based loader-phase policy provides the intended protection. Do not
+> treat PCR phase separation alone as proof of trusted boot, TPM identity or
+> protection against a compromised kernel. Preserve the previously approved
+> U13 TPM identity binding. Test unauthorized undefine/redefine/replay, TPM
+> clear, TPM replacement, foreign boot environments, interrupted
+> provisioning and authorized recovery. Retain the existing failing M1
+> regression cases and demonstrate that the revised implementation prevents
+> the targeted revival scenario. Coordinate P1–P3 with N and finalize the
+> shared anchor contract. Keep N04 operating under 5A until the complete 5B
+> integration passes native security acceptance. Explicitly document
+> remaining threat-model limitations. Do not accept the demonstrated revival
+> vulnerability as a residual risk merely to complete the implementation.
+> This authorization applies exclusively to disposable TEST/QEMU/swtpm
+> environments. It does not authorize modification of physical TPMs,
+> production credentials or host security settings.
+
+Mechanism: a loader-generated secret (`EFI_RNG_PROTOCOL`, U25) is stored in
+the policy-read NV index `HAUTH` (`0x0100B304`, readable only under
+`PolicyPCR(13 = 0³²) + CC_NV_Read`) and set as `ownerAuth ‖ lockoutAuth` by
+`HierarchyChangeAuth`; `endorsementAuth` and platformAuth are not changed.
+Evidence so far: swtpm 0.10.1 feasibility probe
+(`docs/verification/b03-rel05-hauth-probe-20261125/`) and host model; the
+native loader path and S5 are open. Limitation, reported to the project
+owner and not accepted as a residual by B: code that runs at PCR 13 = 0³²
+(boot path before B04, foreign OS) can read `HAUTH` and revive an older
+store one reboot later; the revival is refused at run time within a boot,
+not across a hostile boot path. 5A stays in force. Contract:
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
+
+**Amendment, 26 November 2026 (project-owner decision on PR #524: approval
+and C665 precedence):** the project owner approved this ADR in substance for
+the strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH, and
+decided (translated from Dutch) that C665 takes precedence over decision 6: an
+unknown, replaced, reset or unverifiable TPM must not bypass the identity
+binding through `DEGRADED`; the controlled halt and authenticated recovery
+stay. REL-05 §7.9 was decided separately the same day (amendment below). The
+boot-path revival at PCR 13 = 0³² before B04 stays an open security problem,
+not an accepted residual risk. N04 stays under 5A until the full 5B
+integration passes native security acceptance. All open implementation and
+acceptance conditions (C23–C30, native S5, U13c) remain; no production
+credentials, no physical TPM change and no progress score change.
+
+Verbatim decision (project owner, Dutch, 26 November 2026 19:55 UTC, pasted
+into the workstream B chat, session `ea7388`):
+
+> EIGENAARBESLUIT — #524
+>
+> Ik keur ADR-B03-REL05-TPM-20261125 inhoudelijk goed voor het strikt afgebakende TEST/QEMU/swtpm-profiel, inclusief C665 en M1-HAUTH.
+>
+> Verduidelijk vóór de eerstvolgende push dat C665 voorrang heeft op het oorspronkelijke besluit 6: een onbekende, vervangen, geresette of onverifieerbare TPM mag niet via DEGRADED alsnog de identiteitsbinding omzeilen. Behoud gecontroleerde halt en geauthenticeerd herstel. Stem de toepasselijke testverwachtingen daarop af, zonder de nog openstaande §7.9-beslissing stilzwijgend in te vullen.
+>
+> De bekende boot-path-revival vóór B04 blijft een open beveiligingsprobleem en wordt niet geaccepteerd als definitief restrisico. N04 blijft onder 5A totdat volledige 5B-acceptatie is aangetoond.
+>
+> Behoud alle openstaande implementatie- en acceptatievoorwaarden. Geen productiecredentials, fysieke TPM-wijzigingen of verhoging van de voortgangsscore.
+>
+> Verwerk deze verduidelijking in de reeds voorbereide lokale wijzigingen. Stem één gebundelde push af met de PR-bewaker en integreer #524 via de merge queue zodra alle geldende voorwaarden zijn vervuld.
+>
+> Geen nieuwe algemene onderzoeks- of reviewronde. Ga daarna zelfstandig verder met de resterende implementatie.
+
+Application by workstream B (the mapping of TPM classes below is B's reading
+of the owner's precedence decision, recorded for the owner to confirm or
+reverse; it is not itself an owner decision), TEST profile:
+
+- A TPM that is absent, fails before or during the
+  identity proof, or shows PCR 13 dirty at loader start has no verified
+  identity: the loader prints the class marker, halts with
+  `BOOT:FAIL:TPM_IDENTITY`, writes nothing and runs no kernel. A failed TPM
+  write or read-back after a verified identity re-steps as a fault and halts
+  the same way. An absent TPM therefore means no boot in this profile. An unenrolled
+  TPM (`BOOT:FAIL:TPM_UNENROLLED`), another or unproven endorsement key,
+  including a replaced TPM or one reset to new seeds (`BOOT:FAIL:TPM_IDENTITY`),
+  and an NVRAM reset (`BOOT:FAIL:UEFI_FLOOR_MISSING`) halt as before. A failed
+  extend still halts with `BOOT:FAIL:TPM_EXTEND`. Recovery is authenticated
+  only (section 10.5).
+- *(Superseded by the REL-05 §7.9 amendment below.)* Decision 6 kept
+  `DEGRADED` only for a verified TPM whose anchor is lost or behind
+  (`ANCHOR_LOST`, `ANCHOR_BEHIND`), with the cleared-TPM case left open.
+  "Reset" is read as a TPM with new seeds (a new
+  endorsement key); that `TPM2_Clear` keeps the endorsement key and a fresh
+  swtpm state does not is TPM 2.0 Part 1 hierarchy semantics, not probed on
+  swtpm *[unverified]*.
+
+**Amendment, 26 November 2026 (project-owner decision REL-05 §7.9: TPM clear
+and anchor loss):** the project owner chose fail closed (translated from
+Dutch): a TPM that was cleared but keeps its original endorsement key gets a
+controlled halt with authenticated recovery; a matching endorsement key
+proves identity, not continuity of the protected state. Binding conditions:
+no regular or `DEGRADED` boot once a TPM clear or the loss of required anchor
+state is detected; no automatic re-provisioning based only on a matching
+endorsement key; recovery only through an authenticated, demonstrably current
+recovery procedure; keep the highest reliably established anti-rollback
+floor; prevent reactivation of revoked keys, grants and older anchor
+instances; when every reliable freshness record is lost, independently
+authorised recovery is mandatory; preserve user data; give a clear recovery
+message. The permission holds only within the existing TEST/QEMU/swtpm
+mandate. REL-05 stays open until every acceptance condition is met; the
+progress score stays 43/100.
+
+Verbatim decision (project owner, Dutch, 26 November 2026 20:07 UTC, pasted
+into the workstream B chat, session `ea7388`):
+
+> EIGENAARBESLUIT — REL-05 §7.9
+> Kies fail-closed: gecontroleerde halt met geauthenticeerd herstel wanneer een TPM is gewist maar zijn oorspronkelijke EK behoudt.
+> Een overeenkomende EK bewijst identiteit, niet continuïteit van de beveiligde toestand.
+> Bindende voorwaarden:
+>
+> * Geen reguliere of DEGRADED-boot wanneer een TPM-clear of verlies van noodzakelijke anchorstatus is vastgesteld.
+> * Geen automatische herprovisioning op basis van uitsluitend een overeenkomende EK.
+> * Herstel uitsluitend via een geauthenticeerde, aantoonbaar actuele recoveryprocedure.
+> * Behoud de hoogste betrouwbaar vastgestelde anti-rollback-floor.
+> * Voorkom heractivering van ingetrokken sleutels, grants en oudere anchor-instances.
+> * Wanneer alle betrouwbare freshness-records verloren zijn, is onafhankelijk geautoriseerd herstel verplicht.
+> * Behoud gebruikersgegevens.
+> * Geef een duidelijke herstelmelding.
+>
+> Deze toestemming geldt uitsluitend binnen het bestaande TEST/QEMU/swtpm-mandaat.
+> Leg dit besluit vast in §7.9 en de toepasselijke ADR. Implementeer en verifieer gericht, zonder nieuwe algemene onderzoeksronde.
+> Laat REL-05 open totdat alle acceptatievoorwaarden zijn vervuld. De voortgangsscore blijft 43/100.
+
+Consequence for this ADR: decision 6 is replaced in full. `DEGRADED` no
+longer exists. Every `ANCHOR_LOST` and `ANCHOR_BEHIND` class with a verified
+identity halts with `BOOT:FAIL:TPM_ANCHOR`; every halt that only
+authenticated recovery resolves (identity mismatch, `TPM_UNENROLLED`,
+`UEFI_FLOOR_MISSING`, `TPM_ANCHOR`) also prints `BOOT:RECOVERY:REQUIRED`, and
+an absent, faulty or dirty-PCR TPM halts without it. The
+host model and its tests implement this; the loader does not yet. Section 7.9
+of the specification records each condition with its status. Open binding
+conditions include: the TEST loader's M1-HAUTH path provisions and boots
+whenever `ownerAuth` is unset, which is also the state after a clear, so the
+TEST loader currently violates the first two conditions and must halt on a
+cleared provisioned TPM before acceptance (B's first follow-up); the currency of a recovery
+record; the recovery authority for the case where both copies of the
+accepted pair are lost; and the user-visible recovery text.
+
+**Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
+extension, kernel profile and health service; the characterization of PR #514
+must fail under the trial profile. Issue #41, B03 and REL-05 remain open;
+scores are unchanged.
 
 ## ADR-SPECIALIST-TEAM-20261125 — Permanent specialists A, P, L and R; handoffs, naming and context rotation
 
