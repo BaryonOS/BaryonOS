@@ -3,7 +3,7 @@
   "source_commit": "2289a271071d0a39bff8b28bc3b116bc50c32537",
   "assessment_basis": "parent_commit",
   "branch": "codex/pages-site-20261126",
-  "task": "Publish the public Baryon OS research site and clearly labelled browser interaction simulation on GitHub Pages at baryonos.org",
+  "task": "Publish the public Baryon OS research site with the approved Orbitaal v2 visual design on GitHub Pages at baryonos.org",
   "previous_score": 43,
-  "summary": "43/100 unchanged. This task publishes project information and a synthetic browser simulation; it adds no OS functionality, native acceptance evidence, hardware result or human audit."
+  "summary": "43/100 unchanged. This task publishes a static project site with the original logo and Orbit visual design; it adds no OS functionality, native acceptance evidence, hardware result or human audit."
 }
