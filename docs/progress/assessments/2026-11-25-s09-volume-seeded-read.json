@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "c04ea98d04f941f000a65d78b6ee83e998fbe732",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "claude/s09-volume-seed-read-20261125",
+  "task": "S09/A03-T2c support: deterministic seeded-read volume image variant with a Python oracle test and a volume-core read-only cross-check",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: tools/volume_disk.py gains the seeded-read variant (generation-1 table, domain 0 objects 0 and 1 with fixture content) for A03-T2c's read-only native fixture. tests/test_volume_seeded_read.py checks the oracle, determinism and the committed sparse table fixture; services/volume/tests/seeded_read.rs mounts that Python-encoded table read-only with volume-core, reads both objects, gets Access for DELETE and sees no device write. Host-only test tooling; no criterion changes."
+}
