@@ -107,6 +107,10 @@ pub enum Denied {
     /// The chain is neither this store's anchored value nor its `prev`:
     /// an older, sibling or foreign-history store, indistinguishable here.
     Stale,
+    /// No slot holds an authentic store. Never treated as genesis (L2).
+    Missing,
+    /// A store slot could not be read; fail closed rather than guess (C143).
+    Media,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -126,20 +130,10 @@ fn same_instance(anchor: &mut impl FreshnessAnchor, store: &StoreState) -> Resul
     }
 }
 
-/// Decides whether a loaded store may be used after a cold boot.
+/// Decides whether a loaded store may be used after a cold boot: the
+/// single-candidate case of [`load`]'s decision.
 pub fn startup(anchor: &mut impl FreshnessAnchor, store: &StoreState) -> Result<Startup, Denied> {
-    same_instance(anchor, store)?;
-    let chain = anchor.read().map_err(Denied::Anchor)?;
-    if chain == store.anchored() {
-        return Ok(Startup::Accept);
-    }
-    if chain != store.prev {
-        return Err(Denied::Stale);
-    }
-    anchor
-        .extend(&store.prev, &store.digest)
-        .map_err(Denied::Anchor)?;
-    Ok(Startup::RolledForward)
+    decide(anchor, [Some(*store), None]).map(|(_, _, how)| how)
 }
 
 /// Called after `next` is durably committed on top of `next.prev`; success is
@@ -149,6 +143,195 @@ pub fn acknowledge(anchor: &mut impl FreshnessAnchor, next: &StoreState) -> Resu
     anchor
         .extend(&next.prev, &next.digest)
         .map_err(Denied::Anchor)
+}
+
+/// A slot read, write or flush failed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MediaError;
+
+/// Two independent record slots holding the authenticated store (C143).
+///
+/// The slots are volume sectors. HOST MODEL ASSUMPTIONS, owned by the volume
+/// and block layer (not N, not B) and not established natively: a write can
+/// tear only the slot it targets, leaving any prefix of the new bytes over the
+/// old contents; `flush` returning `Ok` makes every earlier write durable.
+pub trait SlotMedia {
+    /// Fills `out` with the slot's bytes; records are self-delimiting.
+    fn read(&mut self, slot: usize, out: &mut [u8]) -> Result<(), MediaError>;
+    fn write(&mut self, slot: usize, record: &[u8]) -> Result<(), MediaError>;
+    fn flush(&mut self) -> Result<(), MediaError>;
+}
+
+/// Authenticates and decodes one slot's bytes (B02 secure records). Torn,
+/// truncated or forged bytes must yield `None`. The expected context and
+/// length come from the verifier's own state, never from the slot bytes. A
+/// tear before the first differing byte leaves the older record intact and
+/// authentic; `load` rejects it through the chain, not through the verifier.
+pub trait RecordVerifier {
+    fn open(&mut self, slot_bytes: &[u8]) -> Option<StoreState>;
+}
+
+/// The store accepted at startup and the slot holding it. The other slot is
+/// the only one a commit may write.
+#[derive(Debug)]
+pub struct Session {
+    slot: usize,
+    state: StoreState,
+    /// Set after a failed acknowledge: the chain may or may not have moved, so
+    /// the writable slot is unknown until the next `load` re-reads it.
+    reload: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CommitError {
+    /// The anchored slot is untouched. The record may still have become
+    /// durable (for example a complete write with a failed flush), so the next
+    /// `load` may roll it forward: its outcome is unknown until then, unless a
+    /// later successful commit supersedes it. Never report it as refused.
+    Media(MediaError),
+    /// `next` is not on top of the accepted state, or `record` does not
+    /// authenticate to exactly `next`; nothing written.
+    Rejected,
+    /// A previous acknowledge failed, or the anchor no longer holds (or could
+    /// not confirm) the accepted state; nothing written. `load` again before
+    /// any write.
+    Reload,
+    /// The acknowledge failed after the record was durable; the extend may
+    /// or may not have happened. The outcome is unknown until the next `load`,
+    /// which accepts, rolls forward or denies; never retried blindly.
+    Denied(Denied),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Class {
+    Anchored,
+    Pending,
+    Stale,
+    Foreign,
+}
+
+fn classify(instance: &Digest, chain: &Digest, state: &StoreState) -> Class {
+    if state.instance != *instance {
+        Class::Foreign
+    } else if *chain == state.anchored() {
+        Class::Anchored
+    } else if *chain == state.prev {
+        Class::Pending
+    } else {
+        Class::Stale
+    }
+}
+
+/// Startup over both slots. `buf` is one slot long. A never-acknowledged
+/// store wins over the anchored one, so a durable commit (for example a
+/// revocation) is rolled forward rather than dropped; if that extend fails the
+/// result is a denial, never the older store. The slots are flushed before any
+/// decision, so a read can never roll the anchor onto bytes that are not yet
+/// durable; a failed flush is a denial.
+pub fn load(
+    media: &mut impl SlotMedia,
+    verifier: &mut impl RecordVerifier,
+    anchor: &mut impl FreshnessAnchor,
+    buf: &mut [u8],
+) -> Result<(Session, Startup), Denied> {
+    let mut states = [None; 2];
+    for (slot, state) in states.iter_mut().enumerate() {
+        media.read(slot, buf).map_err(|_| Denied::Media)?;
+        *state = verifier.open(buf);
+    }
+    media.flush().map_err(|_| Denied::Media)?;
+    let (slot, state, how) = decide(anchor, states)?;
+    Ok((
+        Session {
+            slot,
+            state,
+            reload: false,
+        },
+        how,
+    ))
+}
+
+/// The one startup rule over up to two authenticated candidates. A
+/// never-acknowledged store wins over the anchored one; a failed roll-forward
+/// is a denial, never a fallback.
+fn decide(
+    anchor: &mut impl FreshnessAnchor,
+    states: [Option<StoreState>; 2],
+) -> Result<(usize, StoreState, Startup), Denied> {
+    let instance = anchor.instance().map_err(Denied::Anchor)?;
+    let chain = anchor.read().map_err(Denied::Anchor)?;
+    let class = |slot: usize| states[slot].map(|s| classify(&instance, &chain, &s));
+    let pending: [bool; 2] = [0, 1].map(|slot| class(slot) == Some(Class::Pending));
+    if pending[0] && pending[1] && states[0] != states[1] {
+        return Err(Denied::Stale); // two unacknowledged siblings: undecidable
+    }
+    if let Some(slot) = (0..2).find(|&slot| pending[slot]) {
+        let state = states[slot].expect("classified");
+        anchor
+            .extend(&state.prev, &state.digest)
+            .map_err(Denied::Anchor)?;
+        return Ok((slot, state, Startup::RolledForward));
+    }
+    if let Some(slot) = (0..2).find(|&slot| class(slot) == Some(Class::Anchored)) {
+        let state = states[slot].expect("classified");
+        return Ok((slot, state, Startup::Accept));
+    }
+    match [class(0), class(1)] {
+        [None, None] => Err(Denied::Missing),
+        [a, b]
+            if [a, b]
+                .iter()
+                .all(|c| matches!(c, None | Some(Class::Foreign))) =>
+        {
+            Err(Denied::Foreign)
+        }
+        _ => Err(Denied::Stale),
+    }
+}
+
+impl Session {
+    /// The accepted (anchored) store state.
+    pub fn state(&self) -> &StoreState {
+        &self.state
+    }
+
+    /// Commit-then-advance into the slot that does not hold the anchored
+    /// store; that copy stays readable until the anchor has moved past it.
+    pub fn commit(
+        &mut self,
+        media: &mut impl SlotMedia,
+        verifier: &mut impl RecordVerifier,
+        anchor: &mut impl FreshnessAnchor,
+        record: &[u8],
+        next: &StoreState,
+    ) -> Result<(), CommitError> {
+        if self.reload {
+            return Err(CommitError::Reload);
+        }
+        if next.instance != self.state.instance
+            || next.prev != self.state.anchored()
+            || verifier.open(record) != Some(*next)
+        {
+            return Err(CommitError::Rejected);
+        }
+        // A stale session's writable slot may hold the anchored store now.
+        if anchor.read().ok() != Some(self.state.anchored()) {
+            self.reload = true;
+            return Err(CommitError::Reload);
+        }
+        let slot = 1 - self.slot;
+        media
+            .write(slot, record)
+            .and_then(|()| media.flush())
+            .map_err(CommitError::Media)?;
+        if let Err(denied) = acknowledge(anchor, next) {
+            self.reload = true;
+            return Err(CommitError::Denied(denied));
+        }
+        self.slot = slot;
+        self.state = *next;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -566,5 +749,298 @@ mod tests {
             ))
         );
         assert_eq!(startup(&mut anchor, &s), Ok(Startup::Accept));
+    }
+
+    // ---- C143: two-slot store replacement ----
+
+    /// One slot: instance, prev, digest, then a TEST-ONLY tag standing in for
+    /// B02's record authentication.
+    const LEN: usize = 128;
+    const TEST_KEY: &[u8] = b"TEST-ONLY-N04-SLOT-KEY";
+
+    fn record(state: &StoreState) -> [u8; LEN] {
+        let mut out = [0; LEN];
+        out[..32].copy_from_slice(&state.instance);
+        out[32..64].copy_from_slice(&state.prev);
+        out[64..96].copy_from_slice(&state.digest);
+        let tag = sha(&[TEST_KEY, &out[..96]]);
+        out[96..].copy_from_slice(&tag);
+        out
+    }
+
+    struct Mac;
+
+    impl RecordVerifier for Mac {
+        fn open(&mut self, bytes: &[u8]) -> Option<StoreState> {
+            let bytes: &[u8; LEN] = bytes.try_into().ok()?;
+            if sha(&[TEST_KEY, &bytes[..96]]) != bytes[96..] {
+                return None;
+            }
+            let field = |i: usize| -> Digest { bytes[i..i + 32].try_into().unwrap() };
+            Some(StoreState {
+                instance: field(0),
+                prev: field(32),
+                digest: field(64),
+            })
+        }
+    }
+
+    /// Two slots; `budget` bytes of the next write land, then it fails (tear).
+    struct Disk {
+        slots: [[u8; LEN]; 2],
+        budget: Option<usize>,
+        unreadable: Option<usize>,
+        fail_flush: bool,
+    }
+
+    impl Disk {
+        fn with(a: Option<&StoreState>, b: Option<&StoreState>) -> Self {
+            let fill = |s: Option<&StoreState>| s.map_or([0xEE; LEN], record);
+            Self {
+                slots: [fill(a), fill(b)],
+                budget: None,
+                unreadable: None,
+                fail_flush: false,
+            }
+        }
+    }
+
+    impl SlotMedia for Disk {
+        fn read(&mut self, slot: usize, out: &mut [u8]) -> Result<(), MediaError> {
+            if self.unreadable == Some(slot) {
+                return Err(MediaError);
+            }
+            out.copy_from_slice(&self.slots[slot]);
+            Ok(())
+        }
+
+        fn write(&mut self, slot: usize, record: &[u8]) -> Result<(), MediaError> {
+            let n = self
+                .budget
+                .take()
+                .map_or(record.len(), |b| b.min(record.len()));
+            self.slots[slot][..n].copy_from_slice(&record[..n]);
+            if n < record.len() {
+                Err(MediaError)
+            } else {
+                Ok(())
+            }
+        }
+
+        fn flush(&mut self) -> Result<(), MediaError> {
+            if self.fail_flush {
+                Err(MediaError)
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    fn boot(disk: &mut Disk, anchor: &mut Fake) -> Result<(Session, Startup), Denied> {
+        load(disk, &mut Mac, anchor, &mut [0; LEN])
+    }
+
+    /// S0 rolled forward from genesis into slot 0, then S1 acknowledged in slot 1.
+    fn at_s1() -> (Disk, Fake, Session, StoreState, StoreState) {
+        let mut anchor = Fake::provisioned(I0);
+        let s0 = first(I0, 1);
+        let mut disk = Disk::with(Some(&s0), None);
+        let (mut session, how) = boot(&mut disk, &mut anchor).unwrap();
+        assert_eq!((how, session.slot), (Startup::RolledForward, 0));
+        let s1 = child(&s0, 2);
+        session
+            .commit(&mut disk, &mut Mac, &mut anchor, &record(&s1), &s1)
+            .unwrap();
+        assert_eq!(session.slot, 1);
+        (disk, anchor, session, s0, s1)
+    }
+
+    /// C143: S2 torn into slot 0 (which still holds S0, two commits back) at
+    /// every byte boundary, then a crash before the extend. Below the full
+    /// length the anchored S1 is accepted with no extend; the complete record
+    /// (here: written, flush reported a failure) rolls forward over the intact
+    /// S1, so a `Media` error is not a refusal.
+    #[test]
+    fn torn_commit_at_every_byte_keeps_the_anchored_store() {
+        for cut in 0..=LEN {
+            let (mut disk, mut anchor, mut session, _, s1) = at_s1();
+            let s2 = child(&s1, 3);
+            disk.budget = Some(cut);
+            disk.fail_flush = true;
+            let pre = anchor.writes;
+            assert_eq!(
+                session.commit(&mut disk, &mut Mac, &mut anchor, &record(&s2), &s2),
+                Err(CommitError::Media(MediaError)),
+                "cut {cut}"
+            );
+            assert_eq!(anchor.writes, pre, "failed commit extended at cut {cut}");
+            assert_eq!(
+                disk.slots[1],
+                record(&s1),
+                "anchored copy touched at cut {cut}"
+            );
+            disk.fail_flush = false;
+            let (booted, how) = boot(&mut disk, &mut anchor).unwrap();
+            if cut < LEN {
+                assert_eq!(
+                    (how, booted.slot, booted.state),
+                    (Startup::Accept, 1, s1),
+                    "cut {cut}"
+                );
+                assert_eq!(anchor.writes, pre, "cut {cut}");
+            } else {
+                assert_eq!(
+                    (how, booted.slot, booted.state),
+                    (Startup::RolledForward, 0, s2)
+                );
+                assert_eq!(anchor.writes, pre + 1);
+            }
+        }
+    }
+
+    /// The M1 hostile extend over two slots: neither copy is revived.
+    #[test]
+    fn hostile_extend_denies_both_slots() {
+        let (mut disk, mut anchor, _, _, _) = at_s1();
+        anchor.hostile_extend(&[0x66; 32]);
+        let writes = anchor.writes;
+        assert_eq!(boot(&mut disk, &mut anchor).err(), Some(Denied::Stale));
+        assert_eq!(anchor.writes, writes);
+    }
+
+    /// A lost acknowledge response may have moved the chain onto the slot the
+    /// session would write next; no write happens until `load` re-reads it.
+    #[test]
+    fn lost_acknowledge_blocks_writes_until_reload() {
+        let (mut disk, mut anchor, mut session, _, s1) = at_s1();
+        let s2 = child(&s1, 3);
+        anchor.lose_next_response = true;
+        assert_eq!(
+            session.commit(&mut disk, &mut Mac, &mut anchor, &record(&s2), &s2),
+            Err(CommitError::Denied(Denied::Anchor(
+                AnchorError::Unavailable
+            )))
+        );
+        let s3 = child(&s1, 4);
+        let slots = disk.slots;
+        assert_eq!(
+            session.commit(&mut disk, &mut Mac, &mut anchor, &record(&s3), &s3),
+            Err(CommitError::Reload)
+        );
+        assert_eq!(disk.slots, slots, "anchored S2 overwritten");
+        let (mut session, how) = boot(&mut disk, &mut anchor).unwrap();
+        assert_eq!((how, session.slot, session.state), (Startup::Accept, 0, s2));
+        let s3 = child(&s2, 4);
+        session
+            .commit(&mut disk, &mut Mac, &mut anchor, &record(&s3), &s3)
+            .unwrap();
+        assert_eq!(disk.slots[0], record(&s2), "previous copy kept");
+    }
+
+    #[test]
+    fn one_bad_slot_does_not_deny_the_acceptable_one() {
+        let (_, mut anchor, _, s0, s1) = at_s1();
+        let mut garbage = Disk::with(None, Some(&s1));
+        let foreign = StoreState { instance: I1, ..s1 };
+        let mut alien = Disk::with(Some(&foreign), Some(&s1));
+        let mut stale = Disk::with(Some(&s0), Some(&s1));
+        for disk in [&mut garbage, &mut alien, &mut stale] {
+            let (session, how) = boot(disk, &mut anchor).unwrap();
+            assert_eq!((how, session.slot, session.state), (Startup::Accept, 1, s1));
+        }
+    }
+
+    #[test]
+    fn no_acceptable_slot_is_denied_never_genesis() {
+        let (_, mut anchor, _, s0, s1) = at_s1();
+        let foreign = StoreState { instance: I1, ..s1 };
+        let cases = [
+            (Disk::with(None, None), Denied::Missing),
+            (Disk::with(Some(&foreign), None), Denied::Foreign),
+            (Disk::with(Some(&s0), Some(&foreign)), Denied::Stale),
+        ];
+        for (mut disk, denied) in cases {
+            let writes = anchor.writes;
+            assert_eq!(boot(&mut disk, &mut anchor).err(), Some(denied));
+            assert_eq!(anchor.writes, writes);
+        }
+        let mut disk = Disk::with(None, Some(&s1));
+        disk.unreadable = Some(0);
+        assert_eq!(boot(&mut disk, &mut anchor).err(), Some(Denied::Media));
+    }
+
+    #[test]
+    fn two_unacknowledged_siblings_are_denied_without_an_extend() {
+        let (_, mut anchor, _, _, s1) = at_s1();
+        let mut disk = Disk::with(Some(&child(&s1, 3)), Some(&child(&s1, 4)));
+        let writes = anchor.writes;
+        assert_eq!(boot(&mut disk, &mut anchor).err(), Some(Denied::Stale));
+        assert_eq!(anchor.writes, writes);
+    }
+
+    /// A failed roll-forward never falls back to the older anchored copy.
+    #[test]
+    fn failed_roll_forward_over_an_anchored_copy_is_a_denial() {
+        let (mut disk, mut anchor, _, _, s1) = at_s1();
+        disk.slots[0] = record(&child(&s1, 3));
+        anchor.budget = 0;
+        assert_eq!(
+            boot(&mut disk, &mut anchor).err(),
+            Some(Denied::Anchor(AnchorError::RateLimited))
+        );
+    }
+
+    /// Two sessions from one anchored store: once the first commits, the
+    /// second may only reload, never write over the newly anchored slot.
+    #[test]
+    fn stale_session_never_overwrites_the_anchored_slot() {
+        let (mut disk, mut anchor, mut first, _, s1) = at_s1();
+        let (mut stale, _) = boot(&mut disk, &mut anchor).unwrap();
+        let s2 = child(&s1, 3);
+        first
+            .commit(&mut disk, &mut Mac, &mut anchor, &record(&s2), &s2)
+            .unwrap();
+        let slots = disk.slots;
+        let other = child(&s1, 4);
+        assert_eq!(
+            stale.commit(&mut disk, &mut Mac, &mut anchor, &record(&other), &other),
+            Err(CommitError::Reload)
+        );
+        assert_eq!(disk.slots, slots, "anchored S2 overwritten");
+        let (booted, how) = boot(&mut disk, &mut anchor).unwrap();
+        assert_eq!((how, booted.state), (Startup::Accept, s2));
+    }
+
+    /// Bytes read back but not flushed are never rolled forward.
+    #[test]
+    fn failed_flush_at_startup_denies_without_a_roll_forward() {
+        let (mut disk, mut anchor, mut session, _, s1) = at_s1();
+        let s2 = child(&s1, 3);
+        disk.fail_flush = true;
+        assert_eq!(
+            session.commit(&mut disk, &mut Mac, &mut anchor, &record(&s2), &s2),
+            Err(CommitError::Media(MediaError))
+        );
+        let writes = anchor.writes;
+        assert_eq!(boot(&mut disk, &mut anchor).err(), Some(Denied::Media));
+        assert_eq!(anchor.writes, writes);
+    }
+
+    #[test]
+    fn commit_rejects_a_mismatched_record_or_parent_without_writing() {
+        let (mut disk, mut anchor, mut session, s0, s1) = at_s1();
+        let slots = disk.slots;
+        let s2 = child(&s1, 3);
+        let off_parent = child(&s0, 9);
+        for (bytes, next) in [
+            (record(&child(&s1, 4)), s2),
+            (record(&off_parent), off_parent),
+        ] {
+            assert_eq!(
+                session.commit(&mut disk, &mut Mac, &mut anchor, &bytes, &next),
+                Err(CommitError::Rejected)
+            );
+        }
+        assert_eq!(disk.slots, slots);
     }
 }
