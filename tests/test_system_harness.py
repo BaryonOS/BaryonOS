@@ -968,7 +968,6 @@ class PostWakeLatchStructure(unittest.TestCase):
         """H05-T5c structural contract of the volume re-init (raises on a
         violation): accounted device calls, reached only after the wake and
         the rng re-init, no MMIO before `rediscover`, the same Policy object."""
-        path = Path("volume.rs")
         bodies = {}
         lines = volume.splitlines()
         for index, line in enumerate(lines):
