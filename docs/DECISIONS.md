@@ -106,9 +106,16 @@ commit of #572.
 
 **Consequences:**
 
-- A documentation-only group is decided once `host-quality`, `qemu-smoke`,
-  merge-hold's own walk and the selected core gates have passed. Until PR B
-  the unselected suites still start and use runners on the queue commit.
+- With the catalogue at revision 21, the selector run locally on a scratch
+  clone gives a documentation-only queue commit a `select` plan in which 19
+  workflows, every integrated native suite among them, have no selected gate;
+  the group no longer waits for them or depends on them. It still waits for
+  the workflows that have a selected core gate and are therefore judged
+  whole: `ci.yml`, CodeQL and the three workflows with a `select` job
+  (component-leaves, app-management-quality, net-tls-quality), all of whose
+  jobs run on `merge_group` until PR B. A `kernel/**` change selects 23
+  workflows. Until PR B the unselected suites also still start and use
+  runners on the queue commit.
 - A failure of an unselected gate on the queue commit no longer ejects the
   group. The `push` run on `main`, which stays full, remains the post-merge
   backstop. This is a deliberate relaxation of "a failed gate is never
