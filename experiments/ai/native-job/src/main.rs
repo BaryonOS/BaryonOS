@@ -10,6 +10,7 @@
 use baryon_ai_native_job::{argmax, digest, run, Weights, OUTPUT};
 use core::arch::{asm, global_asm};
 use core::ffi::c_void;
+use core::mem::MaybeUninit;
 
 const DATA: usize = 0x4001_0000;
 /// Report byte offsets after the kernel-owned words 0..32.
@@ -130,7 +131,11 @@ unsafe extern "C" fn memcpy(dest: *mut c_void, src: *const c_void, n: usize) -> 
 
 #[no_mangle]
 unsafe extern "C" fn memmove(dest: *mut c_void, src: *const c_void, n: usize) -> *mut c_void {
-    let (d, s) = (dest.cast::<u8>(), src.cast::<u8>());
+    // MaybeUninit: copied bytes may be uninitialised padding, which a `u8` read must not see.
+    let (d, s) = (
+        dest.cast::<MaybeUninit<u8>>(),
+        src.cast::<MaybeUninit<u8>>(),
+    );
     // SAFETY: caller contract of memmove (valid ranges); direction handles overlap.
     unsafe {
         if (d as usize) <= (s as usize) {

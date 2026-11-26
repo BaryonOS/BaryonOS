@@ -271,6 +271,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         output.mkdir(parents=True, exist_ok=True)
         for name in ("ai-job-native.elf", "build-report.json"):
             private_path(output / name)  # Refuse bad existing outputs before Cargo.
+        for suffix in (".stdout.txt", ".stderr.txt", ".json"):
+            # shortcut: checked before the child only; race-free writes need run_logged in protected common.py.
+            private_path(BUILD / "logs" / f"build-ai-job-user{suffix}")
         run_logged([sys.executable, "-B", str(ROOT / "experiments/ai/native-job/build.py"),
                     "--output-dir", str(output), "--target-dir", str(TARGET / "ai-job-user")],
                    "build-ai-job-user")

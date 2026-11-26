@@ -205,7 +205,7 @@ def run_ai_job() -> dict:
         validate_build(build, frozen)
         checks["build_artifacts_unchanged"] = True
         report["passed"] = all(checks.values())
-    except (ValueError, KeyError, TypeError, OSError) as error:
+    except Exception as error:  # Any failure still publishes a failing report (e.g. TimeoutExpired).
         report["error"] = f"{type(error).__name__}: {error}"
     publish_json(result_path, report)
     return report
