@@ -11,6 +11,10 @@ on:
       - .github/actions/**
       - crates/artifact-store-core/**
       - .github/workflows/artifact-store-quality.yml
+  # Gates also report on the merge-queue commit (main plus the queued pull
+  # requests), with no path filter, so a queue commit runs the full scope.
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main]
     paths:

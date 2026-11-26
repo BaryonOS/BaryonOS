@@ -900,6 +900,39 @@ def valid_catalogue():
     return tomllib.loads(CATALOGUE)
 
 
+NET_HEADER = """path = ".github/workflows/net.yml"
+owner = "ci-owner"
+granularity = "job"
+events = ["pull_request", "push"]
+obligation = [{ cite = "README.md:1", anchor = "fixture readme" }]
+"""
+
+
+class NonnativeFilterTests(FixtureTestCase):
+    """#494 phase 5 C2: an @nonnative filter hides core_only paths, never a registered input."""
+
+    catalogue = CATALOGUE.replace(NET_HEADER, NET_HEADER + """\
+trigger.pull_request = { paths_ignore = "@nonnative" }
+trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
+""").replace('needs = ["broker"]\ninput_sets = ["native"]\n', 'needs = ["broker"]\ninput_sets = ["native"]\ninputs = ["LICENSE"]\n')
+
+    def test_core_only_input_hidden_by_the_macro_is_a_hidden_input(self):
+        self.assertIn('paths_ignore = "@nonnative"', self.catalogue)
+        self.assertIn('inputs = ["LICENSE"]', self.catalogue)
+        plan = self.plan(self.branch({"LICENSE": "changed\n", "docs/guide.md": "changed\n"}))
+        self.assertEqual(plan["mode"], "select", plan["fallback"])
+        rows = {row["id"]: row for row in plan["selected"]}
+        # merge-hold fails this row (C1): the filter would hide a registered input.
+        self.assertIs(rows["net#native"]["blocked_by_filter"], True)
+        self.assertEqual(rows["net#native"]["filter_hidden_inputs"], ["LICENSE"])
+
+    def test_code_change_is_not_hidden(self):
+        plan = self.plan(self.branch({"LICENSE": "changed\n", "kernel/main.rs": "// k\n"}))
+        rows = {row["id"]: row for row in plan["selected"]}
+        self.assertIs(rows["net#native"]["blocked_by_filter"], False)
+        self.assertEqual(rows["net#native"]["filter_hidden_inputs"], [])
+
+
 class GlobTests(TestCase):
     def test_double_star_slash_matches_zero_or_more_directories(self):
         match = ci_impact.github_path_filter_matches
@@ -924,6 +957,20 @@ class CatalogueValidationTests(TestCase):
         with REAL_CATALOGUE.open("rb") as handle:
             self.assertEqual(ci_impact.validate(tomllib.load(handle)), [])
 
+    def test_every_automatic_real_gate_job_runs_on_the_queue_commit(self):
+        """#494 D1 step 1: a merge_group trigger is useless if the gate job's own condition skips it."""
+        with REAL_CATALOGUE.open("rb") as handle:
+            catalogue = tomllib.load(handle)
+        checked = 0
+        for workflow in catalogue["workflow"]:
+            jobs = {job["id"]: job for job in workflow.get("job", [])}
+            for job in jobs.values():
+                if job["class"] in ci_impact.SELECTABLE and job["activation"] == "automatic":
+                    checked += 1
+                    with self.subTest(job=f"{workflow['path']}#{job['id']}"):
+                        self.assertIs(ci_impact.job_runs(jobs, job["id"], "merge_group"), True)
+        self.assertGreaterEqual(checked, 38)
+
     def test_real_catalogue_registers_the_token_guard_script_for_its_native_users(self):
         # #494 C1 (D-2): tools/tokenguard.py runs this core_only script in both workflows.
         with REAL_CATALOGUE.open("rb") as handle:
@@ -940,6 +987,122 @@ class CatalogueValidationTests(TestCase):
         users = {path.name for path in (TOOLS.parent / ".github" / "workflows").glob("*.yml")
                  if "tools/tokenguard.py" in path.read_text(encoding="utf-8")} - {"ci.yml"}
         self.assertEqual(users, {"native-hid-input.yml", "native-xhci.yml"})
+        # #494 phase 5 C2 (N7): both start on it (@metadata); the 13 @nonnative workflows skip it.
+        changed = ["plugins/token-guard/skills/token-guard/scripts/tokenguard.py"]
+        planner = ci_impact.Planner(str(TOOLS.parent), "pull_request", "", "", None, ci_impact.CATALOGUE_PATH,
+                                    None, False)
+        self.assertEqual({x["workflow"]["path"]: planner.blocked(x, changed, catalogue["policy"])
+                          for x in execs if x["id"] in hits},
+                         {".github/workflows/native-hid-input.yml": False, ".github/workflows/native-xhci.yml": False})
+        nonnative = [x for x in execs if x["workflow"].get("trigger", {}).get("pull_request", {})
+                     .get("paths_ignore") == "@nonnative"]
+        self.assertTrue(nonnative)
+        self.assertTrue(all(planner.blocked(x, changed, catalogue["policy"]) for x in nonnative))
+
+    def test_nonnative_needs_a_pull_request_trigger_with_a_main_metadata_backstop(self):
+        # #494 phase 5 C2 (N6).
+        backstop = {"branches": ["main"], "paths_ignore": "@metadata"}
+
+        def leaves(**trigger):
+            catalogue = valid_catalogue()
+            catalogue["workflow"][1]["trigger"] = trigger
+            return catalogue
+
+        self.assertEqual(ci_impact.validate(leaves(pull_request={"paths_ignore": "@nonnative"}, push=backstop)), [])
+        rejected = "@nonnative only on pull_request, with a push trigger on main filtered by @metadata"
+        for trigger in ({"pull_request": {"paths_ignore": "@nonnative"}},
+                        {"pull_request": {"paths_ignore": "@metadata"},
+                         "push": {"branches": ["main"], "paths_ignore": "@nonnative"}},
+                        {"pull_request": {"paths_ignore": "@nonnative"}, "push": {"branches": ["main"]}},
+                        {"pull_request": {"paths_ignore": "@nonnative"},
+                         "push": {"branches": ["main"], "paths_ignore": ["docs/**"]}},
+                        {"pull_request": {"paths_ignore": "@nonnative"},
+                         "push": {"branches": ["release"], "paths_ignore": "@metadata"}}):
+            with self.subTest(trigger=trigger):
+                self.assertProblem(leaves(**trigger), rejected)
+        catalogue = leaves(pull_request={"paths_ignore": "@nonnative"}, push=backstop)
+        catalogue["workflow"][1]["events"] = ["pull_request", "workflow_dispatch"]
+        self.assertProblem(catalogue, rejected)
+        catalogue = leaves(merge_group={"paths_ignore": "@nonnative"}, push=backstop)
+        catalogue["workflow"][1]["events"].append("merge_group")
+        self.assertEqual([problem for problem in ci_impact.validate(catalogue) if "@nonnative" in problem],
+                         ["workflow '.github/workflows/leaves.yml': trigger.merge_group: " + rejected])
+        # The macro must not hide a central path: core_only may not name or contain one.
+        for pattern in ("tools/build.py", ".github/workflows/**", "**.toml", "tools/**", "Cargo.lock"):
+            catalogue = leaves(pull_request={"paths_ignore": "@nonnative"}, push=backstop)
+            catalogue["policy"]["core_only"].append(pattern)
+            with self.subTest(core_only=pattern):
+                self.assertProblem(catalogue, "policy.core_only overlaps always_full, which @nonnative would hide")
+
+    def test_nonnative_gates_that_run_on_pull_request_must_run_on_push(self):
+        # #494 C2 review (B4): a pull_request-only gate would lose the push backstop silently.
+        backstop = {"branches": ["main"], "paths_ignore": "@metadata"}
+        rejected = "@nonnative needs every gate that runs on pull_request to run on push to main too"
+
+        def leaves(condition=None, prep=None, pull_filter="@nonnative"):
+            catalogue = valid_catalogue()
+            workflow = catalogue["workflow"][1]
+            workflow["trigger"] = {"pull_request": {"paths_ignore": pull_filter}, "push": backstop}
+            if condition:
+                workflow["job"][0]["condition"] = condition
+            if prep:
+                workflow["job"].insert(0, {"id": "prep", "class": "rwa", "activation": "automatic",
+                                           "condition": prep, "inputs": ["apps/prep/**"]})
+                workflow["job"][1]["needs"] = ["prep"]
+            return catalogue
+
+        def backstop_problems(catalogue):
+            return [problem for problem in ci_impact.validate(catalogue) if rejected in problem]
+
+        self.assertEqual(ci_impact.validate(leaves()), [])
+        pull_only = "${{ github.event_name == 'pull_request' }}"
+        self.assertEqual(backstop_problems(leaves(pull_only)), [f"leaves#quality: {rejected} (the backstop)"])
+        # Through a needs prerequisite: the gate and its prerequisite both lose the push run.
+        self.assertEqual(backstop_problems(leaves(prep="${{ github.event_name != 'push' }}")),
+                         [f"leaves#prep: {rejected} (the backstop)", f"leaves#quality: {rejected} (the backstop)"])
+        # Push-only gates and gates of a workflow without @nonnative are not affected.
+        self.assertEqual(ci_impact.validate(leaves("${{ github.event_name == 'push' }}")), [])
+        self.assertEqual(ci_impact.validate(leaves(pull_only, pull_filter="@metadata")), [])
+        for path in (REAL_CATALOGUE, REAL_CATALOGUE.with_name("ci-impact.candidate.toml")):
+            with self.subTest(catalogue=path.name), path.open("rb") as handle:
+                self.assertEqual(ci_impact.validate(tomllib.load(handle)), [])
+
+    def test_real_central_changes_start_every_native_workflow_with_a_paths_ignore_filter(self):
+        # #494 phase 5 C2 (N3): catalogue, selector, merge-hold, candidate and workflow changes
+        # give a full plan that no @metadata or @nonnative filter hides.
+        with REAL_CATALOGUE.open("rb") as handle:
+            catalogue = tomllib.load(handle)
+        policy = catalogue["policy"]
+        planner = ci_impact.Planner(str(TOOLS.parent), "pull_request", "", "", None, ci_impact.CATALOGUE_PATH,
+                                    None, False)
+        native = [x for x in ci_impact.executions(catalogue) if "native" in x["job"].get("input_sets", [])]
+        allowlists = {x["workflow"]["path"] for x in native
+                      if "paths" in x["workflow"].get("trigger", {}).get("pull_request", {})}
+        # The documented C1 exception: allowlists without a push backstop (docs/CI-CONTRACT.md).
+        self.assertEqual(allowlists, {".github/workflows/storage-resilience.yml",
+                                      ".github/workflows/volume-acceptance.yml"})
+        self.assertEqual(len({x["workflow"]["path"] for x in native
+                              if x["workflow"]["trigger"]["pull_request"].get("paths_ignore") == "@nonnative"}), 13)
+        for path in (".github/ci-impact.toml", "tools/ci_impact.py", "tools/merge_hold.py",
+                     ".github/ci-impact.candidate.toml", ".github/workflows/native-rtc.yml", ".gitignore"):
+            with self.subTest(path=path):
+                self.assertTrue(ci_impact.first_match(policy["always_full"], path))
+                self.assertIsNone(ci_impact.first_match(policy["core_only"], path))
+                blocked = {x["workflow"]["path"] for x in native if planner.blocked(x, [path], policy)}
+                self.assertLessEqual(blocked, allowlists)
+        # N1/N2 on the real catalogue: a kernel change and an unknown path start every native
+        # workflow apart from the two documented allowlists.
+        for path in ("kernel/src/lib.rs", "newdir/x.py"):
+            with self.subTest(path=path):
+                blocked = {x["workflow"]["path"] for x in native if planner.blocked(x, [path], policy)}
+                self.assertLessEqual(blocked, allowlists)
+        # validate's literal check misses a partial overlap such as plugins/**/Cargo.lock, so no
+        # tracked path may be both central and core_only: @nonnative then never hides one.
+        tracked = subprocess.run(["git", "-C", str(TOOLS.parent), "ls-files", "-z"], capture_output=True,
+                                 env=GIT_ENV, check=True).stdout.decode("utf-8").split("\0")
+        self.assertGreater(len(tracked), 1000)
+        self.assertEqual([path for path in tracked if path and ci_impact.first_match(policy["always_full"], path)
+                          and ci_impact.first_match(policy["core_only"], path)], [])
 
     def test_real_allowlist_filters_cover_their_native_inputs(self):
         # #494 C1 (D-1): an allowlist may not hide a registered input of its own gates.
@@ -1173,6 +1336,20 @@ class CoverageTests(TestCase):
                 self.assertTrue(any(p.startswith(fragment) for p in problems), problems)
         self.assertIn("workflow-removed: .github/workflows/ci.yml", ci_impact.workflow_problems({}, catalogue))
 
+    def test_nonnative_filter_is_compared_in_expansion_order(self):
+        catalogue = tomllib.loads(COVERAGE_CATALOGUE.replace("core_only = []", 'core_only = ["LICENSE"]').replace(
+            'trigger.pull_request = { types = ["opened"] }',
+            'trigger.pull_request = { types = ["opened"], paths_ignore = "@nonnative" }'))
+        self.assertEqual(ci_impact.validate(catalogue), [])
+        for ignore, expected in ((["docs/**", "**.md", "LICENSE"], []),
+                                 (["docs/**", "**.md"], ["trigger-mismatch"]),
+                                 (["LICENSE", "docs/**", "**.md"], ["trigger-mismatch"])):
+            workflows = copy.deepcopy(COVERAGE_WORKFLOWS)
+            workflows[".github/workflows/ci.yml"]["on"]["pull_request"]["paths-ignore"] = ignore
+            with self.subTest(ignore=ignore):
+                problems = ci_impact.workflow_problems(workflows, catalogue)
+                self.assertEqual([p.split(":")[0] for p in problems], expected, problems)
+
     def test_dynamic_matrix_evidence_templates_are_compared(self):
         workflows = copy.deepcopy(COVERAGE_WORKFLOWS)
         workflows[".github/workflows/ci.yml"]["jobs"]["pair"] = {
@@ -1221,6 +1398,11 @@ class CoverageTests(TestCase):
         self.assertIsNotNone(problem("dispatch", ["pull_request"], None))
         self.assertIsNotNone(problem("label:x", ["push"], None))
         self.assertIsNotNone(problem("push-branch:release", ["pull_request"], None))
+        # #494 B9: a workflow_run-only workflow (the merge-hold re-check) has its own activation.
+        self.assertTrue(ci_impact.ACTIVATION_RE.fullmatch("workflow-run"))
+        self.assertIsNone(problem("workflow-run", ["workflow_run"], None))
+        self.assertIsNotNone(problem("workflow-run", ["pull_request"], None))
+        self.assertIsNotNone(problem("automatic", ["workflow_run"], None))
         catalogue = tomllib.loads(COVERAGE_CATALOGUE.replace(
             'id = "host"\nname = "host"\nclass = "core"\nactivation = "automatic"',
             'id = "host"\nname = "host"\nclass = "operational"\nactivation = "schedule"'))

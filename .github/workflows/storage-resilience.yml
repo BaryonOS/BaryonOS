@@ -27,6 +27,10 @@ on:
       - '.github/workflows/storage-resilience.yml'
       - '.github/actions/**'
       - '.github/actions/preserve-evidence/**'
+  # Gates also report on the merge-queue commit (main plus the queued pull
+  # requests), with no path filter, so a queue commit runs the full scope.
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
