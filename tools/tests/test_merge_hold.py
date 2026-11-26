@@ -1156,8 +1156,12 @@ class MergeGroupTests(TestCase):
 
     NATIVE = ".github/workflows/native-foundation.yml"
 
-    def docs_only_group(self, mode="select", native_selected=False):
-        """host-quality and qemu-smoke pass; the leaves fail and a native suite still runs on GROUP."""
+    ADVICE = ".github/workflows/advice.yml"
+
+    def docs_only_group(self, mode="select", native_selected=False, advisory_run=False):
+        """host-quality and qemu-smoke pass; the leaves fail and a native suite still runs on GROUP.
+
+        advisory_run adds an advisory-only workflow whose run has a failed unregistered job."""
         selected = [row("ci#host-quality", CI, "host-quality", "core"), row("ci#qemu-smoke", CI, "qemu-smoke", "core"),
                     row("merge-hold#merge-hold", merge_hold.GATE_WORKFLOW, "merge-hold", "core")]
         native = row("native-foundation#native", self.NATIVE, "native")
@@ -1168,16 +1172,22 @@ class MergeGroupTests(TestCase):
         else:
             excluded.append({key: native[key] for key in ("id", "class", "workflow", "job", "check_name")}
                             | {"reason": "no-input-match"})
+        runs = [group_run(1, CI), group_run(2, LEAVES, conclusion="failure"),
+                group_run(3, self.NATIVE, status="in_progress", conclusion=None)]
+        if advisory_run:
+            excluded.append({"id": "advice#advice", "class": "advisory", "workflow": self.ADVICE, "job": "advice",
+                             "check_name": "advice", "reason": "advisory"})
+            runs.append(group_run(4, self.ADVICE, conclusion="failure"))
         plan = group_plan(mode=mode, fallback=None if mode == "select" else group_plan()["fallback"],
                           selected=selected, excluded=excluded)
         failed_check = {"name": "quality (viewer)", "status": "completed", "conclusion": "failure", "id": 99}
         return self.run_group(
             self.QUEUE, plan=plan, checks=[{"check_runs": DONE["check_runs"] + [failed_check]}],
-            group_runs={GROUP: [group_run(1, CI), group_run(2, LEAVES, conclusion="failure"),
-                                group_run(3, self.NATIVE, status="in_progress", conclusion=None)]},
+            group_runs={GROUP: runs},
             group_jobs={1: [job(11, 1, "host-quality"), job(12, 1, "qemu-smoke")],
                         2: [job(21, 2, "quality (viewer)", "failure")],
-                        3: [job(31, 3, "native", None, "in_progress")]})
+                        3: [job(31, 3, "native", None, "in_progress")],
+                        4: [job(41, 4, "advice", "failure"), job(42, 4, "stray", "failure")]})
 
     def test_a_docs_only_group_passes_on_core_without_awaiting_or_judging_unselected_suites(self):
         code, out, calls = self.docs_only_group()
@@ -1192,6 +1202,11 @@ class MergeGroupTests(TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("::error::Failed: quality (viewer): failure in run 2 attempt 1", out)
         self.assertNotIn("Not applicable, neither awaited", out)
+        # A workflow without any core or rwa gate is still judged: its failed unregistered job fails the group.
+        code, out, _ = self.docs_only_group(advisory_run=True)
+        self.assertEqual(code, 1, out)
+        self.assertIn("::error::Failed: stray: failure in run 4 attempt 1", out)
+        self.assertIn(f"neither awaited nor judged (no selected gate): {LEAVES}, {self.NATIVE}.", out)
         # A selected suite that is still running is awaited and fails closed at the deadline.
         with mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
             code, out, _ = self.docs_only_group(native_selected=True)

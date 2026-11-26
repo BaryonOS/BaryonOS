@@ -631,18 +631,21 @@ def job_matches(row, job):
 
 
 def unselected_workflows(plan):
-    """Workflows a merge_group select plan neither awaits nor judges: no core or rwa gate of theirs is selected.
+    """Workflows a merge_group select plan neither awaits nor judges: a core or rwa gate of theirs is
+    excluded as no-input-match and none is selected.
 
     They still start on the queue commit until their jobs are skipped there, but the plan found
     none of their inputs in the diff from the trusted base, so they are not applicable, as a path
     filter keeps them from starting on pull_request (ADR-CI-MERGE-GROUP-SELECT-20261126). A
-    workflow with a selected gate is judged whole: its siblings and unregistered jobs as before.
-    Every other plan (pull_request, full) judges every counted workflow.
+    workflow with a selected gate is judged whole (its siblings and unregistered jobs as before),
+    and so is one without any core or rwa gate (advisory or trigger-only). Every other plan
+    (pull_request, full) judges every counted workflow.
     """
     if plan.get("event") != "merge_group" or plan.get("mode") != "select":
         return set()
     selected = {row["workflow"] for row in plan["selected"] if row.get("class") in SELECTABLE}
-    return {row["workflow"] for row in plan["excluded"] if row.get("workflow")} - selected
+    return {row["workflow"] for row in plan["excluded"]
+            if row.get("class") in SELECTABLE and row.get("reason") == "no-input-match"} - selected
 
 
 def counted_workflows(plan):

@@ -60,13 +60,15 @@ commit of #572.
   report line records T, `merge_group.base_sha` and the queue commit.
 - **Judging.** The expected gates are the selected `core` and `rwa` gates of
   that plan. A selected gate that is skipped, missing, failed or still running
-  blocks as before. Under a `select` plan a workflow with no selected `core`
-  or `rwa` gate is neither awaited nor judged on the queue commit: its runs,
-  including a failed or still running one, do not affect the decision, as a
-  path filter keeps such a workflow from starting on `pull_request`. The
-  report names these workflows. A workflow with a selected gate is judged
-  whole, as before, with its other jobs and unregistered jobs. A `full` plan
-  is judged as before. `WAIT_CHECKS` (`host-quality`, `qemu-smoke`), the walk
+  blocks as before. Under a `select` plan a workflow whose `core` or `rwa`
+  gates are excluded as `no-input-match`, none of them selected, is neither
+  awaited nor judged on the queue commit: its runs, including a failed or
+  still running one, do not affect the decision, as a path filter keeps such
+  a workflow from starting on `pull_request`. The report names these
+  workflows. A workflow with a selected gate is judged whole, as before, with
+  its other jobs and unregistered jobs, and so is a workflow without any
+  `core` or `rwa` gate (advisory or trigger-only). A `full` plan is judged as
+  before. `WAIT_CHECKS` (`host-quality`, `qemu-smoke`), the walk
   over the entries ahead, the member rules and `entry_hold_passed` are
   unchanged.
 - **Fail-closed rules.** Where no trusted copy of the tools can be identified,

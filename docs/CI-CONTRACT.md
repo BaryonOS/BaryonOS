@@ -886,11 +886,12 @@ base selects:
   wait budget is read from T's catalogue. The `select-ci` input `base-sha`
   above stays `merge_group.base_sha`: the `select` jobs never narrow on
   `merge_group`, so only this plan decides.
-- Under a `select` plan a workflow without a selected `core` or `rwa` gate is
-  neither awaited nor judged on the queue commit, and the report names it; a
-  selected gate that is skipped or missing still fails. A workflow with a
-  selected gate, and every workflow under a `full` plan, is judged as
-  below.
+- Under a `select` plan a workflow whose `core` or `rwa` gates are excluded
+  as `no-input-match`, none of them selected, is neither awaited nor judged on
+  the queue commit, and the report names it; a selected gate that is skipped
+  or missing still fails. A workflow with a selected gate, a workflow without
+  any `core` or `rwa` gate, and every workflow under a `full` plan are judged
+  as below.
 - A run counts only with event `merge_group`, head SHA the queue commit, head
   branch the queue ref without `refs/heads/`, and repository and head
   repository this repository; its `pull_requests` list is not used. GitHub's
