@@ -645,7 +645,7 @@ filtered before GitHub creates a re-check run; they cannot change a pull request
 hold. The other workflows
 (today the Copilot environment, the Materiaal probe, the security alert summary
 and the Windows QEMU bundle) are triggers only: merge-hold counts their runs
-too, and a run that kept changing while merge-hold read it, a run whose listed
+too, and a run that did not settle while merge-hold read it, a run whose listed
 jobs belong to another attempt, or a running job that the base catalogue does
 not know, leaves merge-hold at "Pending". Its script,
 `tools/merge_hold_recheck.py`, handles the two activities separately.

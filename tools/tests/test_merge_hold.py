@@ -1532,6 +1532,16 @@ class GateTests(TestCase):
                 self.assertTrue(passed, out)
                 self.assertIn("Passed: host-quality: success in run 1 attempt 2", out)
 
+    def test_one_job_of_another_attempt_holds_the_run_even_beside_bound_gates(self):
+        """Every listed job is bound, not only the first one or the expected gates: a listing that
+        mixes the re-run gate of attempt 2 with a lagging job of attempt 1 is not attempt 2's."""
+        mixed = {**GOOD_JOBS, 1: [job(13, 1, "host-quality", attempt=2), job(12, 1, "advice")]}
+        passed, out, _ = self.decide(runs_=[wf_run(1, CI, attempt=2), wf_run(2, LEAVES)], jobs=mixed)
+        self.assertFalse(passed)
+        self.assertIn(f"Pending: {CI}: run 1 attempt 2 listed jobs of another attempt; re-run merge-hold", out)
+        self.assertIn("1 applicable gate(s) passed; 1 filtered out; 1 pending; 0 failed.", out)
+        self.assertNotIn("Passed: host-quality", out)
+
     def test_a_new_running_attempt_is_not_failed_on_the_old_attempts_failed_job(self):
         """P2: a new attempt runs while `filter=latest` still lists the old attempt's failed job;
         that failure is no longer the run's outcome, so the run stays pending, not failed."""
