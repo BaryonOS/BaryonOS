@@ -1254,6 +1254,7 @@ class MergeGroupTests(TestCase):
                                         "group_jobs": jobs(job(700, 70, "merge-hold", attempt=1))}),
                 ("a failed job", {"group_jobs": jobs(good, job(701, 70, "x", "failure", attempt=2))}),
                 ("a running job", {"group_jobs": jobs(good, job(701, 70, "x", None, "in_progress", attempt=2))}),
+                ("a job both running and successful", {"group_jobs": jobs(dict(good, status="in_progress"))}),
                 ("no job", {"group_jobs": jobs()}),
                 ("only a job of another run", {"group_jobs": jobs(job(700, 71, "merge-hold", attempt=2))})):
             with self.subTest(why=why):
