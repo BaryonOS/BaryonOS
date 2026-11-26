@@ -7,7 +7,7 @@ ADR-SPECIALIST-TEAM-20261125 clause 2 (#527, 9cc1b86f), which extends
 ADR-MERGE-DELEGATION-20261123 to A; squash with --match-head-commit after the
 required checks and merge-hold pass. Report the kernel write set to
 the PR Bewaker before committing under `kernel/` (S and H write `volume.rs`).
-Last updated: 2026-11-25 (Europe/Amsterdam).
+Last updated: 2026-11-26 (Europe/Amsterdam). Owner session ref `b92220` since 26 Nov ~11:45Z UTC.
 
 ## Criteria status (from docs/PROGRESS.md at origin/main 5846e1fb)
 
@@ -135,6 +135,30 @@ notice is a fixture; no full A03 acceptance.
 - The T2c-3 option-A decision is recorded only in this handoff (215cadac); a fresh
   resume prompt still described it as pending. Confirm it with the project owner
   before any T2c-3 kernel work.
+
+## A03-T2c-2 native volume broker (26 Nov, local, NOT pushed)
+
+- Branch `claude/a03-t2c2-volume-native-20261126`, worktree
+  `~/projects/BaryonOS-worktrees/a-track-t2c2`: T2c-1 db76a416 + main 2289a271 +
+  S seed 6206b8c8 (merged locally with S's consent) + #535 5159f8cc; T2c-2 commit
+  16384b01. **Push only after S's seeded-read PR is on main and main is merged
+  in again** (S's squash has another SHA; content expected identical).
+- Write set: new `kernel/src/m2/m3/task_grant_volume.rs`; `m3.rs` 2 lines (path
+  swap at `mod system;`, `SYSTEM_WORKER_ELF` exclusion); `kernel/Cargo.toml`
+  features `native-task-grant-volume`, `test-task-grant-volume-denied`;
+  `tools/build.py` new lines only; new `tools/build_task_grant_volume.py`;
+  `tools/run.py` optional `volume_variant`; `run_task_grant.py` cases
+  `volume`/`volume-denied`; broker bin volume mode (word 80). No `volume.rs`.
+- Evidence (QEMU x86_64, build/t2c2/): volume and volume-denied raw exit 33;
+  mutations skip-authorise (FAIL:BROKER_LOG) and skip-retire
+  (FAIL:EXIT_RETIREMENT) raw 35; regressions native-task-grant normal/denied,
+  native-sdk-app normal and the 4-stage NAS gate pass; host: broker 22/22,
+  clippy/fmt 0, test_ci_workflows 70 OK, test_ci_impact 114 OK, coverage clean,
+  progress --check 43/100. Assessment `2026-11-26-a03-volume-native.json`.
+- Evidence limits: volume `rejected` is 1 after startup (checked unchanged, not
+  0); domain 1 names the helper's PID with its send closed (nas.rs pattern), no
+  separate silent process; Stale path host-only; dialog and exit notice remain
+  fixtures. A CI job for the new cases is a `.github` request to CI.
 
 ## Next action
 

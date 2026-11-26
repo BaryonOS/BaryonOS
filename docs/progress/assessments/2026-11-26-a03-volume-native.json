@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "16384b01f574c4aa541c1d8a9e152f7910ae3615",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/a03-t2c2-volume-native-20261126",
+  "task": "A03-T2c-2 native task-grant broker as sole client of a read-only volume domain 0",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. A03 stays open: on QEMU x86_64 the native broker now reads a seeded read-only volume (BLOCK_READ grant, read-only service mode) and only an authorised READ reaches the volume (normal and denied raw exit 33; skipping authorisation or retirement fails the gate; the attached image stays byte-identical to a fresh seed), but the trusted dialog and the exit notice remain labelled fixtures, the Stale path is host-tested only and the product exit notification (T2c-3) is missing."
+}
