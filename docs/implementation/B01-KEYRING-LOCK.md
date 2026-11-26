@@ -1,10 +1,9 @@
 # B01-LOCK — keyring LOCK/UNLOCK contract for key erasure before S3
 
-Date: 26 November 2026. Status: **proposed design contract** of workstream B.
-Nothing in this document is implemented and no check has been executed for it.
-Proposed decision: ADR-KEYRING-LOCK-20261126; its text is in §12 and moves to
-[DECISIONS](../DECISIONS.md) only after project-owner approval, because that
-file has no precedent for an unapproved entry. Basis: `origin/main`
+Date: 26 November 2026. Status: **design contract** of workstream B. The
+project owner decided O1 on 26 November 2026; UNLOCK, O2, O5 and O8 remain
+open. Nothing in this document is implemented and no check has been executed
+for it. Decision: ADR-KEYRING-LOCK-20261126 in [DECISIONS](../DECISIONS.md). Basis: `origin/main`
 `fb4a40fa`. Statements about current behaviour come from reading that source.
 Lines marked † were re-read for this document; the others come from a
 read-only source survey of the same commit and are to be re-read by whoever
@@ -147,13 +146,11 @@ F2 is false in every current profile: init's ELF carries the public
 S3 can therefore show the erasure mechanism (F1) but claims no
 confidentiality.
 
-**OWNER question O1.** May SUSPEND pass on F1 alone in TEST profiles? The
-markers and evidence would carry the label "instance erased; unwrap secret is
-a public TEST constant". The alternative is that SUSPEND refuses until F2
-also holds, which means no S3 until a product secret source exists.
-Recommendation: allow F1 alone only in TEST profiles, with that label, and
-require F1 and F2 in every non-TEST profile. Q3's "refuse if not guaranteed"
-makes this the project owner's decision.
+**Project-owner decision O1 (26 November 2026, "Yes, with a label").**
+- In TEST profiles, SUSPEND may pass on F1 alone. Every SUSPEND marker and
+  every evidence record of such a pass carries the label "instance erased;
+  unwrap secret is a public TEST constant", and claims no confidentiality.
+- Every non-TEST profile requires both F1 and F2.
 
 ## 5. Security invariants
 
@@ -365,7 +362,7 @@ A review by a second AI is not an independent audit.
 
 | ID | Owner | Question |
 |---|---|---|
-| O1 | project owner | F1 alone in TEST profiles with a label, or no S3 until F2 holds (§4) |
+| O1 | project owner | decided 26 November 2026: F1 alone in TEST profiles with the label; F1 and F2 in every non-TEST profile (§4) |
 | O2 | project owner | product unwrap-secret source for UNLOCK: a sign-in-derived secret, a TPM-sealed factor with user authorisation (B03/B04), or both; which component holds it and for how long |
 | O3 | H | answered 26 November 2026: 0x92, -25, -8 retry and -14 already LOCKED, C1–C4 as in §6.1; non-binding until O1 and the ADR exist |
 | O4 | S | answered 26 November 2026: the remount needs no keys (§7 U5) |
@@ -386,31 +383,8 @@ A review by a second AI is not an independent audit.
 The two slices touch `kernel/src/m2/m3/system.rs` and are therefore
 sequential, never parallel writers.
 
-## 12. Proposed ADR text (to be inserted after approval)
+## 12. Decision record
 
-> **ADR-KEYRING-LOCK-20261126 — Key erasure before S3 by kernel teardown of
-> the Key Service instance**
->
-> **Status:** proposed by workstream B on 26 November 2026; not approved.
->
-> **Decision.**
-> 1. The kernel keeps a keyring lock state that only its own LOCK path sets
->    (KL1).
-> 2. LOCK (syscall 0x92) is init-only under the POWER object. It ends the Key Service
->    instance through process teardown after side-effect-free preconditions,
->    and it wipes or scrubs the kernel copies of Key Service payloads (KL3,
->    KL4).
-> 3. SUSPEND refuses with -25 while the state is not LOCKED
->    (KL2). In non-TEST profiles it also requires that no unwrap path remains
->    (F2).
-> 4. UNLOCK is a fresh instance that serves keys only after fresh entropy and
->    a restore with a session-authenticated secret (KL6, KL7). Its mechanism
->    is a separate decision.
->
-> **Consequences.**
-> - TEST profiles show the mechanism, not confidentiality, because the unwrap
->   secret is a public constant.
-> - The system runs without key service between LOCK and UNLOCK.
-> - Key state that is not durable at LOCK is lost (O5).
->
-> **Specification:** docs/implementation/B01-KEYRING-LOCK.md.
+The decision text is ADR-KEYRING-LOCK-20261126 in
+[DECISIONS](../DECISIONS.md). It records the project-owner decision on O1 and
+the B and H technical decision on LOCK, its codes and the work split.
