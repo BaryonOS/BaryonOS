@@ -93,7 +93,6 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Next executable task
 
-After this merge (order: N ADR pull request, then B's #524): port
-`durable.rs` to B's extend-chain contract. Implement `chain_after` locally
-(`sha2 =0.10.9`, force-soft), check B's golden vectors, and turn the three
-ignored M1 tests green against a hostile `extend`, using B's test names.
+After this merge: torn-A1 store recovery (C143, #529), stacked on this
+port on `claude/n04-store-slots-20261125`. Native S5 verification on swtpm
+waits for B's kernel anchor service.
