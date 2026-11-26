@@ -672,8 +672,9 @@ class Plan(unittest.TestCase):
 
     def test_every_parent_is_the_last_writer_of_its_directory(self):
         plan = self.plan()
-        self.assertEqual(len(plan), 32)
-        self.assertEqual(plan[-6:], [("l2-export", "archive-export"), ("l2-restore", "l2-export"),
+        self.assertEqual(len(plan), 34)
+        self.assertEqual(plan[-2:], [("o13-latch", None), ("o13-latch-0x44", None)])
+        self.assertEqual(plan[-8:-2], [("l2-export", "archive-export"), ("l2-restore", "l2-export"),
                                      ("l2-corrupt", "l2-export"), ("l2-used", "l2-restore"),
                                      ("l2-restore-cut", "l2-export"), ("recover-l2-cut", "l2-restore-cut")])
         directory, writer = {}, {}

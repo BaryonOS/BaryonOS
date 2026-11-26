@@ -67,6 +67,106 @@ def image_bytes(raw=None, *, history=False, other_object=False, generation=21):
     return bytes(image)
 
 
+NAMESPACE = bytes([0xC9]) * 32
+
+
+def interrupted_image(stage, *, current=None, retained=None, generation=None):
+    """Synthetic volume with the exact interrupted-purge versions written."""
+    current = oracle.interrupt_snapshot(NAMESPACE, 11, 12, generation=6, revoked_copy=False) \
+        if current is None else current
+    if retained is None and stage == "interrupt":
+        retained = oracle.interrupt_snapshot(NAMESPACE, 11, 12, generation=5, revoked_copy=True)
+    generation = oracle.INTERRUPT_VOLUME_GENERATION[stage] if generation is None else generation
+    with tempfile.TemporaryDirectory(prefix="nieuw-os-nas-oracle-") as directory:
+        path = Path(directory) / "synthetic.img"
+        disk.create_image(path)
+        image = bytearray(path.read_bytes())
+    next_chunk = 0
+
+    def place(raw, revision):
+        nonlocal next_chunk
+        chunks = [raw[i:i + disk.CHUNK] for i in range(0, len(raw), disk.CHUNK)]
+        indices = list(range(next_chunk, next_chunk + len(chunks)))
+        next_chunk += len(chunks)
+        for index, chunk in zip(indices, chunks):
+            start = (disk.FIRST + disk.DATA_START + index * disk.CHUNK_SECTORS) * disk.SECTOR
+            image[start:start + len(chunk)] = chunk
+        return {"revision": revision, "length": len(raw), "name": b"nas-authority-v1",
+                "content_sum": disk.fnv(raw), "chunks": indices,
+                "sums": [disk.fnv(chunk) for chunk in chunks]}
+
+    head = place(current, generation if stage == "interrupt" else generation - 1)
+    history = [place(retained, generation - 2)] if retained is not None else []
+    for g in [generation - 1, generation]:
+        entries = [disk.empty_entry() for _ in range(disk.OBJECTS)]
+        entries[0] = dict(disk.empty_entry(), revision=g, request_id=g, created=1, modified=g,
+                          present=True, current=dict(head, revision=min(head["revision"], g)),
+                          history=copy.deepcopy(history))
+        for index, sector in enumerate(disk.encode_table(g, g, entries, clocks=[g, 0])):
+            start = (disk.FIRST + (g % 2) * disk.TABLE_SECTORS + index) * disk.SECTOR
+            image[start:start + disk.SECTOR] = sector
+    return bytes(image)
+
+
+class InterruptedPurgeOracleTests(unittest.TestCase):
+    def test_exact_interrupt_and_repair_states_pass(self):
+        interrupt = oracle.check_interrupted_image(interrupted_image("interrupt"), 11, 12, "interrupt")
+        self.assertEqual((interrupt["authority_history_versions"],
+                          interrupt["retained_ciphertext_bytes"]), (1, 96))
+        repair = oracle.check_interrupted_image(interrupted_image("repair"), 11, 12, "repair")
+        self.assertEqual((repair["authority_history_versions"],
+                          repair["retained_ciphertext_bytes"]), (0, 0))
+        self.assertEqual(repair["physical_erasure"], "not-assessed")
+        self.assertNotIn(oracle.INTERRUPT_CONTENT.hex(), json.dumps(interrupt))
+
+    def test_unrepaired_history_and_missing_history_are_stage_bound(self):
+        retained = oracle.interrupt_snapshot(NAMESPACE, 11, 12, generation=5, revoked_copy=True)
+        for stage, image in [
+                ("repair", interrupted_image("repair", retained=retained)),
+                ("interrupt", interrupted_image("repair", generation=10)),
+                ("interrupt", interrupted_image("repair")),
+                ("repair", interrupted_image("interrupt"))]:
+            with self.subTest(stage=stage), self.assertRaises(ValueError):
+                oracle.check_interrupted_image(image, 11, 12, stage)
+
+    def test_revived_authority_or_altered_copy_is_rejected(self):
+        tombstone = oracle.interrupt_snapshot(NAMESPACE, 11, 12, generation=6, revoked_copy=False)
+        revoked = oracle.interrupt_snapshot(NAMESPACE, 11, 12, generation=5, revoked_copy=True)
+        mutations = []
+        for at in (16, 96, 104, 112, 120, 64 + 128):
+            raw = bytearray(tombstone)
+            raw[at] ^= 1
+            mutations.append(("current", bytes(raw)))
+        # Repair must not settle on the older revoked copy as current state.
+        mutations.append(("current", revoked))
+        for at in (96, 64 + 128 + 16, 64 + 128 + 16 + 95):
+            raw = bytearray(revoked)
+            raw[at] ^= 1
+            mutations.append(("retained", bytes(raw)))
+        for which, raw in mutations:
+            stage = "interrupt" if which == "retained" else "repair"
+            kwargs = {which: raw}
+            with self.subTest(which=which), self.assertRaises(ValueError):
+                oracle.check_interrupted_image(interrupted_image(stage, **kwargs), 11, 12, stage)
+
+    def test_unknown_stage_identity_and_cli_flags_fail_closed(self):
+        with self.assertRaises(ValueError):
+            oracle.check_interrupted_image(interrupted_image("repair"), 11, 12, "cold")
+        with self.assertRaises(ValueError):
+            oracle.check_interrupted_image(interrupted_image("repair"), 12, 11, "repair")
+        with tempfile.TemporaryDirectory(prefix="nieuw-os-nas-oracle-cli-") as directory:
+            path = Path(directory) / "synthetic.img"
+            path.write_bytes(interrupted_image("repair"))
+            base = [sys.executable, "-B", str(oracle.HERE / "disk_oracle.py"), str(path),
+                    "--admin-pid", "11", "--guest-pid", "12", "--stage", "repair"]
+            result = subprocess.run(base, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout)["authority_history_versions"], 0)
+            result = subprocess.run(base + ["--normal-sha256", "0" * 64],
+                                    capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 2)
+
+
 class DiskOracleTests(unittest.TestCase):
     def test_exact_final_state_and_unchanged_cold_image_pass_without_payload_report(self):
         image = image_bytes()

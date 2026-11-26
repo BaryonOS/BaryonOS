@@ -90,7 +90,8 @@ zero. The existing volume service uses its **own unmodified** layout.
 | 80 | guest coordination RECV | guest reply SEND | admin coordination RECV |
 | 88 | 0 | volume SEND | 0 |
 | 96 | 0 | volume reply RECV | 0 |
-| 112 | normal 0, cold 1 | normal 0, cold 1 | normal 0, cold 1 |
+| 112 | normal 0, cold 1, interrupt 2, repair 3 | same | same |
+| 208 | 0 | repair: 1 after `finish_cleanup` | 0 |
 | 120 | 0 | 1 | 3 |
 | 160 | NAS PID | admin PID | NAS PID |
 | 168 | guest PID | guest PID | admin PID |
@@ -192,6 +193,32 @@ two bounded test inputs below; they are not included in the NAS wire,
 snapshot, ordinary logs or reports. Idempotent eviction/shutdown
 write nothing.
 No content key is delivered to the NAS or administrator.
+
+## Interrupted purge and repair (P04-T1, LP-25)
+
+Interrupt (stage 2, writable fresh image, no replay attachment): the
+administrator offers 128 bytes; the guest accepts, opens, commits 96 synthetic
+bytes and exits. With usage Active 96/0 observed, the administrator sends
+Evict. The NAS service performs revoke (WRITE+PURGE) and evict's WRITE, then
+exits with code 3 and word 40 = 2 before evict's history PURGE reaches the
+volume service. The kernel requires that exit, emits
+`NAS:PURGE_INTERRUPTED:PASS`, and reaps the still-waiting administrator
+(word 40 = 2). Core generation 6; volume generation 10; the authority object
+keeps exactly one history version: the Revoked snapshot holding the 96-byte
+ciphertext copy. Expected successes/errors: admin 2/0, NAS 6/2, guest 4/2.
+
+Repair (stage 3, the exact passing interrupt image, writable): the first
+`Service::recover` must return `ReopenRequired` without writing. The NAS then
+calls `VolumeStorage::finish_cleanup` (validates the current snapshot, then
+purges history), sets word 208 = 1 and recovers. Admin and guest observe the
+same Evicted/denied state as cold; the guest replays no tokens. Volume
+generation 11 with no history. Expected successes/errors: admin 4/0, NAS 4/3,
+guest 0/3. Both disk states are checked by `disk_oracle.py --stage`.
+
+Evidence limit: a controlled NAS process exit between two volume RPCs while
+the volume service stays alive. Not covered: power loss, torn or reordered
+writes, disk errors, the revoke-PURGE window, remote sessions, or physical
+erasure of freed sectors (the oracle checks logical volume state only).
 
 ## Exact boot-1 token replay — leaf requirement, root binding still open
 
