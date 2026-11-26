@@ -1231,7 +1231,7 @@ fn input_bytes(s: &State, slot: usize, pointer: u64) -> Result<[u8; 512], i64> {
 }
 
 pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
-    let result = device_call(s, slot, n, a);
+    let result = quarantine_code(device_call(s, slot, n, a));
     #[cfg(feature = "test-system-s3")]
     super::system::after_wake(slot, n, result.err().unwrap_or(0));
     #[cfg(feature = "test-volume-o13-latch-0x44")]
@@ -1319,11 +1319,11 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     // After the wake the scalar 0x40 checks keep their codes without an
     // authority check; before the wake they run after authority, unchanged.
     #[cfg(feature = "test-system-s3")]
-    if n == 0x40 && super::system::resumed() {
+    if n == 0x40 && device_lost() {
         read_range(a)?;
     }
     #[cfg(feature = "test-system-s3")]
-    if super::system::resumed() {
+    if device_lost() {
         return Err(-14);
     }
     let pid = s.processes[slot].pid;
@@ -1527,7 +1527,7 @@ fn reset(r: &mut Runtime, index: usize, now: u64) {
     // gate) leaves publications != completions, so the S5 gate fails closed
     // (-16).
     #[cfg(feature = "test-system-s3")]
-    if super::system::resumed() {
+    if device_lost() {
         super::system::device_access_suppressed();
         return;
     }
@@ -1585,7 +1585,7 @@ fn advance_lane(r: &mut Runtime, index: usize, now: u64) {
     // admitted only a quiescent broker, every submission since returned -14,
     // and `reset` is latched off the device.
     #[cfg(feature = "test-system-s3")]
-    if super::system::resumed() {
+    if device_lost() {
         return;
     }
     if r.lanes[index].resetting {
@@ -2213,4 +2213,447 @@ pub(super) fn broker_summary() -> ([u64; 3], [u64; 3], bool) {
         r.completions,
         r.lanes[0].offline == 0 && r.lanes.iter().all(Lane::idle),
     )
+}
+
+// H05-T5c slice 1 (ADR-H05-S3-SYSTEM-20261123, amendment H05-T5c): the
+// post-wake latch, the kernel-driven virtio-blk re-init of lane 0 and its
+// quarantine. Every item of this slice sits in this block.
+
+// The held-completion fixture sleeps with a held request; re-init requires
+// a quiescent lane, so the two profiles can never be combined.
+#[cfg(all(
+    feature = "test-system-s3-blk-reinit",
+    feature = "test-system-s3-held-completion"
+))]
+compile_error!(
+    "test-system-s3-blk-reinit and test-system-s3-held-completion are mutually exclusive"
+);
+#[cfg(all(
+    feature = "test-system-s3-blk-reinit",
+    feature = "test-volume-archive-device"
+))]
+compile_error!("the H05-T5c re-init is lane-0 (00:05.0) only");
+
+/// Refusal of every block request once lane 0 is quarantined after a wake
+/// (owner Q4 with the lead's distinct-code decision of 25 Nov 2026). No other
+/// kernel or service status uses -24; -13 and -14 keep their meaning.
+pub(super) const QUARANTINED: i64 = -24;
+
+/// Post-wake latch (review R1, H05-T5c I10): the wake reset the device, so no
+/// broker path may touch it until the validated re-init (test-system-s3-blk-reinit
+/// only) lifted the latch. A quarantined lane stays latched until reboot.
+#[cfg(feature = "test-system-s3")]
+fn device_lost() -> bool {
+    super::system::resumed() && !blk_reinitialised()
+}
+/// Every S3 profile without blk re-init: the device stays lost.
+#[cfg(all(feature = "test-system-s3", not(feature = "test-system-s3-blk-reinit")))]
+fn blk_reinitialised() -> bool {
+    false
+}
+
+/// The latch refusal of a quarantined lane carries its own code; every other
+/// result (shape checks, authority, pre-wake broker codes) is unchanged.
+fn quarantine_code(result: Result<u64, i64>) -> Result<u64, i64> {
+    #[cfg(feature = "test-system-s3-blk-reinit")]
+    if result == Err(-14) && blk_state().stage == BLK_QUARANTINED {
+        return Err(QUARANTINED);
+    }
+    result
+}
+
+/// Accounted subset (review R3, H05-T5c I11): device accesses of the re-init
+/// stages. Broker paths are never accounted, so any broker device access
+/// after the wake still breaks `io_after == 0`.
+#[cfg(feature = "test-system-s3")]
+pub(super) fn reinit_accounted() -> u64 {
+    #[cfg(feature = "test-system-s3-blk-reinit")]
+    let accounted = BLK_ACCOUNTED.load(core::sync::atomic::Ordering::Relaxed);
+    #[cfg(not(feature = "test-system-s3-blk-reinit"))]
+    let accounted = 0;
+    accounted
+}
+#[cfg(feature = "test-system-s3-blk-reinit")]
+static BLK_ACCOUNTED: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+/// A device access of the re-init stages (`blk_reinit_poll`, `blk_reinit_quarantine`).
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_reinit_access() {
+    DEVICE_ACCESSES.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    BLK_ACCOUNTED.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+}
+
+/// Labelled test-only fault injections (owner Q6). Each corrupts an input of a
+/// real check, so only that check can refuse; none fabricates device success.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const INJECT_BUSY: bool = cfg!(feature = "test-system-s3-blk-reinit-busy");
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const INJECT_IDENTITY: bool = cfg!(feature = "test-system-s3-blk-reinit-identity");
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const INJECT_CAPACITY: bool = cfg!(feature = "test-system-s3-blk-reinit-capacity");
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const INJECT_NO_RESET_ACK: bool = cfg!(feature = "test-system-s3-blk-reinit-no-reset-ack");
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const _: () = assert!(
+    INJECT_BUSY as u8 + INJECT_IDENTITY as u8 + INJECT_CAPACITY as u8 + INJECT_NO_RESET_ACK as u8
+        <= 1
+);
+
+/// Reserved canary sector of the self-test READ: below FIRST_SECTOR, never
+/// granted, its bytes discarded (I12).
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const CANARY_SECTOR: u64 = 0;
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const _: () = assert!(CANARY_SECTOR < FIRST_SECTOR);
+
+/// Stages: 0 quiescence + rediscover + reset, 1 acknowledgement + ownership +
+/// initialize + negotiated-state and epoch checks + self-test READ,
+/// 2 self-test answer, then done or quarantined (both terminal).
+// One-shot: never reset after BLK_DONE/BLK_QUARANTINED. Safe only because
+// SUSPEND is granted once per boot; a multi-cycle S3 slice must reset this
+// state on each wake.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+struct BlkReinit {
+    stage: u8,
+    deadline: u64,
+    bars: Option<virtio_blk_driver::BarState>,
+    saved: Option<virtio_blk_driver::Negotiated>,
+    epoch: u64,
+    /// Every pre-sleep ticket is below this; the sequence continues here.
+    floor: u64,
+    stale: i64,
+    pic: [u8; 3],
+    /// O13 carryover: the lane-0 latch table right after the test-only latch
+    /// was registered and latched, before any reset; `None` if that failed.
+    latches: Option<[Option<virtio_core::LatchEntry>; virtio_core::LATCH_ENTRIES]>,
+}
+#[cfg(feature = "test-system-s3-blk-reinit")]
+static mut BLK_REINIT: BlkReinit = BlkReinit {
+    stage: 0,
+    deadline: 0,
+    bars: None,
+    saved: None,
+    epoch: 0,
+    floor: 0,
+    stale: 0,
+    pic: [0; 3],
+    latches: None,
+};
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_state() -> &'static mut BlkReinit {
+    // SAFETY: KERNEL held, IF=0, one CPU; each borrow ends before scheduling.
+    unsafe { &mut *ptr::addr_of_mut!(BLK_REINIT) }
+}
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const BLK_DONE: u8 = 3;
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const BLK_QUARANTINED: u8 = 4;
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_reinitialised() -> bool {
+    blk_state().stage == BLK_DONE
+}
+/// Re-init reached a terminal state: validated, or lane 0 quarantined.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+pub(super) fn blk_reinit_settled() -> bool {
+    blk_state().stage >= BLK_DONE
+}
+/// (quarantined, stale-ticket result, PIC master mask, PIC slave mask,
+/// interrupt line, O13 latch carried) once settled.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+pub(super) fn blk_reinit_evidence() -> Option<(bool, i64, [u8; 3], bool)> {
+    let p = blk_state();
+    (p.stage >= BLK_DONE).then(|| {
+        (
+            p.stage == BLK_QUARANTINED,
+            p.stale,
+            p.pic,
+            blk_latch_carried(),
+        )
+    })
+}
+
+/// O13 carryover (S09 2.7): re-init and quarantine keep the same lane Policy,
+/// so the latch table is unchanged and the canary sector is still latched.
+/// A replaced (freshly constructed) Policy has an empty table and fails this.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_latch_carried() -> bool {
+    let policy = &runtime().lanes[0].policy;
+    blk_state().latches == Some(policy.latches()) && policy.write_latched(CANARY_SECTOR)
+}
+
+/// The next ticket of `policy`, observed on a copy; the lane Policy itself is
+/// never replaced, reassigned or advanced by the observation.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_next_ticket(policy: &Policy, capacity: u64, now: u64) -> Option<u64> {
+    let mut probe = *policy;
+    probe
+        .prepare(
+            blk_probe_binding(),
+            blk_probe_read(),
+            capacity,
+            now,
+            TIMEOUT,
+        )
+        .ok()
+        .map(|request| request.ticket)
+}
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_probe_binding() -> Binding {
+    Binding {
+        pid: u64::MAX,
+        object_key: u64::MAX,
+    }
+}
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_probe_read() -> Operation {
+    Operation::Read {
+        sector: CANARY_SECTOR,
+        offset: 0,
+        length: 1,
+    }
+}
+
+/// 8259 interrupt mask registers (OCW1 read), master and slave.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn pic_masks() -> [u8; 2] {
+    let mut masks = [0u8; 2];
+    for (mask, port) in masks.iter_mut().zip([0x21u16, 0xa1]) {
+        // SAFETY: CPL0 read of the fixed legacy PIC mask register; no state
+        // change, no memory operand.
+        unsafe {
+            asm!("in al,dx", in("dx") port, out("al") *mask, options(nomem, nostack, preserves_flags));
+        }
+    }
+    masks
+}
+
+/// Owner Q4: a refused re-init quarantines lane 0 and the system continues.
+/// Before `rediscover` validated the function no MMIO is issued; afterwards
+/// the device is stopped (status 0, bus mastering off). The lane Policy is
+/// quarantined (`reset_completed(false)`), never replaced; no retry, no
+/// re-init, no acknowledgement is claimed. `lane.offline` is left as is: it
+/// feeds the S5 durability gate, and the data was durable before SUSPEND.
+// SAFETY: blk_state() and runtime() are re-taken here rather than passed in:
+// one CPU, IF=0, and every caller has ended its own borrows before this call,
+// so no other `&'static mut` to BLK_REINIT or the runtime is live.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+fn blk_reinit_quarantine(reason: &[u8]) {
+    let validated = blk_state().bars.is_some();
+    let lane = &mut runtime().lanes[0];
+    if let Some(device) = lane.device.as_mut().filter(|_| validated) {
+        blk_reinit_access();
+        device.begin_reset();
+    }
+    if lane.policy.phase() != Phase::Quarantined {
+        if lane.policy.phase() != Phase::Resetting {
+            let _ = lane.policy.start_reset();
+        }
+        let _ = lane.policy.reset_completed(false);
+    }
+    lane.quarantined = true;
+    serial::write(b"VOLUME:S3:REINIT:QUARANTINE:");
+    serial::write(reason);
+    serial::write(b"\n");
+    blk_state().stage = BLK_QUARANTINED;
+}
+
+/// One step per poll after a validated wake and the virtio-rng re-init
+/// (`system::poll` calls this only then).
+#[cfg(feature = "test-system-s3-blk-reinit")]
+pub(super) fn blk_reinit_poll(s: &State) {
+    let p = blk_state();
+    match p.stage {
+        0 => {
+            for (injected, label) in [
+                (INJECT_BUSY, &b"BUSY"[..]),
+                (INJECT_IDENTITY, b"IDENTITY"),
+                (INJECT_CAPACITY, b"CAPACITY"),
+                (INJECT_NO_RESET_ACK, b"NO_RESET_ACK"),
+            ] {
+                if injected {
+                    serial::write(b"SYSTEM:FAULT_INJECTED:S3_BLK_");
+                    serial::write(label);
+                    serial::write(b"\n");
+                }
+            }
+            let lane = &mut runtime().lanes[0];
+            // O13 carryover, test-only: latch the never-granted canary sector
+            // before any check or reset, so every outcome (re-init or each
+            // quarantine) must carry it. No device access.
+            p.latches = (lane.policy.register_latch(CANARY_SECTOR, 1).is_ok()
+                && lane.policy.latch_scope(CANARY_SECTOR, 1).is_ok())
+            .then(|| lane.policy.latches());
+            // I1: the storage gate admitted the suspend only with this state.
+            let quiescent = lane.policy.request().is_none()
+                && lane.policy.phase() == Phase::Ready
+                && lane.error.is_none()
+                && !lane.resetting
+                && !lane.quarantined
+                && lane.offline == 0
+                && lane.info.is_some()
+                && lane.device.as_ref().is_some_and(|device| !device.pending());
+            if !quiescent || INJECT_BUSY {
+                return blk_reinit_quarantine(b"BROKER_BUSY");
+            }
+            let device = lane.device.as_ref().unwrap();
+            let capacity = device.capacity;
+            p.saved = Some(device.negotiated());
+            p.epoch = lane.policy.epoch();
+            // At least one pre-sleep ticket exists (init's block I/O).
+            p.floor = match blk_next_ticket(&lane.policy, capacity, s.ticks) {
+                Some(floor) if floor > 1 => floor,
+                _ => return blk_reinit_quarantine(b"NO_PRESLEEP_TICKET"),
+            };
+            if lane.policy.start_reset().is_err() {
+                return blk_reinit_quarantine(b"POLICY");
+            }
+            let mut saved = lane.info.unwrap();
+            if INJECT_IDENTITY {
+                // Subsystem ID as recorded before the sleep, one bit off.
+                saved.config[0x2c] ^= 1;
+            }
+            blk_reinit_access();
+            let Ok(bars) = virtio_blk_driver::rediscover(&saved) else {
+                return blk_reinit_quarantine(b"REDISCOVER");
+            };
+            p.bars = Some(bars);
+            blk_reinit_access();
+            lane.device.as_mut().unwrap().begin_reset();
+            p.deadline = s.ticks + RESET_TIMEOUT;
+            p.stage = 1;
+        }
+        1 => {
+            let lane = &mut runtime().lanes[0];
+            blk_reinit_access();
+            let acknowledged = lane.device.as_ref().is_some_and(Device::reset_acknowledged);
+            if !acknowledged || INJECT_NO_RESET_ACK {
+                if s.ticks < p.deadline {
+                    return;
+                }
+                return blk_reinit_quarantine(b"RESET_ACK");
+            }
+            if pool_pages(lane.pool)
+                .into_iter()
+                .any(|page| s.frames.owner(page) != Ok(Owner::Kernel))
+            {
+                return blk_reinit_quarantine(b"POOL_OWNER");
+            }
+            blk_reinit_access();
+            // SAFETY: The mappings from `prepare` are permanent supervisor UC/NX
+            // and `rediscover` proved the identity, BARs and regions they cover
+            // unchanged; the five pool pages are still exclusively kernel-owned
+            // and the reset was acknowledged (status 0, bus mastering off).
+            // `initialize_profile` zeroes all five pages (I8).
+            let initialized = unsafe {
+                Device::initialize_profile(
+                    lane.info.unwrap(),
+                    lane.mapped,
+                    lane.pool,
+                    !read_only(),
+                    false,
+                )
+            };
+            let Ok(device) = initialized else {
+                return blk_reinit_quarantine(b"INITIALIZE");
+            };
+            let mut expected = p.saved.unwrap();
+            if INJECT_CAPACITY {
+                expected.capacity += 1;
+            }
+            let compared = virtio_blk_driver::negotiated_matches(expected, device.negotiated());
+            // From here the new device value is the one to stop on refusal.
+            lane.device = Some(device);
+            match compared {
+                Ok(()) => {}
+                Err(virtio_core::Error::Range) => return blk_reinit_quarantine(b"CAPACITY"),
+                Err(virtio_core::Error::Unsupported) => return blk_reinit_quarantine(b"QUEUE"),
+                Err(_) => return blk_reinit_quarantine(b"NEGOTIATED"),
+            }
+            let device = lane.device.as_mut().unwrap();
+            blk_reinit_access();
+            if device.status() != 15 || device.pending() || device.pool != lane.pool {
+                return blk_reinit_quarantine(b"DEVICE_STATE");
+            }
+            // I9: the same Policy object, epoch + 1, the ticket sequence kept.
+            if lane.policy.reset_completed(true).is_err() || lane.policy.epoch() != p.epoch + 1 {
+                return blk_reinit_quarantine(b"EPOCH");
+            }
+            let capacity = device.capacity;
+            if blk_next_ticket(&lane.policy, capacity, s.ticks) != Some(p.floor) {
+                return blk_reinit_quarantine(b"TICKET_FLOOR");
+            }
+            // A pre-sleep ticket and the pre-sleep epoch are both refused (-1).
+            let stale = lane
+                .policy
+                .peek(blk_probe_binding(), p.floor - 1)
+                .err()
+                .map_or(0, err);
+            let mut probe = lane.policy;
+            let old_epoch = probe
+                .prepare(
+                    blk_probe_binding(),
+                    blk_probe_read(),
+                    capacity,
+                    s.ticks,
+                    TIMEOUT,
+                )
+                .ok()
+                .and_then(|request| probe.publish(p.epoch, request.ticket).err())
+                .map_or(0, err);
+            if stale != -1 || old_epoch != -1 {
+                return blk_reinit_quarantine(b"STALE_TICKET");
+            }
+            p.stale = stale;
+            // I13: INTx disabled at the function; the post-wake `timer_init`
+            // masked every 8259 line but the timer. Record and check the line.
+            let [master, slave] = pic_masks();
+            let line = lane.info.unwrap().config[0x3c];
+            let masked = match line {
+                0..=7 => master & (1 << line) != 0,
+                8..=15 => slave & (1 << (line - 8)) != 0,
+                _ => true,
+            };
+            p.pic = [master, slave, line];
+            if !masked {
+                return blk_reinit_quarantine(b"PIC_UNMASKED");
+            }
+            blk_reinit_access();
+            if device.submit(CANARY_SECTOR, false, false).is_err() {
+                return blk_reinit_quarantine(b"SELFTEST_REQUEST");
+            }
+            p.deadline = s.ticks + TIMEOUT;
+            p.stage = 2;
+        }
+        2 => {
+            let lane = &mut runtime().lanes[0];
+            let device = lane.device.as_mut().unwrap();
+            blk_reinit_access();
+            match device.poll(0) {
+                Ok(Some((mut data, Completion::Success))) => data.fill(0),
+                Ok(None) if s.ticks < p.deadline => return,
+                _ => return blk_reinit_quarantine(b"SELFTEST"),
+            }
+            blk_reinit_access();
+            let status = device.status();
+            if status != 15 || device.pending() {
+                return blk_reinit_quarantine(b"SELFTEST_STATE");
+            }
+            let bars: &[u8] = match p.bars {
+                Some(virtio_blk_driver::BarState::Kept) => b"KEPT",
+                _ => b"RESTORED",
+            };
+            let mut capacity = [b'0'; 20];
+            let mut value = device.capacity;
+            for byte in capacity.iter_mut().rev() {
+                *byte = b'0' + (value % 10) as u8;
+                value /= 10;
+            }
+            serial::write(b"VOLUME:S3:REINIT:BARS=");
+            serial::write(bars);
+            serial::write(b":STATUS=15:CAPACITY=");
+            serial::write(&capacity);
+            serial::write(b":SELFTEST=READ\n");
+            p.stage = BLK_DONE;
+        }
+        _ => {}
+    }
 }

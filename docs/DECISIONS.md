@@ -890,6 +890,84 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    device call site is preceded by an access counter; after CLEANUP the kernel
    requires zero post-wake device accesses outside the accounted re-init path,
    and live (non-zero) counters at the wake.
+   Amendment H05-T5c (25 November 2026, slice 1): under the opt-in profile
+   `test-system-s3-blk-reinit` (built on `test-system-s3-reinit`, mutually
+   exclusive with `test-system-s3-held-completion` by `compile_error!`), after a
+   validated wake and the virtio-rng re-init, the kernel re-validates and
+   re-initialises the virtio-blk primary lane (00:05.0, `Function::Primary`
+   only) and runs a kernel-driven READ of reserved canary sector 0 whose bytes
+   are discarded. No block capability is issued, `block_objects == 0` and the
+   SUSPEND storage gate are unchanged, and init's post-wake 0x40 with its POWER
+   handle now reaches the authority check (-6) instead of -14. The volume latch
+   (four `resumed()` call sites in three functions: `device_call` twice,
+   `reset`, `advance_lane`) now uses `device_lost()` = resumed and not
+   re-initialised; in every other
+   S3 profile block devices stay lost (-14), and the rng path is unchanged.
+   Project-owner decisions of 25 November 2026, as relayed in the H05-T5c task
+   brief (Q4 quoted verbatim from it; Q1-Q3, Q5 and Q6 summarised in full):
+   - **Q1** (ring-3 block re-grant), **Q2** (mandatory remount after a wake) and
+     **Q3** (key erasure before SUSPEND) are later slices; this slice
+     implements none of them and relaxes no gate.
+   - **Q4** "a refused blk re-init must NOT stop the system. It quarantines
+     lane 0 (offline, every later device request gets -14 before any device
+     access, no automatic retry or re-init, no false acknowledgement, no
+     replay) and the system continues to the existing S5 gate and recovery."
+     This overrides the review's I1 "exit 0x11". The lead decision of
+     25 November 2026 reserves one distinct refusal code, -24, for a block
+     request on a quarantined lane (-13/-14 keep their offline/missing
+     meaning); it replaces the latch's -14 in the volume syscall result once
+     lane 0 is quarantined. The quarantine stops the device when `rediscover`
+     had validated it (status 0, bus mastering off), quarantines the same lane
+     Policy (`reset_completed(false)`) and logs exactly one
+     `VOLUME:S3:REINIT:QUARANTINE:<REASON>`. `lane.offline` is left unchanged:
+     it feeds the S5 durability gate (-16 "never this boot"), and the data
+     was proven durable by the storage gate before SUSPEND, so S5 still passes
+     on unchanged gate code and a cold recovery follows.
+   - **Q5** full identity: dword 0, revision/class (0x08), subsystem (0x2c)
+     and the capability pointer are compared with config reads before any
+     config write; the parsed regions after the BARs; offered and negotiated
+     features, `queue_size_max`, the notify offset and the capacity after
+     `initialize_profile`. No BAR is sized after the wake (`rediscover`, a copy
+     of the rng `classify_bars` rule). Reset with acknowledgement, the five
+     pool pages still kernel-owned, zeroed rings through `initialize_profile`,
+     MSI/MSI-X re-disabled and INTx-disable set. The epoch advances through
+     `start_reset` -> `reset_completed(true)` on the same Policy object; the
+     ticket floor is kept and a pre-sleep ticket or epoch is refused (-1).
+     `Policy::new()` is never used. The profile has no IOMMU, so DMA isolation
+     against a misbehaving device is not claimable.
+   - **Q6** deterministic, labelled, test-only injections
+     (`test-system-s3-blk-reinit-busy`, `-identity`, `-capacity`,
+     `-no-reset-ack`) corrupt one input of a real check (lane state, the saved
+     subsystem dword, the expected capacity, the acknowledgement) so that only
+     that check refuses and the real quarantine path runs; none fabricates
+     device success. Evidence is tagged injected, emulator or physical.
+
+   Slice order: 1 kernel re-init and quarantine (this amendment); 2 the Q3
+   key-erasure SUSPEND gate (with B); 3 the Q2 remount (with S); 4 the Q1
+   fresh-generation ring-3 re-grant. Invariant: no ring-3 block re-grant and
+   no relaxation of `block_objects == 0` before slices 2 and 3 exist.
+   Invariants as adapted from the H05-T5c security review: I1 re-init only
+   after a validated wake with lane 0 quiescent, otherwise quarantine (not
+   exit); I2 00:05.0 only; I3 no BAR sizing, BARs restored only from the
+   all-cleared state; I4 identity equality before any config write; I5 no MMIO
+   before `rediscover` succeeded; I6 acknowledged reset and pool ownership
+   before reuse; I7 negotiated-state and capacity equality; I8 fresh zeroed
+   rings; I9 same Policy, epoch + 1, monotonic tickets; I10 the latch lifts only
+   after I1-I9 and the self-test; I11 every re-init device access is counted in
+   an accounted volume subset and `io_after == 0` holds over the keyring and
+   volume accounted totals; I12 no new authority, the canary READ never reaches
+   a process; I13 interrupts quiesced at the function, and the post-wake
+   `timer_init` masks every 8259 line but IRQ0 (the INTx line is read from
+   config 0x3c and must be masked, else quarantine); I14 the final S5 gate
+   re-check still passes (the self-test is a READ outside the broker counters).
+   Negotiated-state checks can only run after `initialize_profile` set
+   DRIVER_OK and bus mastering; a refusal there resets the device first.
+   Evidence boundary: QEMU `pc-q35-8.2`/OVMF/TCG; the success path and the
+   four injections are native on local QEMU 10.2.1 (`BARS=RESTORED`); the
+   injections are labelled kernel-side injections, not device faults; no BAR
+   or capacity change is provoked by the emulator; no physical S3; the
+   ticket floor is checked natively on a Policy copy and by a host test
+   (docs/verification/h05-s3-blk-reinit-20261125/).
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
    pause across S3. This is recorded, not hidden.
 
