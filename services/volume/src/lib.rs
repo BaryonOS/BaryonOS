@@ -66,6 +66,10 @@ pub enum Status {
     NotFound = -19,
     Quota = -20,
     Busy = -21,
+    /// The kernel quarantined the volume lane after a wake (H05-T5c, the
+    /// kernel's `QUARANTINED`): terminal until reboot, never retried, and
+    /// distinct from Timeout (-13) and NoDevice (-14).
+    Quarantined = -24,
 }
 
 impl Status {
@@ -86,6 +90,7 @@ impl Status {
             -19 => Self::NotFound,
             -20 => Self::Quota,
             -21 => Self::Busy,
+            -24 => Self::Quarantined,
             _ => Self::Protocol,
         }
     }
