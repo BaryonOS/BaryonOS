@@ -5,6 +5,130 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-MERGE-GROUP-SELECT-20261126 — merge-hold judges a merge group by the gates selected from its trusted main base
+
+**Status:** proposed; requires the project owner's explicit approval (binding
+acceptance contract). Proposed by the CI specialist for issue #494 on
+26 November 2026, after the owner's P0 request that a merge-queue group whose
+combined change is, for example, documentation only no longer waits for every
+native suite. It amends ADR-CI-SELECTION-20261124 and
+ADR-CI-MERGE-GROUP-GATES-20261126 in the sentences listed below; those
+sentences now point here. It changes no required check name, no workflow
+trigger, no ruleset and no `host-quality` or `qemu-smoke` behaviour, and it
+does not enable the merge queue.
+
+**Source:** branch `ci/merge-group-select-20261126` on base `main` `ffea3883`
+("PR A"). Skipping the unselected jobs inside each workflow on `merge_group`
+is a later change ("PR B"); until then those jobs still run but no longer
+decide.
+
+**Problem:** on `merge_group` the selector planned in full (fallback
+`merge-group`) and merge-hold expected every applicable gate of the queue
+commit, so a documentation-only group waited for, and could be ejected by,
+every native suite. Narrowing from `merge_group.base_sha` would be unsafe. In
+a stacked queue that base is the queue commit of the entry ahead, which has
+not landed: its selector and catalogue are not protected, and the diff from
+it omits the entries ahead. This was observed on queue ref
+`gh-readonly-queue/main/pr-571-9508ebfa…`, whose base `9508ebfa` is the queue
+commit of #572.
+
+**Decision:**
+
+- **Trusted base T.** T is `git merge-base <merge_group.head_sha>
+  refs/remotes/origin/main`, with `refs/heads/main` fetched from origin in the
+  same merge-hold job. `merge-hold.yml` loads `tools/merge_hold.py` and
+  `tools/ci_impact.py` from T, never from `merge_group.base_sha`. Before it
+  loads them it requires T to be a well-formed commit, an ancestor of the
+  fetched main, and an ancestor of (or equal to) `merge_group.base_sha`, and
+  that base to be an ancestor of the queue commit. `merge_hold.py` repeats
+  these checks against the same fetched ref, without fetching again, and
+  requires `BASE_SHA` to equal T and `TESTED_SHA` the queue commit.
+- **Plan.** `policy.events.merge_group` may be `select` or `full`; `manual`
+  stays invalid, and `push` and `schedule` remain forced full. Both catalogues
+  set `select` (revision 21). Under `select` the `merge_group` plan narrows
+  from the diff T..queue commit exactly as a `pull_request` plan does, with
+  the same fail-closed rules: an `always_full` path anywhere in that diff (for
+  example `.github/**`, `tools/ci_impact.py`, `tools/merge_hold.py`) or an
+  unknown path makes it full. Because T is an ancestor of the queue commit,
+  the diff covers every entry ahead in the stack as well as the group's own
+  pull request. `full` remains the rollback and keeps the fallback code
+  `merge-group`. The `select` jobs of the three narrowing workflows still
+  refuse to narrow on any event but `pull_request`.
+- **Binding.** The plan must name T as its base and merge base, the queue
+  commit as head and tested commit, `main` as target, and the catalogue and
+  selector of T (trusted). The wait budget is read from T's catalogue. The
+  report line records T, `merge_group.base_sha` and the queue commit.
+- **Judging.** The expected gates are the selected `core` and `rwa` gates of
+  that plan. A selected gate that is skipped, missing, failed or still running
+  blocks as before. Under a `select` plan a workflow with no selected `core`
+  or `rwa` gate is neither awaited nor judged on the queue commit: its runs,
+  including a failed or still running one, do not affect the decision, as a
+  path filter keeps such a workflow from starting on `pull_request`. The
+  report names these workflows. A workflow with a selected gate is judged
+  whole, as before, with its other jobs and unregistered jobs. A `full` plan
+  is judged as before. `WAIT_CHECKS` (`host-quality`, `qemu-smoke`), the walk
+  over the entries ahead, the member rules and `entry_hold_passed` are
+  unchanged.
+- **Fail-closed rules.** Where no trusted copy of the tools can be identified,
+  or the inputs contradict the queue, merge-hold fails; where T is valid but
+  the diff from it is indeterminate, the plan is full:
+
+  | Condition | Result |
+  |---|---|
+  | main cannot be fetched, no merge base exists, or T is malformed | the job fails before loading any tool |
+  | T is not on main or not an ancestor of `merge_group.base_sha`, or that base is not an ancestor of the queue commit | the job fails before loading any tool; `merge_hold.py` fails before any wait |
+  | `BASE_SHA` is not T, `TESTED_SHA` is not the queue commit, or the plan's recorded merge base is not T (a `select` plan must record one) | merge-hold fails before any wait |
+  | shallow or missing history, an ambiguous merge base, a diff error or more than 5,000 changed paths from a valid T | full plan with that fallback code; every applicable gate is expected |
+  | an `always_full` or unknown path in T..queue commit | full plan (`always-full`, `unknown-path`) |
+  | an unusable fallback (`fetch-failed`, an untrusted selector, an invalid trusted catalogue) | merge-hold fails, as before |
+
+**Amended sentences:**
+
+- ADR-CI-SELECTION-20261124: "`push`, `merge_group`, `schedule` and
+  `workflow_dispatch` always run in full." becomes "`push`, `merge_group`,
+  `schedule` and `workflow_dispatch` still run every job; on `merge_group`
+  merge-hold requires only the gates that the plan from the trusted base
+  selects (ADR-CI-MERGE-GROUP-SELECT-20261126)."
+- ADR-CI-MERGE-GROUP-GATES-20261126, Problem: "also runs on `merge_group`, at
+  full scope." becomes "also runs on `merge_group`, every job of it (which of
+  those gates merge-hold requires is decided by
+  ADR-CI-MERGE-GROUP-SELECT-20261126)."
+- ADR-CI-MERGE-GROUP-GATES-20261126, Decision: "`BASE_SHA` must equal
+  `merge_group.base_sha` … the base must be an ancestor of the queue commit.
+  The base selector recomputes the plan with `--event=merge_group` (mode
+  full)." becomes "`BASE_SHA` must equal the trusted base T and `TESTED_SHA`
+  `merge_group.head_sha`, with the ancestry checks of
+  ADR-CI-MERGE-GROUP-SELECT-20261126. The selector of T recomputes the plan
+  with `--event=merge_group` from the diff T..queue commit (mode `select` or
+  `full`)."
+
+**Consequences:**
+
+- A documentation-only group is decided once `host-quality`, `qemu-smoke`,
+  merge-hold's own walk and the selected core gates have passed. Until PR B
+  the unselected suites still start and use runners on the queue commit.
+- A failure of an unselected gate on the queue commit no longer ejects the
+  group. The `push` run on `main`, which stays full, remains the post-merge
+  backstop. This is a deliberate relaxation of "a failed gate is never
+  ignored" for `merge_group` and needs the owner's explicit approval.
+- **Landing constraint.** merge-hold runs the copy of `tools/merge_hold.py`
+  at T. While this change is itself queued, T still holds the former copy,
+  which requires `BASE_SHA` to equal `merge_group.base_sha`. The change
+  therefore passes only as an unstacked group, and entries stacked behind it
+  fail closed until it has landed.
+- The three `select` jobs still plan `merge_group` from
+  `merge_group.base_sha`; they never narrow on it, so this is harmless here.
+  PR B must plan them from T before any job is skipped on `merge_group`.
+
+**Revise when:** the first queue trial shows a stacked group's base or run
+payloads that differ from the above; PR B lands; or GitHub documents the
+queue ref and base of stacked groups.
+
+**Primary sources:** none retrieved for this decision; `git merge-base` and
+`git merge-base --is-ancestor` behave as documented in git-merge-base(1). The
+stacked base is a repository observation of 26 November 2026, not GitHub
+documentation.
+
 ## ADR-CI-MERGE-GROUP-GATES-20261126 — merge-hold judges the applicable gates on the merge-queue commit
 
 **Status:** proposed by the CI specialist for issue #494 on 26 November 2026 (D1
@@ -27,7 +151,8 @@ to the round 6 head `763f25d9`. `7671b20d` merges `main` `60b1aac7` (#558)
 and changes none of the merge-hold files.
 
 **Problem:** since D1 step 1, every workflow with an automatic `core` or `rwa`
-job also runs on `merge_group`, at full scope. On `merge_group`, however,
+job also runs on `merge_group`, every job of it (which of those gates
+merge-hold requires is decided by ADR-CI-MERGE-GROUP-SELECT-20261126). On `merge_group`, however,
 merge-hold waited only for `host-quality` and `qemu-smoke`. It judged each
 member's gates on that member's own `pull_request` head and required its queue
 entry to land a tree equal to that head. The tree that actually lands was never
@@ -36,9 +161,10 @@ judged as a whole, and a queue with more than one entry ahead failed closed.
 **Decision:**
 
 - **Inputs, bound before any wait.** On `merge_group`, `BASE_SHA` must equal
-  `merge_group.base_sha` and `TESTED_SHA` must equal `merge_group.head_sha`. Both
-  must be well-formed, and the base must be an ancestor of the queue commit.
-  The base selector recomputes the plan with `--event=merge_group` (mode full).
+  the trusted base T and `TESTED_SHA` `merge_group.head_sha`, with the
+  ancestry checks of ADR-CI-MERGE-GROUP-SELECT-20261126. The selector of T
+  recomputes the plan with `--event=merge_group` from the diff T..queue
+  commit (mode `select` or `full`; amended by ADR-CI-MERGE-GROUP-SELECT-20261126).
   The plan must describe that event, that base, the queue commit and `main`.
   Any doubt fails at once.
 - **Run binding.** A run counts only with:
@@ -591,7 +717,9 @@ and, for the leaves, into the matrix. The catalogue becomes the single source
 of the leaves matrix.
 
 The integrated native suites, CodeQL and `ci.yml` stay unselected. `push`,
-`merge_group`, `schedule` and `workflow_dispatch` always run in full. merge-hold
+`merge_group`, `schedule` and `workflow_dispatch` still run every job; on
+`merge_group` merge-hold requires only the gates that the plan from the trusted
+base selects (ADR-CI-MERGE-GROUP-SELECT-20261126). merge-hold
 remains the decision point: it does not trust the `select` jobs and blocks when
 an expected gate did not pass.
 
