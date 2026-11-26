@@ -148,6 +148,7 @@ fn mark_focus(scene: &Scene, damage: &mut Damage) {
 /// EAGAIN retains the original deadline and blocks only this app's next RPC.
 fn flush_reply(
     index: usize,
+    now: u64,
     pending: &mut PendingReply,
     queue: &mut Queue,
     surface: &mut Receiver,
@@ -160,7 +161,7 @@ fn flush_reply(
     let start = match &work {
         ReplyWork::Message(_, _, start) | ReplyWork::Clipboard(_, _, start) => *start,
     };
-    let expired = tick().saturating_sub(start) > 200;
+    let expired = now.saturating_sub(start) > 200;
     let failed = if expired {
         true
     } else {
@@ -284,8 +285,12 @@ fn run() -> ! {
     let mut input_backlog = false;
     let mut clock_tick = tick();
     loop {
-        if tick().saturating_sub(clock_tick) >= 6000 {
-            clock_tick = tick();
+        // One clock read for this turn's shell clock and input polling; a
+        // second one below covers SUR1 expiry and the ingress batch. Every
+        // monotonic_ticks call is a scheduler switch point on one CPU.
+        let turn_now = tick();
+        if turn_now.saturating_sub(clock_tick) >= 6000 {
+            clock_tick = turn_now;
             if scene
                 .shell
                 .set_clock(native::wall_clock_utc().ok().map(|r| r.unix_seconds))
@@ -301,8 +306,8 @@ fn run() -> ! {
         }
         let mut ingress_empty = false;
         let mut received_this_pass = false;
-        if tick() >= next_input_tick {
-            next_input_tick = tick()
+        if turn_now >= next_input_tick {
+            next_input_tick = turn_now
                 .checked_add(INPUT_POLL_TICKS)
                 .unwrap_or_else(|| fail(37));
             input_backlog = true;
@@ -649,9 +654,11 @@ fn run() -> ! {
             }
         }
         repaint(&scene, backing, &mut display, &mut damage, 32).unwrap_or_else(|_| fail(25));
+        // Deadlines in this pass use one non-decreasing time taken here, so a
+        // staged tile can expire at most one ingress batch late or early.
+        let now = tick();
         for index in 0..2 {
             if pending[index].is_none() {
-                let now = tick();
                 if let Some(reply) = surfaces[index].expire(now).unwrap_or_else(|_| fail(30)) {
                     rejected += 1;
                     pending[index] = Some(ReplyWork::Message(
@@ -663,6 +670,7 @@ fn run() -> ! {
             }
             if flush_reply(
                 index,
+                now,
                 &mut pending[index],
                 &mut queues[index],
                 &mut surfaces[index],
@@ -728,10 +736,11 @@ fn run() -> ! {
                 pending[index] = Some(ReplyWork::Clipboard(
                     boot.apps[index].input_reply,
                     reply,
-                    tick(),
+                    now,
                 ));
                 if flush_reply(
                     index,
+                    now,
                     &mut pending[index],
                     &mut queues[index],
                     &mut surfaces[index],
@@ -747,7 +756,6 @@ fn run() -> ! {
                 continue;
             }
             let (tag, payload, to) = if message.tag() == sur::TAG {
-                let now = tick();
                 let reply = if let Some(reply) =
                     surfaces[index].expire(now).unwrap_or_else(|_| fail(30))
                 {
@@ -759,7 +767,7 @@ fn run() -> ! {
                         Ok(Action::Info(reply) | Action::Retain(reply)) => reply,
                         Ok(Action::Commit(token)) => {
                             let result = surfaces[index]
-                                .commit_with(token, tick(), |rect, pixels| {
+                                .commit_with(token, now, |rect, pixels| {
                                     let damaged = scene
                                         .copy_tile(index, rect, pixels, backing)
                                         .map_err(|_| ())?;
@@ -810,12 +818,13 @@ fn run() -> ! {
                 continue;
             };
             let _ = tag;
-            pending[index] = Some(ReplyWork::Message(to, payload, tick()));
+            pending[index] = Some(ReplyWork::Message(to, payload, now));
             // A COMMIT response exists only after the validated backing copy
             // and real DisplayClient write above. Do not defer that ACK behind
             // the next input RPC/main-loop yield when its queue is writable.
             if flush_reply(
                 index,
+                now,
                 &mut pending[index],
                 &mut queues[index],
                 &mut surfaces[index],
