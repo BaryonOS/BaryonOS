@@ -720,6 +720,10 @@ def gate_report(token, repo, pull, head_sha, plan, queue_branch=None):
             elif all(job.get("conclusion") == "success" for job in found) and (
                     len(found) == 1 or (row.get("variant") == "*" and not running)):
                 passed.append(f"{row['check_name']}: success in {where}")
+            elif row.get("variant") == "*" and running and all(job.get("conclusion") == "success" for job in found):
+                # A runtime matrix may still create variants: neither a pass nor a failure yet.
+                pending.append(f"{row['check_name']}: {len(found)} variant(s) succeeded so far in {where}, "
+                               f"which is {run.get('status')}")
             else:
                 outcome = ", ".join(sorted({str(job.get("conclusion")) for job in found}))
                 failed.append(f"{row['check_name']}: {outcome} in {where} ({workflow})")

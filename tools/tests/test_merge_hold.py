@@ -365,6 +365,7 @@ class MergeGroupTests(TestCase):
                                       group_jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]})
         self.assertEqual(code, 1, out)
         self.assertIn("::error::Failed: quality (viewer): failure in run 2", out)
+        self.assertIn("#8: ::error::The applicable gates ran on", out)  # round 2: not clean, so the base rule holds
 
     def test_released_pr_ahead_whose_own_entry_lands_another_tree_fails(self):
         queue = [entry(1, 7, "e" * 40, HEAD), entry(2, 8, GROUP, OTHER)]
@@ -1047,6 +1048,41 @@ class MergeGroupTests(TestCase):
         self.assertIn(f"::error::Failed: quality (viewer): failure in run 2 attempt 1 ({LEAVES})", out)
         self.assertEqual(calls.count("sleep"), 1)
 
+    def test_a_running_runtime_matrix_does_not_end_the_wait_early(self):
+        # Its successful variants so far are Pending in the early report, never Failed.
+        dynamic = row("leaves#quality/*", LEAVES, "quality (${{ matrix.leaf }})", variant="*")
+        plan = group_plan(selected=group_plan()["selected"][:2] + [dynamic])
+        listing = {GROUP: [group_run(1, CI), group_run(2, LEAVES, status="in_progress", conclusion=None)]}
+        legs = [job(21, 2, "quality (viewer)"), job(22, 2, "quality (crop)")]
+
+        def finish(labels, comments, nodes):
+            listing[GROUP] = [group_run(1, CI), group_run(2, LEAVES)]
+
+        code, out, calls = self.run_group(
+            self.QUEUE, plan=plan, group_runs=listing, on_sleep=finish,
+            checks=[{"check_runs": DONE["check_runs"] + [
+                {"id": 97, "name": "advice", "status": "completed", "conclusion": "failure"}]}],
+            group_jobs={**GOOD_JOBS, 1: [job(11, 1, "host-quality"), job(12, 1, "advice", "failure")], 2: legs})
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 1)
+        self.assertNotIn("Failed:", out)
+
+    def test_an_unreadable_gate_listing_in_the_wait_is_read_again(self):
+        unorderable = [group_run(1, CI), group_run(2, LEAVES, created_at=None)]
+        listing = {GROUP: unorderable}
+
+        def fix(labels, comments, nodes):
+            listing[GROUP] = [group_run(1, CI), group_run(2, LEAVES)]
+
+        code, out, calls = self.run_group(self.QUEUE, group_runs=listing, on_sleep=fix)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 1)
+        with mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+            code, out, calls = self.run_group(self.QUEUE, group_runs={GROUP: unorderable})
+        self.assertEqual(code, 1, out)
+        self.assertIn("queue or check-run read failed: run 2 has no start or creation time", out)
+        self.assertFalse([url for url in calls if url.endswith("/labels")])
+
 
 class FetchTests(TestCase):
     @staticmethod
@@ -1691,6 +1727,10 @@ class GateTests(TestCase):
         passed, out, _ = self.decide(plan=plan, runs_=running, jobs=jobs)
         self.assertFalse(passed)  # more variants may still be created
         self.assertNotIn("Passed: DIAGNOSTIC", out)
+        # Pending, not Failed: the variants so far succeeded (#494 D1 step 2, an early merge_group exit).
+        self.assertIn("::error::Pending: DIAGNOSTIC margins (${{ matrix.case }}): 2 variant(s) succeeded so far "
+                      "in run 2 attempt 1, which is in_progress", out)
+        self.assertNotIn("Failed: DIAGNOSTIC", out)
 
 
 class RecomputeTests(TestCase):
