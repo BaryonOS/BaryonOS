@@ -693,8 +693,9 @@ def gate_report(token, repo, pull, head_sha, plan):
                 # its higher id (materiaal-probe, 1 in its last 300 pull_request runs on 26 November
                 # 2026); a re-run of that workflow run or the next pull request event clears that one,
                 # a merge-hold re-run does not.
-                failed.append(f"{workflow}: {where} concluded {conclusion} without any job, so its gates "
-                              "never ran; re-run that workflow run or push a new head")
+                failed.append(f"{workflow}: {where} concluded {conclusion}, but GitHub listed no job for it; "
+                              "re-run merge-hold if the jobs listing lagged, or re-run that workflow run (or "
+                              "push a new head) if it ended before any job started")
         if running and workflow in gated:
             pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
                            "including jobs GitHub has not created yet")

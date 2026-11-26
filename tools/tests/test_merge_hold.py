@@ -1732,8 +1732,9 @@ class GateTests(TestCase):
 
     def assert_run_without_any_job(self, passed, out, workflow, run_id, attempt, conclusion="failure"):
         self.assertFalse(passed)
-        self.assertIn(f"Failed: {workflow}: run {run_id} attempt {attempt} concluded {conclusion} without any "
-                      "job, so its gates never ran; re-run that workflow run or push a new head", out)
+        self.assertIn(f"Failed: {workflow}: run {run_id} attempt {attempt} concluded {conclusion}, but GitHub "
+                      "listed no job for it; re-run merge-hold if the jobs listing lagged, or re-run that workflow "
+                      "run (or push a new head) if it ended before any job started", out)
 
     def test_s1_a_settled_failure_whose_jobs_re_read_omits_the_failed_job_is_pending(self):
         """S1: attempt 1 lists the viewer gate green and an unregistered late gate failed. A partial
