@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "ffea3883870d0aa0f26170d8676015ae31067f53",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/r02-compositor-turn-20261126",
+  "task": "R02 window-session re-baseline after #540 and per-tile present-path analysis",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Local KVM re-baseline and source analysis only; no implementation, and R02 budgets still need an owner decision (R02-L1) and physical measurements, so no criterion is accepted."
+}
