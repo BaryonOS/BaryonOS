@@ -667,7 +667,8 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   [45808037891](https://github.com/BaryonOS/BaryonOS/actions/runs/45808037891)
   (cancelled, no jobs) and the skipped run 45808037846 both started at
   2026-11-26T11:09:49Z on head `9d632e11` of #555. A merge-hold re-run does not clear that case; re-running
-  that workflow run, or the next pull request event, does. The rule makes no
+  that workflow run, or the next pull request event, may clear it (inferred,
+  not verified for this run pair). The rule makes no
   extra API read.
   Advisory, manual, operational and publication jobs never block by their
   own conclusion, and merge-hold's own earlier runs are ignored.
