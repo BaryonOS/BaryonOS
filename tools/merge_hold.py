@@ -1067,6 +1067,32 @@ def merge_group_plan(base_sha, head_sha):
     return plan
 
 
+def queue_ref():
+    """(queue commit, queue ref, its QUEUE_REF match) of this merge_group run; raise unless it targets main."""
+    head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
+    if os.environ["MERGE_GROUP_BASE_REF"] != "refs/heads/main":
+        raise ValueError("merge group does not target main")
+    head_ref = os.environ["MERGE_GROUP_HEAD_REF"]
+    match = QUEUE_REF.fullmatch(head_ref)
+    if not match or not SHA.fullmatch(head_sha):
+        raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
+    return head_sha, head_ref, match
+
+
+def merge_group_skip(workflow):
+    """The merge-group gate (PR B of ADR-CI-MERGE-GROUP-SELECT-20261126): may `workflow` skip its jobs?
+
+    True only when the checked plan that merge_group_hold makes for this queue commit, from the
+    trusted base T and with the same inputs (queue_ref, merge_group_plan), leaves the workflow out
+    (unselected_workflows): merge-hold then neither awaits nor judges it, so skipping its jobs
+    hides no gate merge-hold expects. Any doubt raises; .github/actions/merge-group-gate then runs
+    every job. merge-hold judges independently either way: a skipped gate it expects blocks.
+    """
+    head_sha, _, _ = queue_ref()
+    plan = merge_group_plan(os.environ["MERGE_GROUP_BASE_SHA"], head_sha)
+    return workflow != GATE_WORKFLOW and workflow in unselected_workflows(plan)
+
+
 def merge_group_hold(token, repo):
     """Return (passed, lines) for the gates of the queue commit and every pull request in the group.
 
@@ -1109,13 +1135,7 @@ def merge_group_hold(token, repo):
     max(B, P) + R, 83 min.
     """
     start = time.monotonic()
-    head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
-    if os.environ["MERGE_GROUP_BASE_REF"] != "refs/heads/main":
-        raise ValueError("merge group does not target main")
-    head_ref = os.environ["MERGE_GROUP_HEAD_REF"]
-    match = QUEUE_REF.fullmatch(head_ref)
-    if not match or not SHA.fullmatch(head_sha):
-        raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
+    head_sha, head_ref, match = queue_ref()
     base_sha, trusted = os.environ["MERGE_GROUP_BASE_SHA"], os.environ["BASE_SHA"]
     plan = merge_group_plan(base_sha, head_sha)
     budget = base_wait_seconds(trusted)
