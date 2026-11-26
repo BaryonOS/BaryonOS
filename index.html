@@ -9,7 +9,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg; font-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Baryon OS — independent operating system research</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/site.css?v=orbit-motion">
+  <link rel="stylesheet" href="/assets/site.css?v=visitor-guide">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -20,10 +20,10 @@
       </a>
       <nav aria-label="Primary navigation">
         <ul class="nav-list">
-          <li><a href="#approach">Approach</a></li>
-          <li><a href="#status">Status</a></li>
-          <li><a href="#contribute">Contribute</a></li>
-          <li><a class="nav-source" href="https://github.com/BaryonOS/BaryonOS">Source <span aria-hidden="true">↗</span></a></li>
+          <li><a href="/" aria-current="page">Overview</a></li>
+          <li><a href="/docs/">Docs</a></li>
+          <li><a href="/docs/#progress">Status</a></li>
+          <li><a href="/docs/#contribute">Contribute</a></li>
         </ul>
       </nav>
     </div>
@@ -51,16 +51,16 @@
         <p class="eyebrow hero-eyebrow"><span class="signal" aria-hidden="true"></span> Independent OS research <span class="eyebrow-separator" aria-hidden="true">/</span> x86_64 · UEFI</p>
         <h1 id="hero-title">A different foundation.<br><em>A familiar way to work.</em></h1>
         <p class="lead">Baryon OS is developing its own Rust kernel and a familiar desktop, with explicit control over how apps access your data.</p>
-        <a class="roadmap-progress" href="https://github.com/BaryonOS/BaryonOS#progress-toward-a-complete-independent-os">
+        <a class="roadmap-progress" href="/docs/#progress">
           <span class="roadmap-heading">
             <strong>Development progress</strong>
-            <span>Roadmap on GitHub <span aria-hidden="true">↗</span></span>
+            <span>What the score means <span aria-hidden="true">→</span></span>
           </span>
           <img src="https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg" alt="Weighted acceptance points on the Baryon OS roadmap" width="960" height="226" referrerpolicy="no-referrer">
         </a>
         <div class="actions">
-          <a class="button button-primary" href="#approach">Explore the project <span aria-hidden="true">↘</span></a>
-          <a class="button button-secondary" href="#status">Project status <span aria-hidden="true">↓</span></a>
+          <a class="button button-primary" href="/docs/">Read the docs <span aria-hidden="true">→</span></a>
+          <a class="button button-secondary" href="/docs/#try">Can I try it? <span aria-hidden="true">→</span></a>
         </div>
         <p class="release-note"><span aria-hidden="true" class="note-mark"></span><strong>Research software.</strong> There is no supported production release. Do not use it for daily work or sensitive production data.</p>
       </div>
@@ -70,27 +70,23 @@
     <section id="approach" class="section section-divider">
       <div class="wrap">
         <div class="section-heading">
-          <p class="eyebrow">The approach</p>
-          <h2>System research and product design, developed together.</h2>
+          <h2>Explore Baryon OS</h2>
         </div>
         <div class="approach-grid">
           <article class="feature">
-            <span class="feature-number">01 / SYSTEM</span>
-            <h3>Independent foundations</h3>
-            <p>The project develops its own x86_64 boot chain and kernel rather than using an existing operating system kernel as its foundation. Processes and services are designed around bounded capabilities.</p>
-            <a class="inline-link" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/ARCHITECTURE.md">Read the architecture <span aria-hidden="true">↗</span></a>
+            <h3>Why build another operating system?</h3>
+            <p>Start with the research goal, the independent kernel and the meaning behind the name.</p>
+            <a class="inline-link" href="/docs/#project">About the project <span aria-hidden="true">→</span></a>
           </article>
           <article class="feature">
-            <span class="feature-number">02 / EXPERIENCE</span>
-            <h3>Familiar ways to work</h3>
-            <p>The product goal pairs recognisable desktop interactions with explicit access to documents, apps and connected storage. Native integration is still in progress.</p>
-            <a class="inline-link" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/DESIGN-AMBITION.md">Read the product ambition <span aria-hidden="true">↗</span></a>
+            <h3>What would it be like to use?</h3>
+            <p>See how the Orbit desktop, app permissions and control over personal data fit together.</p>
+            <a class="inline-link" href="/docs/#design">Desktop and privacy <span aria-hidden="true">→</span></a>
           </article>
           <article class="feature">
-            <span class="feature-number">03 / EVIDENCE</span>
-            <h3>Claims with a clear boundary</h3>
-            <p>Builds, host tests, QEMU runs, hardware trials and human evaluation are distinct evidence levels. The public records state what each result establishes.</p>
-            <a class="inline-link" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/TEST-STRATEGY.md">Read the test strategy <span aria-hidden="true">↗</span></a>
+            <h3>Can it run on my computer?</h3>
+            <p>Find out what can be tried in a virtual machine and what remains open for daily use.</p>
+            <a class="inline-link" href="/docs/#try">Trying Baryon OS <span aria-hidden="true">→</span></a>
           </article>
         </div>
       </div>
@@ -99,30 +95,17 @@
     <section id="status" class="section section-divider">
       <div class="wrap status-layout">
         <div class="section-heading">
-          <p class="eyebrow">Current status</p>
-          <h2>Follow the evidence, not a launch date.</h2>
-          <p>The repository contains an independent boot chain, process and capability infrastructure, services, drivers, an SDK, and native UI work. Integration and acceptance remain in progress. The linked records carry the current scope and open gaps.</p>
+          <h2>Where development stands</h2>
+          <p>The boot chain, kernel, services and native desktop are under development. The roadmap tracks features whose required acceptance checks have passed.</p>
         </div>
         <div class="link-grid">
-          <a class="resource-card" href="https://github.com/BaryonOS/BaryonOS#current-status">
-            <span class="resource-kicker">Overview</span>
-            <strong>Project README</strong>
-            <span>Architecture, status, and next reading steps <span aria-hidden="true">↗</span></span>
+          <a class="resource-card" href="/docs/#progress">
+            <strong>Understand the roadmap</strong>
+            <span>What works today and what the score measures <span aria-hidden="true">→</span></span>
           </a>
-          <a class="resource-card" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md">
-            <span class="resource-kicker">Acceptance</span>
-            <strong>Progress register</strong>
-            <span>Fixed criteria and evidence levels <span aria-hidden="true">↗</span></span>
-          </a>
-          <a class="resource-card" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROJECT-STATE.md">
-            <span class="resource-kicker">Execution</span>
-            <strong>Project state</strong>
-            <span>Current checkpoint and remaining work <span aria-hidden="true">↗</span></span>
-          </a>
-          <a class="resource-card" href="https://github.com/BaryonOS/BaryonOS/tree/main/docs/verification">
-            <span class="resource-kicker">Verification</span>
-            <strong>Evidence archive</strong>
-            <span>Recorded tests and their limitations <span aria-hidden="true">↗</span></span>
+          <a class="resource-card" href="/docs/#try">
+            <strong>Check availability</strong>
+            <span>Virtual-machine experiments and hardware support <span aria-hidden="true">→</span></span>
           </a>
         </div>
       </div>
@@ -131,14 +114,11 @@
     <section id="contribute" class="section section-divider final-section">
       <div class="wrap contribute-layout">
         <div>
-          <p class="eyebrow">Open development</p>
-          <h2>Inspect the work. Help shape what comes next.</h2>
-          <p>Contributions and careful review are welcome within the project's architecture and security boundaries. Start with the contributor guide and the current issues.</p>
+          <h2>Help shape Baryon OS</h2>
+          <p>Point out confusing documentation, share an accessibility observation or contribute code and test evidence.</p>
         </div>
         <div class="contribute-links">
-          <a href="https://github.com/BaryonOS/BaryonOS/blob/main/CONTRIBUTING.md">Contributor guide <span aria-hidden="true">↗</span></a>
-          <a href="https://github.com/BaryonOS/BaryonOS/issues">Open issues <span aria-hidden="true">↗</span></a>
-          <a href="https://github.com/BaryonOS/BaryonOS/discussions">Discussions <span aria-hidden="true">↗</span></a>
+          <a href="/docs/#contribute">Ways to contribute <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </section>
@@ -148,6 +128,8 @@
     <div class="wrap footer-inner">
       <p>Baryon OS <span>·</span> Independent operating system research</p>
       <div>
+        <a href="/docs/">Docs</a>
+        <a href="https://github.com/BaryonOS/BaryonOS">Source code</a>
         <a href="https://github.com/BaryonOS/BaryonOS/blob/main/SECURITY.md">Report a vulnerability</a>
         <a href="https://github.com/BaryonOS/BaryonOS/blob/main/LICENSING.md">Licensing</a>
       </div>
