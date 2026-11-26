@@ -20,8 +20,10 @@ about the entries ahead of it, so those are checked too. The queue merges in
 order, so this group can merge only after those entries; labels and comments
 are therefore read close to this group's merge, not when its own checks end.
 A hold added after that final read, until GitHub merges the group, is not seen
-(ADR-MERGE-HOLD-20261113). The 45-minute deadline covers the group's
-own checks and gate runs and the whole chain ahead, each position adding up to one poll.
+(ADR-MERGE-HOLD-20261113). The 45-minute budget is counted from before the
+plan: the plan, the group's own checks and gate runs and the whole chain ahead
+(each position adding up to one poll) share it, less a 3-minute reserve kept for
+the decision after the wait (see merge_group_hold).
 A group whose commit has left the queue (ejected or rebuilt) can never merge;
 once its own checks have completed, every poll reads the queue first, also
 while gate runs are open, and two consecutive well-formed reads, one poll
@@ -117,6 +119,9 @@ AHEAD_CHECKS = WAIT_CHECKS + ("merge-hold",)
 ACTIONS_APP_ID = 15368
 POLL_SECONDS = 60
 WAIT_SECONDS = 45 * 60
+# Kept back from the merge_group budget for the work after the wait (merge_group_hold); at
+# least one poll interval, because the wait may end one sleep past its deadline.
+DECISION_RESERVE_SECONDS = 3 * POLL_SECONDS
 # shortcut: the pr-<N>-<sha> suffix is observed GitHub practice, not documented;
 # an unexpected ref fails closed and stalls the queue instead of merging.
 QUEUE_REF = re.compile(r"refs/heads/gh-readonly-queue/main/pr-([1-9][0-9]*)-[0-9a-f]{40}")
@@ -422,7 +427,9 @@ def wait_for_checks(token, repo, sha, number, plan, queue_branch, budget=WAIT_SE
     that leaves the queue (merged or removed) no longer counts. Two consecutive
     polls whose well-formed reads both show that this group itself has left the
     queue fail at once; any other poll in between resets that count, because a
-    single read may lag behind the queue.
+    single read may lag behind the queue. The deadline is checked after each poll,
+    so a budget of 0 or less still makes one poll: anything still open then fails
+    closed without a sleep.
     """
     deadline = time.monotonic() + budget
     absent, judged = 0, set()
@@ -887,7 +894,24 @@ def merge_group_plan(base_sha, head_sha):
 
 
 def merge_group_hold(token, repo):
-    """Return (passed, lines) for the gates of the queue commit and every pull request in the group."""
+    """Return (passed, lines) for the gates of the queue commit and every pull request in the group.
+
+    Time budget. The clock starts here, before the plan. B is the base catalogue's
+    merge_group budget (0 to MAX_WAIT_SECONDS, 45 min), P the time up to the wait
+    (the plan: at most SELECTOR_TIMEOUT plus two git calls of at most 120 s each,
+    about 14 min), R = DECISION_RESERVE_SECONDS (3 min). The wait gets B - P - R.
+    It checks its deadline after each poll, so it ends at most one POLL_SECONDS sleep
+    plus one poll past it, and makes one poll even when B - P - R <= 0: the plan and
+    the wait together take at most max(B - R + POLL_SECONDS, P) plus one poll, which
+    is at most max(B, P + one poll) while a poll takes no more than R - POLL_SECONDS.
+    R is an allowance, not a proof, for the decision after the wait (the final gate
+    report, about two requests per counted run, and about five per member; usually
+    well under a minute). So plan + wait + reserve <= max(B, P + one poll) + R
+    <= 45 + 3 = 48 min, below the 50-minute job timeout (merge-hold.yml
+    timeout-minutes), for every catalogue budget. The workflow steps before this
+    script are outside this clock; the job timeout stays the fail-closed backstop.
+    """
+    start = time.monotonic()
     head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
     if os.environ["MERGE_GROUP_BASE_REF"] != "refs/heads/main":
         raise ValueError("merge group does not target main")
@@ -897,10 +921,12 @@ def merge_group_hold(token, repo):
         raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
     base_sha = os.environ["MERGE_GROUP_BASE_SHA"]
     plan = merge_group_plan(base_sha, head_sha)
+    budget = base_wait_seconds(base_sha)
     branch = head_ref.removeprefix("refs/heads/")
     # Decide last: the gates, labels and comments are read only after this group's
     # checks and gate runs and every entry ahead (which merge first) have finished.
-    early = wait_for_checks(token, repo, head_sha, int(match.group(1)), plan, branch, base_wait_seconds(base_sha))
+    early = wait_for_checks(token, repo, head_sha, int(match.group(1)), plan, branch,
+                            budget - (time.monotonic() - start) - DECISION_RESERVE_SECONDS)
     # A gate that already failed ended the wait: that full report decides, as the final one would.
     passed_gates, pending, failed = early or gate_report(token, repo, None, head_sha, plan, queue_branch=branch)
     _, report, tail = gate_lines(plan, passed_gates, pending, failed)

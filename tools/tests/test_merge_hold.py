@@ -3,6 +3,7 @@
 import contextlib
 import io
 import os
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -187,7 +188,7 @@ class MergeGroupTests(TestCase):
     def run_group(self, nodes, labels=None, comments=None, trees=None,
                   env=None, answer=None, checks=None, ahead=None, on_sleep=None,
                   commits=None, gate_runs=None, group_runs=None, group_jobs=None, plan=None, ancestor=0,
-                  rereads=None):
+                  rereads=None, plan_seconds=0, decision_seconds=0):
         """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest.
 
         Run listings are keyed by the URL's event and head_sha and returned verbatim, as
@@ -197,6 +198,9 @@ class MergeGroupTests(TestCase):
         overlays the fields a re-read of that listed run shows (a callable: one answer per
         re-read, see per_read). plan is what the mocked selector returns (default:
         group_plan()); self.plans records its calls.
+        Fake clock: only sleeps, the selector (plan_seconds) and the decision after the wait
+        (decision_seconds, charged at the first label read) take time; self.clock[0] is the
+        time at which main() returned.
         """
         labels, comments, trees = labels or {}, comments or {}, trees or {}
         polls = {sha: list(answers) for sha, answers in (commits or {}).items()}
@@ -204,9 +208,11 @@ class MergeGroupTests(TestCase):
         group_runs = {GROUP: [group_run(1, CI), group_run(2, LEAVES)]} if group_runs is None else group_runs
         group_jobs = GOOD_JOBS if group_jobs is None else group_jobs
         calls, self.plans = [], []
+        clock = self.clock = [0.0]
 
         def recompute(*args, **kwargs):
             self.plans.append((args, kwargs))
+            clock[0] += plan_seconds
             return plan or group_plan()
 
         def git(*args):
@@ -217,6 +223,8 @@ class MergeGroupTests(TestCase):
             calls.append(url)
             number = int(url.split("/")[-2])
             if url.endswith("/labels"):
+                if [read for read in calls if read.endswith("/labels")] == [url]:
+                    clock[0] += decision_seconds
                 return [{"name": name} for name in labels.get(number, [])]
             return comments.get(number, [])
 
@@ -255,8 +263,6 @@ class MergeGroupTests(TestCase):
                                                "nodes": nodes}}}}}
             sha = url.rsplit("/", 1)[1]
             return {"tree": {"sha": trees.get(sha, "1" * 40)}}
-
-        clock = [0.0]
 
         def sleep(seconds):
             # Fake clock: each poll advances time, so the deadline ends any wait.
@@ -325,6 +331,74 @@ class MergeGroupTests(TestCase):
                        (0, '[policy.budgets]\nmerge_group_wait_minutes = true\n')):
             with self.subTest(answer=answer), mock.patch.object(merge_hold, "git", return_value=answer):
                 self.assertEqual(merge_hold.base_wait_seconds(BASE), merge_hold.WAIT_SECONDS)
+
+    # Budget clock (#494): host-quality keeps running, so every poll is pending.
+    OPEN = runs("in_progress", "completed")
+
+    def test_a_slow_plan_shortens_the_gate_wait(self):
+        """The budget is counted from before the plan and keeps the decision reserve back:
+        (45 min - 3 min - plan) / 1 min polls, rounded up, so the wait ends past its deadline."""
+        for plan_seconds, sleeps in ((0, 42), (7, 42), (merge_hold.SELECTOR_TIMEOUT, 32)):
+            with self.subTest(plan_seconds=plan_seconds):
+                code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN], plan_seconds=plan_seconds)
+                self.assertEqual(code, 1, out)
+                self.assertIn("did not complete in time", out)
+                self.assertEqual(calls.count("sleep"), sleeps)
+                self.assertEqual(self.clock[0], plan_seconds + sleeps * merge_hold.POLL_SECONDS)
+                self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_plan_wait_and_decision_stay_within_the_budget_plus_the_reserve(self):
+        """For every catalogue budget B and plan time P (polls take no time here): the plan and
+        the wait end within max(B, P), and with a decision that takes its whole reserve R the
+        total stays within max(B, P) + R. B + R alone does not bound a plan longer than B."""
+        reserve = merge_hold.DECISION_RESERVE_SECONDS
+        for budget in (merge_hold.WAIT_SECONDS, 5 * 60, 0):
+            plans = {0, 7, 61, merge_hold.SELECTOR_TIMEOUT, budget - reserve - 1, budget - reserve, budget,
+                     budget + 120}
+            for plan_seconds in sorted(plan for plan in plans if plan >= 0):
+                with self.subTest(budget=budget, plan_seconds=plan_seconds), \
+                        mock.patch.object(merge_hold, "WAIT_SECONDS", budget):
+                    code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN], plan_seconds=plan_seconds)
+                    self.assertEqual(code, 1, out)
+                    self.assertIn("did not complete in time", out)
+                    self.assertLessEqual(self.clock[0], max(budget, plan_seconds))
+                    self.assertGreaterEqual(self.clock[0], max(budget - reserve, plan_seconds))
+                    # The gates finish at the last poll the wait still makes; then the decision runs.
+                    sleeps = calls.count("sleep")
+                    code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN] * sleeps + [DONE],
+                                                      plan_seconds=plan_seconds, decision_seconds=reserve)
+                    self.assertEqual(code, 0, out)
+                    self.assertEqual(calls.count("sleep"), sleeps)
+                    self.assertLessEqual(self.clock[0], max(budget, plan_seconds) + reserve)
+
+    def test_a_plan_that_uses_up_the_budget_fails_closed_without_waiting(self):
+        budget, reserve = merge_hold.WAIT_SECONDS, merge_hold.DECISION_RESERVE_SECONDS
+        for plan_seconds in (budget - reserve, budget, budget + 600):
+            with self.subTest(plan_seconds=plan_seconds):
+                code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN], plan_seconds=plan_seconds)
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"::error::merge-hold could not decide (required checks did not complete in "
+                              f"time: ['host-quality on {GROUP}']); failing closed.", out)
+                self.assertEqual(len(self.plans), 1)
+                self.assertNotIn("sleep", calls)
+                self.assertEqual(len([url for url in calls if "/check-runs?" in url]), 1)  # one poll, as a 0 budget
+                self.assertFalse([url for url in calls if url.endswith("/labels")])
+                self.assertEqual(self.clock[0], plan_seconds)
+        # As with a 0 budget, that one poll decides when nothing is open any more.
+        code, out, calls = self.run_group(self.QUEUE, plan_seconds=budget)
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("sleep", calls)
+
+    def test_the_budget_arithmetic_fits_the_job_timeout(self):
+        """plan + wait + reserve < job timeout: the docstring of merge_group_hold, against merge-hold.yml."""
+        workflow = (Path(__file__).resolve().parents[2] / merge_hold.GATE_WORKFLOW).read_text(encoding="utf-8")
+        timeouts = re.findall(r"^\s+timeout-minutes: (\d+)$", workflow, re.M)
+        self.assertEqual(timeouts, ["50"])
+        self.assertEqual((merge_hold.WAIT_SECONDS, merge_hold.MAX_WAIT_SECONDS), (45 * 60, 45 * 60))
+        self.assertGreaterEqual(merge_hold.DECISION_RESERVE_SECONDS, merge_hold.POLL_SECONDS)
+        longest_plan = merge_hold.SELECTOR_TIMEOUT + 2 * 120  # the selector and two git calls
+        self.assertLess(max(merge_hold.MAX_WAIT_SECONDS, longest_plan + merge_hold.POLL_SECONDS)
+                        + merge_hold.DECISION_RESERVE_SECONDS, int(timeouts[0]) * 60)
 
     def test_released_pr_with_the_landing_tree_passes(self):
         code, out, _ = self.run_group(
@@ -637,7 +711,7 @@ class MergeGroupTests(TestCase):
         # Any poll that does not show absence resets the count: alternating
         # reads, or an absent read, a failed read and another absent read.
         group = entry(2, 8, GROUP, OTHER)
-        polls = merge_hold.WAIT_SECONDS // merge_hold.POLL_SECONDS
+        polls = (merge_hold.WAIT_SECONDS - merge_hold.DECISION_RESERVE_SECONDS) // merge_hold.POLL_SECONDS
 
         def toggle(labels, comments, nodes):
             if group in nodes:
@@ -660,7 +734,7 @@ class MergeGroupTests(TestCase):
     def test_doubtful_queue_reads_are_not_taken_as_leaving(self):
         # Only a well-formed read that positively lacks the group ends the wait early.
         page = {"pageInfo": {"hasNextPage": True}, "nodes": [entry(1, 7, E, HEAD)]}
-        polls = merge_hold.WAIT_SECONDS // merge_hold.POLL_SECONDS
+        polls = (merge_hold.WAIT_SECONDS - merge_hold.DECISION_RESERVE_SECONDS) // merge_hold.POLL_SECONDS
         for nodes, answer in (
             (None, {"errors": [{"message": "denied"}]}),
             (None, {"data": {"repository": {"mergeQueue": None}}}),
