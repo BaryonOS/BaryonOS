@@ -57,6 +57,15 @@ pub fn hex(value: u64) {
     write(&bytes);
 }
 
+/// Lowercase hex of public bytes such as PCR digests; never secrets.
+#[cfg_attr(not(feature = "tpm-hauth-provision-test"), allow(dead_code))]
+pub fn bytes_hex(bytes: &[u8]) {
+    for byte in bytes {
+        let pair = [byte >> 4, byte & 15].map(|digit| if digit < 10 { b'0' + digit } else { b'a' + digit - 10 });
+        write(&pair);
+    }
+}
+
 /// Decimal without leading zeros; evidence lines carry plain versions.
 #[cfg_attr(not(feature = "signed-boot"), allow(dead_code))]
 pub fn decimal(mut value: u64) {

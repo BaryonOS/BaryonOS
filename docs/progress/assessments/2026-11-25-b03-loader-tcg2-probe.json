@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "bc5c25e93e5eab62f6941e7ffa0c917ad3f99181",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 S6 step 1: TEST loader probe of firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL before ExitBootServices, run_tpm.py loader-probe case (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. One local native run per case (loader-probe, normal, absent; raw exit 33) answers U19 and part of U2 and observes EFI_RNG_PROTOCOL absent (U25) under the TEST QEMU line. Read-only commands only: no HAUTH provisioning, no loader record (U26), no S3 (U27), no hosted CI run of the new case; 5A stays in force, no criterion accepted."
+}

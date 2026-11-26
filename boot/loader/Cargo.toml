@@ -21,12 +21,18 @@ signed-boot-test = ["signed-boot", "update-core/test-signing-anchors"]
 signed-policy-probe-test = ["signed-boot-test", "update-core/test-policy-envelope-probe"]
 # H06-T3: record the UEFI SecureBoot variable for the read-only HW-INV inventory.
 hw-inventory = []
+# B03 REL-05 S6 step 1: read-only TCG2 SubmitCommand and EFI_RNG_PROTOCOL probe.
+tpm-loader-probe-test = ["dep:nieuw-os-tpm-crb"]
+# B03 REL-05 M1-HAUTH: TEST-only BOUND provisioning on QEMU/swtpm after the probe;
+# writes TPM NV and hierarchy auth, then extends PCR 13 (no release keys or anchors).
+tpm-hauth-provision-test = ["tpm-loader-probe-test", "dep:update-core"]
 
 [dependencies]
 r-efi = { version = "=7.2.0", default-features = false }
 boot-protocol = { path = "../../crates/boot-protocol" }
 elf-loader-core = { path = "../../crates/elf-loader-core" }
 update-core = { path = "../../crates/update-core", optional = true }
+nieuw-os-tpm-crb = { path = "../../drivers/tpm-crb", optional = true }
 
 [[bin]]
 name = "os-loader"

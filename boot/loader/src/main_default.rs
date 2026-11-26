@@ -10,6 +10,10 @@ mod memory;
 mod serial;
 #[cfg(feature = "signed-boot-test")]
 mod signed;
+#[cfg(feature = "tpm-hauth-provision-test")]
+mod tpm_hauth;
+#[cfg(feature = "tpm-loader-probe-test")]
+mod tpm_probe;
 
 use boot_protocol::{
     acpi::{AcpiHandoff, HANDOFF_OFFSET, SOURCE_ACPI_10, SOURCE_ACPI_20},
@@ -597,6 +601,11 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
             ((info_address + FACTS_OFFSET) as *mut [u8; FACTS_SIZE]).write(facts);
         }
     }
+
+    #[cfg(feature = "tpm-loader-probe-test")]
+    tpm_probe::probe(&fw);
+    #[cfg(feature = "tpm-hauth-provision-test")]
+    tpm_hauth::run(&fw);
 
     let (needed, stride) = fw.map_size()?;
     let mut capacity = map_capacity(needed, stride)?;
