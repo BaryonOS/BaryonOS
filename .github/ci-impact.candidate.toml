@@ -32,7 +32,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 20
+revision = 21
 
 [policy]
 mode = "select"
@@ -98,7 +98,9 @@ core_only = [
 
 [policy.events]
 pull_request = "select"
-merge_group = "full"
+# merge_group narrows from merge-hold's trusted base, the merge base of the queue
+# commit and main; "full" is the rollback (ADR-CI-MERGE-GROUP-SELECT-20261126).
+merge_group = "select"
 push = "full"
 schedule = "full"
 workflow_dispatch = "manual"

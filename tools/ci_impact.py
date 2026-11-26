@@ -58,6 +58,9 @@ WORKFLOW_PATH_RE = re.compile(r"\.github/workflows/[A-Za-z0-9_][A-Za-z0-9_-]*\.y
 JOB_ID_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_-]*")
 VARIANT_ID_RE = re.compile(r"[A-Za-z0-9_.*-]+")
 EVENT_FULL_CODES = {"merge_group": "merge-group", "push": "push-main", "schedule": "schedule"}
+# Of those, merge_group alone may narrow, under policy.events.merge_group = "select" and with
+# merge-hold's trusted base (ADR-CI-MERGE-GROUP-SELECT-20261126); "manual" is never allowed.
+MERGE_GROUP_POLICIES = ("select", "full")
 METADATA = "@metadata"
 # policy.inert plus policy.core_only: only on a pull_request trigger whose workflow keeps a
 # @metadata push trigger as the main backstop (#494, phase 5 C2).
@@ -475,7 +478,10 @@ def validate(catalogue):
         add("policy.events table missing")
         events = {}
     for event in EVENTS:
-        if event in EVENT_FULL_CODES:
+        if event == "merge_group":
+            if events.get(event) not in MERGE_GROUP_POLICIES:
+                add(f"policy.events.{event} must be 'select' or 'full'")
+        elif event in EVENT_FULL_CODES:
             if events.get(event) != "full":
                 add(f"policy.events.{event} must be 'full'")
         elif event == "workflow_dispatch":
@@ -1107,7 +1113,10 @@ class Planner:
         if policy["mode"] == "full":
             self.full("policy-rollback")
         event_policy = policy["events"][self.event]
-        if event_policy == "full" or self.event in EVENT_FULL_CODES:  # never narrowed, whatever the catalogue says
+        # push and schedule are never narrowed, whatever the catalogue says; merge_group only under "select".
+        forced = self.event in EVENT_FULL_CODES and not (
+            self.event == "merge_group" and event_policy == "select")
+        if event_policy == "full" or forced:
             self.full(EVENT_FULL_CODES.get(self.event, "event-policy-full"), [self.event])
         elif event_policy == "manual":
             self.manual = True

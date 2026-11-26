@@ -565,7 +565,8 @@ class FallbackTests(FixtureTestCase):
         self.assertEqual(plan["mode"], "select")
         self.assertTrue(plan["selector"]["trusted"])
 
-    def test_merge_group_is_full_on_its_queue_commit(self):
+    def test_merge_group_full_policy_is_full_on_its_queue_commit(self):
+        # policy.events.merge_group = "full" (the fixture; the real catalogue's rollback value).
         head = self.branch({"apps/solo/src/lib.rs": "// solo 2\n"})
         plan = self.plan(head, event="merge_group")
         self.assertFull(plan, "merge-group")
@@ -573,8 +574,10 @@ class FallbackTests(FixtureTestCase):
         self.assertEqual(self.selected(plan), CORE)  # only ci has merge_group among core/rwa
 
     def test_forced_full_events_ignore_a_select_or_manual_policy(self):
-        for event, code in (("merge_group", "merge-group"), ("push", "push-main")):
-            for policy in ("select", "manual"):
+        # merge_group may narrow under "select" (MergeGroupSelectTests), never under "manual".
+        for event, code, policies in (("merge_group", "merge-group", ("manual",)),
+                                      ("push", "push-main", ("select", "manual"))):
+            for policy in policies:
                 with self.subTest(event=event, policy=policy):
                     self.repo.git("checkout", "-q", "--detach", self.base)
                     base = self.repo.commit(policy, {".github/ci-impact.toml": CATALOGUE.replace(
@@ -933,6 +936,82 @@ trigger.push = { branches = ["main"], paths_ignore = "@metadata" }
         self.assertEqual(rows["net#native"]["filter_hidden_inputs"], [])
 
 
+# A catalogue that narrows merge_group, with rwa workflows that run on the queue commit.
+MERGE_GROUP_SELECT = CATALOGUE.replace('merge_group = "full"', 'merge_group = "select"', 1).replace(
+    'path = ".github/workflows/net.yml"\nowner = "ci-owner"\ngranularity = "job"\n'
+    'events = ["pull_request", "push"]',
+    'path = ".github/workflows/net.yml"\nowner = "ci-owner"\ngranularity = "job"\n'
+    'events = ["pull_request", "merge_group", "push"]', 1)
+
+
+class MergeGroupSelectTests(FixtureTestCase):
+    """ADR-CI-MERGE-GROUP-SELECT-20261126: a queue commit Q of a stacked group sits on the
+    unlanded entry P ahead of it (merge_group.base_sha). merge-hold plans from the trusted
+    base T, the merge base of Q and main, so the diff T..Q covers P as well."""
+
+    catalogue = MERGE_GROUP_SELECT
+
+    def stack(self, ahead, own):
+        self.repo.git("checkout", "-q", "-B", "queue", self.base)
+        entry_ahead = self.repo.commit("entry ahead", ahead)
+        return entry_ahead, self.repo.commit("queue commit", own)
+
+    def group_plan(self, head):
+        return self.plan(head, event="merge_group", base_ref="main")
+
+    def test_the_fixture_narrows_merge_group_and_net_runs_on_it(self):
+        self.assertEqual(ci_impact.validate(tomllib.loads(MERGE_GROUP_SELECT)), [])
+        self.assertNotEqual(MERGE_GROUP_SELECT.count('"merge_group"'), CATALOGUE.count('"merge_group"'))
+
+    def test_docs_only_stack_selects_only_core(self):
+        _, head = self.stack({"docs/guide.md": "guide 2\n"}, {"README.md": "readme 2\n"})
+        plan = self.group_plan(head)
+        self.assertSelect(plan, set())
+        self.assertEqual((plan["shas"]["base"], plan["shas"]["merge_base"]), (self.base, self.base))
+        self.assertEqual(plan["catalogue"]["source_sha"], self.base)
+        self.assertEqual(plan["changes"]["count"], 2)  # the entry ahead is part of the diff
+        self.assertTrue(plan["selector"]["trusted"])
+        reasons = {row["id"]: row["reason"] for row in plan["excluded"]}
+        self.assertEqual((reasons["net#native"], reasons["window#a"]), ("no-input-match", "event-not-applicable"))
+
+    def test_a_native_path_ahead_is_selected_for_the_group_behind_it(self):
+        ahead, head = self.stack({"kernel/main.rs": "fn main() { 2 }\n"}, {"docs/guide.md": "guide 2\n"})
+        self.assertSelect(self.group_plan(head), {"net#native", "net#broker"})
+        # Planned from merge_group.base_sha instead, the entry ahead would be missed.
+        self.assertSelect(self.plan(head, base=ahead, event="merge_group", base_ref="main"), set())
+
+    def test_a_policy_change_ahead_makes_the_group_behind_it_full(self):
+        for path in (".github/ci-impact.toml", "tools/ci_impact.py"):
+            with self.subTest(path=path):
+                content = Path(self.repo.root, path).read_bytes() + b"\n# ahead\n"
+                _, head = self.stack({path: content}, {"docs/guide.md": "guide 2\n"})
+                plan = self.group_plan(head)
+                self.assertFull(plan, "always-full")
+                self.assertIn(path, " ".join(plan["fallback"]["detail"]))
+                # The catalogue still comes from T, not from the entry ahead.
+                self.assertEqual(plan["catalogue"]["blob"], ci_impact.blob_id(MERGE_GROUP_SELECT.encode()))
+                self.assertIn("net#native", self.selected(plan))
+
+    def test_an_unknown_path_ahead_makes_the_group_full(self):
+        _, head = self.stack({"stray.txt": "x\n"}, {"docs/guide.md": "guide 2\n"})
+        plan = self.group_plan(head)
+        self.assertFull(plan, "unknown-path")
+        self.assertEqual(plan["fallback"]["reasons"], ["unknown-path:stray.txt"])
+
+    def test_an_unresolvable_or_shallow_merge_base_makes_the_group_full(self):
+        _, head = self.stack({"docs/guide.md": "guide 2\n"}, {"README.md": "readme 2\n"})
+        self.repo.git("checkout", "-q", "--orphan", "unrelated")
+        unrelated = self.repo.commit("unrelated base")  # same tree, no common history
+        self.assertFull(self.plan(head, base=unrelated, event="merge_group", base_ref="main"),
+                        "missing-history")
+        clone = Path(self._tmp.name) / "shallow"
+        subprocess.run(["git", "clone", "-q", "--no-local", "--depth=3", "--branch", "queue",
+                        f"file://{self.repo.root}", str(clone)], check=True, env=GIT_ENV, capture_output=True)
+        plan = ci_impact.make_plan(str(clone), "merge_group", self.base, head, selector_bytes=SELECTOR.read_bytes(),
+                                   allow_fetch=False, base_ref="main")
+        self.assertFull(plan, "shallow-history")
+
+
 class GlobTests(TestCase):
     def test_double_star_slash_matches_zero_or_more_directories(self):
         match = ci_impact.github_path_filter_matches
@@ -1139,7 +1218,7 @@ class CatalogueValidationTests(TestCase):
             (lambda c: c.update(extra=1), "unknown top-level key"),
             (lambda c: c["policy"]["events"].pop("merge_group"), "policy.events.merge_group"),
             (lambda c: c["policy"].update(mode="loose"), "policy.mode"),
-            (lambda c: c["policy"]["events"].update(merge_group="select"), "merge_group must be 'full'"),
+            (lambda c: c["policy"]["events"].update(merge_group="manual"), "merge_group must be 'select' or 'full'"),
             (lambda c: c["policy"]["events"].update(push="manual"), "push must be 'full'"),
             (lambda c: c["policy"]["events"].update(schedule="select"), "schedule must be 'full'"),
             (lambda c: c["policy"]["events"].update(workflow_dispatch="select"),
