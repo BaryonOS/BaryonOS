@@ -586,8 +586,9 @@ the second and third reads agree, name the requested run id and show an
 attempt no older than the listing; otherwise the run counts as pending
 ("changed while it was read"). The judged record and its jobs must also
 belong together: a listed job whose `run_attempt` is missing, not an integer
-or another attempt than the judged record's leaves the run pending as a whole
-("listed jobs of another attempt"). After a partial "re-run failed jobs"
+(a JSON boolean or a float is none) or another attempt than the judged
+record's, or a judged record without an integer attempt, leaves the run
+pending as a whole ("listed jobs of another attempt"). After a partial "re-run failed jobs"
 GitHub copies the carried-over jobs into the new attempt with that attempt's
 number (checked on three runs on 26 November 2026), so such a re-run still
 passes. A job's class comes only from rows of its own workflow. Per expected execution exactly one
@@ -609,8 +610,18 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   runtime matrix may not be listed yet; a runtime-matrix row never passes
   while its run is running. A running run of an advisory-only workflow does
   not hold merge-hold.
-  Advisory, manual, operational and publication jobs never block, and
-  merge-hold's own earlier runs are ignored.
+- a completed run whose own conclusion is blocking (`failure`, `cancelled`,
+  `timed_out`, `startup_failure`, `action_required` or `stale`) while none of
+  its listed jobs, in any class, has such a conclusion: **pending** ("concluded
+  … but lists no such job; re-run merge-hold"), because `filter=latest` can
+  omit the failed job. An advisory job's failure explains the run, so that run
+  still passes. A run that lists no job at all (a `startup_failure`, or a run
+  cancelled before any job started) ran no gate: **failed**, not pending,
+  because re-running merge-hold cannot change it; an expected gate of that run
+  is also "missing" as before. This also holds for an advisory-only or
+  trigger-only workflow, and it makes no extra API read.
+  Advisory, manual, operational and publication jobs never block (apart from
+  explaining a run as above), and merge-hold's own earlier runs are ignored.
 
 The pull request also fails when its head does not contain the base tip: the
 gates then did not test the tree that would merge. GitHub's strict
@@ -646,8 +657,9 @@ hold. The other workflows
 (today the Copilot environment, the Materiaal probe, the security alert summary
 and the Windows QEMU bundle) are triggers only: merge-hold counts their runs
 too, and a run that did not settle while merge-hold read it, a run whose listed
-jobs belong to another attempt, or a running job that the base catalogue does
-not know, leaves merge-hold at "Pending". Its script,
+jobs belong to another attempt or do not explain its blocking conclusion, or a
+running job that the base catalogue does not know, leaves merge-hold at
+"Pending"; a run of theirs that ended blocking without any job fails it. Its script,
 `tools/merge_hold_recheck.py`, handles the two activities separately.
 
 When an attempt greater than one of a gate workflow enters `in_progress`, the
@@ -730,8 +742,11 @@ check stays at "Pending". The same holds after a failed or timed-out re-check
 run, and for a pull request that renames a watched workflow, whose renamed runs
 start no re-check until the rename merges. The fallback is
 unchanged: re-run the failed merge-hold job once the gates have finished
-(`gh run rerun <run id> --failed`, or any label change). An expected gate
-workflow that GitHub never starts keeps merge-hold at "Pending"; re-runs
+(`gh run rerun <run id> --failed`, or any label change). A hold that started
+after the last watched gate finished and is still Pending on an unsettled run,
+on jobs of another attempt or on a conclusion its jobs do not explain is never
+re-run by the re-check either, so it needs `gh run rerun <id> --failed`.
+An expected gate workflow that GitHub never starts keeps merge-hold at "Pending"; re-runs
 cannot resolve that, so push a new head or investigate the missing run. Only a
 push between the head read immediately before either re-run request and that
 request can still make the re-check re-run the old head's merge-hold, which
