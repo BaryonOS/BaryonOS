@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Baryon OS is an independent operating system research project. Explore its architecture, evidence, roadmap, and browser interaction prototype.">
+  <meta name="description" content="Baryon OS is an independent operating system research project. Explore its architecture, product direction, and evidence.">
   <meta name="referrer" content="no-referrer">
   <meta name="color-scheme" content="dark">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' data:; font-src 'none'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; font-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Baryon OS — independent operating system research</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/site.css">
@@ -16,34 +16,34 @@
   <header class="site-header">
     <div class="wrap header-inner">
       <a class="brand" href="/" aria-label="Baryon OS home">
-        <img src="/favicon.svg" alt="" width="32" height="32">
-        <span>Baryon <strong>OS</strong></span>
+        <img src="/assets/original-logo.webp" alt="Baryon OS" width="2000" height="1295">
       </a>
       <nav aria-label="Primary navigation">
         <ul class="nav-list">
           <li><a href="#approach">Approach</a></li>
           <li><a href="#status">Status</a></li>
-          <li><a href="#prototype">Prototype</a></li>
           <li><a href="#contribute">Contribute</a></li>
+          <li><a class="nav-source" href="https://github.com/BaryonOS/BaryonOS">Source <span aria-hidden="true">↗</span></a></li>
         </ul>
       </nav>
     </div>
   </header>
 
   <main id="main">
+  <div class="sky">
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow">Independent OS research · x86_64 / UEFI</p>
-        <h1 id="hero-title">An operating system built from the kernel outward.</h1>
-        <p class="lead">Baryon OS is an experimental project developing its own boot chain, Rust kernel, system services, and desktop experience. Its design explores explicit authority and user control over data.</p>
+        <p class="eyebrow hero-eyebrow"><span class="signal" aria-hidden="true"></span> Independent OS research <span class="eyebrow-separator" aria-hidden="true">/</span> x86_64 · UEFI</p>
+        <h1 id="hero-title">A different foundation.<br><em>A familiar way to work.</em></h1>
+        <p class="lead">Baryon OS is developing its own boot chain, Rust kernel, system services and desktop experience. The research joins explicit authority over data with the ease of a familiar desktop.</p>
         <div class="actions">
-          <a class="button button-primary" href="https://github.com/BaryonOS/BaryonOS">Explore the source <span aria-hidden="true">↗</span></a>
-          <a class="button button-secondary" href="#status">See project status <span aria-hidden="true">↓</span></a>
+          <a class="button button-primary" href="#approach">Explore the project <span aria-hidden="true">↘</span></a>
+          <a class="button button-secondary" href="#status">Follow the progress <span aria-hidden="true">↓</span></a>
         </div>
         <p class="release-note"><span aria-hidden="true" class="note-mark"></span><strong>Research software.</strong> There is no supported production release. Do not use it for daily work or sensitive production data.</p>
       </div>
       <aside class="stack-panel" aria-label="Baryon OS architecture, from firmware to desktop">
-        <p class="panel-label">THE RESEARCH STACK</p>
+        <div class="panel-heading"><p class="panel-label">BARYON OS <span>/</span> RESEARCH STACK</p><span class="panel-symbol" aria-hidden="true">✦</span></div>
         <ol class="stack-list">
           <li><span class="stack-index">01</span><span>UEFI / OVMF</span><small>firmware entry</small></li>
           <li><span class="stack-index">02</span><span>Custom Rust loader</span><small>boot chain</small></li>
@@ -51,9 +51,10 @@
           <li><span class="stack-index">04</span><span>Processes and services</span><small>bounded authority</small></li>
           <li><span class="stack-index">05</span><span>Native desktop</span><small>product work</small></li>
         </ol>
-        <p class="panel-footnote">Components have different levels of implementation and test evidence. See the current project record for their accepted scope.</p>
+        <p class="panel-footnote">Each layer has its own implementation and test evidence. The current project record defines the accepted scope.</p>
       </aside>
     </section>
+  </div>
 
     <section id="approach" class="section section-divider">
       <div class="wrap">
@@ -71,13 +72,13 @@
           <article class="feature">
             <span class="feature-number">02 / EXPERIENCE</span>
             <h3>Familiar ways to work</h3>
-            <p>The product goal pairs recognisable desktop interactions with explicit access to documents, apps, and connected storage. The interface prototypes explore these flows while native integration continues.</p>
+            <p>The product goal pairs recognisable desktop interactions with explicit access to documents, apps and connected storage. Native integration is still in progress.</p>
             <a class="inline-link" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/DESIGN-AMBITION.md">Read the product ambition <span aria-hidden="true">↗</span></a>
           </article>
           <article class="feature">
             <span class="feature-number">03 / EVIDENCE</span>
             <h3>Claims with a clear boundary</h3>
-            <p>Builds, host tests, QEMU runs, hardware trials, and human evaluation are distinct evidence levels. A browser mockup does not demonstrate kernel enforcement or a working release.</p>
+            <p>Builds, host tests, QEMU runs, hardware trials and human evaluation are distinct evidence levels. The public records state what each result establishes.</p>
             <a class="inline-link" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/TEST-STRATEGY.md">Read the test strategy <span aria-hidden="true">↗</span></a>
           </article>
         </div>
@@ -112,26 +113,6 @@
             <strong>Evidence archive</strong>
             <span>Recorded tests and their limitations <span aria-hidden="true">↗</span></span>
           </a>
-        </div>
-      </div>
-    </section>
-
-    <section id="prototype" class="section section-divider">
-      <div class="wrap prototype-panel">
-        <div class="prototype-copy">
-          <p class="eyebrow">Interaction research</p>
-          <h2>Explore the Materiaal browser simulation.</h2>
-          <p>The interactive prototype uses fictitious data to examine documents, permissions, storage and desktop flows. It runs in your browser. It is not Baryon OS running on its own kernel and does not perform real NAS synchronisation, cryptographic verification, package installation, or AI inference.</p>
-          <p class="prototype-warning"><strong>Use fictional information only.</strong> The simulation is not a security boundary or a place to store real data.</p>
-          <a class="button button-primary" href="/prototype/">Open browser simulation <span aria-hidden="true">↗</span></a>
-        </div>
-        <div class="prototype-slate" aria-hidden="true">
-          <div class="slate-top"><span></span><span></span><span></span><b>Materiaal · simulation</b></div>
-          <div class="slate-body">
-            <div class="slate-menu"><i></i><i></i><i></i><i></i></div>
-            <div class="slate-content"><div class="slate-line long"></div><div class="slate-line"></div><div class="slate-card"></div><div class="slate-card second"></div></div>
-          </div>
-          <div class="slate-label">BROWSER PROTOTYPE / SYNTHETIC DATA</div>
         </div>
       </div>
     </section>
