@@ -7,9 +7,13 @@ wording and speaker.
 
 ## ADR-CI-MERGE-GROUP-SELECT-20261126 — merge-hold judges a merge group by the gates selected from its trusted main base
 
-**Status:** proposed; requires the project owner's explicit approval (binding
-acceptance contract). Proposed by the CI specialist for issue #494 on
-26 November 2026, after the owner's P0 request that a merge-queue group whose
+**Status:** accepted (binding acceptance contract). The project owner
+approved the design on 26 November 2026 in the CI specialist chat at about
+20:20 UTC. At about 21:10 UTC the owner approved leaving out workflows that are
+not applicable, on the condition that only workflows whose non-applicability
+is established are left out and any doubt stays fail-closed (the two-source
+rule under Judging), with a renewed independent D2 review. Proposed by the CI specialist for issue #494 on 26 November 2026,
+after the owner's P0 request that a merge-queue group whose
 combined change is, for example, documentation only no longer waits for every
 native suite. It amends ADR-CI-SELECTION-20261124 and
 ADR-CI-MERGE-GROUP-GATES-20261126 in the sentences listed below; those
@@ -17,7 +21,7 @@ sentences now point here. It changes no required check name, no workflow
 trigger, no ruleset and no `host-quality` or `qemu-smoke` behaviour, and it
 does not enable the merge queue.
 
-**Source:** branch `ci/merge-group-select-20261126` on base `main` `ffea3883`
+**Source:** branch `ci/merge-group-select-20261126` on base `main` `38237f7d`
 ("PR A"). Skipping the unselected jobs inside each workflow on `merge_group`
 is a later change ("PR B"); until then those jobs still run but no longer
 decide.
@@ -60,12 +64,19 @@ commit of #572.
   report line records T, `merge_group.base_sha` and the queue commit.
 - **Judging.** The expected gates are the selected `core` and `rwa` gates of
   that plan. A selected gate that is skipped, missing, failed or still running
-  blocks as before. Under a `select` plan a workflow whose `core` or `rwa`
-  gates are excluded as `no-input-match`, none of them selected, is neither
-  awaited nor judged on the queue commit: its runs, including a failed or
-  still running one, do not affect the decision, as a path filter keeps such
-  a workflow from starting on `pull_request`. The report names these
-  workflows. A workflow with a selected gate is judged whole, as before, with
+  blocks as before. Under a `select` plan a workflow is neither awaited nor
+  judged on the queue commit only when its non-applicability is established
+  by two sources: every `core` or `rwa` gate of it is excluded as
+  `no-input-match` with none selected (catalogue), and its own
+  `pull_request` path filter, as T's catalogue records it, certainly keeps
+  it from starting for the diff T..queue commit. The selector of T lists the
+  latter workflows in the plan as `pull_request_filter_blocked`. Any doubt
+  leaves a workflow judged: no `pull_request` trigger, no path filter, a
+  negated pattern, both `paths` and `paths-ignore`, no or more than 300
+  changed paths, or a plan without the list. The queue therefore never
+  ignores a workflow that the same change would start, and be judged by, on
+  `pull_request`. Its runs, including a failed or still running one, then do
+  not affect the decision, and the report names these workflows. A workflow with a selected gate is judged whole, as before, with
   its other jobs and unregistered jobs, and so is a workflow without any
   `core` or `rwa` gate (advisory or trigger-only). A `full` plan is judged as
   before. `WAIT_CHECKS` (`host-quality`, `qemu-smoke`), the walk
@@ -107,19 +118,26 @@ commit of #572.
 **Consequences:**
 
 - With the catalogue at revision 21, the selector run locally on a scratch
-  clone gives a documentation-only queue commit a `select` plan in which 19
-  workflows, every integrated native suite among them, have no selected gate;
-  the group no longer waits for them or depends on them. It still waits for
+  clone gives a documentation-only queue commit a `select` plan that leaves
+  19 workflows out, every integrated native suite among them; the group no
+  longer waits for them or depends on them. For a change to `LICENSE`,
+  `.coveragerc`, `.c8rc.json` or a non-Markdown file under `.agents/`, the
+  path filters of `native-hid-input`, `native-xhci` and `resource-pressure`
+  would start them on `pull_request` although no catalogue input matches, so
+  they stay judged and 16 are left out. That mismatch between catalogue
+  inputs and historical path filters is resolved fail-closed here; narrowing
+  such filters is separate work. It still waits for
   the workflows that have a selected core gate and are therefore judged
   whole: `ci.yml`, CodeQL and the three workflows with a `select` job
   (component-leaves, app-management-quality, net-tls-quality), all of whose
   jobs run on `merge_group` until PR B. A `kernel/**` change selects 23
   workflows. Until PR B the unselected suites also still start and use
   runners on the queue commit.
-- A failure of an unselected gate on the queue commit no longer ejects the
-  group. The `push` run on `main`, which stays full, remains the post-merge
-  backstop. This is a deliberate relaxation of "a failed gate is never
-  ignored" for `merge_group` and needs the owner's explicit approval.
+- A failure in a workflow left out this way no longer ejects the group, as
+  it would not have run on `pull_request` either. The `push` run on `main`,
+  which stays full, remains the post-merge backstop. The two-source rule is a
+  transitional safety mechanism until PR B skips the unselected jobs on
+  `merge_group` and the selection logic is consolidated.
 - **Landing constraint.** merge-hold runs the copy of `tools/merge_hold.py`
   at T. While this change is itself queued, T still holds the former copy,
   which requires `BASE_SHA` to equal `merge_group.base_sha`. The change

@@ -277,6 +277,12 @@ manifests are read at every revision too, because a workspace root's
    `filter_eval_uncertain` is set for zero or more than 300 changed files;
    `blocked_by_filter` is then `null` (unknown) for every filtered workflow,
    never a definite `true` or `false`.
+   On a `merge_group` `select` plan, `pull_request_filter_blocked` lists the
+   workflows whose own recorded `pull_request` path filter certainly keeps
+   them from starting for this diff (ADR-CI-MERGE-GROUP-SELECT-20261126); it
+   is empty on every other plan and for zero or more than 300 changed files,
+   and a workflow without a `pull_request` filter, with a negated pattern or
+   with both `paths` and `paths-ignore` is never listed.
 
 ## Plan schema
 
@@ -887,8 +893,10 @@ base selects:
   above stays `merge_group.base_sha`: the `select` jobs never narrow on
   `merge_group`, so only this plan decides.
 - Under a `select` plan a workflow whose `core` or `rwa` gates are excluded
-  as `no-input-match`, none of them selected, is neither awaited nor judged on
-  the queue commit, and the report names it; a selected gate that is skipped
+  as `no-input-match`, none of them selected, and that the plan lists in
+  `pull_request_filter_blocked` (its own `pull_request` path filter certainly
+  keeps it from starting for the diff from T; any doubt keeps it off the list)
+  is neither awaited nor judged on the queue commit, and the report names it; a selected gate that is skipped
   or missing still fails. A workflow with a selected gate, a workflow without
   any `core` or `rwa` gate, and every workflow under a `full` plan are judged
   as below.
