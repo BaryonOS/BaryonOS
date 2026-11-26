@@ -1114,6 +1114,17 @@ class MergeGroupTests(TestCase):
         self.assertIn(f"does not contain the base {BASE}", out)
         self.assertFailsAtOnce(out, calls)
 
+    def test_a_queue_commit_without_its_base_is_refused_even_behind_a_merge_queue(self):
+        # The pull_request containment is advisory behind a merge queue; on merge_group it stays binding.
+        with mock.patch.object(merge_hold, "merge_queue_required", return_value=True) as queue:
+            code, out, calls = self.run_group(self.QUEUE, ancestor=1)
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"the queue commit {GROUP} does not contain the base {BASE}", out)
+        self.assertFailsAtOnce(out, calls)
+        queue.assert_not_called()
+        self.assertFalse([url for url in calls if "/rules/" in url])
+        self.assertNotIn("::notice::", out)
+
     # ADR-CI-MERGE-GROUP-SELECT-20261126: the trusted base T, not merge_group.base_sha.
     def test_a_stacked_group_plans_from_the_trusted_base_not_the_entry_ahead(self):
         code, out, calls = self.run_group(self.QUEUE, env=dict(GROUP_ENV, MERGE_GROUP_BASE_SHA=AHEAD))
@@ -1811,12 +1822,14 @@ class GateTests(TestCase):
     """Phase 3: the pull_request path verifies every applicable gate from base-side code."""
 
     def decide(self, plan=None, runs_=None, jobs=None, pull=None, ancestor=0, page_size=100, totals=None,
-               polls=None, rerun_during_read=None, settle_during_read=None, later_jobs=None, via_main=False):
+               polls=None, rerun_during_read=None, settle_during_read=None, later_jobs=None, via_main=False,
+               rules=()):
         """rerun_during_read: a run that keeps changing; its first re-read shows these fields, each
         later one yet another attempt. settle_during_read: a run that moved on once and then holds
         these fields (a list gives the fields of each re-read in turn, the last one held).
         later_jobs: the jobs of a run from its second jobs read on. An exception in place of fields
-        or jobs is raised by that read. via_main: decide through main() with no acceptance hold set;
+        or jobs is raised by that read. rules answers the branch-rules read (default: no rule; an
+        exception is raised). via_main: decide through main() with no acceptance hold set;
         returns (exit code is 0, its output, state)."""
         plan = plan or plan_fixture()
         state = {"poll": 0, "calls": [], "sleeps": 0}
@@ -1827,6 +1840,10 @@ class GateTests(TestCase):
             state["calls"].append(url)
             if url.endswith("/pulls/7"):
                 return pull or PULL
+            if "/rules/branches/" in url:
+                if isinstance(rules, Exception):
+                    raise rules
+                return list(rules) if isinstance(rules, tuple) else rules
             if "/actions/runs/" in url and "?" not in url:  # re-read of one run
                 run_id = int(url.rsplit("/", 1)[1])
                 listed = runs_ if runs_ is not None else GOOD_RUNS
@@ -2121,6 +2138,72 @@ class GateTests(TestCase):
         passed, out, _ = self.decide(ancestor=1)
         self.assertFalse(passed)
         self.assertIn("does not contain the base tip", out)
+
+    QUEUE_RULES = ({"type": "pull_request", "parameters": {}}, {"type": "merge_queue", "parameters": {}})
+    BINDING = f"::error::The head {HEAD} does not contain the base tip {BASE}"
+    ADVISORY = f"::notice::The head {HEAD} does not contain the base tip {BASE}"
+
+    def test_a_stale_head_is_advisory_behind_a_confirmed_merge_queue(self):
+        passed, out, state = self.decide(ancestor=1, rules=self.QUEUE_RULES)
+        self.assertTrue(passed, out)
+        self.assertIn(self.ADVISORY, out)
+        self.assertIn("main lands only through its merge queue, whose merge_group run re-tests the merged tree", out)
+        self.assertNotIn("::error::", out)
+        self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 0 failed.", out)
+        self.assertIn(f"{merge_hold.API}/repos/o/r/rules/branches/main?per_page=100&page=1", state["calls"])
+        # The other gate checks are unchanged: a failed or pending gate still fails.
+        for over, line in (({"jobs": {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]}}, "Failed:"),
+                           ({"runs_": [wf_run(1, CI)]}, "Pending:")):
+            with self.subTest(line=line):
+                passed, out, _ = self.decide(ancestor=1, rules=self.QUEUE_RULES, **over)
+                self.assertFalse(passed, out)
+                self.assertIn(self.ADVISORY, out)
+                self.assertIn("::error::" + line, out)
+
+    def test_a_contained_head_never_reads_the_branch_rules(self):
+        passed, out, state = self.decide(rules=self.QUEUE_RULES)
+        self.assertTrue(passed, out)
+        self.assertNotIn("::notice::", out)
+        self.assertFalse([url for url in state["calls"] if "/rules/" in url])
+
+    def test_containment_stays_binding_without_a_confirmed_merge_queue(self):
+        cases = (
+            ("no merge_queue rule", [{"type": "pull_request"}, {"type": "required_status_checks"}]),
+            ("no rule at all", []),
+            ("HTTP error", HTTPError("u", 403, "Resource not accessible by integration", {}, None)),
+            ("network error", OSError("timed out")),
+            ("unparsable body", ValueError("Expecting value")),
+            ("object, not a list", {"type": "merge_queue"}),
+            ("non-object rule", ["merge_queue"]),
+            ("rule without a type", [{"name": "merge_queue"}]),
+            ("non-string type", [{"type": ["merge_queue"]}]),
+            ("one malformed rule beside a queue rule", [{"type": "merge_queue"}, None]),
+        )
+        for why, rules in cases:
+            with self.subTest(why=why), contextlib.redirect_stderr(io.StringIO()):
+                passed, out, state = self.decide(ancestor=1, rules=rules)
+                self.assertFalse(passed, out)
+                self.assertIn(self.BINDING, out)
+                self.assertIn("Update the branch; the new head is checked again.", out)
+                self.assertNotIn("::notice::", out)
+                self.assertFalse([url for url in state["calls"] if "/actions/runs" in url])
+
+    def test_containment_stays_binding_on_a_git_error_or_under_shadow(self):
+        for why, kwargs in (("git error, not a non-descendant", {"ancestor": 128}),
+                            ("shadow policy", {"ancestor": 1, "plan": plan_fixture(policy_mode="shadow")})):
+            with self.subTest(why=why):
+                passed, out, state = self.decide(rules=self.QUEUE_RULES, **kwargs)
+                self.assertFalse(passed, out)
+                self.assertIn(self.BINDING, out)
+                self.assertFalse([url for url in state["calls"] if "/rules/" in url])
+
+    def test_the_branch_rules_read_encodes_the_target_branch(self):
+        # A '#' (legal in a branch name) must not cut the path to another branch's rules.
+        pull = dict(PULL, base={"ref": "main#x/y"})
+        _, out, state = self.decide(ancestor=1, pull=pull, plan=plan_fixture(ref="main#x/y"),
+                                    rules=self.QUEUE_RULES)
+        self.assertIn(self.ADVISORY, out)
+        self.assertIn(f"{merge_hold.API}/repos/o/r/rules/branches/main%23x%2Fy?per_page=100&page=1", state["calls"])
 
     def test_shadow_policy_reports_without_blocking(self):
         passed, out, _ = self.decide(plan=plan_fixture(policy_mode="shadow"), runs_=[wf_run(1, CI)])
