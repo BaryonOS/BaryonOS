@@ -32,7 +32,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 17
+revision = 18
 
 [policy]
 mode = "select"
@@ -587,7 +587,7 @@ path = ".github/workflows/merge-hold.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["pull_request", "merge_group"]
-obligation = [{ cite = "docs/DECISIONS.md:1693", anchor = "`.github/workflows/merge-hold.yml` runs `tools/merge_hold.py`" }]
+obligation = [{ cite = "docs/DECISIONS.md:1771", anchor = "`.github/workflows/merge-hold.yml` runs `tools/merge_hold.py`" }]
 trigger.pull_request = { types = ["opened", "synchronize", "reopened", "labeled", "unlabeled"] }
 trigger.merge_group = { types = ["checks_requested"] }
 
@@ -1199,7 +1199,7 @@ path = ".github/workflows/security-alerts.yml"
 owner = "ci-owner"
 granularity = "job"
 events = ["workflow_dispatch", "schedule", "pull_request"]
-obligation = [{ cite = "docs/DECISIONS.md:1846", anchor = "**Decision:** `.github/workflows/security-alerts.yml` runs" }]
+obligation = [{ cite = "docs/DECISIONS.md:1924", anchor = "**Decision:** `.github/workflows/security-alerts.yml` runs" }]
 trigger.pull_request = { paths = [".github/workflows/security-alerts.yml", ".github/actionlint.yaml", "tools/security_alerts_summary.py", "tests/test_security_alerts_summary.py"] }
 
 [[workflow.job]]
