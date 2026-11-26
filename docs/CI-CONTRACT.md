@@ -594,8 +594,9 @@ reads, so within that step a failed job of the judged attempt is never lost:
 a job that the first read lists for the judged attempt, or without an integer
 `run_attempt`, must still be listed by the second read ("dropped job(s)"), and
 a job that was completed in the first read must keep its status, conclusion
-and name ("changed the completed record of job(s)"), so a renamed failed gate
-cannot pass as another check; a job that completes
+and name ("changed the completed record of job(s)"), so a gate that had
+already failed in the first read cannot be re-listed under another job's name;
+a job that completes
 between the two reads is judged on the second read. A job of a newer attempt
 than the settled record in the first read leaves the run pending as well
 ("first listed jobs of a newer attempt"). Jobs of an older attempt in the
