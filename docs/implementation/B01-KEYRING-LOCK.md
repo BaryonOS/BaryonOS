@@ -283,8 +283,33 @@ requirements and leaves the mechanism to a later decision:
     block re-grant of key-protected data (T5f).
   - The Key Service has no volume right (ADR-051). Init reads the key-state
     blob from volume domain 1 and passes it in RESTORE_PERSISTENT. UNLOCK
-    therefore needs the volume service's storage access back first. Whether
-    that re-grant is a separate, earlier step of T5f is for H to decide (O6).
+    therefore needs the volume service's storage access back first. S
+    confirmed this order on 26 November 2026:
+    1. H re-initialises the blk device and lifts the post-wake latch.
+    2. The volume service gets its own BLOCK grant back, then runs the
+       key-free remount with the generation and identity check (fail
+       closed).
+    3. Init reads the blob in domain 1 through the volume service and runs
+       RESTORE_PERSISTENT, which completes UNLOCK.
+    4. Data that depends on keys is re-granted.
+
+    H's proposal for O6 (26 November 2026, non-binding) splits the work for
+    least privilege. After the remount and validation:
+    - **T5f-1** gives the designated volume service a fresh-generation,
+      read-only block grant limited to key-state domain 1. It needs no keys,
+      grants no app access and allows no writes.
+    - Session authentication follows, then UNLOCK.
+    - **T5f-2** gives back the volume service's write access and the
+      per-domain access to key-protected data.
+
+    The split lets each refusal path be tested separately: a refused UNLOCK
+    leaves only the ciphertext-only read live. H and S still have to align
+    one point: the remount itself needs the volume service's block read,
+    which is the grant in step 2 of S's order.
+
+    **OWNER question O8:** does a read-only, ciphertext-only read of domain 1
+    before authentication count as "access restored" under Q3? If it does,
+    the order becomes authentication → T5f-1 → UNLOCK → T5f-2.
 
 ## 8. Proposed acceptance cases (native QEMU, labelled)
 
@@ -326,7 +351,8 @@ A review by a second AI is not an independent audit.
 | O3 | H | answered 26 November 2026: 0x92, -25, -8 retry and -14 already LOCKED, C1–C4 as in §6.1; non-binding until O1 and the ADR exist |
 | O4 | S | answered 26 November 2026: the remount needs no keys (§7 U5) |
 | O5 | project owner and B | the durability window without write-ahead: a Key Service freeze opcode before export, or write-ahead relay in S3 profiles |
-| O6 | H | whether the volume service's storage re-grant is a separate step before UNLOCK, so that init can read the key-state blob (§7 U5) |
+| O6 | H and S | proposed by H: T5f-1 read-only domain-1 grant before UNLOCK, T5f-2 full re-grant after it; align with S's remount grant (§7 U5) |
+| O8 | project owner | whether a pre-authentication, read-only, ciphertext-only read of domain 1 counts as "access restored" under Q3 (§7 U5) |
 | O7 | S and B | a keyed MAC for volume authenticity after a wake, with a key outside the domain-1 blob; not planned |
 | OQ1 | project owner, H and U | erasure of plaintext content held by apps and the volume service before S3 |
 
