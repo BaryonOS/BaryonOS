@@ -640,15 +640,16 @@ def gate_report(token, repo, pull, head_sha, plan):
             running = run.get("status") != "completed"
             # A job the first read listed for the judged attempt, or without an integer attempt (a
             # failed unregistered or continue-on-error job too), must still be listed by the second
-            # read, and a completed one with the same status and conclusion. A job that completes
-            # between the reads is the normal settle. Jobs of an older attempt are not compared.
+            # read, and a completed one with the same status, conclusion and name (a renamed failed
+            # gate could otherwise pass as another check). A job that completes between the reads is
+            # the normal settle. Jobs of an older attempt are not compared.
             kept = {job["id"]: job for job in jobs}
             ours = [job for job in earlier
                     if type(job.get("run_attempt")) is not int or job["run_attempt"] == attempt]
             dropped = [job for job in ours if job["id"] not in kept]
             changed = [job for job in ours if job["id"] in kept and job.get("status") == "completed"
-                       and (kept[job["id"]].get("status"), kept[job["id"]].get("conclusion"))
-                       != ("completed", job.get("conclusion"))]
+                       and (kept[job["id"]].get("status"), kept[job["id"]].get("conclusion"),
+                            kept[job["id"]].get("name")) != ("completed", job.get("conclusion"), job.get("name"))]
             # Jobs of a newer attempt in the first read: the run went back to an older record.
             newer = sorted({job["run_attempt"] for job in earlier
                             if type(job.get("run_attempt")) is int and job["run_attempt"] > attempt})

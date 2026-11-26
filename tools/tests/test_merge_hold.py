@@ -1538,6 +1538,26 @@ class GateTests(TestCase):
                 self.assertTrue(passed, out)
                 self.assertIn("Passed: quality (viewer): success in run 2 attempt 1", out)
 
+    def test_a_settle_that_renames_a_completed_job_of_the_judged_attempt_stays_pending(self):
+        """D2 round 8: the expected gate's job is completed and failed in the first read; the second
+        read lists the same job id, still failed, under an advisory job's name, and a new job id with
+        the expected name that succeeded. Status and conclusion match, so only the name shows that
+        the completed record changed; the advisory failure would explain the failed run, and the
+        new job would pass the gate."""
+        plan = plan_fixture()
+        plan["excluded"] = plan["excluded"] + [{"id": "leaves#lint", "class": "advisory", "workflow": LEAVES,
+                                                "job": "lint", "check_name": "lint", "reason": "advisory"}]
+        passed, out, _ = self.decide(
+            plan=plan, runs_=[wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)],
+            jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]},
+            settle_during_read={2: {"status": "completed", "conclusion": "failure"}},
+            later_jobs={2: [job(21, 2, "lint", "failure"), job(23, 2, "quality (viewer)")]})
+        self.assertFalse(passed)
+        self.assertIn(f"Pending: {LEAVES}: run 2 attempt 1 changed the completed record of job(s) "
+                      "quality (viewer) between two reads; re-run merge-hold", out)
+        self.assertIn("1 pending; 0 failed.", out)
+        self.assertNotIn("Passed: quality (viewer)", out)
+
     def test_a_settle_back_to_an_older_attempt_than_listed_jobs_stays_pending(self):
         """D2 round 7 (S4): the first jobs read already lists attempt 2 with a failed job, and both
         re-reads and the second jobs read went back to a green attempt 1. Attempt 2's failure must

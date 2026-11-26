@@ -593,8 +593,9 @@ skip the conclusion check below. The settle step then compares its two jobs
 reads, so within that step a failed job of the judged attempt is never lost:
 a job that the first read lists for the judged attempt, or without an integer
 `run_attempt`, must still be listed by the second read ("dropped job(s)"), and
-a job that was completed in the first read must keep its status and
-conclusion ("changed the completed record of job(s)"); a job that completes
+a job that was completed in the first read must keep its status, conclusion
+and name ("changed the completed record of job(s)"), so a renamed failed gate
+cannot pass as another check; a job that completes
 between the two reads is judged on the second read. A job of a newer attempt
 than the settled record in the first read leaves the run pending as well
 ("first listed jobs of a newer attempt"). Jobs of an older attempt in the
