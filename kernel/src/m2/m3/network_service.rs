@@ -14,11 +14,14 @@ const REVOKE: bool = cfg!(feature = "test-net-service-revoke");
 /// quiescent points. Idle processes use the existing bounded timed IPC wait.
 const PORT_SWEEP: bool = cfg!(feature = "test-net-service-port-sweep");
 // Aggregate fixture deadline only; socket, IPC and app deadlines are unchanged.
-// The 320-second case budget at 100 Hz. Local QEMU 10.2.1 TCG runs finished both
-// sweeps at ticks 24,817 and 23,455, so the budget leaves 28.9% over the slower one.
+// The 480-second case budget at 100 Hz. Local QEMU 10.2.1 TCG runs finished both
+// sweeps at ticks 24,817 and 23,455. Hosted runs on 25 November 2026 took about
+// 18,000 ticks on fast runners and up to about 32,500 on slow ones: two runs on
+// #539 were 97.6% and 98.4% through the post sweep at the old 32,000-tick
+// deadline, so the budget leaves about 47% over the slowest measured run.
 // shortcut: one RX frame per service loop and one PacketDevice TX slot bound the
 // sweep's speed; deeper RX/TX queues are a separate performance investigation.
-const PORT_SWEEP_TICK_DEADLINE: u64 = 32_000;
+const PORT_SWEEP_TICK_DEADLINE: u64 = 48_000;
 /// Frames the peer sends per sweep: one SYN per TCP port, then 16 UDP probes.
 /// The service counts each unsolicited UDP probe as a malformed frame (512).
 const SWEEP_UDP: u64 = 16;

@@ -715,11 +715,11 @@ else:
             with self.assertRaises(ValueError):
                 Peer(181, case=case)
         with tempfile.TemporaryDirectory() as directory:
-            Peer(360, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
+            Peer(520, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
             with self.assertRaises(ValueError):
-                Peer(361, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
+                Peer(521, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
             with self.assertRaises(ValueError):
-                Peer(360, case="port-sweep")
+                Peer(520, case="port-sweep")
 
     def test_live_sweep_decoder_crosses_old_256_frame_budget_with_bounded_window(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -809,7 +809,7 @@ else:
             Peer(watchdog, case="port-sweep", raw_path=Path(directory) / "sweep.jsonl")
 
     def test_port_sweep_serial_requires_quiescent_phase_order(self):
-        self.assertEqual(native_limits("port-sweep"), (31_999, 360))
+        self.assertEqual(native_limits("port-sweep"), (47_999, 520))
         revoke = "NETSVC:REVOKE_TICKS:00000000000000000008\n"
         def serial(pre=5, base=20, post=25):
             return native_serial("revoke").replace(revoke, (
