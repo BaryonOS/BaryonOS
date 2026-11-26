@@ -611,6 +611,7 @@ def gate_report(token, repo, pull, head_sha, plan):
             # pending for a later merge-hold run, read its jobs once more and judge that newer state
             # only if the run held it across that read, under the requested id, and is no older than
             # the listing. A run that keeps changing or lags behind the listing stays pending.
+            earlier = jobs
             jobs = [job for job in fetch_listing(
                 token, f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
                 if job.get("run_id") == run["id"]]
@@ -621,10 +622,25 @@ def gate_report(token, repo, pull, head_sha, plan):
                 pending.append(f"{workflow}: {where} changed while it was read (now attempt "
                                f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
                 continue
+            # A completed attempt never runs again: a same-attempt re-read that says so contradicts
+            # the listing, and judging it as running would skip the conclusion cross-check.
+            if run.get("status") == "completed" and attempt == listed and settled.get("status") != "completed":
+                pending.append(f"{workflow}: {where} was listed completed but re-read as "
+                               f"{settled.get('status')} in the same attempt; re-run merge-hold")
+                continue
             # Judge the settled record as a whole, never fields of the stale listing.
             run = settled
             where = f"run {run['id']} attempt {run.get('run_attempt')}"
             running = run.get("status") != "completed"
+            # Evidence of the judged attempt is never dropped: a job the first read listed for it
+            # (a failed unregistered or continue-on-error job too) must still be listed.
+            kept = {job["id"] for job in jobs}
+            dropped = [job for job in earlier if job.get("run_attempt") == attempt and job["id"] not in kept]
+            if dropped:
+                pending.append(f"{workflow}: {where} dropped job(s) "
+                               f"{', '.join(str(job.get('name')) for job in dropped)} of that attempt "
+                               "between two reads; re-run merge-hold")
+                continue
         # Bind the jobs to the judged attempt: `filter=latest` can lag behind the run record or
         # run ahead of it. A partial "re-run failed jobs" still passes, because GitHub copies the
         # carried-over jobs into the new attempt with its run_attempt (live check of 26 November
