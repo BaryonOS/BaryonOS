@@ -1,8 +1,10 @@
 //! B01-LOCK (ADR-KEYRING-LOCK-20261126, issue #564): syscall 0x92 LOCK ends the
 //! Key Service instance through the kernel's process teardown (KL3) and scrubs
-//! the unused service stack (KL4). Only this path sets LOCKED (KL1); an exit or
-//! fault of the instance stays `UNEXPECTED_EXIT`. SUSPEND (KL2) and UNLOCK are
-//! separate changes.
+//! the unused service stack (KL4). Only this path sets LOCKED (KL1), and only
+//! once the exit-path scrub has read the whole stack back as zero (`latch`;
+//! project-owner decision of 26 November 2026: F1 holds only after the stack
+//! and buffer erasure is complete). An exit or fault of the instance stays
+//! `UNEXPECTED_EXIT`. SUSPEND (KL2) and UNLOCK are separate changes.
 use super::*;
 #[cfg(feature = "test-system-lock")]
 use capability_core::Message;
@@ -23,6 +25,18 @@ const TAG: u64 = 0x4b45_5931;
 /// KEY1 administrative request; the Key Service echoes it in its reply.
 #[cfg(feature = "test-system-lock")]
 const CANARY: [u8; 8] = *b"B01LKCNY";
+/// A6 app startup words (system app `after_lock`): the kernel's probe and go
+/// flags, then the app's send and receive codes on its KEY1 endpoint pair.
+#[cfg(feature = "test-system-lock")]
+pub(super) const APP_PROBE: u64 = 824;
+#[cfg(feature = "test-system-lock")]
+const APP_GO: u64 = 832;
+#[cfg(feature = "test-system-lock")]
+const APP_CODES: [u64; 2] = [840, 848];
+/// A6: teardown revoked the app's SEND handle to the dead instance (-10), and
+/// no reply is queued for it (-8).
+#[cfg(feature = "test-system-lock")]
+const APP_REFUSED: [u64; 2] = [10, 8];
 
 // Read and written by `m3_restore` (arch.rs) only when this module is built.
 #[no_mangle]
@@ -33,6 +47,9 @@ static mut m3_scrubs: u64 = 0;
 static mut m3_scrub_residue: u64 = 0;
 
 struct LockState {
+    /// The instance is gone (teardown ran); LOCK is irreversible from here.
+    gone: bool,
+    /// LOCKED: `gone` and the exit-path stack scrub read back zero (F1).
     locked: bool,
     locks: u64,
     log: [i64; 8],
@@ -46,6 +63,9 @@ struct LockState {
     owned: [u64; FRAME_COUNT.div_ceil(64)],
     #[cfg(feature = "test-system-lock")]
     frames: u64,
+    /// A6: the app's send and receive codes after LOCK, as magnitudes.
+    #[cfg(feature = "test-system-lock")]
+    app: [u64; 2],
     #[cfg(feature = "test-system-lock")]
     fixture: Fixture,
 }
@@ -57,6 +77,7 @@ struct Fixture {
     done: bool,
 }
 static mut LOCK_STATE: LockState = LockState {
+    gone: false,
     locked: false,
     locks: 0,
     log: [0; 8],
@@ -69,6 +90,8 @@ static mut LOCK_STATE: LockState = LockState {
     owned: [0; FRAME_COUNT.div_ceil(64)],
     #[cfg(feature = "test-system-lock")]
     frames: 0,
+    #[cfg(feature = "test-system-lock")]
+    app: [0; 2],
     #[cfg(feature = "test-system-lock")]
     fixture: Fixture {
         stage: 0,
@@ -86,6 +109,26 @@ fn state() -> &'static mut LockState {
 pub(super) fn locked() -> bool {
     state().locked
 }
+pub(super) fn gone() -> bool {
+    state().gone
+}
+/// Every event: after a LOCK, LOCKED latches only once `m3_restore` scrubbed the
+/// whole service stack and read it back as zero; a LOCK without that halts.
+pub(super) fn latch() {
+    let st = state();
+    if !st.gone || st.locked {
+        return;
+    }
+    #[cfg(feature = "test-system-lock")]
+    {
+        // A10: no canary copy is left anywhere on the service stack.
+        st.canary.1 = count();
+        require(st.canary.1 == 0, b"LOCK_CANARY_RESIDUE");
+    }
+    require(scrub_result() == (1, 0, 0), b"LOCK_STACK_RESIDUE");
+    st.locked = true;
+    serial::write(b"SYSTEM:LOCK:LOCKED\n");
+}
 /// `word(KEY, ..)` after LOCK: the value the instance held at teardown.
 pub(super) fn key_word(offset: u64) -> u64 {
     let index = KEY_WORDS.iter().position(|known| *known == offset);
@@ -94,7 +137,7 @@ pub(super) fn key_word(offset: u64) -> u64 {
 
 /// Syscall 0x92 LOCK(power handle, 0, 0, 0, 0, 0), init only. The reserved
 /// arguments (-1) and the POWER authority (-6, -4) are checked before any
-/// state; then LOCKED (-14, irreversible) and the side-effect-free retry
+/// state; then an earlier LOCK (-14, irreversible) and the side-effect-free retry
 /// preconditions (-8): no entropy request pending or answered, and no message
 /// from the instance still queued anywhere.
 pub(crate) fn lock(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
@@ -102,7 +145,7 @@ pub(crate) fn lock(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
         -1
     } else if let Err(error) = m4::engine().check_power(s.processes[slot].pid, a[0]) {
         error.code()
-    } else if state().locked {
+    } else if state().gone {
         -14
     } else if !keyring::broker_quiet() || m4::engine().queued_from(s.processes[KEY].pid) != 0 {
         -8
@@ -152,9 +195,8 @@ fn teardown(s: &mut State) {
     unsafe {
         ptr::addr_of_mut!(m3_scrub_pending).write(1)
     };
-    st.locked = true;
+    st.gone = true;
     st.locks += 1;
-    serial::write(b"SYSTEM:LOCK:LOCKED\n");
     #[cfg(feature = "test-system-lock")]
     check_frames();
 }
@@ -246,17 +288,18 @@ pub(super) fn hold(code: i64) -> bool {
 
 #[cfg(feature = "test-system-lock")]
 fn live(s: &State) -> bool {
-    !state().locked && !matches!(s.processes[KEY].status, Status::Dead | Status::Dying)
+    !state().gone && !matches!(s.processes[KEY].status, Status::Dead | Status::Dying)
 }
 
 /// Labelled native fixture (TEST profile only), driven by the real 0x92
 /// handler on init's behalf once the app is done and init retries its S5
 /// grant: A9 authority, A2 pending entropy, A3 queued reply, A4/A10 LOCK, A6
-/// client after LOCK and the irreversible -14.
+/// clients after LOCK (init's ingress and the app's own KEY1 endpoint) and the
+/// irreversible -14. The app parks after its DONE until the kernel's go word.
 #[cfg(feature = "test-system-lock")]
 pub(super) fn fixture(s: &mut State) {
     let f = &mut state().fixture;
-    if f.done || f.holds == 0 || evidence().app.is_none() {
+    if f.done || f.holds == 0 {
         return;
     }
     let power = word(s, INIT, 48);
@@ -315,23 +358,41 @@ pub(super) fn fixture(s: &mut State) {
             f.stage = 3;
         }
         3 => {
-            // A later tick, so the drain's frames are no longer live.
-            require(lock(s, INIT, grant) == 0 && state().locked, b"LOCK_GRANT");
+            // A later tick, so the drain's frames are no longer live. The
+            // instance is gone, but LOCKED waits for the exit-path scrub.
+            require(
+                lock(s, INIT, grant) == 0 && state().gone && !state().locked,
+                b"LOCK_GRANT",
+            );
             require(!admin_request(s) && !drain_reply(s), b"LOCK_CLIENT_SERVED");
             require(lock(s, INIT, grant) == -14, b"LOCK_NOT_IRREVERSIBLE");
             require(state().canary.0 >= 1, b"LOCK_CANARY_ABSENT");
             f.stage = 4;
         }
         4 => {
-            // A10, one event later: m3_restore scrubbed the whole stack.
-            let after = count();
-            state().canary.1 = after;
-            require(after == 0, b"LOCK_CANARY_RESIDUE");
-            require(scrub_result() == (1, 0, 0), b"LOCK_STACK_RESIDUE");
+            // One event later `latch` found the stack scrubbed (A10, F1).
+            require(state().locked, b"LOCK_NOT_LATCHED");
+            put(s, APP, APP_GO, 1);
+            f.deadline = s.ticks + 4096;
+            f.stage = 5;
+        }
+        5 => {
+            // A6: the app asked the dead instance to unseal its record.
+            if evidence().app.is_none() {
+                require(s.ticks < f.deadline, b"LOCK_APP_STUCK");
+                return;
+            }
+            require(state().app == APP_REFUSED, b"LOCK_APP_SERVED");
             f.done = true;
         }
         _ => {}
     }
+}
+
+/// A6, at the app's exit: its codes on the KEY1 endpoint pair after LOCK.
+#[cfg(feature = "test-system-lock")]
+pub(super) fn app_exit(s: &State) {
+    state().app = APP_CODES.map(|at| (word(s, APP, at) as i64).unsigned_abs());
 }
 
 /// One KEY1 administrative request from init with an unknown opcode and the
@@ -383,7 +444,9 @@ pub(super) fn check_and_print() {
     require(
         st.fixture.done
             && st.locks == 1
+            && st.locked
             && scrub_result() == (1, 0, 0)
+            && st.app == APP_REFUSED
             && st.log[..st.logged] == [-1, -6, -4, -8, -8, -14]
             && st.dropped == 0,
         b"LOCK_EVIDENCE",
@@ -404,6 +467,8 @@ pub(super) fn check_and_print() {
     {
         print_number(b"SYSTEM:LOCK_FRAMES_ZEROED:", st.frames);
         print_number(b"SYSTEM:LOCK_GRANT_HOLDS:", st.fixture.holds);
+        print_number(b"SYSTEM:LOCK_APP_SEND:", st.app[0]);
+        print_number(b"SYSTEM:LOCK_APP_RECEIVE:", st.app[1]);
         serial::write(b"SYSTEM:LOCK:PASS\n");
     }
 }

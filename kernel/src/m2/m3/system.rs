@@ -406,7 +406,7 @@ fn put(s: &State, slot: usize, offset: u64, value: u64) {
 }
 fn word(s: &State, slot: usize, offset: u64) -> u64 {
     #[cfg(feature = "native-system-lock")]
-    if slot == KEY && keylock::locked() {
+    if slot == KEY && keylock::gone() {
         return keylock::key_word(offset);
     }
     read_word(s.processes[slot].physical(DATA + offset))
@@ -738,6 +738,9 @@ pub(super) fn manifest(s: &mut State) {
     ] {
         put(s, APP, offset, value);
     }
+    // B01-LOCK A6: the app keeps its KEY1 session open until after LOCK.
+    #[cfg(feature = "test-system-lock")]
+    put(s, APP, keylock::APP_PROBE, 1);
     // The app's complete handle table at manifest time. Every app check below
     // iterates this one list; APP_HANDLE_COUNT proves that nothing is outside it.
     #[cfg(not(feature = "test-system-keystate-relay-leak"))]
@@ -992,6 +995,8 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
         }
     } else if slot == APP {
         evidence().app = Some(words);
+        #[cfg(feature = "test-system-lock")]
+        keylock::app_exit(s);
         let mut persist = [0; 6];
         for (i, at) in PERSIST_WORDS.iter().enumerate() {
             persist[i] = word(s, slot, *at);
@@ -1077,6 +1082,8 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     }
     keyring::broker_tick(s);
     m5::broker_tick(s);
+    #[cfg(feature = "native-system-lock")]
+    keylock::latch();
     #[cfg(feature = "test-system-lock")]
     keylock::fixture(s);
     #[cfg(feature = "native-system-net")]

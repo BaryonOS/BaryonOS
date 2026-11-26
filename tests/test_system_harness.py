@@ -1259,7 +1259,8 @@ BOOT_LINES = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 # B01-LOCK: the values of the first passing native power-lock run.
 LOCK_VALUES = dict(LOCK_COUNT=1, LOCK_REFUSALS=6, LOCK_STACK_SCRUBS=1, LOCK_STACK_RESIDUE=0,
                    LOCK_CANARY_BEFORE=6, LOCK_CANARY_AFTER=0, LOCK_ENTROPY_OBJECTS_BEFORE=1,
-                   LOCK_ENTROPY_OBJECTS_AFTER=0, LOCK_FRAMES_ZEROED=65, LOCK_GRANT_HOLDS=724)
+                   LOCK_ENTROPY_OBJECTS_AFTER=0, LOCK_FRAMES_ZEROED=65, LOCK_GRANT_HOLDS=724,
+                   LOCK_APP_SEND=10, LOCK_APP_RECEIVE=8)
 
 
 def lock_transcript(locked=("SYSTEM:LOCK:LOCKED",), admin=(6, 4), **changes):
@@ -1287,7 +1288,8 @@ class PowerLockHarnessTests(unittest.TestCase):
         for change in (dict(LOCK_CANARY_AFTER=1), dict(LOCK_CANARY_BEFORE=0), dict(LOCK_STACK_SCRUBS=0),
                        dict(LOCK_STACK_RESIDUE=8), dict(LOCK_REFUSALS=5), dict(LOCK_COUNT=2),
                        dict(LOCK_ENTROPY_OBJECTS_AFTER=1), dict(LOCK_FRAMES_ZEROED=None),
-                       dict(LOCK_GRANT_HOLDS=0)):
+                       dict(LOCK_GRANT_HOLDS=0), dict(LOCK_APP_SEND=0), dict(LOCK_APP_RECEIVE=0),
+                       dict(LOCK_APP_SEND=None)):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 evaluate("power-lock", lock_transcript(**change), 0, False)
 
@@ -1311,15 +1313,17 @@ class PowerLockHarnessTests(unittest.TestCase):
             evaluate("power", text, 0, False)
 
     def test_red_lock_cases_need_their_exact_refusal(self):
-        noscrub = evaluate_lock_red("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE"), 35, False)
+        # F1: without the scrub LOCKED never latches, so no LOCKED marker either.
+        noscrub = evaluate_lock_red("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0),
+                                    35, False)
         self.assertEqual(noscrub["fail"], "SYSTEM:FAIL:LOCK_CANARY_RESIDUE")
         own_exit = evaluate_lock_red("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT", locked=0), 35, False)
         self.assertEqual(own_exit["fail"], "SYSTEM:FAIL:UNEXPECTED_EXIT")
         for case, text, raw in (
-                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_ABSENT"), 35),
-                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0), 35),
-                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE"), 33),
-                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE",
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_ABSENT", locked=0), 35),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE"), 35),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0), 33),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0,
                                                            extra=("SYSTEM:LOCK_COUNT:" + "0" * 19 + "1",)), 35),
                 ("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT"), 35),
                 ("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT", locked=0, extra=("M1:PASS",)), 35)):

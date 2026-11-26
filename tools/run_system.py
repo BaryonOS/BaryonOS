@@ -48,15 +48,16 @@ POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-syst
                  "power-lock": "test-system-lock"}
 POWER_CASES = tuple(POWER_FEATURE)
 # B01-LOCK red controls: (kernel feature, the one expected kernel refusal, LOCKED
-# markers). Without the stack scrub the canary survives LOCK (A10); an own exit
+# markers). Without the stack scrub the canary survives LOCK (A10) and LOCKED
+# never latches (F1, owner decision 26 November 2026); an own exit
 # of the instance is never LOCKED (A5).
-LOCK_RED = {"power-lock-noscrub": ("test-system-lock-noscrub", "LOCK_CANARY_RESIDUE", 1),
+LOCK_RED = {"power-lock-noscrub": ("test-system-lock-noscrub", "LOCK_CANARY_RESIDUE", 0),
             "power-lock-exit": ("test-system-lock-exit", "UNEXPECTED_EXIT", 0)}
 # Exact LOCK evidence: one LOCK, the fixture's six refusals (-1, -6, -4, -8, -8,
 # -14), one verified whole-stack scrub, no canary after it; the minimums prove
 # that the canary and the instance's frames were there to be erased.
 LOCK_EXACT = {"LOCK_COUNT": 1, "LOCK_REFUSALS": 6, "LOCK_STACK_SCRUBS": 1, "LOCK_STACK_RESIDUE": 0,
-              "LOCK_CANARY_AFTER": 0}
+              "LOCK_CANARY_AFTER": 0, "LOCK_APP_SEND": 10, "LOCK_APP_RECEIVE": 8}
 LOCK_MINIMUM = {"LOCK_CANARY_BEFORE": 1, "LOCK_FRAMES_ZEROED": 1, "LOCK_GRANT_HOLDS": 1}
 # B02-T4 (ADR-B02-KEY1-RELAY-20261123): the Key Service commits key state through
 # init's commit ingress. Kept out of FEATURE (capture/gate iterate it as FR-I01).
