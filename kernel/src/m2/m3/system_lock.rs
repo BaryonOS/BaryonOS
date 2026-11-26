@@ -112,6 +112,21 @@ pub(super) fn locked() -> bool {
 pub(super) fn gone() -> bool {
     state().gone
 }
+/// F1 for SUSPEND (KL2, H05-T5d): LOCKED, every requested scrub ran and read
+/// back zero, and the entropy broker holds no bytes. Frame zeroing (`cleanup`'s
+/// owner assert) and an empty queue from the instance (-8) hold before LOCK.
+pub(crate) fn erased() -> bool {
+    let (scrubs, residue, pending) = scrub_result();
+    let st = state();
+    kernel_core::keylock::erased(kernel_core::keylock::Erasure {
+        locked: st.locked,
+        locks: st.locks,
+        scrubs,
+        residue,
+        scrub_pending: pending != 0,
+        broker_quiet: keyring::broker_quiet(),
+    })
+}
 /// Every event: after a LOCK, LOCKED latches only once `m3_restore` scrubbed the
 /// whole service stack and read it back as zero; a LOCK without that halts.
 pub(super) fn latch() {
@@ -361,7 +376,7 @@ pub(super) fn fixture(s: &mut State) {
             // A later tick, so the drain's frames are no longer live. The
             // instance is gone, but LOCKED waits for the exit-path scrub.
             require(
-                lock(s, INIT, grant) == 0 && state().gone && !state().locked,
+                lock(s, INIT, grant) == 0 && state().gone && !state().locked && !erased(),
                 b"LOCK_GRANT",
             );
             require(!admin_request(s) && !drain_reply(s), b"LOCK_CLIENT_SERVED");
@@ -371,7 +386,7 @@ pub(super) fn fixture(s: &mut State) {
         }
         4 => {
             // One event later `latch` found the stack scrubbed (A10, F1).
-            require(state().locked, b"LOCK_NOT_LATCHED");
+            require(state().locked && erased(), b"LOCK_NOT_ERASED");
             put(s, APP, APP_GO, 1);
             f.deadline = s.ticks + 4096;
             f.stage = 5;
@@ -440,6 +455,7 @@ fn drain_reply(s: &State) -> bool {
 /// `finish`: LOCK evidence. The fixture's refusal log is exact.
 pub(super) fn check_and_print() {
     let st = state();
+    require(!st.gone || erased(), b"LOCK_NOT_ERASED");
     #[cfg(feature = "test-system-lock")]
     require(
         st.fixture.done
