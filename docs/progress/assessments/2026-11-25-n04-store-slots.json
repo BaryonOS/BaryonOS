@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "4ad351576bb55b414cd35aea42db79354079d1f4",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/n04-store-slots-c143-20261126",
+  "task": "N04 C143: two-slot crash-consistent replacement of the authenticated network-grant store (host model)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. services/net-broker/src/durable.rs gains a two-slot store layer over an opaque authenticated record (B02 verifier): a commit writes only the slot that does not hold the anchored store, flushes, then acknowledges; a failed acknowledge blocks every write until startup re-reads the chain; startup prefers a never-acknowledged store (roll-forward) over the anchored copy and denies, never falls back, if that extend fails; zero authentic slots is Missing, never genesis. A host test tears the commit at every byte boundary over the record from two commits back. Media guarantees (independent slot tears, durable flush) are stated assumptions, not native evidence; N04 stays open and 5A stays in force."
+}
