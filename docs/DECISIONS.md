@@ -394,6 +394,32 @@ recovery; native verification is required in addition to host tests. 5A stays
 in force until the protected slot and the complete 5B integration are
 demonstrably safe.
 
+**Amendment (25 November 2026): the protected slot is an extend chain.** B
+implements the M1 route as a per-domain `TPM_NT_EXTEND` hash chain (contract
+`docs/implementation/COLD-FRESHNESS-ANCHOR.md` on #524, basis `5db011cc`;
+P1–P3 agreed with N). The generation counter, the rewritable slot binding and
+the `Pending` state above are replaced: a store records `prev`, the chain value
+it was committed on top of; the kernel derives `E(S)` from the domain and
+`D(S)`; startup accepts `chain == H(S.prev ‖ E(S))`, rolls forward once on
+`chain == S.prev` (a never-acknowledged store) and otherwise denies the store
+as `Stale`; `Foreign` covers an instance mismatch. `services/net-broker/src/durable.rs`
+follows this contract in a host model whose fake computes the real SHA-256
+chain and reproduces B's golden vectors. The M1 regression tests are kept
+under B's names and now pass against a hostile extend:
+`hostile_extend_cannot_revive_a_stale_store_at_the_same_position` (formerly
+`hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation`),
+`crashed_sibling_cannot_displace_a_rolled_forward_store` (the two
+`reseal_multi_boot_*` cases and the multi-boot protected-slot case),
+`every_crash_prefix_of_a_commit` and
+`replaced_tpm_rejects_the_store_until_authorised_genesis`. A stray extend now
+denies every store until authorised genesis (fail closed). Host evidence only;
+native S5 verification on swtpm, torn-A1 store recovery (C143, #529) and the
+residuals listed in B's contract remain open, and 5A stays in force. One
+residual passes N04's own checks: if both copies of the accepted pair are
+lost (TPM clear plus UEFI NVRAM reset, open U13c item), the old `ENROLL`
+authorises a second genesis under the old instance, so the instance check
+does not reject that instance's revived first store.
+
 **Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
 N04 stays open until its native evidence exists; the score is unchanged.
 

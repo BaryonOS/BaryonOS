@@ -21,23 +21,25 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
 
 ## Current cycle
 
-- **cycle_id:** R-20261125-1. Session "BaryonOS - Specialist R" [162009],
-  session id `local_42f1c599-7345-4b4f-9270-7850f491fca1`, registered with
-  "BaryonOS - PR Bewaker" (confirmed). Merge hold applies until #519 lands and
-  the CI governance PR records the A/P/L/R delegation after owner review.
-  Before committing in `sdk/examples/compositor` agree the writer with U
-  (`local_f190cfa9`, open PR #523); report any `kernel/` write set to the PR
-  guard in advance (S and H currently write `volume.rs`).
-- **Branch/worktree:** `claude/r-track-20261125` at
-  `~/projects/BaryonOS-worktrees/r-track`, base `origin/main` `5846e1fb`.
-- **Subtask:** reproducible local KVM baseline of the native window session
-  (build `native-window-session-probe`, `tools/run_window_session.py
-  --clipboard`, five runs), to locate the dominant interactive-latency cost.
-- **Driver:** `~/projects/BaryonOS-scratch/r/baseline.sh`; raw output in
-  `~/projects/BaryonOS-scratch/r/baseline2/` (meta.txt with load average per
-  run, build.log, run<N>.log, report<N>.json). Build dirs must stay inside the
-  checkout (`build/r`, `build/r-target`): `run_fpu.private_path` rejects a
-  `NOS_BUILD_DIR` outside it.
+- **cycle_id:** R-20261126-1. Session "BaryonOS - Specialist R" [41c0ee],
+  registered with "BaryonOS - PR Bewaker". Merges go through the merge queue
+  (`gh pr merge --squash --match-head-commit <head>` after the open-run check);
+  no separate lane request. Scope stop per PR: non-blocking review comments are
+  answered and resolved without a push and logged as follow-ups on #530.
+- **Branch/worktree:** `claude/r02-compositor-turn-20261126` at
+  `~/projects/BaryonOS-worktrees/r-turn`, base `origin/main` `ffea3883`
+  (#540 merged). Worktrees `r-track`, `r-dirty` and `r-base` are removed;
+  their raw run directories are kept in `~/projects/BaryonOS-scratch/r/runs/`.
+- **Subtask:** re-baseline the native window session on `ffea3883` (five KVM
+  runs, `~/projects/BaryonOS-scratch/r/baseline3/`) and rank the next
+  compositor-turn bottleneck (per-turn `yield_now`, one acknowledgement per
+  tile). Compositor source is U's; U agreed on 26 Nov that R is single writer
+  for candidates (1) and (2) below, with U as reviewer.
+  Report any `kernel/` write set to the PR guard in advance.
+- **Driver:** `~/projects/BaryonOS-scratch/r/baseline3.sh` (meta.txt with load
+  average per run, build.log, run<N>.log, report<N>.json). Build dirs must stay
+  inside the checkout (`build/r`, `build/r-target`): `run_fpu.private_path`
+  rejects a `NOS_BUILD_DIR` outside it.
 
 ## Verified findings (source inspection, 25 Nov 2026, `5846e1fb`)
 
@@ -185,6 +187,8 @@ directory. Request U review (UI/a11y); U does not merge. R updates
 - Session "BaryonOS - Specialist R" [41c0ee] resumed the R workstream after a
   context clear and is registered with the PR guard.
 - #526 merged 25 Nov 14:36:38Z as `af0c6f72` (squash of `c02dbded`).
+- #540 merged 26 Nov 19:49:56Z as `ffea3883` through the merge queue (squash of
+  `588a4ba3`; all 13 PR files identical).
 - #540: one `main` merge (`55eeccc7`, includes #523) at `e55e71ac`.
   materiaal-app `.text` 0x27eb3 (< 0x28000). Materiaal host suite green
   (3 unit, 41 chain, 4 retained_digest, 2 semantic_actions); clippy (host
@@ -202,11 +206,50 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   commit is not reported. The log is consistent with this but does not exclude
   a guest stall after the final commit. Pre-existing on `main`.
 
+## Re-baseline after #540 (26 Nov 2026, `ffea3883`)
+
+- Five local KVM window sessions: 5/5 raw 33, median 19.50 s (26.93 s before
+  #540); slowest phases are whole-screen changes (`reopened` 0.70 s, `editor`
+  0.68 s, `list` 0.65 s). Evidence: `docs/verification/r02-window-baseline-20261126/`.
+- The window-session profile runs `window-compositor`
+  (`sdk/examples/window-session`), not `sdk/examples/compositor`; earlier
+  notes in this file about the latter's 8-message batch and per-turn
+  `yield_now` do not describe this profile.
+- Verified in source: the SUR1 client keeps one tile in flight and spins
+  receive/`yield_now` for each reply (`ui/surface-protocol/src/client.rs`
+  `receive_reply`); on the single-CPU path every kernel entry ends in a
+  round-robin `select()` that never continues the caller
+  (`kernel/src/m2/m3.rs`). Estimate only: about 40–50 kernel entries per full
+  tile, about 0.35–0.39 ms per tile host-side.
+- Candidate changes and owners: (1) client blocks with `ipc_wait` for the reply
+  (`ui/surface-protocol`, runtime transport; U); (2) window compositor reads
+  the clock once per turn (`sdk/examples/window-session`; U); (3) single-CPU
+  scheduler continues the caller after ordinary system calls
+  (`kernel/src/m2/m3.rs`; kernel owner, needs an explicit decision).
+
+## Candidate (2) in draft PR #578 (26 Nov 2026)
+
+- `5aedee77` makes the window compositor read the clock once per pass instead
+  of once per message and per reply flush (`sdk/examples/window-session`
+  only; activity/commit counting and reporter words 464/480, which belong to
+  U's #545, are unchanged). U reviewed it without blockers; the comment-only
+  review fix leaves the kernel ELF byte-identical.
+- Local KVM A/B against `ffea3883` (5+5 runs, not hosted): all runs raw 33 and
+  passed; `reopened` 0.72 → 0.43 s, `list` 0.67 → 0.42 s, `editor`
+  0.65 → 0.40 s (medians); run duration 19.25 → 17.21 s. High-contrast frames
+  are identical; the frames that differ are focus-switch captures that also
+  vary on `main`. Materiaal normal, keyboard and recover pass on B. Evidence:
+  `docs/verification/r02-compositor-turn-ab-20261126/`.
+
 ## Next action
 
-1. #540: hosted `native-window-session` green at the pushed merge head, then
-   ready, Project #5 In Review, and `gh pr merge --squash --match-head-commit
-   <head>` (merge queue) after the PR guard confirms the order.
-2. After #540 lands: retire worktrees `r-track`, `r-dirty`, `r-base`; next R02
-   bottleneck (unconditional `yield_now`, one ack per tile) from
-   `docs/verification/r02-window-baseline-20261125/`.
+1. #578: hosted `native-window-session` (scale 1 and 2) green on the final
+   head, open-run check `[]`, ready, then the merge queue
+   (`--match-head-commit`). Report the landing to the PR guard and U.
+2. Candidate (1) as a separate PR after #578: SUR1 client waits with
+   `ipc_wait` for the reply (`ui/surface-protocol/src/client.rs` plus the
+   runtime transport hunk), with the negative test U asked for (non-answering
+   endpoint keeps the existing deadline/Delivery error, bounded poll budget,
+   ABI < 1.10 falls back to the current path).
+3. Candidate (3) goes to the PR guard as a proposal (interfaces and evidence)
+   for the kernel owner and the project owner; R does not write `kernel/`.

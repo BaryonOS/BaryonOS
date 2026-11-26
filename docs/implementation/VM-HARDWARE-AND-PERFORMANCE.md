@@ -129,7 +129,14 @@ path reduced the window-session duration in a local KVM A/B from a median of
 26.93 s to 18.69 s (ten runs per side, host-side timing, `-smp 1`); this is
 not hosted, physical or budget evidence. Remaining per-tile costs: one
 acknowledgement per tile and one tile transaction per `paint_step` (up to
-four per `step_interactive` call). Longer
+four per `step_interactive` call). A re-baseline on `main` `ffea3883` after
+#540 (`docs/verification/r02-window-baseline-20261126/`, five local KVM runs)
+gave a median of 19.50 s; the slowest phases are whole-screen changes at
+0.65–0.70 s. The window-session profile runs `window-compositor`
+(`sdk/examples/window-session`), not `sdk/examples/compositor`. Source
+inspection attributes the remaining per-tile cost to the SUR1 client spinning
+on `yield_now` for each reply and to the single-CPU scheduler switching on
+every system call (an estimate, not a measured switch count). Longer
 term, a capability-bound transfer buffer with explicit ownership, bounded
 length and revocation. Do not give apps raw framebuffer or DMA permission for
 speed.
