@@ -584,7 +584,14 @@ jobs. If its id, attempt or status changed in between, merge-hold reads the
 jobs once more and the run a third time, and judges that third record only if
 the second and third reads agree, name the requested run id and show an
 attempt no older than the listing; otherwise the run counts as pending
-("changed while it was read"). The judged record and its jobs must also
+("changed while it was read"). A run that the listing shows completed and
+that both re-reads show not completed in the same attempt is pending too
+("was listed completed but re-read as"): a completed attempt does not run
+again, and judging it as running would skip the conclusion check below. A job
+that the first jobs read lists for the judged attempt and the second read
+omits leaves the run pending ("dropped job(s)"), so a failed job seen once is
+never lost; jobs of another attempt in the first read are neither compared
+nor carried into the judged attempt. The judged record and its jobs must also
 belong together: a listed job whose `run_attempt` is missing, not an integer
 (a JSON boolean or a float is none) or another attempt than the judged
 record's, or a judged record without an integer attempt, leaves the run
