@@ -492,7 +492,8 @@ pub enum Marker {
     FailUefiFloorMissing,
     FailUefiFloorWrite,
     FailTpmAnchor,
-    /// Printed with every halt that only authenticated recovery resolves.
+    /// Printed with every halt that only authenticated recovery resolves:
+    /// identity mismatch, unenrolled, NVRAM reset and anchor loss.
     RecoveryRequired,
 }
 
@@ -726,24 +727,33 @@ fn halt_no_slot(plan: &mut Plan) {
     plan.outcome = Outcome::Halt(Halt::NoValidSlot);
 }
 
-/// A halt that only authenticated recovery (section 10.5) resolves: no write,
-/// no kernel, all floors kept, and a recovery message. Owner decisions of
-/// 26 November 2026: C665 prevails over ADR decision 6 (an unverified TPM
+/// A TPM-related halt: no write, no kernel, all floors kept. Owner decisions
+/// of 26 November 2026: C665 prevails over ADR decision 6 (an unverified TPM
 /// never boots, section 7.8) and REL-05 §7.9 (a verified TPM with a lost or
 /// behind anchor never boots, section 7.9); there is no `DEGRADED` boot.
-fn recovery_halt(mut plan: Plan, class: Option<TpmClass>, fail: Marker, halt: Halt) -> Plan {
+fn tpm_halt(mut plan: Plan, class: Option<TpmClass>, fail: Marker, halt: Halt) -> Plan {
     plan.path.push(State::Halt);
     if let Some(class) = class {
         plan.markers.push(Marker::Tpm(class));
     }
     plan.markers.push(fail);
-    plan.markers.push(Marker::RecoveryRequired);
     plan.outcome = Outcome::Halt(halt);
     plan
 }
 
+/// A halt that only authenticated recovery (section 10.5) resolves, with the
+/// recovery message.
+fn recovery_halt(plan: Plan, class: Option<TpmClass>, fail: Marker, halt: Halt) -> Plan {
+    let mut plan = tpm_halt(plan, class, fail, halt);
+    plan.markers.push(Marker::RecoveryRequired);
+    plan
+}
+
+/// Absent, faulty or dirty-PCR TPM: no verified identity, so halt. The
+/// enrolled TPM back, a power cycle or service may resolve it, so this halt
+/// does not claim that recovery is required.
 fn unverified(plan: Plan, class: TpmClass) -> Plan {
-    recovery_halt(
+    tpm_halt(
         plan,
         Some(class),
         Marker::FailTpmIdentity,

@@ -524,13 +524,15 @@ progress score stays 43/100.
 Consequence for this ADR: decision 6 is replaced in full. `DEGRADED` no
 longer exists. Every `ANCHOR_LOST` and `ANCHOR_BEHIND` class with a verified
 identity halts with `BOOT:FAIL:TPM_ANCHOR`; every halt that only
-authenticated recovery resolves (`TPM_IDENTITY`, `TPM_UNENROLLED`,
-`UEFI_FLOOR_MISSING`, `TPM_ANCHOR`) also prints `BOOT:RECOVERY:REQUIRED`. The
+authenticated recovery resolves (identity mismatch, `TPM_UNENROLLED`,
+`UEFI_FLOOR_MISSING`, `TPM_ANCHOR`) also prints `BOOT:RECOVERY:REQUIRED`, and
+an absent, faulty or dirty-PCR TPM halts without it. The
 host model and its tests implement this; the loader does not yet. Section 7.9
 of the specification records each condition with its status. Open binding
-conditions include: the TEST loader's M1-HAUTH path still provisions whenever
-`ownerAuth` is unset, which is also the state after a clear, and must halt on
-a cleared provisioned TPM before acceptance; the currency of a recovery
+conditions include: the TEST loader's M1-HAUTH path provisions and boots
+whenever `ownerAuth` is unset, which is also the state after a clear, so the
+TEST loader currently violates the first two conditions and must halt on a
+cleared provisioned TPM before acceptance (B's first follow-up); the currency of a recovery
 record; the recovery authority for the case where both copies of the
 accepted pair are lost; and the user-visible recovery text.
 

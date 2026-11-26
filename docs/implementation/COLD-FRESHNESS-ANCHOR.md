@@ -401,8 +401,9 @@ Listed in REL-05 section 14; the host model assumes them, S5 must prove them.
   TPM without a verified identity (C665 precedence); `DEGRADED` is removed, so
   no kernel runs with an empty ownerAuth after a clear. Host model only: the
   loader slice and native case C18a are open, and the TEST loader's M1-HAUTH
-  path still provisions whenever ownerAuth is unset, which a clear also
-  produces (REL-05 section 7.9 table, open binding condition).
+  path provisions and boots whenever ownerAuth is unset, which a clear also
+  produces, so it currently violates §7.9 (REL-05 section 7.9 table, open
+  binding condition).
 - U26 Loader record design: *designed* as `LREC` (table above; probe
   b03-rel05-lrec-probe-20261125; codec `update_core::trial::LoaderRecord`). The clear-is-denial result rests on it;
   the loader code, native S5 tests and power-loss atomicity (U22) are open.

@@ -153,8 +153,10 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   follow-up commit with review wording fixes and REL-05 §7.9 (owner decision 26 Nov: `DEGRADED` removed, `Halt::TpmAnchor`,
   `BOOT:FAIL:TPM_ANCHOR`, `BOOT:RECOVERY:REQUIRED`; spec sections 7.8/7.9, second ADR amendment, anchor contract).
   Host checks green; native cases stay bound to 42e48d3c.
-- Next on #524: one bundled push on the PR guard's grant, then ready and the merge queue on the guard's signal. After
-  that: the loader halts for an unverified TPM and for anchor loss (S6, §7.9 table), native S5 with N's joint tests;
+- Next on #524: one bundled push on the PR guard's grant, then ready and the merge queue on the guard's signal. First
+  follow-up after that: the TEST M1-HAUTH loader must halt on a cleared provisioned TPM instead of re-provisioning
+  (it currently violates §7.9 conditions 1 and 2). Then: the loader halts for an unverified TPM and for anchor loss
+  (S6, §7.9 table), native S5 with N's joint tests;
   S3/U27 still waits for the owner. Genesis, ACCEPTED and the UEFI copy wait for S3b and the OWNER answer on U13c record staging.
 - When the PR guard grants the lane: merge `main` into #524 (no rebase), push, rerun the applicable gates, refresh the PR
   body and post a HANDOFF comment. Merging `main` changes `source_hash` (#544 touched `tools/`): rerun the seventeen

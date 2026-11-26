@@ -444,9 +444,12 @@ specification left open; implementations follow it:
 C665 takes precedence over ADR decision 6: a TPM that is absent, faulty,
 unenrolled, replaced or reset, or whose identity cannot be verified for any
 other reason, halts before any record is trusted
-(`BOOT:FAIL:TPM_IDENTITY` or `BOOT:FAIL:TPM_UNENROLLED`, with
-`BOOT:RECOVERY:REQUIRED`) and is never routed around the identity binding.
-Recovery is the authenticated procedure of section 10.5.
+(`BOOT:FAIL:TPM_IDENTITY` or `BOOT:FAIL:TPM_UNENROLLED`) and is never routed
+around the identity binding. An identity mismatch and an unenrolled TPM also
+print `BOOT:RECOVERY:REQUIRED`; their recovery is the authenticated procedure
+of section 10.5. An absent, faulty or dirty-PCR TPM does not, because the
+enrolled TPM back, a power cycle or service may resolve it; if it does not,
+the same authenticated recovery applies.
 
 ### 7.9 TPM clear and anchor loss (owner decision of 26 November 2026)
 
@@ -465,8 +468,8 @@ continues is the interrupted finalization of 7.3 (step 2).
 
 | Binding condition (owner) | Status on this branch |
 |---|---|
-| No regular or `DEGRADED` boot once a TPM clear or the loss of required anchor state is detected. | Host model: `Halt::TpmAnchor`; `DEGRADED` removed; invariant I7 and the reachable-state search check it. Loader: open (S6). |
-| No automatic re-provisioning based only on a matching EK. | Host model: the halt writes nothing. **Open:** the TEST loader's M1-HAUTH path still provisions whenever `ownerAuth` is unset, which is also the state after a clear (`boot/loader/src/tpm_hauth.rs`); before acceptance it must tell first provisioning of a never-provisioned device (authorised by the signed `ENROLL` step, S3b) from a clear of a provisioned one, and halt on the latter. The TEST host tool of 10.3 is not automatic and stays limited to disposable swtpm state. |
+| No regular or `DEGRADED` boot once a TPM clear or the loss of required anchor state is detected. | Host model: `Halt::TpmAnchor`; `DEGRADED` removed; the invariant checker refuses any handover without an intact anchor, checked independently of the model's classification, in the exhaustive single step, the fault-class sweep and the reachable-state search (a mutant that boots `ANCHOR_BEHIND` fails all three). Loader: the trial path is not built (S6), and the TEST M1-HAUTH loader **currently violates** this condition after a clear (next row). |
+| No automatic re-provisioning based only on a matching EK. | Host model: the halt writes nothing. **Open, currently violated by the TEST loader:** its M1-HAUTH path provisions and boots whenever `ownerAuth` is unset, which is also the state after a clear (`boot/loader/src/tpm_hauth.rs`); before acceptance it must tell first provisioning of a never-provisioned device (authorised by the signed `ENROLL` step, S3b) from a clear of a provisioned one, and halt on the latter. The TEST host tool of 10.3 is not automatic and stays limited to disposable swtpm state. |
 | Recovery only through an authenticated, demonstrably current recovery procedure. | Design: the recovery record of 10.5. **Open:** currency needs a record bound to this recovery (for example a device challenge), not only a serial; specification and implementation pending (S3b, U13c). |
 | Keep the highest reliably established anti-rollback floor. | Host model: no write on the halt, so the UEFI copy survives (`power_cut_between_f1_and_f2_resumes_finalization`, `tpm_missing_faulty_cleared_replaced_or_rolled_back`). Design: the recovery floor is `≥` every surviving copy (10.5). |
 | Prevent reactivation of revoked keys, grants and older anchor instances. | Design: accepted-serial rule (U13c), N04 re-anchors from genesis and network grants are not restored (10.5). **Open:** native tests, and the rule for older recovery records once the accepted pair is lost. |

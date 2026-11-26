@@ -196,17 +196,17 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
     let post_eff = post.effective();
     assert!(post_eff >= pre_eff, "I1: {}", ctx());
     // Owner decisions 26 Nov (sections 7.8, 7.9): every halt that only
-    // authenticated recovery resolves writes nothing and says so.
-    if let Outcome::Halt(
-        Halt::TpmIdentity | Halt::TpmUnenrolled | Halt::UefiFloorMissing | Halt::TpmAnchor,
-    ) = plan.outcome
-    {
+    // authenticated recovery resolves writes nothing and says so; an absent,
+    // faulty or dirty-PCR TPM halts without claiming recovery is required.
+    let recovery = plan.markers.iter().any(|m| *m == Marker::RecoveryRequired);
+    let needs_recovery = match plan.outcome {
+        Outcome::Halt(Halt::TpmUnenrolled | Halt::UefiFloorMissing | Halt::TpmAnchor) => true,
+        Outcome::Halt(Halt::TpmIdentity) => dev == Dev::IdentityMismatch,
+        _ => false,
+    };
+    assert_eq!(recovery, needs_recovery, "recovery message: {}", ctx());
+    if needs_recovery {
         assert!(plan.writes.is_empty(), "recovery halt wrote: {}", ctx());
-        assert!(
-            plan.markers.iter().any(|m| *m == Marker::RecoveryRequired),
-            "no recovery message: {}",
-            ctx()
-        );
     }
     // C665/U13: an unidentified TPM is never written and never trialled.
     // An enrolled device whose ENROLL file was deleted looks unenrolled, so
@@ -252,6 +252,19 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
     }
     match plan.outcome {
         Outcome::Handover(h) => {
+            // Section 7.9, checked without the model's classification: a
+            // handover needs an intact anchor and a UEFI floor not ahead of
+            // FLOOR, except the interrupted finalization (F2 in this plan).
+            let f2 = plan.writes.iter().any(|w| matches!(w, Write::Floor(_)));
+            let anchor_ok = pre.public_ok
+                && pre.generation.is_some()
+                && pre_trial.is_some()
+                && pre.floor_rec().is_some_and(|f| pre.uefi <= f.floor || f2);
+            assert!(
+                anchor_ok,
+                "7.9 handover without an intact anchor: {}",
+                ctx()
+            );
             // I6: only verified images at or above the effective floor.
             let slot = view(disk[usize::from(h.slot)]).unwrap_or_else(|| panic!("{}", ctx()));
             assert_eq!(
