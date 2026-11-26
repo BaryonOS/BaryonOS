@@ -5,12 +5,12 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 | Field | Value |
 |---|---|
-| cycle_id | `h05-t5c-20261125` |
+| cycle_id | `h05-t5c-20261126` |
 | Location | local H session; the latest `HANDOFF H` comment is on #515 |
-| Task | H05-T5c virtio-blk re-initialisation after an S3 wake, slice 1 (kernel re-init plus quarantine `-24`, no ring-3 re-grant); verified locally, not pushed |
-| Branch | `claude/h05-t5c-blk-reinit-20261125` (local only, base main `c61a1fe0`) |
-| PR | none yet; draft PR after S #539 lands and main is merged |
-| Previous | #515 (H02-T5) merged as `744f1b75`; ledger H02-T5 is `verified`; native evidence bound to `f8662109` |
+| Task | H05-T5c virtio-blk re-initialisation after an S3 wake: slice 1 (kernel re-init, quarantine `-24`, O13 latch carryover) merged; slices 2–4 open |
+| Branch | none active; slice 1 came from `claude/h05-t5c-blk-reinit-20261125` |
+| PR | #556 merged as `945847d8` (26 Nov 2026); ledger H05-T5c stays `active` |
+| Previous | #515 (H02-T5) merged as `744f1b75`; ledger H02-T5 is `verified`; native evidence bound to `f8662109`. T5c evidence: [h05-s3-blk-reinit-20261125](../../verification/h05-s3-blk-reinit-20261125/README.md) |
 | Score | 43/100 unchanged; H02, H05 and H06 stay open |
 
 ## Blockers
@@ -35,20 +35,14 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 9. `evaluate_fixture` markers that end in `:` are value markers (prefix plus non-empty value); every other fixture marker must be the whole line.
 10. QEMU routes QMP input to a USB HID device only after the guest's first interrupt-IN poll; wait on MFINDEX before printing a READY marker. Reset Device on a disabled slot completes with code 11 and Slot ID 0.
 11. Any `kernel/` or `tools/` change, including the runner, changes the source fingerprint: rebuild before `run_usb_hid.py`. `NOS_QEMU_MACHINE` accepts only recorded machines (`pc-q35-8.2`), not `q35`.
+12. `run_system.py` puts the QMP socket at `build/<gate>/run/system-<case>-<32 hex>/qmp.sock`; it must stay below 108 bytes. Keep case names short; never shorten the 32-hex suffix, which `capture_system.py` and the RANDOM/images validators pin.
 
 ## Next task
 
 H02-T5 is done; its evidence is in
 [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md).
 
-H05-T5c slice 1 waits for S's O13 step 2 (#539). After it lands:
-
-1. Merge main into the T5c branch.
-2. Add a native O13 latch-carryover check: re-init and quarantine keep the same
-   `lane.policy` latch table. Prove it with a `Policy::new()` mutant.
-3. Re-run the power gate, `tests.test_system_harness`, the virtio-blk tests,
-   `test_sleep.py` and `run_sleep --case cycles`.
-4. Open a draft PR. It catches up with main only when it holds the merge lane.
+H05-T5c slice 1 is merged (#556, `945847d8`).
 
 Slices 2–4 of T5c wait for the following:
 
