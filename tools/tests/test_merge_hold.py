@@ -196,7 +196,8 @@ class MergeGroupTests(TestCase):
         successful merge-hold run), group_runs[sha] answers event=merge_group (default:
         the passing gate runs of GROUP, and for another queue entry commit one successful
         merge-hold run of its pull request, entry_hold_run); group_jobs[run id] lists their
-        jobs. rereads[run id] overlays the fields a re-read of that listed run shows (a
+        jobs (default for a listed merge-hold run: its one merge-hold job, as the run shows it).
+        rereads[run id] overlays the fields a re-read of that run, as last listed, shows (a
         callable: one answer per re-read, see per_read). plan is what the mocked selector
         returns (default: group_plan()); self.plans records its calls, self.gits the git calls.
         Fake clock: only sleeps, the selector (plan_seconds), each git call (git_seconds) and
@@ -212,6 +213,7 @@ class MergeGroupTests(TestCase):
         calls = self.calls = []
         self.plans, self.gits = [], []
         clock = self.clock = [0.0]
+        seen = {}  # merge_group runs by id, as last listed
 
         def recompute(*args, **kwargs):
             self.plans.append((args, kwargs))
@@ -244,7 +246,11 @@ class MergeGroupTests(TestCase):
                     raise answer_
                 return answer_
             if "/jobs?" in url:
-                listed = group_jobs.get(int(url.split("/runs/")[1].split("/")[0]), [])
+                run_id = int(url.split("/runs/")[1].split("/")[0])
+                run = seen.get(run_id, {})
+                listed = group_jobs.get(run_id, [job(10 * run_id, run_id, "merge-hold", run.get("conclusion"),
+                                                     run.get("status"), run.get("run_attempt"))]
+                                        if run.get("path") == merge_hold.GATE_WORKFLOW else [])
                 listed = listed() if callable(listed) else listed  # an answer per read, e.g. one that fails once
                 return {"total_count": len(listed), "jobs": listed}
             if "/actions/runs?" in url:
@@ -254,15 +260,15 @@ class MergeGroupTests(TestCase):
                     number = next((node["pullRequest"]["number"] for node in nodes
                                    if (node.get("headCommit") or {}).get("oid") == head), 9)
                     listed = group_runs.get(head, [] if head == GROUP else [entry_hold_run(head, number)])
+                    seen.update((run["id"], run) for run in listed)
                 else:
                     self.assertEqual(event, "pull_request")
                     listed = (gate_runs or {}).get(head, [gate_run(head)])
                 return {"total_count": len(listed), "workflow_runs": listed}
             if "/actions/runs/" in url:  # re-read of one listed merge_group run
                 run_id = int(url.rsplit("/", 1)[1])
-                listed = next(dict(run) for listed in group_runs.values() for run in listed if run["id"] == run_id)
                 change = (rereads or {}).get(run_id) or {}
-                return {**listed, **(change() if callable(change) else change)}
+                return {**seen[run_id], **(change() if callable(change) else change)}
             if url.endswith("/graphql"):
                 self.assertEqual(payload["variables"], {"owner": "o", "name": "r"})
                 return answer if answer is not None else {"data": {"repository": {
@@ -423,8 +429,9 @@ class MergeGroupTests(TestCase):
     def test_the_decision_after_the_wait_makes_the_counted_requests(self):
         """The requests of the decision after the wait, counted from the moment the wait returns (one
         page each), as merge_group_hold's docstring states them for its 7-minute assumption: 2 + 2N + 4M
-        for N counted runs and M members, at most 2 + 4N + 5M (every run read again; every member ahead
-        lifted, which reads its entry's merge-hold, and this group's own entry labelled and released)."""
+        for N counted runs and M members, at most 4N + 8M - 1 (every run read again; every member ahead
+        lifted, which reads its entry's merge-hold run, that run's jobs, a re-read of it and the entry's
+        check runs, and this group's own entry labelled and released)."""
         ends = []
         real = merge_hold.wait_for_checks
 
@@ -448,7 +455,9 @@ class MergeGroupTests(TestCase):
                     ends.clear()
                     attempt = 2 if worst else 1
                     code, out, calls = self.run_group(
-                        queue, plan=plan, group_runs={GROUP: listed}, gate_runs=gate_runs,
+                        queue, plan=plan, gate_runs=gate_runs,
+                        group_runs={GROUP: listed, **{commit: [entry_hold_run(commit, 10 + i, run_id=70 + i)]
+                                                      for i, commit in enumerate(commits)}},
                         group_jobs={i: [job(10 * i, i, f"g{i}", attempt=attempt)] for i in range(1, n + 1)},
                         rereads={i: {"run_attempt": 2} for i in range(1, n + 1)} if worst else None,
                         trees={sha: "2" * 40 for sha in heads} if worst else None,
@@ -458,7 +467,9 @@ class MergeGroupTests(TestCase):
                     self.assertEqual(len(ends), 1)
                     after = calls[ends[0]:]
                     self.assertNotIn("sleep", after)
-                    self.assertEqual(len(after), 2 + 4 * n + 5 * m if worst else 2 + 2 * n + 4 * m, after)
+                    self.assertEqual(len(after), 4 * n + 8 * m - 1 if worst else 2 + 2 * n + 4 * m, after)
+                    if worst:
+                        self.assertEqual(len([url for url in after if "/runs/7" in url]), 2 * (m - 1))
 
     def test_released_pr_with_the_landing_tree_passes(self):
         code, out, _ = self.run_group(
@@ -1194,6 +1205,62 @@ class MergeGroupTests(TestCase):
                 self.assertEqual(code, 0, out)
                 self.assertFalse([url for url in calls if "&event=merge_group" in url and GROUP not in url])
 
+    def test_a_lifted_member_ahead_fails_closed_when_the_reads_of_its_entry_merge_hold_disagree(self):
+        """D2 on round 4: the entry run gets gate_report's rigour. The listing always shows a completed,
+        successful merge-hold run 70 on E, attempt 2; each case contradicts it in one read only (its jobs,
+        its re-read by id, or E's check runs read again at the decision), and PR 7 then fails closed."""
+        queue = [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)]
+        trees = {E: "1" * 40, HEAD: "2" * 40, GROUP: "3" * 40, OTHER: "3" * 40}
+        group_runs = {GROUP: [group_run(1, CI), group_run(2, LEAVES)], E: [entry_hold_run(E, 7, attempt=2)]}
+        line = (f"#7: ::error::Its queue entry {E} lands a tree other than {HEAD}'s, which this group's "
+                f"queue-commit gate report does not judge, and no successful merge_group merge-hold on {E} "
+                "covers it. Update the branch, or let the pull requests ahead merge first.")
+
+        def checks(conclusion, status="completed"):
+            return {"check_runs": [{"name": name, "status": "completed", "conclusion": "success"}
+                                   for name in merge_hold.WAIT_CHECKS]
+                    + [{"name": "merge-hold", "status": status, "conclusion": conclusion}]}
+
+        def jobs(*listed):
+            return {**GOOD_JOBS, 70: list(listed)}
+
+        good = job(700, 70, "merge-hold", attempt=2)
+        code, out, calls = self.run_group(queue, trees=trees, group_runs=group_runs)
+        self.assertEqual(code, 0, out)  # the green path: the four reads agree
+        self.assertIn("#7: No acceptance hold is set.", out)
+        self.assertEqual([url.split("?")[0] for url in calls if "/runs/70" in url or f"/commits/{E}/" in url
+                          or f"head_sha={E}&event=merge_group" in url][-4:],
+                         ["https://api.github.com/repos/o/r/actions/runs", "https://api.github.com/repos/o/r/actions"
+                          "/runs/70/jobs", "https://api.github.com/repos/o/r/actions/runs/70",
+                          f"https://api.github.com/repos/o/r/commits/{E}/check-runs"])
+        for why, extra in (
+                # The D2 probe: the listing (stale) shows success while E's merge-hold check run failed. The
+                # walk goes past E, whose failed merge-hold proves nothing, and the decision reads it again.
+                ("check run on E failed", {"commits": {E: [checks("failure")]}}),
+                # The walk saw it succeed; a re-run of it had started when the decision read it again.
+                ("check run on E running again", {"commits": {E: [DONE, checks(None, "in_progress")]}}),
+                ("the run moved on between the reads",
+                 {"rereads": {70: {"run_attempt": 3, "status": "in_progress", "conclusion": None}}}),
+                ("the re-read under another id", {"rereads": {70: {"id": 99}}}),
+                ("the re-read shows a failure", {"rereads": {70: {"conclusion": "failure"}}}),
+                ("the re-read is another workflow", {"rereads": {70: {"path": CI}}}),
+                ("the re-read is bound to another queue ref", {"rereads": {70: {"head_branch": QUEUE_BRANCH}}}),
+                ("a job of another attempt", {"group_jobs": jobs(job(700, 70, "merge-hold", attempt=1))}),
+                ("a job with a float attempt", {"group_jobs": jobs(dict(good, run_attempt=2.0))}),
+                ("a bool run attempt", {"group_runs": {**group_runs, E: [entry_hold_run(E, 7, attempt=True)]},
+                                        "group_jobs": jobs(job(700, 70, "merge-hold", attempt=1))}),
+                ("a failed job", {"group_jobs": jobs(good, job(701, 70, "x", "failure", attempt=2))}),
+                ("a running job", {"group_jobs": jobs(good, job(701, 70, "x", None, "in_progress", attempt=2))}),
+                ("no job", {"group_jobs": jobs()}),
+                ("only a job of another run", {"group_jobs": jobs(job(700, 71, "merge-hold", attempt=2))})):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(queue, trees=trees, **{"group_runs": group_runs, **extra})
+                self.assertEqual(code, 1, out)
+                self.assertIn(line, out)
+                self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 0 failed.", out)
+                self.assertIn("#8: No acceptance hold is set.", out)
+                self.assertNotIn("sleep", calls)
+
     def test_a_member_ahead_whose_entry_merge_hold_has_not_finished_waits_and_fails_closed(self):
         """E's merge-hold still running, or not reported at all: the walk waits for it (E is the nearest
         entry ahead), and the deadline fails closed before any label or entry run listing is read."""
@@ -1283,6 +1350,22 @@ class MergeGroupTests(TestCase):
         self.assertEqual(calls.count("sleep"), 2)
         # The early report of the first poll reads two runs' jobs, the final report two more.
         self.assertEqual(len([url for url in calls if "/jobs?" in url]), 4)
+
+    def test_the_last_poll_may_add_a_full_report_before_the_decision(self):
+        """D2 on round 4, as merge_group_hold's docstring counts it: with the budget used up, the one poll
+        is the last. A new trigger that the report does not count (an advisory check-run failure) makes it
+        add a full report (1 + 2N), and the decision then makes its own (2 + 2N + 4M): for N = 2 counted
+        runs, M = 2 members and one entry walked, 3 + 1 + (1 + 2N) + (2 + 2N + 4M) = 23 requests."""
+        advisory = [{"check_runs": DONE["check_runs"] + [
+            {"id": 97, "name": "advice", "status": "completed", "conclusion": "failure"}]}]
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=advisory, plan_seconds=merge_hold.WAIT_SECONDS,
+            group_jobs={**GOOD_JOBS, 1: [job(11, 1, "host-quality"), job(12, 1, "advice", "failure")]})
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("sleep", calls)
+        n, m = 2, 2
+        self.assertEqual(len(calls), 3 + 1 + (1 + 2 * n) + (2 + 2 * n + 4 * m), calls)
+        self.assertEqual(len([url for url in calls if "/jobs?" in url]), 2 * n)
 
     def test_an_early_report_that_could_not_be_read_is_made_again(self):
         reads = []

@@ -916,10 +916,18 @@ def pull_request_gates_passed(token, repo, pr_head, number, base_ref="main"):
 def entry_hold_passed(token, repo, entry_commit, number):
     """True when the newest merge_group merge-hold run on the queue entry commit of a member ahead succeeded.
 
-    One run listing, bound as the queue-commit runs are (run_matches): event merge_group, head
-    SHA entry_commit, and this repository as repository and head repository. The entry's own
-    queue ref is not in the queue read and its suffix is not documented, so the head branch
-    must be a queue ref of this pull request; the head SHA ties the run to the entry.
+    The run is found with one run listing, bound as the queue-commit runs are (run_matches):
+    event merge_group, head SHA entry_commit, and this repository as repository and head
+    repository. The entry's own queue ref is not in the queue read and its suffix is not
+    documented, so the head branch must be a queue ref of this pull request; the head SHA
+    ties the run to the entry. It is then read with gate_report's rigour, in the same order:
+    its jobs (filter=latest), all bound to its attempt and all successful; a re-read by id
+    with the same read_state, still bound and successful; and a fresh read of the entry's
+    check runs, as the walk reads them, whose merge-hold must have concluded success. Any
+    disagreement between these reads (a stale listing, a run that moved on, jobs of another
+    attempt, a failed check run) returns False, so the member fails closed. Up to four
+    requests, one page each; the check-run read takes more pages when the entry has more
+    than 100 check runs.
     """
     url = f"{API}/repos/{repo}/actions/runs?head_sha={entry_commit}&event=merge_group"
     runs = [run for run in fetch_listing(token, url, "workflow_runs")
@@ -930,7 +938,21 @@ def entry_hold_passed(token, repo, entry_commit, number):
     if not runs:
         return False
     newest = max(runs, key=run_order)
-    return newest.get("status") == "completed" and newest.get("conclusion") == "success"
+    if newest.get("status") != "completed" or newest.get("conclusion") != "success":
+        return False
+    jobs = [job for job in fetch_listing(
+        token, f"{API}/repos/{repo}/actions/runs/{newest['id']}/jobs?filter=latest", "jobs")
+        if job.get("run_id") == newest["id"]]
+    again = call(token, f"{API}/repos/{repo}/actions/runs/{newest['id']}")
+    attempt = again.get("run_attempt")
+    return (read_state(again) == read_state(newest)  # id, attempt and status, as the settle step compares
+            and again.get("conclusion") == "success" and again.get("path") == GATE_WORKFLOW
+            and run_matches(again, repo, None, entry_commit, newest["head_branch"])
+            and type(attempt) is int and bool(jobs)
+            and all(type(job.get("run_attempt")) is int and job["run_attempt"] == attempt
+                    and job.get("status") == "completed" and job.get("conclusion") == "success"
+                    for job in jobs)
+            and (completed_runs(token, repo, entry_commit).get("merge-hold") or {}).get("conclusion") == "success")
 
 
 def merge_group_plan(base_sha, head_sha):
@@ -959,24 +981,32 @@ def merge_group_hold(token, repo):
     at most 120 s each, about 14 min), R = DECISION_RESERVE_SECONDS (3 min). The wait
     gets B - P - R. It checks its deadline after each poll, so it ends at most one
     POLL_SECONDS sleep plus one poll past it, and makes one poll even when
-    B - P - R <= 0. Up to that last poll the script therefore takes at most
-    max(B - R + POLL_SECONDS, P) <= max(43, 14) = 43 min, for every catalogue budget.
+    B - P - R <= 0. Up to that last poll this script, not the job, therefore takes at
+    most max(B - R + POLL_SECONDS, P) <= max(43, 14) = 43 min, for every catalogue budget;
+    the workflow steps before the script are outside this clock.
 
     Assumption, not a proof: the last poll, the decision after the wait and the
-    workflow steps before this script (outside this clock) together take at most
-    about 7 minutes, the 50-minute job timeout (merge-hold.yml timeout-minutes)
-    less those 43 minutes. The decision makes, one page each: one run listing and
-    two requests per counted run of the queue commit (its jobs and a re-read; four
-    for a run that moved on and is read again), one GraphQL query for the members,
-    and per member four (labels, two trees, its pull_request merge-hold) plus one
-    for the comments of a labelled member or for the merge_group merge-hold of a
-    lifted member ahead. For N counted runs and M members that is 2 + 2N + 4M
-    requests, at most 2 + 4N + 5M; with the 24 gate workflows besides merge-hold
-    that have a merge_group trigger (26 November 2026) and five members, 70 to 123.
-    A poll makes about three plus one per entry walked. The assumption thus needs
-    about 3 s per request on average, while call() allows up to 20 s each, so it
-    can fail; the job timeout then stays the fail-closed backstop. In the usual case
-    (quick polls, a decision within R) the total stays within max(B, P) + R, 48 min.
+    workflow steps before this script together take at most about 7 minutes, the
+    50-minute job timeout (merge-hold.yml timeout-minutes) less those 43 minutes.
+    Counted one page each, the decision makes one run listing and two requests per
+    counted run of the queue commit (its jobs and a re-read; four for a run that moved
+    on and is read again), one GraphQL query for the members, and per member four
+    (labels, two trees, its pull_request merge-hold) plus one for the comments of a
+    labelled member, or four (entry_hold_passed) for a lifted member ahead; a labelled
+    member is never lifted, and this group's own entry never is. For N counted runs and
+    M members that is 2 + 2N + 4M requests, at most 4N + 8M - 1. A poll makes three
+    (this commit's check runs, the queue, its run listing) plus one per entry walked,
+    and the last poll may itself make a full gate report, 1 + 2N to 1 + 4N, when a new
+    failure trigger appears that the report does not count (an advisory check-run
+    failure, for example); the decision then makes its own. With the 24 gate workflows
+    besides merge-hold that have a merge_group trigger (26 November 2026) and five
+    members, the last poll and the decision make about 77 requests in the usual case
+    and about 240 at worst, so the 7 minutes, less the steps before the script, need
+    under about 5 s per request on average, under about 1.7 s at worst. A check-run read of a queue commit with more than 100 check
+    runs takes more pages. Each blocking socket read in call() times out after 20 s, so
+    a single request has no hard ceiling and the assumption can fail; the job timeout
+    then stays the fail-closed backstop. In the usual case (quick polls, a decision
+    within R) the script's total stays within max(B, P) + R, 48 min.
     """
     start = time.monotonic()
     head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
@@ -1011,7 +1041,8 @@ def merge_group_hold(token, repo):
         # report above is clean. For this group's own entry that report judges the
         # landing tree itself. A member ahead lands tree(E) of its own entry E,
         # which this report does not judge, so E's own merge-hold must have passed
-        # (it judged the gates on E); the ruleset's "Only merge non-failing pull
+        # (it judged the gates on E), with every read of it agreeing (entry_hold_passed);
+        # the ruleset's "Only merge non-failing pull
         # requests" setting (the merge-queue rule must enable it) keeps E from
         # merging without it.
         same_tree = tree(token, repo, entry_commit) == tree(token, repo, pr_head)
