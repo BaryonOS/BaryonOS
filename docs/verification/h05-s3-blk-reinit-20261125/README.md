@@ -50,6 +50,7 @@ Run directories are under `build/h05-t5c-o13/run/` (volume gate: `build/h05-t5c-
 | O13 mutant: fresh lane Policy before `BLK_DONE`, `power-s3-blk-reinit` | 1 (QEMU raw 35, `SYSTEM:FAIL:S3_BLK_LATCH_CARRIED`) | `mut-done.log` |
 | O13 mutant: fresh lane Policy in `blk_reinit_quarantine`, `power-s3-blk-reinit-capacity` | 1 (QEMU raw 35, `SYSTEM:FAIL:S3_BLK_LATCH_CARRIED`) | `mut-quarantine.log` |
 | The capacity stage after restoring the source | 0 | `restored.log` |
+| `NOS_BUILD_DIR=$PWD/build/power-system-gate python3 -B -u tools/test_power_system.py` after the QMP socket fix (head after `66e49d4c`) | 0 (`passed=True stages=22`) | `power-cidir.log` |
 
 The capacity mutant of the first run (capacity removed from `negotiated_matches`, raw 35,
 then restored, raw 0) was run on base c61a1fe0 only; the driver check it covers is
@@ -140,6 +141,10 @@ implemented but was not provoked natively.
 ## Not run / not claimable
 
 - Hosted `native-power` CI runs on the PR head; its result is recorded on the PR, not here.
+- Hosted run on `66e49d4c` failed in `power-s3-blk-reinit-no-reset-ack` (raw 1 after 0.5 s):
+  the relative QMP socket path under `build/power-system-gate` was 109 bytes, above the
+  108-byte `AF_UNIX` limit, so QEMU refused to start. `run_system.py` now uses a 16-hex run-directory
+  suffix and refuses an over-long socket path before launching QEMU.
 - Physical S3 was not tested.
 - The `BARS=KEPT` branch was not observed, because local QEMU restores the BARs.
 - No real device fault was produced, such as a BAR, capacity or identity change.

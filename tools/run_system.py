@@ -685,7 +685,9 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     # Reject unknown files/links in the source before copytree can follow them.
     # Checking only the copied known files would expose extra host data to FAT.
     check_esp(BUILD / "esp", manifest)
-    run_dir = private_path(BUILD / "run" / f"system-{case}-{uuid.uuid4().hex}")
+    # 64 random bits keep run directories unique and the relative QMP socket
+    # path below the 108-byte AF_UNIX limit for the longest case name.
+    run_dir = private_path(BUILD / "run" / f"system-{case}-{uuid.uuid4().hex[:16]}")
     run_dir.mkdir(parents=True, exist_ok=False)
     # Runners only support generated paths inside this checkout.
     run_dir.resolve().relative_to(ROOT.resolve())
@@ -744,6 +746,8 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         # Private QMP socket inside this run directory (relative to QEMU's
         # cwd). The link harness is its only client and permits nothing but
         # qmp_capabilities and set_link; no HMP, TAP or other listener.
+        if len(f"{rel}/qmp.sock".encode()) >= 108:
+            raise ValueError("Private QMP socket path too long; choose a shorter NOS_BUILD_DIR")
         command += ["-qmp", f"unix:{rel}/qmp.sock,server=on,wait=off"]
     started = datetime.now(timezone.utc).isoformat()
     begin = time.monotonic()
