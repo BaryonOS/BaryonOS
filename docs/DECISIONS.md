@@ -155,6 +155,193 @@ judged as a whole, and a queue with more than one entry ahead failed closed.
 `merge_group` run fields named above are bound fail-closed and remain to be
 confirmed on a live run.
 
+## ADR-N03-PROVIDER-20261125 — Native TLS provider route, test peers, certificate time and randomness
+
+**Status:** accepted by the project owner on 25 November 2026 in the N-track
+session. Owner wording in chat: "N03 B1 met latere B2-migratie, H3, P3, T3,
+R1, ml-kem en geverifieerde ed25519-dalek." The fuller owner text relayed the
+same day by the PR-watcher session adds the conditions reflected below:
+integration code conforming to RFC 10024 only after a separate security
+review, no self-written cryptographic primitives, the host randomness
+exception only for the test oracle, and ml-kem and ed25519-dalek preferred
+subject to verified compatibility, stability and dependency policy. The
+options are those of
+[N03-PROVIDER-DECISION-PROPOSAL.md](implementation/N03-PROVIDER-DECISION-PROPOSAL.md).
+This decision supersedes the 23 November "host oracle first" gating for the
+items below.
+
+**Decision:**
+
+- **Provider route (P1 = B1, later B2).** The native provider is project glue
+  that implements the rustls 0.23.46 `CryptoProvider` traits over released
+  `no_std` primitives; the project writes no cryptographic primitives. Once
+  rustls 0.24 is stable and suitable, the provider migrates to B2 (project primitive
+  adapters, with the hybrid share concatenation in rustls).
+- **Hybrid share handling.** B1 places the RFC 10024 concatenation and
+  fixed-length split of the X25519MLKEM768 shares in project code. That code is
+  permitted only in the RFC 10024 byte layout, mirrors the upstream rustls
+  implementation, is covered by known-answer and negative tests and requires a
+  separate security review before merge. It does not relax ADR-028 for any
+  other construction.
+- **ML-KEM primitive.** `ml-kem` is the preferred ML-KEM crate, subject to
+  verified compatibility, stability and dependency policy. The FIPS 203 section 7.2 encapsulation-key check
+  is unverified for `ml-kem`; route B is not accepted until a test shows it
+  (or project code performs it).
+- **Signatures.** `ed25519-dalek` is preferred and admissible only after
+  verification of compatibility and stability under
+  ADR-VERSION-POLICY-20261117 and `docs/DEPENDENCIES.md` (provenance, licence,
+  maintenance, `no_std`, build script, pinned version).
+- **Host peers (P2 = H3).** Host loopback evidence uses both rustls 0.23.46
+  with aws-lc-rs (host-only test dependency) and the existing Node.js/OpenSSL
+  peer. The host randomness exception applies only to these test oracles,
+  never to the native provider.
+- **Test peer pinning (P3).** A repository-public test CA, named as such and
+  never in a product trust store; exact SPKI SHA-256 pins bound to the
+  peer-pin generation; Ed25519 leaf certificates; fixed test DNS name and
+  ALPN, with wrong name, ALPN, pin, CA, suite or group as mandatory negatives.
+- **Certificate time (P4 = T3).** Development probes may use pin-only
+  acceptance for pinned test peers (T2), labelled as such and without an
+  "expired certificate" claim. N03 acceptance requires the trusted calendar
+  authority (T1).
+- **Randomness (P5 = R1).** Every random request in the TLS service is a
+  separate `KeyServiceRandom` draw of at most 128 bytes. A process-global
+  getrandom backend and batched per-handshake draws are not admissible in the
+  native provider.
+
+**Consequences:** N03-T2 (host loopback with H3) and the B1 provider work may
+start. New dependencies still pass the dependency procedure before they are
+added. No N03 points are awarded by this decision; N03 acceptance remains
+native, with T1 time.
+
+**Rollback:** a later decision may select another route; until native
+acceptance nothing in the product depends on B1.
+
+## ADR-NET-ISSUER-20261125 — Network grant issuer, helper subgrants, regrant and durable denial
+
+**Status:** accepted by the project owner on 25 November 2026 in the N-track
+session. Owner wording in chat: "N04 issuer-ADR goedkeuren, cold rollback
+anchor afstemmen met B02." The fuller owner text relayed by the PR-watcher
+session names kernel-bound identity, a separate policy authority, bounded
+helper delegation and durable revocation, a cold-rollback trust anchor agreed
+jointly with B02, and fail-closed behaviour until reliable freshness can be
+guaranteed. The adopted text is
+[N04-ISSUER-ADR-PROPOSAL.md](implementation/N04-ISSUER-ADR-PROPOSAL.md); its
+recommendations become decisions as listed here.
+
+**Decision:**
+
+- **Decision 1 = 1A.** Kernel IPC metadata identifies callers in the trusted
+  service loop; one dedicated policy process holds PolicyAuthority through a
+  kernel-delegated private control endpoint and is the single durable owner of
+  grant and denial state. The network service holds no storage capability.
+- **Decision 2 = 2A.** Only PolicyAuthority authorises helper subgrants, with
+  depth one and the attenuation rules of the proposal; a parent holder may only
+  request.
+- **Decision 3 = 3A.** Regrant within a running service issues a strictly
+  higher persisted owner generation, under the proposal's rules.
+- **Decision 4.** The acknowledgement states `LiveDenied`, `DurablePending`,
+  `Durable` and the reported failure state, and the rule that no time-bounded
+  grant survives restart, are adopted.
+- **Decision 5 (cold freshness).** The cold rollback anchor is aligned with
+  workstream B (B02 secure records and the ADR-B03-B04-TARGET anchor backend);
+  no network-specific trust root is introduced. Agreed split (N and B, 25 November
+  2026): B owns the anchor and its contract in
+  `docs/implementation/COLD-FRESHNESS-ANCHOR.md` (in preparation); the N04
+  policy process is a consumer that reads one store-wide generation through
+  an attenuated capability, advances it only after a durable store commit and
+  fails closed on a missing or corrupt anchor. Until reliable freshness can be
+  guaranteed, behaviour stays fail-closed and cold reinstatement unavailable
+  (5A): after a cold
+  boot every network grant starts denied, and persisted grants are only
+  suggestions for explicit re-confirmation.
+- **Decision 5B (TPM anchor use, approved 25 November 2026).** The project
+  owner explicitly approved option 5B in the N-track session: N may use the
+  TPM 2.0 infrastructure owned by workstream B (ADR-B03-REL05-TPM-20261125,
+  `docs/implementation/COLD-FRESHNESS-ANCHOR.md`) for durable network grants
+  and rollback protection. This is an approved, bounded extension of the trust
+  boundary. Binding conditions from the owner:
+  1. One shared TPM infrastructure with logically separate anchor domains for
+     network grants, storage and system updates.
+  2. B remains owner of the TPM infrastructure, trust anchors and their
+     lifecycle.
+  3. N gets access only through a bounded, capability-checked interface: no
+     direct TPM access and no authority over other security domains.
+  4. The generation is bound to the exact authenticated grant and tombstone
+     data; rollback, replay and reactivation of revoked network rights are
+     prevented.
+  5. Crash consistency, atomic commit semantics, recovery procedures and
+     protection against counter exhaustion are required.
+  6. TPM writes are limited responsibly, considering performance and hardware
+     endurance.
+  7. 5A fail-closed behaviour stays in force while the TPM anchor is missing,
+     unreliable or not yet fully validated.
+  8. No cloud, NAS or software fallback that weakens rollback protection.
+  9. Positive and negative native tests are run jointly with B, including cold
+     restarts, replay, interrupted writes, TPM failure and domain isolation.
+  Agreed ordering with B: commit-then-advance. A grant, subgrant, revocation or
+  durable denial is acknowledged only after the anchor advance succeeds. With
+  store generation S and anchor generation A at startup: S == A is accepted
+  only when the digest of the authenticated store state (grants and tombstones)
+  equals the binding stored with the anchor generation. This rejects a
+  same-generation fork after a crash between commit and advance only while an
+  attacker cannot rewrite the slot binding; with an unprotected slot a hostile
+  rewrite can select a sibling store (M1 below, unresolved without the
+  protected slot);
+  S == A + 1 rolls forward (the entry at S must authenticate and was never
+  acknowledged); S < A and S > A + 1 are rejected fail-closed. The advance is a
+  monotonic compare-and-swap from A to A + 1 that also stores the new binding. Reserve-first was rejected because
+  every ordinary crash would leave the store looking rolled back.
+
+**Open:** proposal questions 6 (whether N04 acceptance requires durable
+revocation across restart), 7 (the component holding boot-lifetime denial
+entries) and 8 (the per-boot incarnation source) are not decided by this
+entry. Review of the anchor contract on #524 (25 November 2026) found that the
+digest binding does not by itself reject a same-generation fork: with the
+unauthenticated slot write (T3), a crash before the slot write, a replayed
+store at `A` and a hostile slot rewrite can revive a stale authentic store at
+`A + 1` over an acknowledged revocation (M1; red host test
+`hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation`,
+ignored until fixed). A missing store with binding `0^32` can likewise be
+forged as genesis (L2); agreed with B: a missing store is always denied and
+genesis happens only through authorised provisioning or recovery, and after a
+TPM replacement N04 rejects its store and re-anchors from genesis (C665).
+
+The project owner approved a generation-advancing reseal at every cold boot
+for M1 on 25 November 2026, conditional on, among others, preventing stale or
+leftover slot contents from reactivating revoked permissions. Host modelling
+before implementation found that the reseal does not meet that condition
+across several boots: crashes induced during a reseal leave sibling
+authentic stores at one generation, and a hostile slot write then selects a
+sibling without an acknowledged revocation (red tests
+`reseal_multi_boot_crashed_reseal_revives_over_rolled_forward_change` and
+`reseal_multi_boot_sibling_reseal_revives_over_acknowledged_change`). With an
+unauthenticated slot, the counter is the only anchor state an attacker cannot
+choose, so no binding rule separates two authentic stores at one generation.
+The reseal is therefore not implemented.
+
+**M1 decision (project owner, 25 November 2026), superseding the reseal
+approval:** the protected-slot route through B. B owns the protected slot,
+its authorisation policy, NV names and lifecycle, and is authorised to make
+the bounded slot-policy changes this requires; no other trust-root change and
+no direct TPM access for N. N reaches the anchor only through the
+capability-controlled interface; network, storage and update domains stay
+separate. Stale slot writes, replay and unauthorised generation changes must
+not reactivate revoked network grants across multiple cold boots. The threat
+model must state explicitly whether the protection holds against a
+compromised kernel; no protection beyond demonstrated guarantees is claimed.
+Crash consistency, TPM endurance, authenticated recovery and monotonicity are
+preserved. Both M1 regression tests are retained and extended with multi-boot
+replay, unauthorised slot writes, interrupted commits, TPM replacement and
+recovery; native verification is required in addition to host tests. 5A stays
+in force until the protected slot and the complete 5B integration are
+demonstrably safe.
+
+**Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
+N04 stays open until its native evidence exists; the score is unchanged.
+
+**Rollback:** reverting this entry restores the 23 November hold; no shipped
+grant format depends on it yet.
+
 ## ADR-B03-REL05-TPM-20261125 — Trial boot with TPM 2.0 health confirmation (REL-05 option A)
 
 **Status:** the requirements (option A, items 1–9 on issue #41) were decided
