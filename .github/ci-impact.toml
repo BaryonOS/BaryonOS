@@ -91,7 +91,7 @@ workflow_dispatch = "manual"
 # runs of the head have finished (#494 B9, docs/CI-CONTRACT.md "Waiting"). On
 # merge_group it still waits, now also for every applicable gate run of the queue
 # commit, and ends early when the group leaves the queue or a gate has failed
-# (D1 step 2, docs/CI-CONTRACT.md "merge_group"). Both stay below the 50-minute
+# (D1 step 2, docs/CI-CONTRACT.md "merge_group"). Both stay below the 90-minute
 # job timeout.
 [policy.budgets]
 pull_request_wait_minutes = 0

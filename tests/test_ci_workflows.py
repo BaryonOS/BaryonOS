@@ -1578,7 +1578,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         # Entries ahead count as finished once this job's own name completed on them;
         # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
         self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
-        self.assertLessEqual(int(job["timeout-minutes"]), 90)
+        self.assertLess(int(job["timeout-minutes"]), 100)  # the planned queue check timeout
         checkout, load, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
         self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})

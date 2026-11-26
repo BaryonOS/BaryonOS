@@ -47,7 +47,7 @@ jobs:
     name: merge-hold
     runs-on: ubuntu-24.04
     # Above the 30-minute host-quality and qemu-smoke budgets plus queueing,
-    # below the planned 60-minute merge-queue check timeout.
+    # below the planned 100-minute merge-queue check timeout.
     timeout-minutes: 90
     permissions:
       actions: read

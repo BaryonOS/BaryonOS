@@ -120,10 +120,10 @@ judged as a whole, and a queue with more than one entry ahead failed closed.
   the enforced report is clean.
 - **Budget.** With the current runner capacity, one `native-window-session` run
   took more than 46 minutes of wall time (measured; see the #494 record). With
-  the 45-minute budget and the 50-minute job timeout, even a single queue entry
-  that runs that workflow would fail at the deadline. Raising the budget changes
-  an owner contract value. It is proposed separately, together with the queue
-  trial.
+  the former 45-minute budget and 50-minute job timeout, a queue entry running
+  that workflow could fail at the deadline. The project owner raised them to 80
+  and 90 minutes (see Budget above); the queue status check timeout must be at
+  least 100 minutes.
 - **Unobserved payload fields.** The `head_branch` and `head_repository` fields
   of a live `merge_group` run have not been observed yet. If GitHub fills them
   differently, no run counts and the group fails closed at the deadline. The
@@ -1996,9 +1996,9 @@ an entry whose required checks failed cannot merge as part of a later group
 that passed; a minimum group size of 1 with no merge-limit wait, so the
 window after the final read is not lengthened; each pull request built
 separately (no batching), so every entry has its own commit and its own
-`merge-hold` run; and a merge queue status check timeout of at least 60
+`merge-hold` run; and a merge queue status check timeout of at least 100
 minutes, so GitHub does not remove a group while `merge-hold` still waits (up
-to 45 minutes, inside a job `timeout-minutes` of 50). Verify these five
+to 80 minutes, inside a job `timeout-minutes` of 90). Verify these five
 settings and the predecessor-rerun control above before enabling the queue. On
 `merge_group` the workflow and `tools/merge_hold.py` come from the group
 commit, which includes the entries ahead, so a queued pull request ahead can
