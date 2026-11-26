@@ -2335,6 +2335,62 @@
       }
     },
     {
+      "id": "H02-T5",
+      "criterion": "H02",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "active",
+      "title": "Native per-port refusal of out-of-profile USB devices (QEMU)",
+      "goal": "An out-of-profile device on one root port (hub, HID without a boot interface, high-speed keyboard, storage) is refused with a reason-specific marker; its slot is disabled and its DCBAA entry cleared when one was allocated, the port stays unenabled, and the in-profile device on the other port still enumerates and delivers reports. Previous behaviour: every refusal ended the whole controller run (xhci.rs result.expect after stop).",
+      "invariant": "A refused device never receives SET_CONFIGURATION, an interrupt/input endpoint context, a Session or an input path. Only the temporary EP0 control context needed to read its descriptors before Session::new may exist; refusal cleanup disables that slot and clears its DCBAA entry. Refusal never stops service of the other in-profile port.",
+      "deps": [
+        "H02-T4"
+      ],
+      "write_paths": [
+        "kernel/src/m2/xhci/usb.rs",
+        "kernel/src/m2/xhci.rs",
+        "kernel/Cargo.toml",
+        "kernel/src/main.rs",
+        "tools/build.py",
+        "tools/run.py",
+        "tools/run_usb_hid.py",
+        "tools/tests/test_usb_hid_probe.py",
+        "docs/implementation/NATIVE-USB-HID.md",
+        "docs/verification/h02-usb-refusal-feasibility-20261125/",
+        "docs/verification/h02-usb-refusal-20261125/"
+      ],
+      "lead_paths": [
+        ".github/workflows/native-xhci.yml"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p 'test_usb_hid*.py' -v",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-refusal && for c in refuse-hub refuse-tablet refuse-hs-kbd refuse-storage; do python3 -B tools/run_usb_hid.py --case \"$c\" || exit \"$?\"; done",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-probe && python3 -B tools/run_usb_hid.py --case reports",
+        "python3 -B tools/build.py --kernel-feature test-usb-hid-readonly-fault && python3 -B tools/run_usb_hid.py --case readonly",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-reattach && python3 -B tools/run_usb_hid.py --case reattach",
+        "python3 -B tools/build.py --kernel-feature native-usb-hid-mouse-reattach && python3 -B tools/run_usb_hid.py --case reattach-mouse"
+      ],
+      "acceptance": [
+        "each refusal case emits its own reason marker (HUB, NOT_BOOT, SPEED) and no USB-DIAG:REJECT for the refused port; a refusal after Enable Slot also proves SLOT_DISABLED",
+        "the refused port stays Failed and Busy; the mouse on port 2 still enumerates and delivers press/release after the port-1 refusal",
+        "after the port-1 unplug the same port recovers with a new-generation boot keyboard that delivers key down/up; raw exit 33",
+        "one mutant per check (speed, hub, terminal refusal, Disable Slot, DCBAA clear, input settle) fails its case",
+        "reports, readonly, reattach and reattach-mouse unchanged (raw 33)"
+      ],
+      "non_claimable": "QEMU only. Storage reaches only the speed refusal: QEMU usb-storage attaches at high speed on the USB2-only fixture controller, so a class-level storage refusal is not exercised. No hub support, physical hotplug or H02 acceptance.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "native QEMU/TCG (QEMU 10.2.1, pc-q35-8.2): four refusal cases and four regression cases raw 33, six mutants fail; hosted native-xhci pending",
+      "next": "Hosted native-xhci and merge-hold green on the final head, squash-merge #515, then set H02-T5 verified.",
+      "history": [
+        {
+          "event": "active",
+          "at": "2026-11-25",
+          "reason": "Local H session cycle h02-t5-20261125 from main ad55e019. Feasibility probe: hub and tablet reject at Session (code 14, indistinguishable), high-speed keyboard and storage at speed (code 8); identical on default q35 and pc-q35-8.2 with QEMU 10.2.1."
+        }
+      ]
+    },
+    {
       "id": "H03-T3",
       "criterion": "H03",
       "milestone": "M9",
@@ -3220,7 +3276,7 @@
       "criterion": "H06",
       "milestone": "M9",
       "executor": "lead",
-      "status": "active",
+      "status": "verified",
       "title": "Exact-line matching for full-line HW-INV fixture markers (host oracle)",
       "goal": "evaluate_fixture in tools/run_hw_inventory.py matched every fixture marker as a line prefix, so M2:PASSED or HWINV:BEGIN_X satisfied M2:PASS or HWINV:BEGIN. Markers ending in ':' carry a value and keep prefix matching with a non-empty value; every other marker must be the whole line.",
       "deps": [
@@ -3250,8 +3306,14 @@
           "event": "active",
           "at": "2026-11-24",
           "reason": "Cloud H session; deferred CodeRabbit findings 6047166675, 6047799391 and 6048042333 on #500. Stacked on #500 head 1e341d58."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-25",
+          "reason": "PR #507 squash-merged as 78dc7b18; tested head 961e78f8 passed all applicable gates and merge-hold attempt 2; local native HW-INV gate green on source 9b24c9d (fingerprint d1cb0845)."
         }
-      ]
+      ],
+      "source_commit": "78dc7b18a4ce2a7b3bbf0180b757a776ded745ec"
     },
     {
       "id": "H06-T4",

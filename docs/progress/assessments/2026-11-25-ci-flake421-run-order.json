@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "af0c6f728f4de71143f57f92d294e21bdc45a717",
+  "assessment_basis": "parent_commit",
+  "branch": "ci/flake421-run-order-20261125",
+  "task": "CI: merge-hold poll run_order fix, #421 artifact settle step, ai-reference-forward component leaf, phase 5 mandate pointer (#494)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI maintenance only: the merge-hold wait poll, the artifact download contract fixture, one component-leaves variant and the CI resume pointer. No criterion, native evidence or acceptance result changes."
+}
