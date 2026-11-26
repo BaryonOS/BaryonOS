@@ -2172,7 +2172,7 @@ class GateTests(TestCase):
 
     def test_a_run_attempt_that_is_not_an_integer_stays_pending(self):
         """Without an integer attempt in the listing and the settled record, their order is unknown."""
-        for listed, settled in ((None, 1), ("1", 1), (1, "2"), (1, None)):
+        for listed, settled in ((None, 1), ("1", 1), (1, "2"), (1, None), (True, 2)):
             with self.subTest(listed=listed, settled=settled):
                 passed, out, _ = self.decide(runs_=[wf_run(1, CI), wf_run(2, LEAVES, attempt=listed)],
                                              settle_during_read={2: {"run_attempt": settled}})
@@ -2285,10 +2285,116 @@ class GateTests(TestCase):
         self.assertIn(f"Pending: {cond}: run 5 attempt 2 listed jobs of another attempt; re-run merge-hold", out)
         self.assertIn("2 applicable gate(s) passed; 1 filtered out; 1 pending; 0 failed.", out)
 
+    COND = ".github/workflows/cond.yml"
+
+    def cond_plan(self):
+        """A condition-false rwa workflow: it holds no expected gate."""
+        return plan_fixture(excluded=plan_fixture()["excluded"] + [
+            {"id": "cond#c", "class": "rwa", "workflow": self.COND, "job": "c", "check_name": "c",
+             "reason": "condition-false"}])
+
+    def assert_unexplained_conclusion(self, passed, out):
+        """D2 round 5: a failed run whose listed jobs show no blocking conclusion is not judged."""
+        self.assertFalse(passed)
+        self.assertIn(f"Pending: {LEAVES}: run 2 attempt 2 concluded failure but lists no such job; "
+                      "re-run merge-hold; if it persists, re-run that workflow run", out)
+        self.assertIn("1 pending; 0 failed.", out)
+
+    def assert_run_without_any_job(self, passed, out, workflow, run_id, attempt, conclusion="failure"):
+        self.assertFalse(passed)
+        self.assertIn(f"Failed: {workflow}: run {run_id} attempt {attempt} concluded {conclusion} without any "
+                      "job, so its gates never ran; re-run that workflow run or push a new head", out)
+
+    def test_s1_a_settled_failure_whose_jobs_re_read_omits_the_failed_job_is_pending(self):
+        """S1: attempt 1 lists the viewer gate green and an unregistered late gate failed. A partial
+        re-run of the late gate fails again as attempt 2, but the jobs re-read lists only the
+        carried-over viewer copy, so nothing listed explains attempt 2's failure."""
+        passed, out, _ = self.decide(
+            runs_=[wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")],
+            jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), job(22, 2, "late-gate", "failure")]},
+            settle_during_read={2: {"run_attempt": 2, "conclusion": "failure"}},
+            later_jobs={2: [job(24, 2, "quality (viewer)", attempt=2)]})
+        self.assert_unexplained_conclusion(passed, out)
+
+    def test_s1u_an_unchanged_failure_whose_jobs_omit_the_failed_job_is_pending(self):
+        """S1u: listing and re-read agree on a failed attempt 2 whose jobs list only the green copy."""
+        passed, out, _ = self.decide(runs_=[wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure", attempt=2)],
+                                     jobs={**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)", attempt=2)]})
+        self.assert_unexplained_conclusion(passed, out)
+
+    def test_s1c_a_listed_failed_job_still_fails_the_settled_run(self):
+        """S1c control: a re-read that lists the failed late gate keeps the existing Failed line."""
+        passed, out, _ = self.decide(
+            runs_=[wf_run(1, CI), wf_run(2, LEAVES, conclusion="failure")],
+            jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)"), job(22, 2, "late-gate", "failure")]},
+            settle_during_read={2: {"run_attempt": 2, "conclusion": "failure"}},
+            later_jobs={2: [job(24, 2, "quality (viewer)", attempt=2), job(25, 2, "late-gate", "failure", attempt=2)]})
+        self.assertFalse(passed)
+        self.assertIn(f"Failed: late-gate: failure in run 2 attempt 2 ({LEAVES}); not expected by the plan", out)
+        self.assertIn("0 pending; 1 failed.", out)
+        self.assertNotIn("lists no such job", out)
+
+    def test_an_advisory_failure_explains_a_failed_run(self):
+        """Control: only the advisory job failed, which the run conclusion reflects; the gate still
+        passes, on the unchanged path and on the settle path."""
+        def advice_failed(attempt):
+            return {1: [job(11, 1, "host-quality", attempt=attempt), job(12, 1, "advice", "failure", attempt=attempt)]}
+        cases = {"unchanged": ([wf_run(1, CI, conclusion="failure"), wf_run(2, LEAVES)],
+                               {**GOOD_JOBS, **advice_failed(1)}, None, None, 1),
+                 "settled": (GOOD_RUNS, GOOD_JOBS, advice_failed(2), {1: {"run_attempt": 2, "conclusion": "failure"}}, 2)}
+        for name, (runs_, jobs, later, settle, attempt) in cases.items():
+            with self.subTest(name):
+                passed, out, _ = self.decide(runs_=runs_, jobs=jobs, later_jobs=later, settle_during_read=settle)
+                self.assertTrue(passed, out)
+                self.assertIn(f"Passed: host-quality: success in run 1 attempt {attempt}", out)
+                self.assertNotIn("lists no such job", out)
+
+    def test_g4e_a_condition_false_run_that_settles_as_failed_without_jobs_fails(self):
+        """G4e: a condition-false workflow goes from a skipped attempt 1 to a failed attempt 2 whose
+        jobs re-read is empty; no gate of that attempt ran, so it never passes."""
+        passed, out, _ = self.decide(
+            plan=self.cond_plan(), runs_=GOOD_RUNS + [wf_run(5, self.COND, conclusion="skipped")],
+            jobs={**GOOD_JOBS, 5: [job(51, 5, "c", "skipped")]},
+            settle_during_read={5: {"run_attempt": 2, "conclusion": "failure"}}, later_jobs={5: []})
+        self.assert_run_without_any_job(passed, out, self.COND, 5, 2)
+        self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 1 failed.", out)
+
+    def test_g4u_an_unchanged_condition_false_failure_without_jobs_fails(self):
+        """G4u: listing and re-read agree on a failed attempt 2 with an empty jobs listing."""
+        passed, out, _ = self.decide(plan=self.cond_plan(),
+                                     runs_=GOOD_RUNS + [wf_run(5, self.COND, conclusion="failure", attempt=2)],
+                                     jobs={**GOOD_JOBS, 5: []})
+        self.assert_run_without_any_job(passed, out, self.COND, 5, 2)
+        self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 1 failed.", out)
+
+    def test_a_run_without_any_job_never_passes(self):
+        """A run that ended blocking without any job (startup_failure, or cancelled before a job
+        started) ran no gate: Failed, not Pending, because re-running merge-hold cannot change
+        it. An expected gate keeps its "missing from" line; a skipped run without jobs passes."""
+        for conclusion in ("startup_failure", "cancelled"):
+            with self.subTest(conclusion, expected=True):
+                passed, out, _ = self.decide(runs_=[wf_run(1, CI), wf_run(2, LEAVES, conclusion=conclusion)],
+                                             jobs={**GOOD_JOBS, 2: []})
+                self.assert_run_without_any_job(passed, out, LEAVES, 2, 1, conclusion)
+                self.assertIn(f"Failed: quality (viewer): missing from run 2 attempt 1 ({LEAVES})", out)
+                self.assertIn("1 applicable gate(s) passed; 1 filtered out; 0 pending; 2 failed.", out)
+            with self.subTest(conclusion, expected=False):
+                passed, out, _ = self.decide(plan=self.cond_plan(),
+                                             runs_=GOOD_RUNS + [wf_run(5, self.COND, conclusion=conclusion)],
+                                             jobs={**GOOD_JOBS, 5: []})
+                self.assert_run_without_any_job(passed, out, self.COND, 5, 1, conclusion)
+                self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 1 failed.", out)
+        passed, out, _ = self.decide(plan=self.cond_plan(),
+                                     runs_=GOOD_RUNS + [wf_run(5, self.COND, conclusion="skipped")],
+                                     jobs={**GOOD_JOBS, 5: []})
+        self.assertTrue(passed, out)
+
     def test_a_job_without_an_integer_attempt_holds_its_run(self):
         """A job that does not name its attempt as an integer cannot be bound to the judged run,
-        also when the run names none either or both name it as the same string."""
-        for listed, attempt in ((1, None), (None, None), ("1", "1")):
+        also when the run names none either or both name it as the same string. A bool or a float
+        equals an int in Python but is no integer attempt, on the job or on the run."""
+        for listed, attempt in ((1, None), (None, None), ("1", "1"), (True, True), (1, True), (True, 1),
+                                (1.0, 1), (1, 1.0)):
             with self.subTest(listed=listed, attempt=attempt):
                 bare = job(21, 2, "quality (viewer)", attempt=attempt)
                 if attempt is None:
