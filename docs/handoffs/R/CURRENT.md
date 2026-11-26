@@ -262,6 +262,10 @@ directory. Request U review (UI/a11y); U does not merge. R updates
    hang; (c) after a Delivery error the window does not freeze and the app
    follows the existing recovery or InputLost path (serial marker until the
    banner in #541).
+   Status (26 Nov 2026, 22:08Z): implemented locally with host tests for (b);
+   the native build stops at the Materiaal 160 KiB code limit
+   (`sdk/examples/materiaal/linker.ld`), which is tied to a kernel page quota
+   and is not raised by R. Shrink first; otherwise ask U and the project owner.
 2. Candidate (3) (single-CPU scheduler continuation) belongs to Specialist K
    (project-owner decision, 26 Nov 2026, 21:25Z). R does not write `kernel/`
    and supplies window-session A/B measurements on request.

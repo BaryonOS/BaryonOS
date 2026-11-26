@@ -1,6 +1,6 @@
 //! Native-only acceptance diagnostics on the app's actual granted channels.
 //! No expected refusal creates a capability or acknowledges an input event.
-use nieuw_os_input_client::{NativeTransport, ServiceError};
+use nieuw_os_input_client::ServiceError;
 use nieuw_os_input_core::wire::{self, Operation, Request};
 use nieuw_os_sdk_runtime::{
     native, Error as RuntimeError, Handle, Outgoing, ReceiveEndpoint, SendEndpoint, Transport,
