@@ -164,9 +164,9 @@ makes this the project owner's decision.
   (`UNEXPECTED_EXIT`) and never counts as LOCKED.
 - **KL2 SUSPEND precondition.** While the state is not LOCKED, SUSPEND returns
   a distinct, counted refusal code. The check runs after `sleep::ready()` and
-  before `storage_closed()`, the quiescence check and any I/O. H allocates
-  the code, which is none of -8, -14 or -16. In a non-TEST profile, F2 must
-  also hold (O1).
+  before `storage_closed()`, the quiescence check and any I/O. H allocated the
+  code **-25** on 26 November 2026; nothing on `main` returns it. In a
+  non-TEST profile, F2 must also hold (O1).
 - **KL3 Erasure is teardown.** LOCK ends the instance through the kernel's
   process teardown. The instance cannot defer or veto it. LOCK is
   irreversible: nothing re-attaches to the old instance.
@@ -183,24 +183,27 @@ makes this the project owner's decision.
   startup entropy passes the health tests and the durable state is restored
   with a secret obtained through session authentication.
 - **KL8 Ordering after a wake.** Unlock precedes any block re-grant to a
-  service that handles key-protected data (T5f). The order relative to the Q2
-  remount is open (O4).
+  service that handles key-protected data (T5f). The Q2 remount needs no keys
+  and comes first (§7 U5).
 
 ## 6. LOCK (required by H05-T5d)
 
-Proposed shape; the operation number and the split of the work are agreed
-with H (O3).
+Proposed shape. H's answers to O3 of 26 November 2026 fix the operation
+number, the codes and the split. They are not binding until O1 is answered
+and the ADR text exists.
 
-- **Authority.** Init only, authorised by the non-delegable POWER object, like
-  SUSPEND. A wrong handle type gives -6 and a forged generation gives -4,
-  before any state change.
+- **Authority.** Syscall **0x92** LOCK(power handle, 0, 0, 0, 0, 0); only 0x90
+  and 0x91 are supervisor calls on `main`. Init only, authorised by the
+  non-delegable POWER object, with the validation order of 0x90 and 0x91: the
+  reserved arguments (-1), then the handle (-6 for a wrong type, -4 for a
+  forged generation), before any state change.
 - **Preconditions.** Each is checked without side effects, and a failure
-  returns a retry code:
+  returns **-8** (retry, the same meaning as for SUSPEND):
   - the entropy broker is idle, with no pending or completed request (this
     avoids the permanent -14 latch of §2.2);
   - no endpoint to which the instance holds SEND has a queued message;
-  - the state is LIVE. A second LOCK returns a defined code and changes
-    nothing.
+  - the state is LIVE. A LOCK while LOCKED returns **-14** (once per boot,
+    like SUSPEND) and changes nothing.
 - **Effect.**
   1. The kernel marks slot 1 Dying and runs `cleanup`, the path `finish`
      uses today.
@@ -222,22 +225,41 @@ with H (O3).
 
   This state needs its own acceptance case (A7).
 
-### 6.1 Collisions with existing H05 code (questions for H)
+### 6.1 Collisions with existing H05 code (agreed with H on 26 November 2026)
 
 - **C1.** The T5b rng re-init delivers its post-wake self-test bytes into the
   Key Service heap (†`keyring.rs:1519-1526, 1694-1701`), through the
   Key Service's entropy capability copied into kernel state
   (`system.rs:156-159, 624-627`). After LOCK, neither the slot nor that
-  capability exists, so the re-init needs a kernel-owned target. Slice 1's
-  blk re-init runs after it.
+  capability exists. Slice 1's blk re-init runs after it.
+
+  H writes the LOCK-profile variant, which uses:
+  - one dedicated kernel frame, never mapped into ring 3, zeroed before and
+    after use;
+  - a kernel-internal broker entry instead of a dead process's capability;
+  - a stale-ticket check that still tests the broker ticket floor directly.
+
+  The T5b evidence stays bound to its own commit, and the LOCK profile gets
+  new evidence.
 - **C2.** `finish` tears down slot 1 and requires `entropy_objects == 0`
-  (†`system.rs:1489-1502`). It must accept a slot 1 that LOCK already ended.
-- **C3.** `UNEXPECTED_EXIT` (†`system.rs:926-929`) must keep refusing every
-  exit outside LOCK.
-- **C4.** The SUSPEND check (KL2) and init's suspend sequence belong to H.
-  Proposal: B implements the LOCK path (teardown, wipes, state, counters) and
-  its host and native tests; H implements the SUSPEND check and the init
-  sequence on top of it.
+  (†`system.rs:1489-1502`). It accepts a slot 1 that is already reclaimed
+  only when the state is LOCKED. Otherwise it fails with a new require
+  marker. The stats and frame-cleanup balance stay unchanged, so LOCK must
+  return every frame, including the page tables.
+- **C3.** The LOCK teardown is kernel-initiated and never passes through
+  `observe_exit` (`system.rs:915-929`). The `UNEXPECTED_EXIT` predicate
+  (†`system.rs:926-929`) stays byte-identical, and an exit or fault of slot 1
+  outside LOCK still fails.
+- **C4.** The work runs in sequence, and each step needs its own lane:
+  1. B lands the LOCK path (teardown, wipes and scrubs, state, counters,
+     cases A2–A6 and A9–A10) without changing SUSPEND.
+  2. H then lands KL2 in SUSPEND, init's LOCK-then-SUSPEND sequence, C1 and
+     C2, and cases A1, A7 and A8 in one change. KL2 makes every existing S3
+     profile refuse unless init locks first, so these parts must land
+     together.
+
+  Neither side writes code before O1 is answered and the ADR text is in
+  `docs/DECISIONS.md`.
 
 ## 7. UNLOCK (required before T5f): requirements only
 
@@ -254,7 +276,15 @@ requirements and leaves the mechanism to a later decision:
   no domain traffic and no re-grant.
 - U4: handles to the old instance fail. Clients receive fresh-generation
   handles only after U2 and U3, in the manner of Q1.
-- U5: UNLOCK precedes T5f (KL8).
+- U5: ordering (KL8, O4 answered by S on 26 November 2026).
+  - The Q2 remount needs no Key Service key. `services/volume` uses no key,
+    MAC or cryptography; mount checks the format marker, the volume identity,
+    the slot generation and FNV-64 sums. So the order is remount → UNLOCK →
+    block re-grant of key-protected data (T5f).
+  - The Key Service has no volume right (ADR-051). Init reads the key-state
+    blob from volume domain 1 and passes it in RESTORE_PERSISTENT. UNLOCK
+    therefore needs the volume service's storage access back first. Whether
+    that re-grant is a separate, earlier step of T5f is for H to decide (O6).
 
 ## 8. Proposed acceptance cases (native QEMU, labelled)
 
@@ -275,6 +305,10 @@ requirements and leaves the mechanism to a later decision:
 
 It does not prove:
 - confidentiality in TEST profiles (F2 is false there);
+- authenticity of the volume after a wake. The remount checks integrity with
+  FNV-64, which an attacker with physical write access during sleep can
+  forge consistently. A keyed MAC over the table would need a key that is not
+  held in the domain-1 blob. That is an S/B design item, not planned (O7);
 - plaintext content erasure (OQ1);
 - CPU cache or register remanence;
 - physical S3, firmware or hardware behaviour;
@@ -289,12 +323,14 @@ A review by a second AI is not an independent audit.
 |---|---|---|
 | O1 | project owner | F1 alone in TEST profiles with a label, or no S3 until F2 holds (§4) |
 | O2 | project owner | product unwrap-secret source for UNLOCK: a sign-in-derived secret, a TPM-sealed factor with user authorisation (B03/B04), or both; which component holds it and for how long |
-| O3 | H | LOCK operation number, the KL2 code, the split in C4, and the answers to C1–C3 |
-| O4 | S | whether the Q2 remount needs keys, which fixes the order of remount and UNLOCK |
+| O3 | H | answered 26 November 2026: 0x92, -25, -8 retry and -14 already LOCKED, C1–C4 as in §6.1; non-binding until O1 and the ADR exist |
+| O4 | S | answered 26 November 2026: the remount needs no keys (§7 U5) |
 | O5 | project owner and B | the durability window without write-ahead: a Key Service freeze opcode before export, or write-ahead relay in S3 profiles |
+| O6 | H | whether the volume service's storage re-grant is a separate step before UNLOCK, so that init can read the key-state blob (§7 U5) |
+| O7 | S and B | a keyed MAC for volume authenticity after a wake, with a key outside the domain-1 blob; not planned |
 | OQ1 | project owner, H and U | erasure of plaintext content held by apps and the volume service before S3 |
 
-## 11. Work split proposal
+## 11. Work split (agreed with H on 26 November 2026, §6.1 C4)
 
 - **B:** the LOCK path in the kernel keyring broker and teardown (KL1, KL3,
   KL4), host tests, acceptance cases A2–A6 and A9–A10, and the UNLOCK design
@@ -315,11 +351,11 @@ sequential, never parallel writers.
 > **Decision.**
 > 1. The kernel keeps a keyring lock state that only its own LOCK path sets
 >    (KL1).
-> 2. LOCK is init-only under the POWER object. It ends the Key Service
+> 2. LOCK (syscall 0x92) is init-only under the POWER object. It ends the Key Service
 >    instance through process teardown after side-effect-free preconditions,
 >    and it wipes or scrubs the kernel copies of Key Service payloads (KL3,
 >    KL4).
-> 3. SUSPEND refuses with a distinct code while the state is not LOCKED
+> 3. SUSPEND refuses with -25 while the state is not LOCKED
 >    (KL2). In non-TEST profiles it also requires that no unwrap path remains
 >    (F2).
 > 4. UNLOCK is a fresh instance that serves keys only after fresh entropy and
