@@ -262,10 +262,15 @@ directory. Request U review (UI/a11y); U does not merge. R updates
    hang; (c) after a Delivery error the window does not freeze and the app
    follows the existing recovery or InputLost path (serial marker until the
    banner in #541).
-   Status (26 Nov 2026, 22:08Z): implemented locally with host tests for (b);
-   the native build stops at the Materiaal 160 KiB code limit
-   (`sdk/examples/materiaal/linker.ld`), which is tied to a kernel page quota
-   and is not raised by R. Shrink first; otherwise ask U and the project owner.
+   Status (26 Nov 2026, 22:27Z): implemented locally with host tests for (b).
+   The candidate links Materiaal `.text` at 164355 bytes, above the 160 KiB
+   linker budget (main: 163507 bytes). That budget is Materiaal's own
+   (ADR-MATERIAL-LIBRARY-20261102), not a kernel quota (kernel `user::parse`
+   allows 2016 image pages; Materiaal uses 164). On the project owner's
+   decision the budget is 176 KiB (`0x2C000`); the native
+   `native-window-session-probe` build and the ELF policy test pass locally.
+   Calculator (84118 of 131072 bytes) and window-session stay within budget.
+   Open: (a), (c), native runs and A/B with K; U is informed of the budget change.
 2. Candidate (3) (single-CPU scheduler continuation) belongs to Specialist K
    (project-owner decision, 26 Nov 2026, 21:25Z). R does not write `kernel/`
    and supplies window-session A/B measurements on request.
