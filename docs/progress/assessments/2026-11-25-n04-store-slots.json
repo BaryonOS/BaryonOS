@@ -1,6 +1,6 @@
 {
   "date": "2026-11-25",
-  "source_commit": "4ad351576bb55b414cd35aea42db79354079d1f4",
+  "source_commit": "d5022f9b4977044d2b6d4fb12cb0acb1a5b2209d",
   "assessment_basis": "parent_commit",
   "branch": "claude/n04-store-slots-c143-20261126",
   "task": "N04 C143: two-slot crash-consistent replacement of the authenticated network-grant store (host model)",
