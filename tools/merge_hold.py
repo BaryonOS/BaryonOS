@@ -725,6 +725,9 @@ def gate_report(token, repo, pull, head_sha, plan, queue_branch=None):
             where = f"run {run['id']} attempt {run.get('run_attempt')}"
             # The settled record replaces the listed one, so it must keep the listing's binding
             # (run_matches: pull request, or merge_group queue commit); otherwise it never counts.
+            # Deliberately unconditional, on pull_request and merge_group alike, and on top of the
+            # id and attempt checks above: stricter than either alone, it can only turn a count
+            # into a Pending line (fail-closed).
             if not run_matches(run, repo, pull, head_sha, queue_branch):
                 pending.append(f"{workflow}: {where} no longer matches {head_sha} when read again; "
                                "re-run merge-hold")
