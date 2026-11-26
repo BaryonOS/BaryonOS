@@ -138,14 +138,16 @@ notice is a fixture; no full A03 acceptance.
 
 ## Next action
 
-1. Wait for the PR guard's explicit lane grant for #535 (CI-first freeze).
-2. Merge current main into the branch once (`git fetch origin main`, merge
-   FETCH_HEAD; no rebase, no force push).
-3. Re-validate per the acceptance above.
-4. Push once.
-5. Ask CI to confirm the ci.yml delta (D2 carry-over) for that exact head.
-6. When all required checks and merge-hold are green: mark ready and squash with
-   --match-head-commit at that head; report the merge to the PR guard.
+State 26 Nov 21:15Z: #535 landed as a004e3dc; the T2c-3 pin is PR #579 in the
+merge queue. Autonomous merge queue (owner, 26 Nov ~20:10Z; ADR in #576): a
+specialist enqueues its own merge-ready PR without a per-PR lane grant.
+
+1. T2c-1 (this branch, main a004e3dc merged): open the PR, set metadata
+   (label, milestone M7, Project #5, `Part of #536`).
+2. Before `gh pr merge N --squash --match-head-commit <sha>`: mergeStateStatus
+   CLEAN, autoMergeRequest null, 0 unresolved threads, open-run check `[]`.
+3. Then T2c-2 (`claude/a03-t2c2-volume-native-20261126`): merge main, re-run
+   the four native cases, open the PR, send CI the head SHA for its job commit.
 
 Then A03-T2c, specified in `docs/handoffs/A/T2C-SPEC.md` (read-only analysis,
 25 Nov): T2c-1 host-only broker over `volume_core::client::Transport` (no kernel,

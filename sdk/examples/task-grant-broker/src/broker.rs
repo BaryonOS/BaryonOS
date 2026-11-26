@@ -25,8 +25,8 @@ mod support;
 
 use nieuw_os_sdk_runtime::{native, Handle, ReceiveEndpoint, SendEndpoint};
 use nieuw_os_task_grant_broker_example::{
-    decode_request, encode_reply, Broker, OP_CLOSE, OP_READ, STATUS_BAD_REQUEST, STATUS_DENIED,
-    STATUS_GO, STATUS_OK, STATUS_RESUME, TAG,
+    decode_request, encode_reply, Broker, FixtureVolume, DATA_MAX, EPOCH, OP_CLOSE, OP_READ,
+    STATUS_BAD_REQUEST, STATUS_DENIED, STATUS_GO, STATUS_OK, STATUS_RESUME, TAG,
 };
 
 const REQUESTS: u64 = 12;
@@ -44,7 +44,7 @@ fn endpoint(offset: u64) -> Result<Handle, ()> {
 
 /// FIXTURE standing in for the trusted dialog: a kernel-written decision of
 /// (present, PID, object, revision, rights, duration) words at `base`.
-fn apply_fixture(broker: &mut Broker, base: u64) -> Result<(), ()> {
+fn apply_fixture(broker: &mut Broker<FixtureVolume>, base: u64) -> Result<(), ()> {
     if support::word(base) != 1 {
         return Ok(());
     }
@@ -85,7 +85,8 @@ fn run() -> Result<(), ()> {
     let owner_reply = SendEndpoint::from_handle(endpoint(64)?);
     let helper_reply = SendEndpoint::from_handle(endpoint(72)?);
 
-    let mut broker = Broker::new();
+    // FIXTURE: T2c-2 replaces this stand-in with the real volume domain 0.
+    let mut broker = Broker::new(FixtureVolume { epoch: EPOCH }, EPOCH);
     apply_fixture(&mut broker, 96)?;
 
     let mut served = 0u64;
@@ -108,15 +109,15 @@ fn run() -> Result<(), ()> {
             let _ = native::close_received_caps(&message);
             None
         };
-        let (status, data, op, object) = match request {
+        let (status, data, length, op, object) = match request {
             Some(request) => {
                 if request.claimed_actor != sender {
                     bump(216);
                 }
-                let (status, data) = broker.handle(sender, request);
-                (status, data, request.op, request.object & 0xff)
+                let (status, data, length) = broker.handle(sender, request);
+                (status, data, length, request.op, request.object & 0xff)
             }
-            None => (STATUS_BAD_REQUEST, &[][..], 0, 0),
+            None => (STATUS_BAD_REQUEST, [0; DATA_MAX], 0, 0, 0),
         };
         match (status, op) {
             (STATUS_OK, OP_READ) => bump(192),
@@ -130,7 +131,7 @@ fn run() -> Result<(), ()> {
             (sender << 32) | (op << 24) | (object << 16) | status,
         );
         served += 1;
-        support::send(reply, TAG, &encode_reply(status, data))?;
+        support::send(reply, TAG, &encode_reply(status, &data[..length]))?;
         // Fixed script; the kernel checks the resulting log order exactly.
         match served {
             3 | 9 => support::send(helper_reply, TAG, &encode_reply(STATUS_GO, &[]))?,
