@@ -1031,7 +1031,10 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertEqual(sorted(commands), sorted(HOST_PYTHON_COMMANDS))
         self.assertEqual(lines[:2], list(HOST_PYTHON_COMMANDS[:2]))
         self.assertIn(HOST_PYTHON_FOREGROUND + " || rc=1", lines)
-        launches = [line for line in lines if re.search(r"(^|[^&])&$", line)]
+        # Only a printed log is removed: a failed print keeps it for the leftover-log step.
+        self.assertIn('cat "$RUNNER_TEMP/python-lane-$lane.log" && rm -f "$RUNNER_TEMP/python-lane-$lane.log" || rc=1',
+                      lines)
+        launches =[line for line in lines if re.search(r"(^|[^&])&$", line)]
         pids = [match.group(1) for line in lines if (match := re.fullmatch(r"(\w+)=\$!", line))]
         waits = [line for line in lines if re.match(r"wait\b", line)]
         self.assertEqual(len(pids), len(launches))
@@ -1101,7 +1104,9 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertEqual(leftover["name"], "Python lane logs left by an interrupted run")
         self.assertEqual(leftover["if"], "${{ always() }}")  # a step condition; the job has none
         self.assertNotIn("if", job)
-        # A hung lane hits the step timeout first, so the job still reaches the leftover step.
+        # A hung lane hits the step timeout first, so the job still reaches the leftover step;
+        # 15 is over twice the slowest measured serial step (363 s).
+        self.assertEqual(step["timeout-minutes"], "15")
         self.assertLess(int(step["timeout-minutes"]), int(job["timeout-minutes"]))
         shell = ("bash", "--noprofile", "--norc", "-eo", "pipefail")  # `shell: bash` on a runner
         self.assertEqual(leftover["shell"], "bash")
