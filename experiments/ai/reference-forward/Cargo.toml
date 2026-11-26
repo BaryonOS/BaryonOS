@@ -7,4 +7,10 @@ publish = false
 [dependencies]
 libm = { version = "=0.2.16", default-features = false, features = ["force-soft-floats"] }
 
+[dev-dependencies]
+artifact-store-core = { path = "../../../crates/artifact-store-core" }
+nieuw-os-model-format = { path = "../model-format" }
+nieuw-os-model-store-contract = { path = "../model-store-contract" }
+serde_json = "=1.0.145"
+
 [workspace]

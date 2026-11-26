@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "4a5da4b64e11e44417d6698ee15bd7f032387647",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/a03-t2b-retire-20261125",
+  "task": "A03-T2b task grants retire when the owning process exits",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. A03 stays open: native QEMU now shows exit-driven grant retirement and a denied forged RETIRE, but the exit notice is a labelled kernel fixture, and the trusted dialog and per-object Materiaal volume enforcement remain missing."
+}

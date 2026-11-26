@@ -1,7 +1,9 @@
 # First local AI experiment
 
-**PROPOSED — task set, engine port and VM budget require owner approval. No model,
-engine dependency, download or capability is installed by this document.**
+**APPROVED by the project owner on 25 November 2026** for the first experiment: the
+task set, the Qwen2.5-0.5B-Instruct pin, the Candle route and the initial 2 GiB VM
+budget. These limits apply to the first experiment only and are not permanent
+product limits. CPU/SIMD features remain outside this approval.
 Baseline main `69d82075`.
 
 ## Preserve the existing candidate and authority path
@@ -73,7 +75,7 @@ by the inference process. No prompt or model output creates permissions, invokes
 shell or enrolls a helper. Capability-absence denial must be tested on the native
 kernel; a host boolean or disconnected mock is insufficient.
 
-**OWNER DECISIONS:** first task/quality set, unchanged candidate approval and
-provenance, engine/port route, VM budget and supported numeric profile. Native
+**OWNER DECISIONS:** approved 25 November 2026 (see top); the supported numeric
+profile (soft-float versus SSE in the AI process) remains open. Native
 inference, usability/Dutch-quality tests, hardware and external review are NOT RUN.
 L01 remains open and the roadmap score stays 41/100.
