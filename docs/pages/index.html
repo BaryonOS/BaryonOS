@@ -9,7 +9,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg; font-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Baryon OS — independent operating system research</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/site.css?v=roadmap-progress">
+  <link rel="stylesheet" href="/assets/site.css?v=orbit-intro">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -35,24 +35,20 @@
       <div class="hero-copy">
         <p class="eyebrow hero-eyebrow"><span class="signal" aria-hidden="true"></span> Independent OS research <span class="eyebrow-separator" aria-hidden="true">/</span> x86_64 · UEFI</p>
         <h1 id="hero-title">A different foundation.<br><em>A familiar way to work.</em></h1>
-        <p class="lead">Baryon OS is developing its own boot chain, Rust kernel, system services and desktop experience. The research joins explicit authority over data with the ease of a familiar desktop.</p>
+        <p class="lead">Baryon OS is developing its own Rust kernel and a familiar desktop, with explicit control over how apps access your data.</p>
+        <a class="roadmap-progress" href="https://github.com/BaryonOS/BaryonOS#progress-toward-a-complete-independent-os">
+          <span class="roadmap-heading">
+            <strong>Development progress</strong>
+            <span>Roadmap on GitHub <span aria-hidden="true">↗</span></span>
+          </span>
+          <img src="https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg" alt="Weighted acceptance points on the Baryon OS roadmap" width="960" height="226" referrerpolicy="no-referrer">
+        </a>
         <div class="actions">
           <a class="button button-primary" href="#approach">Explore the project <span aria-hidden="true">↘</span></a>
-          <a class="button button-secondary" href="#status">Follow the progress <span aria-hidden="true">↓</span></a>
+          <a class="button button-secondary" href="#status">Project status <span aria-hidden="true">↓</span></a>
         </div>
         <p class="release-note"><span aria-hidden="true" class="note-mark"></span><strong>Research software.</strong> There is no supported production release. Do not use it for daily work or sensitive production data.</p>
       </div>
-      <aside class="stack-panel" aria-label="Baryon OS architecture, from firmware to desktop">
-        <div class="panel-heading"><p class="panel-label">BARYON OS <span>/</span> RESEARCH STACK</p><span class="panel-symbol" aria-hidden="true">✦</span></div>
-        <ol class="stack-list">
-          <li><span class="stack-index">01</span><span>UEFI / OVMF</span><small>firmware entry</small></li>
-          <li><span class="stack-index">02</span><span>Custom Rust loader</span><small>boot chain</small></li>
-          <li><span class="stack-index">03</span><span><code>no_std</code> Rust kernel</span><small>isolation</small></li>
-          <li><span class="stack-index">04</span><span>Processes and services</span><small>bounded authority</small></li>
-          <li><span class="stack-index">05</span><span>Native desktop</span><small>product work</small></li>
-        </ol>
-        <p class="panel-footnote">Each layer has its own implementation and test evidence. The current project record defines the accepted scope.</p>
-      </aside>
     </section>
   </div>
 
@@ -90,9 +86,6 @@
         <div class="section-heading">
           <p class="eyebrow">Current status</p>
           <h2>Follow the evidence, not a launch date.</h2>
-          <a class="roadmap-progress" href="https://github.com/BaryonOS/BaryonOS#progress-toward-a-complete-independent-os">
-            <img src="https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg" alt="Roadmap progress: read the latest score and acceptance criteria on GitHub" width="960" height="226" referrerpolicy="no-referrer">
-          </a>
           <p>The repository contains an independent boot chain, process and capability infrastructure, services, drivers, an SDK, and native UI work. Integration and acceptance remain in progress. The linked records carry the current scope and open gaps.</p>
         </div>
         <div class="link-grid">
