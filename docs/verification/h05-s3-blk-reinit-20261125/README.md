@@ -1,7 +1,9 @@
 # H05-T5c slice 1: virtio-blk lane 0 re-initialisation after an S3 wake
 
-Date: 25 November 2026 (Europe/Amsterdam). Branch `claude/h05-t5c-blk-reinit-20261125`,
-base `origin/main` c61a1fe0. Decision record: amendment H05-T5c under
+Date: 25 November 2026 (Europe/Amsterdam), re-run 26 November 2026 for the O13 latch
+carryover. Branch `claude/h05-t5c-blk-reinit-20261125`. Tested source: `20c3a5dc`
+(slice 1 plus the O13 check `c9236113`, with `origin/main` 2289a271 merged; #539 and #555
+included). The first run on base c61a1fe0 is superseded. Decision record: amendment H05-T5c under
 ADR-H05-S3-SYSTEM-20261123 item 3 in `docs/DECISIONS.md`.
 
 ## Scope
@@ -29,19 +31,29 @@ Evidence tags:
 
 ## Commands and raw exit codes
 
-All logs are under `~/projects/BaryonOS-scratch/h/h05-t5c/`. Run directories are under `build/h05-t5c/run/`.
+Logs of the 26 November re-run on `20c3a5dc` are under `~/projects/BaryonOS-scratch/h/h05-t5c/o13/`.
+Run directories are under `build/h05-t5c-o13/run/` (volume gate: `build/h05-t5c-vol/`, smoke:
+`build/h05-t5c-smoke/`). Local only; nothing here is a hosted result.
 
 | Command | Raw exit | Log |
 |---|---|---|
-| `cargo +1.100.0 test --locked --manifest-path drivers/virtio-blk/Cargo.toml` (5 tests) | 0 | `blk-test.log` |
-| `cargo +1.100.0 clippy --locked --manifest-path drivers/virtio-blk/Cargo.toml --all-targets -- -D warnings` | 0 | `blk-clippy.log` |
-| `cargo +1.100.0 fmt --manifest-path <virtio-blk, kernel, sdk>/Cargo.toml -- --check` | 0, 0, 0 | `blk-fmt.log`, `kernel-fmt.log`, `sdk-fmt.log` |
-| `python3 -B -m unittest tests.test_system_harness` (64 tests) | 0 | `system-harness.log` |
+| `cargo +1.100.0 test --locked --manifest-path drivers/virtio-blk/Cargo.toml` (5 tests) | 0 | `blk-test-1100.log` |
+| `cargo +1.100.0 clippy --locked --manifest-path drivers/virtio-blk/Cargo.toml --all-targets -- -D warnings` | 0 | `blk-clippy-1100.log` |
+| `cargo +1.100.0 test --locked --manifest-path crates/virtio-core/Cargo.toml` | 0 | `core-test-1100.log` |
+| `cargo +1.100.0 fmt --manifest-path <virtio-blk, kernel, sdk>/Cargo.toml -- --check` | 0, 0, 0 | (console) |
+| `python3 -B -m unittest tests.test_system_harness` (64 tests) | 0 | `harness.log` |
 | `python3 -B -m unittest discover -s tools/tests -p test_sleep.py` (20 tests) | 0 | `test-sleep.log` |
-| `python3 -B tools/test_power_system.py` | 0 (`passed=True stages=22`) | `power-gate.log`, `build/h05-t5c/power-system-gate.json` |
+| `python3 -B tools/test_power_system.py` | 0 (`passed=True stages=22`) | `power.log`, `build/h05-t5c-o13/power-system-gate.json` |
 | `python3 -B tools/build.py --kernel-feature native-acpi-s3 && python3 -B tools/run_sleep.py --case cycles` | 0 (QEMU raw 33, `POWER:S3:PASS`) | `sleep-cycles.log` |
-| Capacity mutant: capacity removed from `negotiated_matches`, `power-s3-blk-reinit-capacity` | 1 (QEMU raw 35) | `mutation-capacity.log` |
-| The same stage after restoring the driver | 0 | `mutation-restored.log` |
+| `python3 -B -u tools/test_volume.py` (M6e gate) | 0 (`passed=True stages=34`) | `volume.log` |
+| `python3 -B tools/build.py && python3 -B tools/run.py --smoke` | 0 (QEMU raw 33, `M1:PASS`) | `smoke.log` |
+| O13 mutant: fresh lane Policy before `BLK_DONE`, `power-s3-blk-reinit` | 1 (QEMU raw 35, `SYSTEM:FAIL:S3_BLK_LATCH_CARRIED`) | `mut-done.log` |
+| O13 mutant: fresh lane Policy in `blk_reinit_quarantine`, `power-s3-blk-reinit-capacity` | 1 (QEMU raw 35, `SYSTEM:FAIL:S3_BLK_LATCH_CARRIED`) | `mut-quarantine.log` |
+| The capacity stage after restoring the source | 0 | `restored.log` |
+
+The capacity mutant of the first run (capacity removed from `negotiated_matches`, raw 35,
+then restored, raw 0) was run on base c61a1fe0 only; the driver check it covers is
+unchanged since.
 
 Power gate stages: the 11 power cases pass, each followed by a passing cold `recover`
 (QEMU raw 33). Of those 11 cases, the new blk-reinit profiles are:
@@ -109,7 +121,14 @@ implemented but was not provoked natively.
     `drivers/virtio-blk`.
   - Checked natively: TICKET_FLOOR and the old-epoch publish refusal (STALE_TICKET;
     the peek part is tautological, see above).
-- **Latch carryover against #522:** the test is pending until H merges main after #522.
+- **O13 latch carryover (#522, #539):** in stage 0, before any check or reset, the blk
+  re-init profiles register and latch the never-granted canary sector 0 on lane 0
+  (`register_latch`, `latch_scope`) and snapshot the table. At settlement the kernel
+  requires the same table and `write_latched(0)`; otherwise it stops with
+  `SYSTEM:FAIL:S3_BLK_LATCH_CARRIED` (raw 35). It prints `SUSPEND_BLK_LATCH_CARRIED`,
+  which `run_system.py` requires as 1 in every blk case. Observed: 1 in all five blk
+  cases. Both fresh-Policy mutants above fail with that reason. Test profiles only; no
+  production profile registers a latch.
 - **Published, uncompleted WRITE at SUSPEND:** a device lost in this state is already
   refused by the existing SUSPEND storage gate, so no path was added.
 - **volume.rs:** 5 hunks against c61a1fe0 (`git diff c61a1fe0 HEAD -- kernel/src/m2/m3/volume.rs | grep -c '^@@'`):
@@ -120,7 +139,7 @@ implemented but was not provoked natively.
 
 ## Not run / not claimable
 
-- Hosted `native-power` CI was not run; this branch has not been pushed.
+- Hosted `native-power` CI runs on the PR head; its result is recorded on the PR, not here.
 - Physical S3 was not tested.
 - The `BARS=KEPT` branch was not observed, because local QEMU restores the BARs.
 - No real device fault was produced, such as a BAR, capacity or identity change.
@@ -134,3 +153,6 @@ implemented but was not provoked natively.
   canary sector stays in a kernel DMA page. Both are kernel-only; logic unchanged.
 - The ring-3 re-grant, remount and key-erasure gate belong to slices 2-4 and are not
   implemented.
+- The O13 latch is registered after the wake and before the reset. The check proves that
+  re-init and quarantine keep the same lane Policy and latch table; it does not prove that
+  a latch set before SUSPEND survives the sleep itself.
