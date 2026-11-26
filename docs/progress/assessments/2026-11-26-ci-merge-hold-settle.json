@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "60b1aac784dffc65fbbb256bf96e6193c85539d0",
+  "assessment_basis": "parent_commit",
+  "branch": "ci/merge-hold-settle-20261126",
+  "task": "CI merge-hold (#494): gate_report settles a run that changed between its two reads instead of leaving it Pending. It reads the run's jobs once more and the run a third time, and judges the newer state only if reads two and three agree on id, attempt and status, the id is the requested one and the attempt is no older than the listing; a run that keeps changing stays Pending. Every listed job must carry the judged run attempt as an integer, otherwise the run stays Pending (job-to-attempt binding). A run-conclusion cross-check follows: a completed run with a blocking conclusion whose listed jobs include no blocking job is Pending, and such a run that lists no job at all is Failed, fail-closed for every counted workflow. docs/CI-CONTRACT.md states the rules, their costs and limits; tools/tests/test_merge_hold.py covers them.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI tooling, tests and documentation only; no criterion, native evidence or acceptance result changes."
+}
