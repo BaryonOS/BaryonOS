@@ -2805,5 +2805,37 @@ class CiImpactShadowTests(unittest.TestCase):
             self.assertEqual(outputs["mode"], "full")
 
 
+HEAVY_RUNNER = "baryon-heavy-16"
+HEAVY_RUNNER_EXPRESSION = (
+    "${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' "
+    "&& matrix.leg == 'native-scale2' && vars.BARYON_HEAVY_ENABLED == 'true' "
+    "&& 'baryon-heavy-16' || 'ubuntu-24.04' }}")
+
+
+class HeavyRunnerRoutingTests(unittest.TestCase):
+    """The larger runner is reachable only from one guarded, default-off expression."""
+
+    def test_only_the_guarded_window_session_leg_names_the_larger_runner(self):
+        users = []
+        for path in sorted((ROOT / ".github" / "workflows").glob("*.y*ml")):
+            text = path.read_text(encoding="utf-8")
+            jobs = (yaml.safe_load(text) or {}).get("jobs") or {}
+            users += [(path.name, job_id, job.get("runs-on")) for job_id, job in jobs.items()
+                      if HEAVY_RUNNER in str(job.get("runs-on"))]
+            # Any other mention (a label list, a group, an env value) would bypass this pin.
+            self.assertEqual(text.count(HEAVY_RUNNER), 1 if path.name == "native-window-session.yml" else 0,
+                             path.name)
+        self.assertEqual(users, [("native-window-session.yml", "native-window-session", HEAVY_RUNNER_EXPRESSION)])
+
+    def test_the_expression_falls_back_to_the_standard_runner(self):
+        # Missing, empty or any value other than 'true' selects ubuntu-24.04 before scheduling;
+        # pull_request, merge_group and push never reach the larger runner.
+        self.assertTrue(HEAVY_RUNNER_EXPRESSION.endswith("|| 'ubuntu-24.04' }}"))
+        for guard in ("github.event_name == 'workflow_dispatch'", "github.ref == 'refs/heads/main'",
+                      "vars.BARYON_HEAVY_ENABLED == 'true'"):
+            self.assertIn(guard, HEAVY_RUNNER_EXPRESSION)
+        self.assertNotIn("inputs.", HEAVY_RUNNER_EXPRESSION)
+
+
 if __name__ == "__main__":
     unittest.main()
