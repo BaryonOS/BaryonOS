@@ -157,6 +157,33 @@ def first_match(patterns, path):
     return None
 
 
+def pull_request_filter_blocked(catalogue, changed, policy):
+    """The workflows whose own pull_request path filter certainly keeps them from starting for
+    this diff (merge_group select plans, ADR-CI-MERGE-GROUP-SELECT-20261126).
+
+    Any doubt leaves a workflow out, so merge-hold still awaits and judges it: no pull_request
+    trigger, no path filter, a negated pattern, or no or too many changed paths.
+    """
+    if not changed or len(changed) > FILTER_FILE_LIMIT:
+        return []
+    blocked = []
+    for workflow in catalogue.get("workflow", []):
+        spec = workflow.get("trigger", {}).get("pull_request")
+        if "pull_request" not in workflow.get("events", []) or not isinstance(spec, dict):
+            continue
+        if "paths" in spec and "paths_ignore" not in spec:
+            patterns = list(spec["paths"])
+            starts = any(first_match(patterns, path) for path in changed)
+        elif "paths_ignore" in spec and "paths" not in spec:
+            patterns = list(trigger_globs(spec["paths_ignore"], policy))
+            starts = not all(first_match(patterns, path) for path in changed)
+        else:
+            continue
+        if not any(str(pattern).startswith("!") for pattern in patterns) and not starts:
+            blocked.append(workflow["path"])
+    return sorted(blocked)
+
+
 def glob_problem(pattern):
     if not isinstance(pattern, str) or not pattern:
         return "empty or non-string glob"
@@ -1271,6 +1298,8 @@ class Planner:
                 "budgets": dict(policy.get("budgets", {})) if self.catalogue_source == self.base else {},
                 "fallback": fallback, "shas": shas, "changes": changes,
                 "filter_eval_uncertain": self.filter_uncertain,
+                "pull_request_filter_blocked": pull_request_filter_blocked(catalogue, changed, policy)
+                if catalogue and self.event == "merge_group" and mode == "select" else [],
                 "selected": selected_rows, "excluded": excluded_rows,
                 "plan_id": "sha256:" + hashlib.sha256(canonical(identity).encode("ascii")).hexdigest()}
         return plan
@@ -1305,7 +1334,7 @@ def minimal_full_plan(event, code, base="", head="", tested=""):
             "fallback": {"code": code, "detail": [], "reasons": [code]},
             "shas": {"base": base or "", "merge_base": None, "head": head or "", "tested": tested or head or ""},
             "changes": {"count": 0, "digest": paths_digest([]), "paths": []},
-            "filter_eval_uncertain": True, "selected": [], "excluded": []}
+            "filter_eval_uncertain": True, "pull_request_filter_blocked": [], "selected": [], "excluded": []}
     plan["plan_id"] = "sha256:" + hashlib.sha256(canonical(plan).encode("ascii")).hexdigest()
     return plan
 

@@ -944,6 +944,36 @@ MERGE_GROUP_SELECT = CATALOGUE.replace('merge_group = "full"', 'merge_group = "s
     'events = ["pull_request", "merge_group", "push"]', 1)
 
 
+class PullRequestFilterBlockedTests(TestCase):
+    """Any doubt leaves a workflow off the list, so merge-hold awaits and judges it."""
+
+    POLICY = {"inert": ["docs/**", "**.md"]}
+
+    @staticmethod
+    def wf(name, events=("pull_request",), **pull_request):
+        trigger = {"pull_request": pull_request} if pull_request else {}
+        return {"path": f".github/workflows/{name}.yml", "events": list(events), "trigger": trigger}
+
+    def blocked(self, changed, *workflows):
+        return ci_impact.pull_request_filter_blocked({"workflow": list(workflows)}, changed, self.POLICY)
+
+    def test_cases(self):
+        paths, ignore = self.wf("paths", paths=["kernel/**"]), self.wf("ignore", paths_ignore="@metadata")
+        self.assertEqual(self.blocked(["docs/a.md"], paths, ignore),
+                         [".github/workflows/ignore.yml", ".github/workflows/paths.yml"])
+        self.assertEqual(self.blocked(["kernel/x.rs"], paths, ignore), [])
+        self.assertEqual(self.blocked(["LICENSE", "docs/a.md"], ignore), [])  # one path not ignored: it starts
+        for why, workflow in (("no pull_request trigger", self.wf("push", events=("push",), paths=["kernel/**"])),
+                              ("no path filter", self.wf("plain")),
+                              ("negated paths", self.wf("neg", paths=["kernel/**", "!kernel/docs/**"])),
+                              ("negated ignore", self.wf("negi", paths_ignore=["docs/**", "!docs/keep.md"])),
+                              ("both keys", self.wf("both", paths=["kernel/**"], paths_ignore=["docs/**"]))):
+            with self.subTest(why=why):
+                self.assertEqual(self.blocked(["docs/a.md"], workflow), [])
+        self.assertEqual(self.blocked([], paths), [])
+        self.assertEqual(self.blocked(["docs/x.md"] * (ci_impact.FILTER_FILE_LIMIT + 1), paths), [])
+
+
 class MergeGroupSelectTests(FixtureTestCase):
     """ADR-CI-MERGE-GROUP-SELECT-20261126: a queue commit Q of a stacked group sits on the
     unlanded entry P ahead of it (merge_group.base_sha). merge-hold plans from the trusted
@@ -973,6 +1003,17 @@ class MergeGroupSelectTests(FixtureTestCase):
         self.assertTrue(plan["selector"]["trusted"])
         reasons = {row["id"]: row["reason"] for row in plan["excluded"]}
         self.assertEqual((reasons["net#native"], reasons["window#a"]), ("no-input-match", "event-not-applicable"))
+
+    def test_only_workflows_their_pull_request_filter_keeps_out_are_listed(self):
+        _, head = self.stack({"docs/guide.md": "guide 2\n"}, {"README.md": "readme 2\n"})
+        plan = self.group_plan(head)
+        # leaves (@metadata ignore) and storage (paths kernel/**) would not start on pull_request;
+        # ci, net, window and misc have no path filter there, so merge-hold still judges them.
+        self.assertEqual(plan["pull_request_filter_blocked"],
+                         [".github/workflows/leaves.yml", ".github/workflows/storage.yml"])
+        _, head = self.stack({"docs/guide.md": "guide 3\n"}, {"LICENSE": "licence 2\n"})
+        self.assertEqual(self.group_plan(head)["pull_request_filter_blocked"], [".github/workflows/storage.yml"])
+        self.assertEqual(self.plan(head, event="pull_request", base_ref="main")["pull_request_filter_blocked"], [])
 
     def test_a_native_path_ahead_is_selected_for_the_group_behind_it(self):
         ahead, head = self.stack({"kernel/main.rs": "fn main() { 2 }\n"}, {"docs/guide.md": "guide 2\n"})

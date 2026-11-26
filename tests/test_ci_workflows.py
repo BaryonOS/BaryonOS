@@ -1602,6 +1602,10 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                        'git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"'):
             self.assertIn(needle, load["run"])
         self.assertNotIn('base="$MERGE_GROUP_BASE_SHA"', load["run"])
+        # merge_hold.py reads the same ref this step fetches (D2 N1).
+        main_ref = re.search(r'^MAIN_REF = "([^"]+)"$', (ROOT / "tools/merge_hold.py").read_text(), re.M)
+        self.assertIsNotNone(main_ref)
+        self.assertIn(f"main={main_ref.group(1)}\n", load["run"])
         self.assertEqual(load["env"], {
             "EVENT_NAME": "${{ github.event_name }}",
             "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",

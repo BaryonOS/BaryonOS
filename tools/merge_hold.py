@@ -72,9 +72,11 @@ ahead, and that base an ancestor of the queue commit. The plan is recomputed
 from T with `--event=merge_group` and bound to that event, T, the queue commit
 and `main` before any wait, so a plan error fails at once. Under the catalogue's
 `merge_group = "select"` it narrows from the diff T..queue commit, which covers
-every entry ahead (ADR-CI-MERGE-GROUP-SELECT-20261126); a workflow without a
-selected core or rwa gate is then neither awaited nor judged. After the wait one full gate report on the
-queue commit decides with the `pull_request` rules (newest run and latest
+every entry ahead (ADR-CI-MERGE-GROUP-SELECT-20261126); a workflow whose core
+or rwa gates are excluded as no-input-match, none selected, and whose own
+pull_request path filter would not have started it is then neither awaited nor
+judged (one without any core or rwa gate, or with any doubt, still is). After the wait
+one full gate report on the queue commit decides with the `pull_request` rules (newest run and latest
 attempt, blocking conclusions, unexpected failed gates, hidden inputs, shadow
 policy); any pending or failed line fails the group and the queue removes it.
 A run counts only with event `merge_group`, head SHA the queue commit, head
@@ -635,8 +637,10 @@ def unselected_workflows(plan):
     excluded as no-input-match and none is selected.
 
     They still start on the queue commit until their jobs are skipped there, but the plan found
-    none of their inputs in the diff from the trusted base, so they are not applicable, as a path
-    filter keeps them from starting on pull_request (ADR-CI-MERGE-GROUP-SELECT-20261126). A
+    none of their inputs in the diff from the trusted base, and their own pull_request path filter
+    would not have started them (`pull_request_filter_blocked`, evaluated by the selector of T), so
+    they are not applicable, exactly as on pull_request, where a workflow its path filter starts is
+    awaited and judged even without a selected gate (ADR-CI-MERGE-GROUP-SELECT-20261126). A
     workflow with a selected gate is judged whole (its siblings and unregistered jobs as before),
     and so is one without any core or rwa gate (advisory or trigger-only). Every other plan
     (pull_request, full) judges every counted workflow.
@@ -644,8 +648,11 @@ def unselected_workflows(plan):
     if plan.get("event") != "merge_group" or plan.get("mode") != "select":
         return set()
     selected = {row["workflow"] for row in plan["selected"] if row.get("class") in SELECTABLE}
-    return {row["workflow"] for row in plan["excluded"]
-            if row.get("class") in SELECTABLE and row.get("reason") == "no-input-match"} - selected
+    # Established twice: no catalogue input matched, and its own pull_request path filter would not
+    # have started it. A plan without that list (or a workflow missing from it) is judged.
+    blocked = set(plan.get("pull_request_filter_blocked") or [])
+    return ({row["workflow"] for row in plan["excluded"]
+             if row.get("class") in SELECTABLE and row.get("reason") == "no-input-match"} - selected) & blocked
 
 
 def counted_workflows(plan):

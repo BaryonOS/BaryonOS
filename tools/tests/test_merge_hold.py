@@ -1153,40 +1153,62 @@ class MergeGroupTests(TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn(f"the plan diffs from {AHEAD}, not from the trusted base {BASE}", out)
         self.assertFailsAtOnce(out, calls)
+        # A select plan must record its merge base (D2 M3b); a full plan without one stays allowed.
+        unbound = group_plan(mode="select", fallback=None,
+                             shas={"base": BASE, "merge_base": None, "head": GROUP, "tested": GROUP})
+        code, out, calls = self.run_group(self.QUEUE, plan=unbound)
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"the plan diffs from None, not from the trusted base {BASE}", out)
+        self.assertFailsAtOnce(out, calls)
 
     NATIVE = ".github/workflows/native-foundation.yml"
 
     ADVICE = ".github/workflows/advice.yml"
 
-    def docs_only_group(self, mode="select", native_selected=False, advisory_run=False):
+    def docs_only_group(self, mode="select", native_selected=False, advisory_run=False, native_mixed=False,
+                        leaves_reason="no-input-match", filter_blocked=None, native_done=False):
         """host-quality and qemu-smoke pass; the leaves fail and a native suite still runs on GROUP.
 
-        advisory_run adds an advisory-only workflow whose run has a failed unregistered job."""
+        advisory_run adds an advisory-only workflow whose run has a failed unregistered job;
+        native_mixed adds an excluded rwa variant to the selected native suite; filter_blocked is the
+        plan's pull_request_filter_blocked list (default: every workflow; False drops the key)."""
         selected = [row("ci#host-quality", CI, "host-quality", "core"), row("ci#qemu-smoke", CI, "qemu-smoke", "core"),
                     row("merge-hold#merge-hold", merge_hold.GATE_WORKFLOW, "merge-hold", "core")]
         native = row("native-foundation#native", self.NATIVE, "native")
         excluded = [{"id": "leaves#quality/viewer", "class": "rwa", "workflow": LEAVES, "job": "quality",
                      "check_name": "quality (viewer)", "reason": "no-input-match"}]
+        excluded[0]["reason"] = leaves_reason
         if native_selected:
             selected.append(native)
+            if native_mixed:
+                excluded.append({"id": "native-foundation#native/extra", "class": "rwa", "workflow": self.NATIVE,
+                                 "job": "native", "check_name": "native (extra)", "reason": "no-input-match"})
         else:
             excluded.append({key: native[key] for key in ("id", "class", "workflow", "job", "check_name")}
                             | {"reason": "no-input-match"})
         runs = [group_run(1, CI), group_run(2, LEAVES, conclusion="failure"),
-                group_run(3, self.NATIVE, status="in_progress", conclusion=None)]
+                group_run(3, self.NATIVE, conclusion="failure") if native_done
+                else group_run(3, self.NATIVE, status="in_progress", conclusion=None)]
         if advisory_run:
             excluded.append({"id": "advice#advice", "class": "advisory", "workflow": self.ADVICE, "job": "advice",
                              "check_name": "advice", "reason": "advisory"})
             runs.append(group_run(4, self.ADVICE, conclusion="failure"))
         plan = group_plan(mode=mode, fallback=None if mode == "select" else group_plan()["fallback"],
                           selected=selected, excluded=excluded)
+        if filter_blocked is not False:
+            plan["pull_request_filter_blocked"] = (
+                [LEAVES, self.NATIVE, self.ADVICE] if filter_blocked is None else filter_blocked)
         failed_check = {"name": "quality (viewer)", "status": "completed", "conclusion": "failure", "id": 99}
+        native_checks = [{"name": "native", "status": "completed", "conclusion": "success", "id": 98},
+                         {"name": "native (extra)", "status": "completed", "conclusion": "failure", "id": 97}]
         return self.run_group(
-            self.QUEUE, plan=plan, checks=[{"check_runs": DONE["check_runs"] + [failed_check]}],
+            self.QUEUE, plan=plan,
+            checks=[{"check_runs": DONE["check_runs"] + [failed_check] + (native_checks if native_done else [])}],
             group_runs={GROUP: runs},
             group_jobs={1: [job(11, 1, "host-quality"), job(12, 1, "qemu-smoke")],
                         2: [job(21, 2, "quality (viewer)", "failure")],
-                        3: [job(31, 3, "native", None, "in_progress")],
+                        3: [job(31, 3, "native"), job(32, 3, "native (extra)", "failure")] if native_done
+                        else [job(31, 3, "native", None, "in_progress")],
                         4: [job(41, 4, "advice", "failure"), job(42, 4, "stray", "failure")]})
 
     def test_a_docs_only_group_passes_on_core_without_awaiting_or_judging_unselected_suites(self):
@@ -1212,6 +1234,37 @@ class MergeGroupTests(TestCase):
             code, out, _ = self.docs_only_group(native_selected=True)
         self.assertEqual(code, 1, out)
         self.assertIn("required checks did not complete in time", out)
+
+    def test_only_a_workflow_established_as_not_applicable_is_left_out(self):
+        """Review D2 B1, M5, M6: doubt about applicability keeps a workflow awaited and judged."""
+        failed_leaves = "::error::Failed: quality (viewer): failure in run 2 attempt 1"
+        # Its own pull_request path filter would have started the leaves (e.g. a LICENSE or
+        # .coveragerc change): judged as on pull_request, so their failure fails the group.
+        code, out, _ = self.docs_only_group(filter_blocked=[self.NATIVE])
+        self.assertEqual(code, 1, out)
+        self.assertIn(failed_leaves, out)
+        self.assertIn(f"neither awaited nor judged (no selected gate): {self.NATIVE}.", out)
+        # A plan without the list (an older selector, any doubt) leaves nothing out.
+        code, out, _ = self.docs_only_group(filter_blocked=False)
+        self.assertEqual(code, 1, out)
+        self.assertIn(failed_leaves, out)
+        self.assertNotIn("Not applicable, neither awaited", out)
+        # Excluded for another reason than no-input-match: not established, still judged (M6).
+        code, out, _ = self.docs_only_group(leaves_reason="condition-false")
+        self.assertEqual(code, 1, out)
+        self.assertIn(failed_leaves, out)
+        # A workflow with a selected gate is judged whole, even beside an excluded variant (M5).
+        with mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+            code, out, _ = self.docs_only_group(native_selected=True, native_mixed=True)
+        self.assertEqual(code, 1, out)
+        self.assertIn("required checks did not complete in time", out)
+        left_out = [line for line in out.splitlines() if "neither awaited nor judged" in line]
+        self.assertFalse([line for line in left_out if self.NATIVE in line], out)
+        # Its selected gate passed but its excluded variant failed: judged whole, the group fails.
+        code, out, _ = self.docs_only_group(native_selected=True, native_mixed=True, native_done=True,
+                                            filter_blocked=[self.NATIVE])
+        self.assertEqual(code, 1, out)
+        self.assertIn("native (extra): failure in run 3 attempt 1", out)
 
     # Round 2 (#494): shadow keeps the base's equal-tree rule; the gate wait ends early.
     def test_unheld_member_lands_another_tree_only_after_an_enforced_clean_report(self):
