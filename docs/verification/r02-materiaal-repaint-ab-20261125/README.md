@@ -44,7 +44,8 @@ controller damage is unchanged and may cover the last tile.
 
 - Window session: A 10/10 and B 10/10 pass with `raw_qemu_exit` 33. Duration
   A median 26.93 s (25.68–27.58), B median 18.69 s (18.55–19.44).
-- Materiaal normal probe on B: pass, raw 33.
+- Materiaal normal probe on B: pass, raw 33 (QEMU TCG: `tools/run_materiaal_probe.py`
+  fixes `-accel tcg`).
 - `last_input_to_verified_app_image_s` (median, host-side, 0.2 s retry grid):
   ten phases that repainted the app body drop from 0.85–1.08 s to 0.10–0.27 s,
   for example `document-menu` 0.86 → 0.23 s, `clipboard-back` 1.08 → 0.27 s
@@ -97,7 +98,10 @@ controller damage is unchanged and may cover the last tile.
 
 ## Not run
 
-- Materiaal recover probe: fails on `main` until #523; to be run after
-  merging `main` (required before merge).
-- Hosted CI, TCG, WHPX, SMP profiles, physical hardware, guest-side or
+- Materiaal recover probe (historical, for these batches): failed on `main`
+  until #523. Run on 26 November 2026 after merging `main` `55eeccc7` (with
+  #523) at `e55e71ac`: normal and recover raw 33 under QEMU TCG; recorded in
+  `docs/handoffs/R/CURRENT.md` (26 Nov update) and the #540 verification
+  table.
+- Hosted CI; window sessions under TCG, WHPX or SMP profiles; physical hardware, guest-side or
   scanout timestamps, energy. No candidate budget is evaluated.

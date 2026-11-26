@@ -150,9 +150,10 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   blitted (GEN 24→26, one completed frame); the base never reached those tiles,
   so its ≈0.05 s only shows that the expected image equals the pre-input one.
 - `ab3` at `a155749c`: B2 timed out in `calculator-restored`. Corrected 26 Nov:
-  the Calculator was in its expected state (focus 1, EVALUATIONS 2) and the
-  compositor had reached its final commit count; this is a probe observation
-  gap, tracked in #545 (see the 26 Nov update). Base: 20/20
+  the serial log shows the Calculator in its expected state (focus 1,
+  EVALUATIONS 2) and the compositor at its final commit count; suspected cause
+  is a probe observation gap, tracked in #545 (see the 26 Nov update). The log
+  alone does not exclude a guest stall after the final commit. Base: 20/20
   passes over three batches; fix: 11/12. Treat as an open regression signal
   until the final 10+10 batch (`r/ab4`, `--timeout 240`) is read.
 - #526 is green at `b59c1294`; update it from `main` once, after #527, then
@@ -194,10 +195,12 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   toolchain 1.100.0: `+1.90.0` fails on kernel-core (`atomic_try_update`).
 - `sdk/examples/materiaal/verify.py` is stale on `main` (expects 20 host
   scenarios, 50 run) and no workflow calls it; run its cargo commands directly.
-- `calculator-restored` timeout: probe observation gap, not a Calculator or
-  compositor fault. `kernel/src/m2/m3/window_session.rs::snapshots` omits the
-  completed-frame words 464/480 from `activity`, and window-session answers
-  RETAIN without counting a commit. Pre-existing on `main`; #545 (owner U).
+- `calculator-restored` timeout: suspected probe observation gap (#545, owner
+  U). `kernel/src/m2/m3/window_session.rs::snapshots` omits the completed-frame
+  words 464/480 from `activity`, and window-session answers RETAIN without
+  counting a commit, so a frame completing on RETAIN after the last sampled
+  commit is not reported. The log is consistent with this but does not exclude
+  a guest stall after the final commit. Pre-existing on `main`.
 
 ## Next action
 
