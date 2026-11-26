@@ -1614,7 +1614,8 @@ class GateTests(TestCase):
         """A job that does not name its attempt as an integer cannot be bound to the judged run,
         also when the run names none either or both name it as the same string. A bool or a float
         equals an int in Python but is no integer attempt, on the job or on the run."""
-        for listed, attempt in ((1, None), (None, None), ("1", "1"), (True, True), (1, True), (1.0, 1), (1, 1.0)):
+        for listed, attempt in ((1, None), (None, None), ("1", "1"), (True, True), (1, True), (True, 1),
+                                (1.0, 1), (1, 1.0)):
             with self.subTest(listed=listed, attempt=attempt):
                 bare = job(21, 2, "quality (viewer)", attempt=attempt)
                 if attempt is None:
