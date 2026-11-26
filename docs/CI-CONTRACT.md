@@ -618,10 +618,12 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   still passes. A run that lists no job at all (a `startup_failure`, or a run
   cancelled before any job started) ran no gate: **failed**, not pending,
   because re-running merge-hold cannot change it; an expected gate of that run
-  is also "missing" as before. This also holds for an advisory-only or
-  trigger-only workflow, and it makes no extra API read.
-  Advisory, manual, operational and publication jobs never block (apart from
-  explaining a run as above), and merge-hold's own earlier runs are ignored.
+  is also "missing" as before. The cost: should an empty listing only lag
+  behind a run that did have jobs, that run is failed too, and a merge-hold
+  re-run then clears it. This also holds for an advisory-only or trigger-only
+  workflow, and it makes no extra API read.
+  Advisory, manual, operational and publication jobs never block by their
+  own conclusion, and merge-hold's own earlier runs are ignored.
 
 The pull request also fails when its head does not contain the base tip: the
 gates then did not test the tree that would merge. GitHub's strict
