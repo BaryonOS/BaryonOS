@@ -666,9 +666,10 @@ def gate_report(token, repo, pull, head_sha, plan):
             if newer or dropped or changed:
                 continue
         # Bind the jobs to the judged attempt: `filter=latest` can lag behind the run record or
-        # run ahead of it. A partial "re-run failed jobs" still passes, because GitHub copies the
-        # carried-over jobs into the new attempt with its run_attempt (live check of 26 November
-        # 2026 on runs 45644765624, 45649628788 and 45629883279). A bool or float is no attempt.
+        # run ahead of it. A partial "re-run failed jobs" passes when GitHub lists the carried-over
+        # jobs with the new run_attempt, as it did in three sampled runs on 26 November 2026
+        # (45644765624, 45649628788, 45629883279; observed, not documented); a carried-over job
+        # under its old attempt stays pending here. A bool or float is no attempt.
         if type(run.get("run_attempt")) is not int or any(
                 type(job.get("run_attempt")) is not int or job["run_attempt"] != run["run_attempt"]
                 for job in jobs):
