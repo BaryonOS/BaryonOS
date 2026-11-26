@@ -20,11 +20,12 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261126-2. Landed on `main` on 26 November 2026: N38
+- **cycle_id:** S-20261126-3. Landed on `main` on 26 November 2026: N38
   slices 1 and 2 with the 34-stage M6e gate (PR #555, `2289a271`), the
-  `seeded-read` image variant for A03-T2c (PR #561, `fb4a40fa`) and the
-  catalog v2 specification revision 1 (PR #572, `9508ebfa`, tracking #569).
-  None of them accepts S09.
+  `seeded-read` image variant for A03-T2c (PR #561, `fb4a40fa`), the
+  catalog v2 specification revision 1 (PR #572, `9508ebfa`, tracking #569)
+  and the post-wake remount design revision 0 (PR #580, `54c9f462`,
+  tracking #564). None of them accepts S09.
 - **Owner:** the local S session ("BaryonOS - Specialist S"). Lane order and
   push permission come from the PR guard; the merge lane protocol applies.
   Immediately before `gh pr merge` (PR guard, 26 November 2026):
@@ -32,13 +33,14 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   --json databaseId,workflowName,status --jq '[.[] | select(.status !=
   "completed" and .workflowName != "Merge hold")]'` must print exactly `[]`;
   any other output, including empty output on an API error, means wait.
-- **Open PRs:** none for S. Copilot review quota is exhausted until
+- **Open PRs:** the S PR from `claude/s09-quarantine-status-20261126`:
+  `Status::Quarantined` -24 and revision 1 of the post-wake remount design
+  (Refs #564). Copilot review quota is exhausted until
   3 December 2026; Codex review quota is exhausted; use subagent review.
 
 ### Local work
 
-None besides the open S PR for the post-wake remount design
-(`docs/implementation/VOLUME-POST-WAKE-REMOUNT.md`).
+None besides the open S PR.
 
 ### Owner questions
 
@@ -52,11 +54,14 @@ zero-time RTC follow-up. No catalog v2 code before the answers.
   whole-volume read-only mount plus a BLOCK_READ-only grant; A grants
   object 1 of `seeded-read`. A per-ingress read-only right is a possible
   later S task with its own design; it is not planned.
-- Owed to H: the quarantine code -24 mapping (fail closed, separate from
-  -13/-14); the file split is agreed with H first, and S waits for T5d-T if
-  it touches H's SUSPEND/T5d files or #573. The post-wake remount check is
-  specified in `VOLUME-POST-WAKE-REMOUNT.md` (one read-only grant, settled
-  with H and B on #564).
+- With H: the -24 mapping is in the open S PR, in `services/volume` and
+  its clients only (no kernel, SUSPEND or T5d file). The post-wake remount
+  check is specified in `VOLUME-POST-WAKE-REMOUNT.md` revision 1 (one
+  read-only grant to the same instance, R1; `RemountRefused` as its own
+  service status, R2; both H's proposals on #564, binding only after the
+  ADR amendment). `RemountRefused` is not built before that amendment; the
+  native PW cases need H's T5d-T, T5e and UNLOCK first and H's agreement
+  for `tools/run_system.py`, `tests/test_system_harness.py` and `init.rs`.
 - Landing order with H05-T5c (agreed with H, 26 November 2026; both change
   `kernel/Cargo.toml`, `tools/build.py` and `kernel/src/m2/m3/volume.rs`):
   the first branch with a green local gate and the lane lands first; the
@@ -112,11 +117,12 @@ zero-time RTC follow-up. No catalog v2 code before the answers.
 
 ## Next executable task
 
-1. The -24 mapping (R2 of the post-wake design), after the file split with H.
-2. Native K5 fixtures (new stage; S moves its own pins).
-3. O12 owner-binding design with B and the user/session owner; O1
+1. Land the open S PR (-24 and design revision 1).
+2. `RemountRefused` and the post-wake remount code after the ADR amendment.
+3. Native K5 fixtures (new stage; S moves its own pins).
+4. O12 owner-binding design with B and the user/session owner; O1
    remembered-VERIFY store; catalog v2 implementation after V1–V9 (#569).
-4. R5: destination service binary in the test profile on disk 1 with
+5. R5: destination service binary in the test profile on disk 1 with
    `DEST:ID:TEST-ONLY` and a scripted dialog.
 
 Merge procedure (owner decision of 26 November 2026, confirmed in the S
