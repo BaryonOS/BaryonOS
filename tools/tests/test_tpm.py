@@ -21,7 +21,8 @@ class NativeTpmTranscriptTests(unittest.TestCase):
 
     HAUTH = ("LOADER-HAUTH:BEGIN\nLOADER-HAUTH:PERMANENT:{permanent:016x}\n{mode}\n"
              "LOADER-HAUTH:BOUND\n{lockout}\nLOADER-HAUTH:PCR13:CLOSED\n"
-             + "".join(f"{line}\n" for line in probe.closed_banks(0xF)) +
+             + "".join(f"{line}\n" for line in probe.closed_banks(0xF) + probe.closed_events(0xF)) +
+             "LOADER-HAUTH:EVENTLOG:CLOSED\n"
              "LOADER-HAUTH:READ:REFUSED\nLOADER-HAUTH:OWNER:REFUSED\n"
              "LOADER-HAUTH:DA:{da:016x}:{da:016x}\n"
              "LOADER-HAUTH:RESIDUE:NONE\nLOADER-HAUTH:PASS\n")
@@ -89,6 +90,7 @@ class NativeTpmTranscriptTests(unittest.TestCase):
             result = probe.evaluate(self.transcript("loader-hauth", boot), "loader-hauth", boot)
             self.assertEqual((result["HAUTH_PERMANENT"], result["LOADER_RNG"]), (permanent, "PASS"))
         good = self.transcript("loader-hauth")
+        events = probe.closed_events(0xF)
         for bad, boot in (
             (good, 1),
             (self.transcript("loader-hauth", 1), 0),
@@ -109,6 +111,13 @@ class NativeTpmTranscriptTests(unittest.TestCase):
             (good.replace(probe.closed_banks(0xF)[1] + "\n", "") + probe.closed_banks(0xF)[1] + "\n", 0),
             (good + probe.closed_banks(0xF)[2] + "\n", 0),
             (good.replace("BANKS:000000000000000f", "BANKS:000000000000000b"), 0),
+            # The log's last entry must hold H(CLOSED) for exactly the active banks, in order.
+            (good.replace("LOADER-HAUTH:EVENTLOG:CLOSED\n", ""), 0),
+            (good.replace(events[0] + "\n", ""), 0),
+            (good.replace(events[1], events[1][:-4] + "0000"), 0),
+            (good.replace(events[2], probe.closed_banks(0xF)[2].replace("PCR13:BANK", "EVENTLOG:DIGEST")), 0),
+            (good.replace(events[0] + "\n" + events[1], events[1] + "\n" + events[0]), 0),
+            (good.replace("EVENTLOG:CLOSED\n", f"EVENTLOG:CLOSED\n{events[3]}\n"), 0),
         ):
             with self.subTest(bad=bad, boot=boot), self.assertRaises(ValueError):
                 probe.evaluate(bad, "loader-hauth", boot)
@@ -118,12 +127,18 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         # An inactive bank is reported, not read; the expected values follow trial_tpm.rs.
         inactive = good.replace("BANKS:000000000000000f", "BANKS:000000000000000b").replace(
             probe.closed_banks(0xF)[2], probe.closed_banks(0xB)[2])
+        with self.assertRaises(ValueError):  # the log must not name the inactive bank
+            probe.evaluate(inactive, "loader-hauth")
+        inactive = inactive.replace(events[2] + "\n", "")
+        self.assertEqual(probe.closed_events(0xB), [events[0], events[1], events[3]])
         self.assertEqual(probe.evaluate(inactive, "loader-hauth")["LOADER_BANKS"], 0xB)
         self.assertTrue(probe.closed_banks(0xB)[2].endswith(":INACTIVE"))
         source = (Path(__file__).resolve().parents[2] / "crates/update-core/src/trial_tpm.rs").read_text()
         self.assertIn(f'EVENT_CLOSED: &[u8] = b"{probe.EVENT_CLOSED.decode()}";', source)
         closed = re.search(r'P_CLOSED: \[u8; 32\] =\s*h\("([0-9a-f]{64})"\)', source)
         self.assertEqual(probe.closed_banks(0x2)[1].rsplit(":", 1)[1], closed.group(1))
+        digest = re.search(r'DIGEST_CLOSED: \[u8; 32\] =\s*h\("([0-9a-f]{64})"\)', source)
+        self.assertEqual(probe.closed_events(0x2), [f"LOADER-HAUTH:EVENTLOG:DIGEST:{0xB:016x}:{digest.group(1)}"])
 
     def test_loader_halt_stops_after_the_closed_extend_and_before_the_kernel(self):
         good = self.transcript("loader-hauth-no-rng")

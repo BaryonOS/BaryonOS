@@ -22,6 +22,10 @@ pub(super) type Submit =
 /// `HashLogExtendEvent(This, Flags, DataToHash, DataToHashLen, EfiTcgEvent)`.
 pub(super) type Extend =
     unsafe extern "efiapi" fn(*mut Tcg2, u64, u64, u64, *mut c_void) -> efi::Status;
+/// `GetEventLog(This, EventLogFormat, *EventLogLocation, *EventLogLastEntry,
+/// *EventLogTruncated)`; `EFI_PHYSICAL_ADDRESS` outputs, a `BOOLEAN` flag.
+pub(super) type EventLog =
+    unsafe extern "efiapi" fn(*mut Tcg2, u32, *mut u64, *mut u64, *mut u8) -> efi::Status;
 type Banks = unsafe extern "efiapi" fn(*mut Tcg2, *mut u32) -> efi::Status;
 
 /// `EFI_TCG2_PROTOCOL` (TCG EFI Protocol Specification for TPM 2.0). r-efi
@@ -29,7 +33,7 @@ type Banks = unsafe extern "efiapi" fn(*mut Tcg2, *mut u32) -> efi::Status;
 #[repr(C)]
 pub(super) struct Tcg2 {
     get_capability: *const c_void,
-    get_event_log: *const c_void,
+    pub(super) get_event_log: Option<EventLog>,
     pub(super) hash_log_extend_event: Option<Extend>,
     pub(super) submit_command: Option<Submit>,
     get_active_pcr_banks: Option<Banks>,

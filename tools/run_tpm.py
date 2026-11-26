@@ -80,7 +80,7 @@ def hauth_mode(case, boot):
 def hauth_markers(case, boot):
     mode, lockout, _ = hauth_mode(case, boot)
     return ("LOADER-HAUTH:BEGIN", mode, "LOADER-HAUTH:BOUND", lockout, "LOADER-HAUTH:PCR13:CLOSED",
-            "LOADER-HAUTH:READ:REFUSED", "LOADER-HAUTH:OWNER:REFUSED",
+            "LOADER-HAUTH:EVENTLOG:CLOSED", "LOADER-HAUTH:READ:REFUSED", "LOADER-HAUTH:OWNER:REFUSED",
             "LOADER-HAUTH:RESIDUE:NONE", "LOADER-HAUTH:PASS")
 
 
@@ -100,6 +100,13 @@ def closed_banks(mask):
             value = hashlib.new(name, bytes(size) + hashlib.new(name, EVENT_CLOSED).digest()).hexdigest()
         lines.append(f"LOADER-HAUTH:PCR13:BANK:{alg:016x}:{value}")
     return lines
+
+
+def closed_events(mask):
+    """The loader's EVENTLOG:DIGEST lines: the firmware log's last entry holds H(CLOSED)
+    for exactly the active banks, in bank order, so replaying it gives closed_banks."""
+    return [f"LOADER-HAUTH:EVENTLOG:DIGEST:{alg:016x}:{hashlib.new(name, EVENT_CLOSED).hexdigest()}"
+            for alg, bit, name in PCR_BANKS if mask & bit]
 
 
 COMMON = ("M2:PASS", "TPMCRB:BOUNDS:PASS", "TPMCRB:MAPPING:PASS",
@@ -149,6 +156,9 @@ def evaluate(stdout, case, boot=0):
         banks = re.findall(r"^LOADER-HAUTH:PCR13:BANK:.*$", stdout, re.M)
         if banks != (closed_banks(result["LOADER_BANKS"]) if case in PROVISIONED else []):
             raise ValueError("PCR 13 banks do not all hold the CLOSED value")
+        events = re.findall(r"^LOADER-HAUTH:EVENTLOG:DIGEST:.*$", stdout, re.M)
+        if events != (closed_events(result["LOADER_BANKS"]) if case in PROVISIONED else []):
+            raise ValueError("The event log does not hold one CLOSED digest per active bank")
         case = "normal"
     elif "LOADER-TPM:" in stdout:
         raise ValueError("Loader TPM probe output in a kernel-only case")
@@ -304,7 +314,7 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power cuts after each provisioning step up to the one between the ownerAuth and lockoutAuth changes) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, checked against the firmware TCG2 event log, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power cuts after each provisioning step up to the one between the ownerAuth and lockoutAuth changes) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
         manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))

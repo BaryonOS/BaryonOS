@@ -4,18 +4,20 @@
 //! the UEFI copy are out of scope; with ownerAuth already set the loader only
 //! reads and verifies, and halts on anything it cannot bind. PCR 13 is
 //! extended (`CLOSED`, every active bank through firmware) on every path that
-//! reached the TPM, before the loader continues or stops. Markers carry
-//! results only, never secret bytes.
+//! reached the TPM, before the loader continues or stops; on the pass path the
+//! firmware event log must show that extend as its only PCR 13 entry. Markers
+//! carry results only, never secret bytes.
 use super::tpm_probe::{
     active_banks, codec_fail, exchange, locate, Fail, Submit, Tcg2, TCG2_GUID,
 };
 use super::Firmware;
 use crate::serial;
-use core::{ffi::c_void, mem::size_of, ptr};
+use core::{ffi::c_void, mem::size_of, ptr, slice};
 use nieuw_os_tpm_crb::codec::{
     encode, Auth, Hierarchy, NvDefinition, NvIndex, Password, PolicySession, Request, Response,
     ALG_SHA1, ALG_SHA256, ALG_SHA384, ALG_SHA512, MAX_COMMAND, MAX_NV_DATA, MAX_RESPONSE,
 };
+use nieuw_os_tpm_crb::event_log::{self, Log};
 use nieuw_os_tpm_crb::transport::{BASE, BUFFER_OFFSET, BUFFER_SIZE};
 use r_efi::{efi, protocols::rng};
 use update_core::trial::{hauth_binding, LoaderRecord};
@@ -37,6 +39,10 @@ const PT_PERMANENT: u32 = 0x200;
 const PT_LOCKOUT_COUNTER: u32 = 0x20e;
 /// `EV_IPL` (TCG PC Client Platform Firmware Profile, OS-loader measurements).
 const EV_IPL: u32 = 0x0d;
+/// `EFI_TCG2_EVENT_LOG_FORMAT_TCG_2`: the crypto-agile log.
+const LOG_FORMAT_TCG_2: u32 = 2;
+/// Upper bound on the log bytes before the last entry (OVMF reserves 64 KiB).
+const MAX_LOG: u64 = 1 << 20;
 
 /// Zeroed with volatile writes when dropped, on every exit path.
 struct Wiped<const N: usize>([u8; N]);
@@ -222,6 +228,8 @@ fn after(fw: &Firmware, tpm: &Tpm, secret: &[u8; MAX_NV_DATA]) -> Result<(), Fai
         }
         serial::write(b"\n");
     }
+    // No TPM command: the CRB buffer still holds the last bank read.
+    tpm.closed_event()?;
     let hauth = index(&rel05::NV_HAUTH)?;
     let session = tpm.policy(fw, rel05::TPM_CC_NV_READ)?;
     let mut scratch = Wiped([0u8; MAX_NV_DATA]);
@@ -438,6 +446,52 @@ impl Tpm {
         if status != efi::Status::SUCCESS {
             return Err((b"EXTEND", status.as_usize() as u64));
         }
+        Ok(())
+    }
+
+    /// The firmware crypto-agile log must explain PCR 13: no earlier entry for
+    /// it, and the last entry is this loader's `EV_IPL` `CLOSED` with one digest
+    /// per logged bank (printed; the runner checks them against the banks).
+    fn closed_event(&self) -> Result<(), Fail> {
+        // SAFETY: Aligned, firmware-owned TCG2 instance; one pointer is copied.
+        let get = unsafe { (*self.protocol).get_event_log }.ok_or((b"TCG2_TABLE" as &[u8], 2))?;
+        let (mut location, mut last, mut truncated) = (0u64, 0u64, 0u8);
+        // SAFETY: Firmware TCG2 call before EBS with valid local outputs.
+        let status =
+            unsafe { get(self.protocol, LOG_FORMAT_TCG_2, &mut location, &mut last, &mut truncated) };
+        if status != efi::Status::SUCCESS {
+            return Err((b"EVENTLOG", status.as_usize() as u64));
+        }
+        if truncated != 0 {
+            return Err((b"EVENTLOG_TRUNCATED", 0));
+        }
+        let before = last
+            .checked_sub(location)
+            .filter(|len| location != 0 && (1..=MAX_LOG).contains(len))
+            .ok_or((b"EVENTLOG_BOUNDS" as &[u8], last))?;
+        // SAFETY: Firmware-owned log memory, identity mapped before EBS and not
+        // written while the loader parses it; read only, length capped above.
+        let before = unsafe { slice::from_raw_parts(location as usize as *const u8, before as usize) };
+        let fail = |e: event_log::Error| (b"EVENTLOG_PARSE" as &[u8], e as u64);
+        let log = Log::parse(before, rel05::PCR_PHASE).map_err(fail)?;
+        let len = log.entry_len(rel05::EVENT_CLOSED.len()).ok_or((b"EVENTLOG_BOUNDS" as &[u8], 0))?;
+        // SAFETY: As above, at `EventLogLastEntry`: at most 16 + 8 * 66 + 22
+        // bytes, the exact size of the expected entry; any other is refused.
+        let entry = unsafe { slice::from_raw_parts(last as usize as *const u8, len) };
+        let digests = log
+            .last_event(entry, rel05::PCR_PHASE, EV_IPL, rel05::EVENT_CLOSED)
+            .map_err(fail)?;
+        for (alg, digest) in digests.iter() {
+            serial::write(b"LOADER-HAUTH:EVENTLOG:DIGEST:");
+            serial::hex(u64::from(alg));
+            serial::write(b":");
+            serial::bytes_hex(digest);
+            serial::write(b"\n");
+        }
+        if digests.get(ALG_SHA256) != Some(&rel05::DIGEST_CLOSED[..]) {
+            return Err((b"EVENTLOG_DIGEST", 0));
+        }
+        serial::write(b"LOADER-HAUTH:EVENTLOG:CLOSED\n");
         Ok(())
     }
 }
