@@ -1462,8 +1462,9 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertNotIn(path, triggers)
         self.assertEqual(list(workflow["on"]), ["workflow_run"])
         trigger = workflow["on"]["workflow_run"]
-        self.assertEqual(set(trigger), {"workflows", "types"})
-        self.assertEqual(trigger["types"], ["completed"])
+        self.assertEqual(set(trigger), {"workflows", "types", "branches-ignore"})
+        self.assertEqual(trigger["types"], ["in_progress", "completed"])
+        self.assertEqual(trigger["branches-ignore"], ["main"])
         self.assertEqual(sorted(trigger["workflows"]), sorted({self.workflows[item]["name"] for item in triggers}))
         self.assertEqual(len(trigger["workflows"]), len(triggers))
         self.assertNotIn(workflow["name"], trigger["workflows"])
@@ -1472,15 +1473,28 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual(workflow["concurrency"], {
             "group": "merge-hold-recheck-${{ github.event.workflow_run.event }}-"
                      "${{ github.event.workflow_run.head_repository.full_name }}-"
-                     "${{ github.event.workflow_run.head_sha }}",
+                     "${{ github.event.workflow_run.head_sha }}-"
+                     "${{ github.event.workflow_run.run_attempt > 1 && "
+                     "format('{0}-{1}-{2}', github.event.workflow_run.id, "
+                     "github.event.workflow_run.run_attempt, github.event.action) || "
+                     "github.event.action }}",
             "cancel-in-progress": "false"})
         self.assertEqual(list(workflow["jobs"]), ["recheck"])
         job = workflow["jobs"]["recheck"]
         self.assertEqual(job["if"], "github.event.workflow_run.event == 'pull_request' && "
-                                    "github.event.workflow_run.head_repository.full_name == github.repository")
+                                    "github.event.workflow_run.head_repository.full_name == github.repository && "
+                                    "(github.event.action == 'completed' || "
+                                    "github.event.workflow_run.run_attempt > 1)")
         self.assertEqual(job["timeout-minutes"], "5")
-        # The wait for a running merge-hold stays far below the job timeout.
-        self.assertLessEqual(recheck.WAIT_POLLS * recheck.POLL_SECONDS * 2, 5 * 60)
+        # Either lifecycle path, including conflict confirmation, stays below the timeout.
+        rerun_budget = (recheck.RERUN_POST_LIMIT * (recheck.RERUN_CONFIRM_POLLS - 1)
+                        * recheck.RERUN_CONFIRM_SECONDS)
+        completed_budget = recheck.WAIT_POLLS * recheck.POLL_SECONDS + rerun_budget
+        cancel_budget = ((recheck.CANCEL_CONFIRM_POLLS
+                          + recheck.FORCE_CANCEL_CONFIRM_POLLS - 2)
+                         * recheck.RERUN_CONFIRM_SECONDS + rerun_budget)
+        wait_budget = max(completed_budget, cancel_budget)
+        self.assertLessEqual(wait_budget, 5 * 60)
         self.assertEqual(job["permissions"],
                          {"actions": "write", "contents": "read", "pull-requests": "read"})
         for key in ("needs", "continue-on-error", "strategy", "defaults", "container", "services", "env"):

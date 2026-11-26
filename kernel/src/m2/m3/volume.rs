@@ -361,6 +361,247 @@ fn hold_shutdown_flush(op: Operation) -> bool {
         && !HELD.swap(true, core::sync::atomic::Ordering::Relaxed)
 }
 
+/// S09 O13 N38 slice 1 (test-volume-o13-latch only): evidence counters and
+/// one labelled, simulated WRITE device error. The broker rewrites only its
+/// local copy of a real disk-1 completion's status, so the sector may still
+/// have landed; the device and QEMU are never given a bad descriptor.
+#[cfg(feature = "test-volume-o13-latch")]
+mod latch_test {
+    use super::{print_number, serial, Operation, Policy, Runtime};
+    use core::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
+
+    static INJECTED: AtomicBool = AtomicBool::new(false);
+    /// Lane-1 0x41 calls, and their number at the last lane-1 WRITE publication.
+    static POLLS: AtomicU64 = AtomicU64::new(0);
+    static POLLS_AT_WRITE: AtomicU64 = AtomicU64::new(0);
+    /// Lane-1 WRITEs refused by the latch; disk-1 WRITE publications at the first.
+    static REFUSALS: AtomicU64 = AtomicU64::new(0);
+    static WRITES_AT_REFUSAL: AtomicU64 = AtomicU64::new(0);
+    /// At the latch: disk-0 WRITE, disk-1 READ and disk-1 FLUSH publications.
+    static AT_LATCH: [AtomicU64; 3] = [const { AtomicU64::new(0) }; 3];
+
+    fn latched(policy: &Policy) -> u64 {
+        policy
+            .latches()
+            .iter()
+            .flatten()
+            .filter(|e| e.latched)
+            .count() as u64
+    }
+    pub(super) fn injected_once() -> u64 {
+        u64::from(INJECTED.load(Relaxed))
+    }
+    pub(super) fn polled(dev: usize) {
+        if dev == 1 {
+            POLLS.fetch_add(1, Relaxed);
+        }
+    }
+    pub(super) fn published(dev: usize, op: Operation) {
+        if dev == 1 && matches!(op, Operation::Write { .. }) {
+            POLLS_AT_WRITE.store(POLLS.load(Relaxed), Relaxed);
+        }
+    }
+    pub(super) fn refused(r: &Runtime, dev: usize) {
+        if dev == 1 && REFUSALS.fetch_add(1, Relaxed) == 0 {
+            WRITES_AT_REFUSAL.store(r.device_ops[1][1], Relaxed);
+        }
+    }
+    /// One shot: the second disk-1 WRITE, after exactly one completed Ok.
+    pub(super) fn injection(r: &Runtime, index: usize, op: Operation) -> u8 {
+        if index == 1
+            && matches!(op, Operation::Write { .. })
+            && r.device1_writes == 1
+            && !INJECTED.load(Relaxed)
+        {
+            10
+        } else {
+            0
+        }
+    }
+    /// N38 (b): at the injected completion, after the Policy marked it
+    /// Unknown and before the reset or any 0x41 poll can deliver it.
+    pub(super) fn injected(r: &Runtime) {
+        INJECTED.store(true, Relaxed);
+        let now = [r.device_ops[0][1], r.device_ops[1][0], r.device_ops[1][2]];
+        for (slot, value) in AT_LATCH.iter().zip(now) {
+            slot.store(value, Relaxed);
+        }
+        serial::write(b"VOLUME:FAULT_INJECTED:ARCHIVE_DISK_WRITE_ERROR\n");
+        print_number(
+            b"VOLUME:LATCH:LATCHED_AT_COMPLETION:",
+            latched(&r.lanes[1].policy),
+        );
+        print_number(
+            b"VOLUME:LATCH:POLLS_BEFORE_MARKER:",
+            POLLS.load(Relaxed) - POLLS_AT_WRITE.load(Relaxed),
+        );
+    }
+    pub(super) fn report(r: &Runtime) {
+        let policy = &r.lanes[1].policy;
+        let after = |i: usize, now: u64| now.saturating_sub(AT_LATCH[i].load(Relaxed));
+        for (label, value) in [
+            (&b"VOLUME:LATCH:INJECTED:"[..], injected_once()),
+            (
+                b"VOLUME:LATCH:ENTRIES:",
+                policy.latches().iter().flatten().count() as u64,
+            ),
+            (b"VOLUME:LATCH:LATCHED:", latched(policy)),
+            (b"VOLUME:LATCH:REFUSALS:", REFUSALS.load(Relaxed)),
+            (
+                b"VOLUME:LATCH:WRITES_AT_REFUSAL:",
+                WRITES_AT_REFUSAL.load(Relaxed),
+            ),
+            (
+                b"VOLUME:LATCH:VOLUME_WRITES_AFTER:",
+                after(0, r.device_ops[0][1]),
+            ),
+            (
+                b"VOLUME:LATCH:ARCHIVE_READS_AFTER:",
+                after(1, r.device_ops[1][0]),
+            ),
+            (
+                b"VOLUME:LATCH:ARCHIVE_FLUSHES_AFTER:",
+                after(2, r.device_ops[1][2]),
+            ),
+        ] {
+            print_number(label, value);
+        }
+    }
+}
+
+// Slice 1's injection and accounting would corrupt slice 2's evidence.
+#[cfg(all(
+    feature = "test-volume-o13-latch",
+    feature = "test-volume-o13-latch-0x44"
+))]
+compile_error!("the two N38 latch profiles are separate boots");
+
+/// S09 O13 N38 slice 2 (test-volume-o13-latch-0x44 only): case (f), syscall
+/// 0x44, without any injected fault. Test-scripted disk-1 latch entries, two
+/// extra portal objects of a fixed shape and a READ-only node of the portal's
+/// own object; raw event lines (not `numbers()` evidence) for the host oracle.
+#[cfg(feature = "test-volume-o13-latch-0x44")]
+mod latch44_test {
+    use super::{
+        fail, m4, print_number, put, runtime, serial, BlockScope, Engine, Operation, Policy,
+        Runtime, State, BLOCK_READ, BLOCK_WRITE,
+    };
+
+    /// Latch entries (first, count) in absolute disk-1 sectors: [0, 10), [10, 20).
+    const ENTRIES: [(u64, u64); 2] = [(0, 10), (10, 10)];
+    /// Extra READ|WRITE scopes: part of [10, 20) only, and no entry at all.
+    const PARTIAL: (u64, u64) = (15, 10);
+    const NONE: (u64, u64) = (25, 10);
+    /// Portal startup words of the extra handles (beside the archive handle 504).
+    const WORDS: [u64; 3] = [576, 584, 592];
+
+    fn mask(policy: &Policy) -> u64 {
+        policy
+            .latches()
+            .iter()
+            .enumerate()
+            .filter(|(_, e)| e.is_some_and(|e| e.latched))
+            .fold(0, |mask, (index, _)| mask | 1 << index)
+    }
+    fn decimal(label: &[u8], value: u64) {
+        let mut bytes = [0; 20];
+        let mut at = bytes.len();
+        let mut rest = value;
+        loop {
+            at -= 1;
+            bytes[at] = b'0' + (rest % 10) as u8;
+            rest /= 10;
+            if rest == 0 {
+                break;
+            }
+        }
+        serial::write(label);
+        serial::write(&bytes[at..]);
+    }
+    /// At profile creation: the entries, then the portal's extra handles.
+    /// `main` is the portal's archive handle (scope [0, 15), with DERIVE).
+    pub(super) fn grant(s: &State, e: &mut Engine, portal: u64, main: u64) {
+        for (first, count) in ENTRIES {
+            if runtime().lanes[1]
+                .policy
+                .register_latch(first, count)
+                .is_err()
+            {
+                fail(b"LATCH_REGISTER");
+            }
+        }
+        let mut handles = [0; 3];
+        for (handle, (first_sector, sector_count)) in handles.iter_mut().zip([PARTIAL, NONE]) {
+            let scope = BlockScope {
+                device: 1,
+                first_sector,
+                sector_count,
+            };
+            *handle = e
+                .create_block_device_with_rights(portal, scope, BLOCK_READ | BLOCK_WRITE)
+                .unwrap_or_else(|_| fail(b"LATCH_GRANT"));
+        }
+        // The same object as `main`, READ only: a READ-only holder whose
+        // scope wholly contains both entries.
+        handles[2] = e
+            .derive(portal, main, BLOCK_READ)
+            .unwrap_or_else(|_| fail(b"LATCH_GRANT"));
+        let same = |h| e.check_block(portal, h, 0).map(|a| a.object_key());
+        if e.check_block(portal, handles[2], BLOCK_WRITE).is_ok() || same(handles[2]) != same(main)
+        {
+            fail(b"LATCH_GRANT");
+        }
+        for (offset, handle) in WORDS.into_iter().zip(handles) {
+            put(s, 1, offset, handle);
+        }
+    }
+    /// Every 0x44, after the call: the caller's scope and WRITE right as the
+    /// engine sees them, the raw return code and the disk-1 latch mask.
+    pub(super) fn called(s: &State, slot: usize, handle: u64, result: Result<u64, i64>) {
+        let pid = s.processes[slot].pid;
+        let e = m4::engine();
+        serial::write(b"VOLUME:LATCH_CALL:");
+        match e.check_block(pid, handle, 0) {
+            Ok(auth) => {
+                let scope = auth.scope();
+                decimal(b"DEVICE=", u64::from(scope.device));
+                decimal(b":FIRST=", scope.first_sector);
+                decimal(b":COUNT=", scope.sector_count);
+                decimal(
+                    b":WRITE=",
+                    u64::from(e.check_block(pid, handle, BLOCK_WRITE).is_ok()),
+                );
+            }
+            Err(_) => serial::write(b"BAD_HANDLE"),
+        }
+        match result {
+            Ok(value) => decimal(b":RET=", value),
+            Err(code) => decimal(b":RET=-", code.unsigned_abs()),
+        }
+        decimal(b":MASK=", mask(&runtime().lanes[1].policy));
+        serial::write(b"\n");
+    }
+    /// Disk-1 WRITEs: refused by the latch, or published to the device.
+    pub(super) fn write(dev: usize, op: Operation, refused: bool) {
+        if let (1, Operation::Write { sector }) = (dev, op) {
+            decimal(b"VOLUME:LATCH_WRITE:SECTOR=", sector);
+            serial::write(if refused {
+                b":REFUSED\n"
+            } else {
+                b":PUBLISHED\n"
+            });
+        }
+    }
+    pub(super) fn report(r: &Runtime) {
+        let policy = &r.lanes[1].policy;
+        print_number(
+            b"VOLUME:LATCH:ENTRIES:",
+            policy.latches().iter().flatten().count() as u64,
+        );
+        print_number(b"VOLUME:LATCH:LATCHED_MASK:", mask(policy));
+    }
+}
+
 fn case() -> u64 {
     if cfg!(feature = "test-volume-recover") {
         1
@@ -424,6 +665,12 @@ fn case() -> u64 {
         29
     } else if cfg!(feature = "test-volume-recover-l2-cut") {
         30
+    } else if cfg!(feature = "test-volume-o13-latch") {
+        // S09 O13 N38 slice 1 on the device-1 disk; flow == case.
+        31
+    } else if cfg!(feature = "test-volume-o13-latch-0x44") {
+        // S09 O13 N38 slice 2 (f, syscall 0x44) on the device-1 disk; flow == case.
+        32
     } else {
         0
     }
@@ -454,17 +701,17 @@ fn flow() -> u64 {
 /// wrong-device case (17), where device 1 holds the archive but the portal
 /// is granted the device-0 archive range.
 fn archive_device() -> bool {
-    matches!(case(), 13..=16 | 18 | 19 | 25..=30)
+    matches!(case(), 13..=16 | 18 | 19 | 25..=32)
 }
 /// Cases with an archive grant to the portal: the S09 v1 archive cases and
 /// the L2 cases; the install and settings cases (20..=24) keep zero archive I/O.
 fn archive_case() -> bool {
-    matches!(case(), 7..=19 | 25..=30)
+    matches!(case(), 7..=19 | 25..=32)
 }
 /// Device 1 negotiates writes in the export, too-small, power-cut and L2
 /// export cases; restore, wrong-device, verify and L2 26..=30 attach it read-only.
 fn device1_writable() -> bool {
-    matches!(case(), 13 | 15 | 16 | 18 | 25)
+    matches!(case(), 13 | 15 | 16 | 18 | 25 | 31 | 32)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -493,6 +740,8 @@ fn marker() -> &'static [u8] {
         27 => b"VOLUME:CASE:L2_CORRUPT:PASS\n",
         28 => b"VOLUME:CASE:L2_USED:PASS\n",
         30 => b"VOLUME:CASE:RECOVER_L2_CUT:PASS\n",
+        31 => b"VOLUME:CASE:O13_LATCH:PASS\n",
+        32 => b"VOLUME:CASE:O13_LATCH_0X44:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -826,15 +1075,16 @@ pub fn manifest(s: &mut State) {
 /// sector 0 instead and never the device-0 archive range; the wrong-device
 /// case (17) grants the device-0 range while device 1 holds the archive.
 fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2], block: u64) {
-    let writes = matches!(case(), 7 | 11 | 12 | 13 | 15 | 16 | 18 | 25);
+    let writes = matches!(case(), 7 | 11 | 12 | 13 | 15 | 16 | 18 | 25 | 31 | 32);
     let device = u32::from(archive_device());
     let scope = BlockScope {
         device,
         first_sector: if device == 1 { 0 } else { ARCHIVE_FIRST_SECTOR },
-        sector_count: if matches!(case(), 11 | 16) {
-            FULL_SECTORS
-        } else {
-            ARCHIVE_SECTORS
+        sector_count: match case() {
+            11 | 16 => FULL_SECTORS,
+            // N38 (f): the mixed-overlap scope [0, 15) over entries [0, 10), [10, 20).
+            32 => 15,
+            _ => ARCHIVE_SECTORS,
         },
     };
     // The scope must end below the disk so the portal's probe past it is a
@@ -850,6 +1100,10 @@ fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2],
     } else {
         BLOCK_READ
     };
+    // N38 (f): DERIVE only so the kernel can give the portal a READ-only node
+    // of this object below (latch44_test::grant); the portal never derives.
+    #[cfg(feature = "test-volume-o13-latch-0x44")]
+    let rights = rights | capability_core::DERIVE;
     let handles = |e: &Engine| {
         [service, clients[0], clients[1]].map(|pid| e.process_usage(pid).unwrap().handles)
     };
@@ -901,6 +1155,20 @@ fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2],
             }
         }
     }
+    // N38: the portal's whole device-1 scope is one O13 latch entry, registered
+    // at profile creation (the destination profile's rule, S09 2.7).
+    #[cfg(feature = "test-volume-o13-latch")]
+    if runtime().lanes[1]
+        .policy
+        .register_latch(scope.first_sector, scope.sector_count)
+        .is_err()
+    {
+        fail(b"LATCH_REGISTER");
+    }
+    // N38 (f): test-scripted entries and the portal's extra handle shapes,
+    // after the escape count above (which covers the archive object only).
+    #[cfg(feature = "test-volume-o13-latch-0x44")]
+    latch44_test::grant(s, e, clients[0], handle);
     runtime().archive_key = Some(auth.object_key());
     put(s, 1, 504, handle);
 }
@@ -966,6 +1234,10 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     let result = quarantine_code(device_call(s, slot, n, a));
     #[cfg(feature = "test-system-s3")]
     super::system::after_wake(slot, n, result.err().unwrap_or(0));
+    #[cfg(feature = "test-volume-o13-latch-0x44")]
+    if n == 0x44 {
+        latch44_test::called(s, slot, a[0], result);
+    }
     match result {
         Ok(v) => (0, v),
         Err(code) => {
@@ -1079,6 +1351,8 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         object_key: auth.object_key(),
     };
     if n == 0x41 {
+        #[cfg(feature = "test-volume-o13-latch")]
+        latch_test::polled(dev);
         let lane = &runtime().lanes[dev];
         let pending = lane.policy.request();
         let pending = pending.filter(|q| lane.ended_read != Some(q.ticket));
@@ -1149,6 +1423,10 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         // O13 enforcement: before the input copy, the Policy and any device
         // access, so a latched WRITE changes no counter (N38 (i): -5, not -3).
         if n == 0x42 && runtime().lanes[dev].policy.write_latched(sector) {
+            #[cfg(feature = "test-volume-o13-latch")]
+            latch_test::refused(runtime(), dev);
+            #[cfg(feature = "test-volume-o13-latch-0x44")]
+            latch44_test::write(dev, Operation::Write { sector }, true);
             return Err(-5);
         }
         if n == 0x40 {
@@ -1223,6 +1501,10 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         .unwrap();
     r.publications[operation_index(op)] += 1;
     r.device_ops[dev][operation_index(op)] += 1;
+    #[cfg(feature = "test-volume-o13-latch")]
+    latch_test::published(dev, op);
+    #[cfg(feature = "test-volume-o13-latch-0x44")]
+    latch44_test::write(dev, op, false);
     if r.archive_key == Some(binding.object_key) {
         r.archive_ops[operation_index(op)] += 1;
     }
@@ -1376,7 +1658,9 @@ fn advance_lane(r: &mut Runtime, index: usize, now: u64) {
     }
     #[cfg(feature = "native-system-power")]
     let injection = if power_track().io_error { 10 } else { 0 };
-    #[cfg(not(feature = "native-system-power"))]
+    #[cfg(feature = "test-volume-o13-latch")]
+    let injection = latch_test::injection(r, index, request.operation);
+    #[cfg(not(any(feature = "native-system-power", feature = "test-volume-o13-latch")))]
     let injection = 0;
     device_access();
     let completion = r.lanes[index].device.as_mut().unwrap().poll(injection);
@@ -1457,6 +1741,10 @@ fn advance_lane(r: &mut Runtime, index: usize, now: u64) {
                 .policy
                 .complete(request.epoch, request.ticket, Completion::Io)
                 .unwrap();
+            #[cfg(feature = "test-volume-o13-latch")]
+            if injection != 0 {
+                latch_test::injected(r);
+            }
             let code = if request.operation.is_mutating() {
                 -16
             } else {
@@ -1629,7 +1917,16 @@ fn finish(s: &mut State) -> ! {
         if service_error != 0 || word(s, 0, 376) != 0 {
             fail(b"SERVICE_STATE");
         }
-        if r.publications != r.completions {
+        // N38 (b): the injected disk-1 WRITE ended Unknown, never completed.
+        #[cfg(feature = "test-volume-o13-latch")]
+        let completions = [
+            r.completions[0],
+            r.completions[1] + latch_test::injected_once(),
+            r.completions[2],
+        ];
+        #[cfg(not(feature = "test-volume-o13-latch"))]
+        let completions = r.completions;
+        if r.publications != completions {
             fail(b"IO_ACCOUNTING");
         }
         if read_only() && r.publications[1..] != [0, 0] {
@@ -1696,6 +1993,9 @@ fn finish(s: &mut State) -> ! {
                     && d[0][1..] == [0, 0]
                     && r.archive_rights_refusals == 1
             }
+            // N38: every disk-1 operation is the portal's; the host checks counts.
+            // In (f) the extra handles only issue 0x44, which touches no device.
+            31 | 32 => d[1] == a,
             _ => a == [0; 3],
         };
         if !archive {
@@ -1804,7 +2104,7 @@ fn finish(s: &mut State) -> ! {
         print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
         print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);
     }
-    if matches!(case(), 13..=19 | 25..=28 | 30) {
+    if matches!(case(), 13..=19 | 25..=28 | 30..=32) {
         print_number(b"VOLUME:ARCHIVE:DEVICE:", u64::from(archive_device()));
         print_number(
             b"VOLUME:ARCHIVE:DISK_FOUND:",
@@ -1843,6 +2143,10 @@ fn finish(s: &mut State) -> ! {
             print_number(label, value);
         }
     }
+    #[cfg(feature = "test-volume-o13-latch")]
+    latch_test::report(r);
+    #[cfg(feature = "test-volume-o13-latch-0x44")]
+    latch44_test::report(r);
     print_number(
         b"VOLUME:APP_DEVICE_DENIALS:",
         r.app_device_denials[0] + r.app_device_denials[1],
