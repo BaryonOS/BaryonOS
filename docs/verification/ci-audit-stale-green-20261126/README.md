@@ -5,6 +5,22 @@ Date: 26 November 2026. Baseline:
 #550). Values are derived from GitHub Actions REST data. Runner minutes are
 sums of job wall-clock durations, not billing figures.
 
+## Reproduce the committed evidence
+
+From the repository root, run:
+
+```sh
+python3 -B docs/verification/ci-audit-stale-green-20261126/verify.py
+```
+
+The standard-library verifier checks the committed snapshot hashes and
+recomputes the queue, targeted job-median, 60-PR baseline and stale-green
+claims. It also checks that the capacity and branch-filter analyses describe
+the shared 100-run capture consistently. The PR #550, same-tree duplication
+and branch-filter totals still depend on the external raw responses whose
+paths and SHA-256 digests are recorded in `sources.json`; a clean checkout
+cannot independently recompute those three values.
+
 ## Reproduced correctness gap
 
 PR #515 contained head
@@ -88,7 +104,7 @@ project owner's separate D1 activation decision.
 
 ## Branch-filter counterfactual
 
-In the stable 07:15–07:55Z sample, 47 upstream completions mapped uniquely to
+In the 07:15–07:55Z capture, 47 upstream completions mapped uniquely to
 47 re-check runs: 21 main-push activities produced skipped jobs, while 26 PR
 activities remained (16 cancelled in the queue and 10 successful). Excluding
 the exact `main` branch would therefore remove 21 workflow objects and 21
@@ -100,7 +116,10 @@ runner-time reduction.
 The machine-readable values and explicit `NOT RUN` limits are in
 `metrics.json`. The bounded capture manifest in `sources.json` records the REST
 queries, retained raw-file sets, extraction scripts and SHA-256 digests behind
-those values; large raw API responses remain in the named external scratch
-location and are not repository evidence by themselves. Live merge-group validation was not possible because the queue
+those values. The capacity analysis filters the shared 100-run response to 99
+runs created through 07:45Z; the branch-filter analysis also uses the one later
+07:50Z source/re-check pair. A current replay of the 07:15–07:55Z query returned
+the same 100 run IDs. Large raw API responses remain in the named external
+scratch location and are not repository evidence by themselves. Live merge-group validation was not possible because the queue
 is inactive. Enterprise capacity settings were not visible with the available
 token. No native OS acceptance follows from this CI-only evidence.
