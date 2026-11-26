@@ -303,13 +303,32 @@ requirements and leaves the mechanism to a later decision:
       per-domain access to key-protected data.
 
     The split lets each refusal path be tested separately: a refused UNLOCK
-    leaves only the ciphertext-only read live. H and S still have to align
-    one point: the remount itself needs the volume service's block read,
-    which is the grant in step 2 of S's order.
+    leaves only the ciphertext-only read live.
 
-    **OWNER question O8:** does a read-only, ciphertext-only read of domain 1
-    before authentication count as "access restored" under Q3? If it does,
-    the order becomes authentication → T5f-1 → UNLOCK → T5f-2.
+    H and S settled the grant on 26 November 2026: **T5f-1 is one grant**,
+    and it covers both the remount and the domain-1 key-state read.
+    - The remount is strictly read-only on `fb4a40fa`:
+      `Service::recover` → `table::recover_with_state`
+      (`services/volume/src/table.rs:1031`) only reads. With `read_only`, the
+      barrier flush is skipped. Evidence: `services/volume/tests/seeded_read.rs`
+      and the seeded-read fixture of #561.
+    - The kernel enforces read-only access to the **whole volume**, because
+      the shared table sectors span every domain. The kernel does **not**
+      enforce the domain-1 limit. The ring-3 volume service enforces it,
+      serving only init's domain-1 endpoint until T5f-2.
+    - **T5f-2** is a new writable instance or mount after UNLOCK. Recovery
+      runs again and the barrier flush precedes any write. A corrupt volume
+      stays refused, and Q4 quarantine applies.
+    - The table checks are FNV-64 integrity, not a MAC, so no authenticated
+      metadata is claimed. That is a gap against the wording of Q2 (O7).
+    - S writes the post-wake generation and identity check as part of the
+      read-only remount (key-free, fail closed).
+
+    **OWNER question O8:** does the following count as "access restored"
+    under Q3? Before authentication, the volume service reads ciphertext under
+    a kernel-enforced, read-only grant that covers the whole volume, and the
+    service itself limits what it serves to domain 1. If it counts, the order
+    becomes authentication → T5f-1 → UNLOCK → T5f-2.
 
 ## 8. Proposed acceptance cases (native QEMU, labelled)
 
@@ -351,8 +370,8 @@ A review by a second AI is not an independent audit.
 | O3 | H | answered 26 November 2026: 0x92, -25, -8 retry and -14 already LOCKED, C1–C4 as in §6.1; non-binding until O1 and the ADR exist |
 | O4 | S | answered 26 November 2026: the remount needs no keys (§7 U5) |
 | O5 | project owner and B | the durability window without write-ahead: a Key Service freeze opcode before export, or write-ahead relay in S3 profiles |
-| O6 | H and S | proposed by H: T5f-1 read-only domain-1 grant before UNLOCK, T5f-2 full re-grant after it; align with S's remount grant (§7 U5) |
-| O8 | project owner | whether a pre-authentication, read-only, ciphertext-only read of domain 1 counts as "access restored" under Q3 (§7 U5) |
+| O6 | H and S | settled 26 November 2026: one read-only grant (T5f-1) for the remount and the domain-1 read, whole volume kernel-enforced and domain 1 service-enforced; T5f-2 is a writable instance after UNLOCK (§7 U5) |
+| O8 | project owner | whether a pre-authentication, kernel-enforced read-only whole-volume ciphertext read by the volume service, limited to domain 1 only by that service, counts as "access restored" under Q3 (§7 U5) |
 | O7 | S and B | a keyed MAC for volume authenticity after a wake, with a key outside the domain-1 blob; not planned |
 | OQ1 | project owner, H and U | erasure of plaintext content held by apps and the volume service before S3 |
 
