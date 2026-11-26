@@ -70,6 +70,7 @@ struct LockState {
     fixture: Fixture,
 }
 #[cfg(feature = "test-system-lock")]
+#[derive(Clone, Copy)]
 struct Fixture {
     stage: u8,
     holds: u64,
@@ -102,7 +103,8 @@ static mut LOCK_STATE: LockState = LockState {
 };
 fn state() -> &'static mut LockState {
     // SAFETY: One CPU (native-smp-m3 is excluded), IF=0, KERNEL held. Each
-    // borrow ends before a syscall or scheduling.
+    // borrow ends before any call that takes another one (`word` → `gone`,
+    // `lock`, `live`, `erased`), and before a syscall or scheduling.
     unsafe { &mut *ptr::addr_of_mut!(LOCK_STATE) }
 }
 
@@ -131,7 +133,9 @@ pub(crate) fn erased() -> bool {
 /// whole service stack and read it back as zero; a LOCK without that halts.
 pub(super) fn latch() {
     let st = state();
-    if !st.gone || st.locked {
+    // A ring-3 0x92 reaches this in its own kernel entry, before m3_restore has
+    // run the scrub; LOCKED (and so `erased`) stays false until a later entry.
+    if !st.gone || st.locked || scrub_result().2 != 0 {
         return;
     }
     #[cfg(feature = "test-system-lock")]
@@ -186,23 +190,25 @@ fn teardown(s: &mut State) {
         !matches!(s.processes[KEY].status, Status::Dead | Status::Dying),
         b"LOCK_NO_INSTANCE",
     );
-    let st = state();
-    st.canary.0 = count();
-    for (value, offset) in st.words.iter_mut().zip(KEY_WORDS) {
-        *value = word(s, KEY, offset);
-    }
+    // Locals first: `word` reads `gone()`, so no LOCK_STATE borrow may span it.
+    let canary = count();
+    let words = KEY_WORDS.map(|offset| word(s, KEY, offset));
     #[cfg(feature = "test-system-lock")]
     record_frames(s);
-    st.entropy.0 = m4::engine().stats().entropy_objects;
+    let before = m4::engine().stats().entropy_objects;
     // KL3: the teardown `finish` uses; `cleanup` asserts that no frame or page
     // table still names the instance as owner and zeroes every freed frame.
     s.processes[KEY].status = Status::Dying;
     s.cleanup(KEY);
-    st.entropy.1 = m4::engine().stats().entropy_objects;
+    let after = m4::engine().stats().entropy_objects;
     require(
-        s.processes[KEY].status == Status::Dead && st.entropy.1 < st.entropy.0,
+        s.processes[KEY].status == Status::Dead && after < before,
         b"LOCK_TEARDOWN",
     );
+    let st = state();
+    st.canary.0 = canary;
+    st.words = words;
+    st.entropy = (before, after);
     // KL4: `m3_restore` zeroes and verifies the whole service stack before the
     // next ring-3 instruction. The noscrub red control omits only this request.
     #[cfg(not(feature = "test-system-lock-noscrub"))]
@@ -313,7 +319,8 @@ fn live(s: &State) -> bool {
 /// irreversible -14. The app parks after its DONE until the kernel's go word.
 #[cfg(feature = "test-system-lock")]
 pub(super) fn fixture(s: &mut State) {
-    let f = &mut state().fixture;
+    // A copy: `lock`, `live` and `erased` take their own LOCK_STATE borrows.
+    let f = state().fixture;
     if f.done || f.holds == 0 {
         return;
     }
@@ -325,7 +332,7 @@ pub(super) fn fixture(s: &mut State) {
             // A5 red control: the instance exits on its own; that must end in
             // UNEXPECTED_EXIT and never count as LOCKED.
             put(s, KEY, 960, 1);
-            f.stage = 9;
+            state().fixture.stage = 9;
         }
         #[cfg(not(feature = "test-system-lock-exit"))]
         0 => {
@@ -346,8 +353,8 @@ pub(super) fn fixture(s: &mut State) {
                 lock(s, INIT, grant) == -8 && live(s) && !keyring::broker_quiet(),
                 b"LOCK_ENTROPY_PENDING",
             );
-            f.deadline = s.ticks + 4096;
-            f.stage = 1;
+            state().fixture.deadline = s.ticks + 4096;
+            state().fixture.stage = 1;
         }
         1 => {
             // Answered, then reclaimed after its lease; never latched (-14).
@@ -357,8 +364,8 @@ pub(super) fn fixture(s: &mut State) {
             }
             require(keyring::broker_summary().2, b"LOCK_ENTROPY_LATCH");
             require(admin_request(s), b"LOCK_CANARY_SEND");
-            f.deadline = s.ticks + 4096;
-            f.stage = 2;
+            state().fixture.deadline = s.ticks + 4096;
+            state().fixture.stage = 2;
         }
         2 => {
             if m4::engine().queued_from(s.processes[KEY].pid) == 0 {
@@ -370,26 +377,27 @@ pub(super) fn fixture(s: &mut State) {
                 drain_reply(s) && m4::engine().queued_from(s.processes[KEY].pid) == 0,
                 b"LOCK_CANARY_REPLY",
             );
-            f.stage = 3;
+            state().fixture.stage = 3;
         }
         3 => {
             // A later tick, so the drain's frames are no longer live. The
             // instance is gone, but LOCKED waits for the exit-path scrub.
-            require(
-                lock(s, INIT, grant) == 0 && state().gone && !state().locked && !erased(),
-                b"LOCK_GRANT",
-            );
+            require(lock(s, INIT, grant) == 0, b"LOCK_GRANT");
+            // The ring-3 0x92 order: the handler, then `poll` → `latch` in the
+            // same kernel entry, before m3_restore scrubs. It must defer.
+            latch();
+            require(state().gone && !state().locked && !erased(), b"LOCK_GRANT");
             require(!admin_request(s) && !drain_reply(s), b"LOCK_CLIENT_SERVED");
             require(lock(s, INIT, grant) == -14, b"LOCK_NOT_IRREVERSIBLE");
             require(state().canary.0 >= 1, b"LOCK_CANARY_ABSENT");
-            f.stage = 4;
+            state().fixture.stage = 4;
         }
         4 => {
             // One event later `latch` found the stack scrubbed (A10, F1).
             require(state().locked && erased(), b"LOCK_NOT_ERASED");
             put(s, APP, APP_GO, 1);
-            f.deadline = s.ticks + 4096;
-            f.stage = 5;
+            state().fixture.deadline = s.ticks + 4096;
+            state().fixture.stage = 5;
         }
         5 => {
             // A6: the app asked the dead instance to unseal its record.
@@ -398,7 +406,7 @@ pub(super) fn fixture(s: &mut State) {
                 return;
             }
             require(state().app == APP_REFUSED, b"LOCK_APP_SERVED");
-            f.done = true;
+            state().fixture.done = true;
         }
         _ => {}
     }
@@ -454,8 +462,9 @@ fn drain_reply(s: &State) -> bool {
 
 /// `finish`: LOCK evidence. The fixture's refusal log is exact.
 pub(super) fn check_and_print() {
+    let erased = erased();
     let st = state();
-    require(!st.gone || erased(), b"LOCK_NOT_ERASED");
+    require(!st.gone || erased, b"LOCK_NOT_ERASED");
     #[cfg(feature = "test-system-lock")]
     require(
         st.fixture.done
