@@ -160,15 +160,17 @@ the source data, and not the time of the durable commit.
 
 The service reads no clock. Under ADR-050 the only wall clock is the opt-in
 syscall `0x73`, whose `UnauthenticatedRtc` value carries no more trust in the
-service than in the portal, and a future TimeProvider (ADR-057) is a
-separate service that the portal, which already talks to the user, is the
-natural client of. Keeping the service clock-free keeps its ABI surface and
-its rule set unchanged for information it never uses (I6). The trusted portal
-reads the clock and passes time and source in SEAL (5.4). The service checks
-only the encoding rules of 4.1. *[proposed; owner question V3]* The stored
-value is therefore the portal's claim: a portal on a host without a trusted
-clock passes source 0, and a crafted image can hold any valid time (5.4 of the
-v1 specification applies: FNV-64 detects only accidental damage).
+service than in the portal, and a future TimeProvider (ADR-057) is a separate
+service that the portal, which already talks to the user, is the natural
+client of. Keeping the service clock-free keeps its ABI surface and its rule
+set unchanged for information it never uses (I6). The trusted portal reads the
+clock and passes time and source in SEAL (5.4). The service checks only the
+encoding rules of 4.1. *[proposed; owner question V3]* The stored value is
+therefore the portal's claim: a portal with no clock reading passes source 0
+(time unknown), a reading of the `UnauthenticatedRtc` clock is stored as
+source 1 and never reported as trusted, and a crafted image can hold any valid
+time (5.4 of the v1 specification applies: FNV-64 detects only accidental
+damage).
 
 Source value 1 is a reading of the `UnauthenticatedRtc` clock of ADR-050.
 Source value 2 needs the TimeProvider of ADR-057, which does not exist yet;
@@ -488,7 +490,7 @@ owner's stage-count pins (O6).
 | N-V5 | 5.2 | valid copy with a gap and a newer entry below an older extent | valid | a v2 validator that keeps "ascending first sector" or contiguity |
 | N-V6 | 5.3 mount | valid pairs: *H* two commits ahead; *H* = REMOVE of *L* but with a second record dropped; *H* = MARK of two records; *H* = SEAL with next entry ID + 2; both v2 with *H* = *L* with metadata zeroed (an UPGRADE between v2 copies); *H* v1 at *L* v2's sequence + 1 | `Corrupt` each; the legitimate one-transition pair of each kind (UPGRADE only from v1, SYNC between v2) mounts *H* | the v1 prefix rule kept for v2 (it accepts the first case); a rule that accepts any shorter *H*; UPGRADE accepted between v2 copies |
 | N-V7 | pre-write check | test hook alters *N* for each transition (as N29) | `Corrupt` -18 for that request, no catalog write, no `Corrupt` mount state | a commit without the transition check |
-| N-V8 | 5.6 crash cuts | cut DELETE at: MARK copy 1 written; MARK barrier 2; MARK barrier 3; mid-erase; barrier E; REMOVE copy 1; REMOVE barrier 2; REMOVE barrier 3; and a reboot between MARK barriers 2 and 3 followed by a repeated DELETE, then loss of the `deleting` copy | after each, the next mount shows *E* `sealed` or `deleting` or gone, never another state; a repeated DELETE completes; no other extent changed (oracle); after the reboot case the repeated DELETE commits SYNC before any erase write, so no surviving copy shows *E* `sealed` over zeroed sectors | an erase before MARK; REMOVE before barrier E; an erase without the every-copy precondition |
+| N-V8 | 5.6 crash cuts | cut DELETE at: MARK copy 1 written; MARK barrier 2; MARK barrier 3; mid-erase; barrier E; REMOVE copy 1; REMOVE barrier 2; REMOVE barrier 3; and a reboot between MARK barriers 2 and 3 followed by a repeated DELETE, then loss of the `deleting` copy | after each, the next mount shows *E* `sealed` or `deleting` or gone, never another state; a repeated DELETE completes while *E* is `sealed` or `deleting` and returns `NotFound` -19 once a committed REMOVE has removed *E*; no other extent changed (oracle); after the reboot case the repeated DELETE commits SYNC before any erase write, so no surviving copy shows *E* `sealed` over zeroed sectors | an erase before MARK; REMOVE before barrier E; an erase without the every-copy precondition |
 | N-V9 | I4 | crash between REMOVE barriers 2 and 3; mount; CREATE; APPEND across *E*'s old extent | CREATE does not reserve *E*'s sectors until a further commit has overwritten the stale slot | 5.5 without the other-slot clause |
 | N-V10 | I3 | entry-path write at `region_end`; erase-path write one sector outside the extent; any write to sectors 0–15 | refused before the device (write counter unchanged) | the v1 `>= next_free` rule alone |
 | N-V11 | 5.4 DELETE | DELETE while bound on verify/restore lane; while another entry `deleting`; unknown ID; on an operation lane; in failed-mount, `Corrupt`, blank | `Busy`, `Busy`, `NotFound`, `Access` (check 6), mount-state replies; nothing written | a DELETE that skips the binding check |
@@ -550,7 +552,7 @@ owner's stage-count pins (O6).
 2. Independent AI re-review of revision 1, then a revision if needed.
 3. Host implementation in `services/destination`: v2 codec and validator,
    transitions and pre-write check, v2 mount rule, allocation, DELETE, META,
-   RECORD-VERIFY, and host tests N-V1 to N-V18. Oracle and R3 differential
+   RECORD-VERIFY, and host tests N-V1 to N-V21. Oracle and R3 differential
    extended to v2.
 4. Native stages after the CI owner's pins (O6). R8 preconditions are
    unchanged.
