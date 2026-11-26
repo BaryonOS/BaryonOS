@@ -20,10 +20,11 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261126-1. Cycle S-20261125-3 landed on `main`: O13 step 1
-  (PR #522, `192ef556`) and O13 step 2, the volume-broker write latch wiring
-  (PR #539, squash `29a159cc` on 26 November 2026 08:12:34Z, tree verified
-  equal to the tested head `45cb3136`). Neither merge accepts S09.
+- **cycle_id:** S-20261126-2. Landed on `main` on 26 November 2026: N38
+  slices 1 and 2 with the 34-stage M6e gate (PR #555, `2289a271`), the
+  `seeded-read` image variant for A03-T2c (PR #561, `fb4a40fa`) and the
+  catalog v2 specification revision 1 (PR #572, `9508ebfa`, tracking #569).
+  None of them accepts S09.
 - **Owner:** the local S session ("BaryonOS - Specialist S"). Lane order and
   push permission come from the PR guard; the merge lane protocol applies.
   Immediately before `gh pr merge` (PR guard, 26 November 2026):
@@ -34,30 +35,16 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 - **Open PRs:** none for S. Copilot review quota is exhausted until
   3 December 2026; Codex review quota is exhausted; use subagent review.
 
-### Local work, not pushed (all based on `main` `29a159cc` or `c04ea98d`)
+### Local work
 
-| Worktree (`~/projects/BaryonOS-worktrees/`) | Branch | HEAD | Content |
-|---|---|---|---|
-| `s-n38` | `claude/s09-n38-latch-main-20261126` | see HANDOFF comment | N38 slices 1+2 rebased onto `29a159cc`, the gate integration (34 stages, pins moved) and this file |
-| `s-seed` | `claude/s09-volume-seed-read-20261125` | `6206b8c8` | `seeded-read` image variant for A03-T2c (base `c04ea98d`) |
-| `s-catv2` | `claude/s09-catalog-v2-spec-20261125` | `e86aa336` | `docs/implementation/S09-CATALOG-V2.md` revision 1 (base `c04ea98d`) |
-
-Verified on the rebased `s-n38` source (26 November 2026, toolchain 1.100.0,
-exit 0): `o13-latch` and `o13-latch-0x44` PASS raw 33 (`build/n38main/`),
-`test_volume_*.py` 214 OK (2 skipped), `test_system_harness` OK,
-`progress.py --check` consistent. Full M6e gate on `0dd4c84e` (before the
-integration): 32/32 PASS (`build/s1126gate/`). The 34-stage gate on the
-integration head is required before the push; `actionlint` is not installed
-on this host.
-
-The older pushed branch `claude/s09-n38-latch-stacked-20261125` (`9664801e`,
-on `e093c837`) is superseded by the rebased branch; it is not force-pushed.
+None besides the open S PR for the post-wake remount design
+(`docs/implementation/VOLUME-POST-WAKE-REMOUNT.md`).
 
 ### Owner questions
 
 V1–V9 in `docs/implementation/S09-CATALOG-V2.md` section 9 (catalog v2 for
-O3 controlled deletion and O5 backup time). No catalog v2 code before the
-answers.
+O3 controlled deletion and O5 backup time), tracked in #569 with the
+zero-time RTC follow-up. No catalog v2 code before the answers.
 
 ### Agreements and debts
 
@@ -66,8 +53,10 @@ answers.
   object 1 of `seeded-read`. A per-ingress read-only right is a possible
   later S task with its own design; it is not planned.
 - Owed to H: the quarantine code -24 mapping (fail closed, separate from
-  -13/-14) once H's code is on `main`; the post-wake remount
-  generation-check design item. H05-T5c may start now that #539 is on `main`.
+  -13/-14); the file split is agreed with H first, and S waits for T5d-T if
+  it touches H's SUSPEND/T5d files or #573. The post-wake remount check is
+  specified in `VOLUME-POST-WAKE-REMOUNT.md` (one read-only grant, settled
+  with H and B on #564).
 - Landing order with H05-T5c (agreed with H, 26 November 2026; both change
   `kernel/Cargo.toml`, `tools/build.py` and `kernel/src/m2/m3/volume.rs`):
   the first branch with a green local gate and the lane lands first; the
@@ -123,18 +112,18 @@ answers.
 
 ## Next executable task
 
-1. N38 PR from `s-n38` when the PR guard grants the lane: push the rebased
-   branch under its new name (no force-push), open the PR with the native
-   N38 stage, the gate integration and the stage-count pins moved in the
-   same PR (the workstream moves its own pins; workflow files need the CI
-   D2 review). Before the push, rerun the full M6e gate on the head.
-2. `s-seed` PR (seeded-read image), then `s-catv2` PR (catalog v2
-   specification), one primary open PR at a time; rebase each onto `main`
-   first.
-3. Native K5 fixtures (new stage; S moves its own pins).
-4. O12 owner-binding design with B and the user/session owner; O1
-   remembered-VERIFY store; catalog v2 implementation after V1–V9.
-5. R5: destination service binary in the test profile on disk 1 with
+1. The -24 mapping (R2 of the post-wake design), after the file split with H.
+2. Native K5 fixtures (new stage; S moves its own pins).
+3. O12 owner-binding design with B and the user/session owner; O1
+   remembered-VERIFY store; catalog v2 implementation after V1–V9 (#569).
+4. R5: destination service binary in the test profile on disk 1 with
    `DEST:ID:TEST-ONLY` and a scripted dialog.
+
+Merge procedure (owner decision of 26 November 2026, confirmed in the S
+session): S enqueues its own merge-ready PRs in the merge queue without a
+per-PR lane grant (open-run check exactly `[]`, all merge conditions, then
+`gh pr merge <N> --squash --match-head-commit <sha>`); the PR guard
+coordinates order and dependencies. Non-blocking review comments on a pushed
+PR are answered, resolved and recorded on the tracking issue, not pushed.
 
 Owner decisions D1–D5 and a human audit remain outside S's authority.

@@ -198,7 +198,7 @@ L2_WORDS = ("RESTORED", "COLLECTIONS", "COMMITTED", "SKIPPED", "PROVENANCE_MISMA
 L2_CUT_COMMITS = 6
 # Sectors of that torn copy the kernel lets land before it stops the guest.
 L2_CUT_TORN = 4
-# S09 O13 N38 slice 1 (cases a, b, c, e; not a PLAN stage yet): a fresh disk 0
+# S09 O13 N38 slice 1 (cases a, b, c, e; M6e PLAN stage o13-latch): a fresh disk 0
 # and a fresh canary disk 1 whose whole portal scope is one kernel latch entry.
 # Sector bytes of the portal flow (ARCHIVE_LATCH in sdk/examples/volume-docs/src/app.rs):
 # sector 1 WRITE Ok (a); sector 2 WRITE with the injected device error (b); the
@@ -219,7 +219,7 @@ LATCH_EVIDENCE = {
     "VOLUME:BROKER:ARCHIVE_DISK_READS:": 1, "VOLUME:BROKER:ARCHIVE_DISK_FLUSHES:": 1,
     "VOLUME:ARCHIVE:DEVICE:": 1, "VOLUME:ARCHIVE:DISK_FOUND:": 1, "VOLUME:ARCHIVE:DISK_OFFLINE:": 0,
 }
-# S09 O13 N38 slice 2, case (f) (not a PLAN stage): syscall 0x44 on the
+# S09 O13 N38 slice 2, case (f) (M6e PLAN stage o13-latch-0x44): syscall 0x44 on the
 # test-scripted disk-1 entries [0, 10) and [10, 20), no injected fault. The
 # portal's archive handle is [0, 15); the kernel adds READ|WRITE handles on
 # [15, 25) and [25, 35) and a READ-only node of [0, 15) (ARCHIVE_LATCH_0X44).

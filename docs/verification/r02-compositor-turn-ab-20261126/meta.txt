@@ -1,0 +1,29 @@
+20:14:19Z A ffea3883870d0aa0f26170d8676015ae31067f53 B 5aedee77896060b80603e3d44c8ee25aad66be66 B_dirty 
+20:14:31Z build-A exit 0
+20:14:43Z build-B exit 0
+20:14:43Z A1 load_before 5.31 5.09 3.98 4/7839 2227997
+20:15:13Z A1 exit 0 load_after 5.42 5.14 4.03 6/7872 2238687
+20:15:13Z B1 load_before 5.42 5.14 4.03 5/7873 2238692
+20:15:41Z B1 exit 0 load_after 4.89 5.03 4.03 6/7845 2246412
+20:15:41Z B2 load_before 4.89 5.03 4.03 11/7845 2246417
+20:16:07Z B2 exit 0 load_after 4.82 5.00 4.04 3/7803 2253922
+20:16:07Z A2 load_before 4.82 5.00 4.04 4/7804 2253928
+20:16:35Z A2 exit 0 load_after 3.90 4.76 3.99 3/7809 2257088
+20:16:35Z A3 load_before 3.90 4.76 3.99 5/7810 2257093
+20:17:03Z A3 exit 0 load_after 3.58 4.62 3.96 6/7850 2261291
+20:17:03Z B3 load_before 3.58 4.62 3.96 5/7850 2261297
+20:17:28Z B3 exit 0 load_after 3.57 4.53 3.95 6/7818 2266647
+20:17:28Z B4 load_before 3.57 4.53 3.95 5/7818 2266654
+20:17:55Z B4 exit 0 load_after 3.52 4.45 3.95 5/7930 2272510
+20:17:55Z A4 load_before 3.52 4.45 3.95 5/7931 2272516
+20:18:23Z A4 exit 0 load_after 3.40 4.34 3.93 2/7894 2274167
+20:18:23Z A5 load_before 3.40 4.34 3.93 4/7897 2274174
+20:18:50Z A5 exit 0 load_after 3.70 4.31 3.93 3/7862 2275321
+20:18:50Z B5 load_before 3.70 4.31 3.93 3/7862 2275325
+20:19:16Z B5 exit 0 load_after 3.78 4.29 3.93 4/7854 2277013
+20:19:26Z probe build normal exit 0
+20:20:41Z probe-normal exit 0
+20:21:55Z probe-keyboard exit 0
+20:21:59Z probe build recover exit 0
+20:22:37Z probe-recover exit 0
+20:22:37Z done
