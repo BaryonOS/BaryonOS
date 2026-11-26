@@ -84,7 +84,7 @@ are rejected.
     everything (see "Tooling metadata"), while merge-hold still verifies every
     applicable gate.
 - `[policy.budgets]` (required): `pull_request_wait_minutes` and
-  `merge_group_wait_minutes`, integers from 0 to 45 (below the 50-minute
+  `merge_group_wait_minutes`, integers from 0 to 80 (below the 90-minute
   merge-hold timeout). merge-hold reads them from the trusted base.
 - `always_full`: globs whose change forces a full plan (all of `.github/**`,
   every `Cargo.lock`, `rust-toolchain.toml`, root `Cargo.toml`,
@@ -667,7 +667,8 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   [45808037891](https://github.com/BaryonOS/BaryonOS/actions/runs/45808037891)
   (cancelled, no jobs) and the skipped run 45808037846 both started at
   2026-11-26T11:09:49Z on head `9d632e11` of #555. A merge-hold re-run does not clear that case; re-running
-  that workflow run, or the next pull request event, does. The rule makes no
+  that workflow run, or the next pull request event, may clear it (inferred,
+  not verified for this run pair). The rule makes no
   extra API read.
   Advisory, manual, operational and publication jobs never block by their
   own conclusion, and merge-hold's own earlier runs are ignored.
@@ -697,7 +698,9 @@ push. A positive budget still works that way: once a minute merge-hold reads
 only the head's run listing and makes the next full decision once no gated
 workflow run is open or the budget ends; a failed poll counts as open, and
 pending gates with nothing left running decide at once. `merge_group` keeps
-`merge_group_wait_minutes = 45` and still waits that way.
+`merge_group_wait_minutes = 80` and still waits that way; that budget now
+also covers the plan and every gate run of the queue commit (see
+**merge_group** below).
 
 **Re-check.** `.github/workflows/merge-hold-recheck.yml` runs on
 `workflow_run` (`in_progress` and `completed`) of every workflow that owns an
@@ -854,13 +857,88 @@ once.
 project owner's explicit confirmation at that moment (D1). Every workflow with
 an automatic `core` or `rwa` job has an unfiltered `merge_group` trigger (D1
 step 1), so the selected gates also report on a queue commit, at full scope.
-merge-hold on `merge_group` still waits only for `host-quality` and
-`qemu-smoke` and does not judge those gates there; that is D1 step 2. So each
-queue member needs, besides its hold decision, a successful newest
-`pull_request` merge-hold run on its own head and a queue entry whose tree
-equals that head tree. This makes a queue with more than one pull request
-ahead fail closed. merge-hold reads every page of a queue commit's check runs,
-up to `CHECK_RUN_MAX_PAGES` (five pages of 100); a full fifth page fails closed.
+Since D1 step 2 merge-hold judges every applicable gate on the queue commit
+itself:
+
+- `BASE_SHA` (the commit the two base files came from) must equal
+  `merge_group.base_sha` and `TESTED_SHA` (the checkout) `merge_group.head_sha`,
+  both well-formed, and the base must be an ancestor of the queue commit. The
+  plan is recomputed with `--event=merge_group` (mode full) and must describe
+  that event, base, queue commit and `main` before any wait; any doubt fails at
+  once.
+- A run counts only with event `merge_group`, head SHA the queue commit, head
+  branch the queue ref without `refs/heads/`, and repository and head
+  repository this repository; its `pull_requests` list is not used. GitHub's
+  `head_branch` and `head_repository` of a `merge_group` run have not been
+  observed on a live run yet. If GitHub fills them differently, no run counts
+  and the group fails closed at the deadline, so the first queue trial must
+  capture one real run payload.
+- After `host-quality` and `qemu-smoke` have completed, every poll first reads
+  the queue: two consecutive well-formed reads, one poll apart, that lack the
+  queue commit (the entry was removed or rebuilt) end the wait with a failure,
+  also while gate runs are open. Under an enforcing plan the poll then reads the
+  queue commit's run listing and waits while a gate run is open or an expected
+  gate has no run. A gate that has already failed ends the wait early: a newest
+  gate run that completed without success, or a completed check run with a
+  blocking conclusion (for an expected gate, any conclusion but success), makes
+  one full gate report, and a Failed line in it fails the group with exactly
+  that report. A trigger that the report does not count (an advisory job, a
+  superseded run) is not judged again, so these reports stay rare.
+- After the wait, which also covers the entries ahead
+  (ADR-MERGE-HOLD-20261113), one full gate report on the queue commit decides
+  with the `pull_request` rules above, the settle step and the job attempt
+  binding included; any Pending or Failed line fails the group and the queue
+  removes it.
+- Each member still needs its hold decision, a successful newest
+  `pull_request` merge-hold run on its own head, and, for a released hold, a
+  queue entry whose tree equals the released head tree. An unheld member may
+  land another tree only when the queue-commit report was enforced and clean (no
+  Pending or Failed line); under `shadow`, or with any such line, its queue
+  entry tree must equal its head tree.
+- That report judges only this group's own entry tree, the queue commit. A
+  member ahead lands the tree of its own entry E. When that tree differs from
+  its head's, the member also needs the newest merge-hold run on E to have
+  concluded `success`: event `merge_group`, head SHA E, a queue branch of that
+  pull request, and this repository as repository and head repository. That
+  run judged the gates on E. It is read as strictly as the queue-commit runs:
+  its jobs must all belong to its attempt and have succeeded, a re-read by id
+  must show the same id, attempt and status, still bound and successful, and
+  E's `merge-hold` check run, read again at the decision, must have concluded
+  `success`. A missing, running or failed run, or any disagreement between
+  these reads (a stale listing, a run that moved on, jobs of another attempt,
+  a failed check run), fails the member at the decision; the wait before it
+  already waits for E's merge-hold check run when the walk reaches E. The
+  ruleset's "Only merge non-failing pull
+  requests" setting, which the merge-queue rule must enable, keeps E from
+  merging without that success.
+- Under `shadow` the group neither waits for gate runs nor blocks on them, and
+  no gate ends its wait early.
+
+The 80-minute budget is counted from before the plan. The plan and the
+catalogue read, the group's own checks, every gate run of the queue commit and
+the chain of entries ahead share it, less a 3-minute reserve kept back for the
+decision after the wait; the deadline fails closed. Up to the wait's last poll
+the script, whose clock starts before the plan, therefore takes at most 78
+minutes; the workflow steps before the script are outside that clock. The last
+poll, the decision and those steps must fit the remaining 12 minutes of the
+90-minute job timeout. Counted one page each, the decision makes 2 + 2N + 4M
+requests for N counted runs and M members when no member is lifted, at most
+4N + 8M - 1; a lifted member ahead adds four reads of its entry's merge-hold.
+In an ordinary queue every member ahead but the first is lifted, which gives
+2 + 2N + 8M - 8 for M >= 2. A poll makes three requests
+plus one per entry walked, and the last poll may itself make a full gate report
+of 1 + 2N to 1 + 4N requests when a new failure trigger appears that the report
+does not count, such as an advisory check-run failure; the decision then makes
+its own. For N = 24 and M = 5 the last poll (one entry walked) and the decision
+make about 86 requests in an ordinary queue and about 240 at worst, so, less
+the steps before the script, under about 8 s and
+3 s per request on average. Each blocking socket read times out after 20 s, so
+a single request has no hard ceiling. Those 12 minutes are an assumption, not a
+guarantee; the job timeout stays the fail-closed backstop. A
+queue trial with at least two entries (D1 step 3) is still required before the
+queue may be enabled. merge-hold reads every page of a queue commit's check
+runs, up to `CHECK_RUN_MAX_PAGES` (five pages of 100); a full fifth page fails
+closed.
 
 **Bootstrap.** The pull request that introduces this enforcement is judged by
 the base copy that predates it, so its own merge-hold checks only the
