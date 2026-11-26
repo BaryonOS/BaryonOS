@@ -1239,6 +1239,9 @@ class MergeGroupTests(TestCase):
                 ("check run on E failed", {"commits": {E: [checks("failure")]}}),
                 # The walk saw it succeed; a re-run of it had started when the decision read it again.
                 ("check run on E running again", {"commits": {E: [DONE, checks(None, "in_progress")]}}),
+                ("the listing shows a failure the re-read and jobs do not",
+                 {"group_runs": {**group_runs, E: [entry_hold_run(E, 7, "failure", attempt=2)]},
+                  "rereads": {70: {"conclusion": "success"}}, "group_jobs": jobs(good)}),
                 ("the run moved on between the reads",
                  {"rereads": {70: {"run_attempt": 3, "status": "in_progress", "conclusion": None}}}),
                 ("the re-read under another id", {"rereads": {70: {"id": 99}}}),
