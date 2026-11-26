@@ -9,13 +9,16 @@ native QEMU acceptance.
 import ast
 import fnmatch
 import hashlib
+import importlib.util
 import io
 import json
 import os
 from pathlib import Path
 import re
 import shlex
+import signal
 import subprocess
+import sys
 import tarfile
 import tempfile
 import tomllib
@@ -35,6 +38,44 @@ ACTIONLINT_TAG_COMMIT = "914e7df21a07ef503a81201c76d2b11c789d3fca"
 CARGO_LLVM_COV_VERSION = "0.9.1"
 CARGO_LLVM_COV_SHA256 = "b3f68e625481fed9b16444174f3fa5ebcdbde4a1878803a35eabe2dcefcdc41a"
 CARGO_LLVM_COV_TAG_COMMIT = "0dc905679ae6b4740b186f6e2c2ef1ab78fb76d7"
+HOST_PYTHON_STEP = "Python syntax and DocumentSession host tests"
+# #494: the step's serial commands before it ran lanes, byte-identical; lanes may only regroup them.
+HOST_PYTHON_COMMANDS = (
+    "mkdir -p build/coverage-raw/python",
+    "python3 -m compileall -q tools tests userspace/tests experiments/quantum/native "
+    "experiments/quantum/native/job .agents/skills/os-dev",
+    "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'",
+    "coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'",
+    "python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'",
+    "python3 -B -m unittest discover -s tests -p 'test_tokenguard*.py'",
+    "python3 -B tools/package_token_guard.py",
+    "coverage run --parallel-mode -m unittest discover -s tests -p 'test_document_session_*.py'",
+    "coverage run --parallel-mode -m unittest discover -s tests -p 'test_volume_*.py'",
+    "coverage run --parallel-mode -m unittest discover -s tests -p 'test_system_*.py'",
+    "coverage run --parallel-mode -m unittest discover -s tools/tests -p 'test_*.py'",
+    "python3 .agents/skills/os-dev/scripts/validate_skill.py",
+    "coverage run --parallel-mode -m unittest discover -s .agents/skills/os-dev/tests -p 'test_*.py'",
+)
+# test_roadmap_runner needs default SIGINT/SIGQUIT, which a `&` job of a non-interactive shell loses.
+HOST_PYTHON_FOREGROUND = "coverage run --parallel-mode -m unittest discover -s tools/tests -p 'test_*.py'"
+# Stands in for coverage and python3: records argv and ignored signals, fails on FAKE_FAIL.
+HOST_PYTHON_FAKE = f"""#!{sys.executable} -I
+import json, os, shlex, signal, sys
+argv = [os.path.basename(sys.argv[0])] + sys.argv[1:]
+ignored = [s.name for s in (signal.SIGINT, signal.SIGQUIT) if signal.getsignal(s) == signal.SIG_IGN]
+record = os.open(os.environ["FAKE_RECORD"], os.O_WRONLY | os.O_APPEND | os.O_CREAT)
+os.write(record, (json.dumps({{"argv": argv, "ignored": ignored}}) + "\\n").encode())
+print("ran:", shlex.join(argv))
+sys.exit(1 if shlex.join(argv) == os.environ["FAKE_FAIL"] else 0)
+"""
+
+
+def default_entry_signals():
+    """Enter the step shell as a runner does, with SIGINT and SIGQUIT at their defaults."""
+    for number in (signal.SIGINT, signal.SIGQUIT):
+        signal.signal(number, signal.SIG_DFL)
+
+
 # Non-required workflows skip only documentation and project metadata. The
 # required ci.yml gates stay unfiltered (see test_required_gates_...).
 METADATA_PATHS_IGNORE = [
@@ -677,11 +718,11 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_all_jobs_use_standard_hosted_ubuntu(self):
         """No custom label, dynamic selector or persistent runner can return."""
-        # ubuntu-26.04 is a standard hosted image; the K06 matrix pins QEMU 10.2.1 there.
+        # ubuntu-26.04 pins QEMU 10.2.1 for K06; ubuntu-slim (1 vCPU, hard 15-minute cap) only for short jobs.
         self.assertTrue(self.workflows)
         for path, job_id, job in self.jobs():
             with self.subTest(path=path, job=job_id):
-                self.assertIn(job.get("runs-on"), ("ubuntu-24.04", "ubuntu-26.04"))
+                self.assertTrue(job.get("runs-on") in ("ubuntu-24.04", "ubuntu-26.04") or (job.get("runs-on") == "ubuntu-slim" and int(job.get("timeout-minutes", 360)) <= 15), job.get("runs-on"))
 
     def test_volume_gate_stage_counts_match_plan(self):
         """Pin the volume report count and step label to the real gate PLAN."""
@@ -786,7 +827,8 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertLessEqual(required, set(preserve["with"]["path"].splitlines()))
 
     def test_public_prs_keep_minimal_token_permissions(self):
-        """Allow narrowly scoped writes only for CodeQL, orphan-run cleanup and coverage uploads."""
+        """Allow narrowly scoped writes only for CodeQL, orphan-run cleanup, coverage uploads
+        and the merge-hold re-check."""
         for path, workflow in self.workflows.items():
             with self.subTest(path=path):
                 self.assertNotIn("pull_request_target", workflow["on"])
@@ -813,6 +855,12 @@ class WorkflowContractTests(unittest.TestCase):
                     ".github/workflows/clear-stale-actions.yml", "cancel-orphans"
                 ):
                     self.assertEqual(permissions, {"actions": "write"})
+                elif (path, job_id) == (".github/workflows/merge-hold-recheck.yml", "recheck"):
+                    # #494 B9: actions write only to re-run merge-hold.
+                    self.assertEqual(
+                        permissions,
+                        {"actions": "write", "contents": "read", "pull-requests": "read"},
+                    )
                 elif (path, job_id) in (
                     (".github/workflows/ci.yml", "upload-coverage-rust"),
                     (".github/workflows/ci.yml", "upload-coverage-python"),
@@ -950,6 +998,146 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertNotEqual(code, 0)
             self.assertFalse(installed)
             self.assertNotEqual(run("wrong-version", good_hash, "0.0.1")[0], 0)
+
+    def host_python_step(self):
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        step, = [step for step in steps if step.get("name") == HOST_PYTHON_STEP]
+        return step
+
+    def run_with_host_python_fakes(self, script, work, shell=("bash", "-e"), failing=""):
+        """Run step text in work, with coverage and python3 replaced by HOST_PYTHON_FAKE."""
+        fake_bin = work.parent / "bin"
+        if not fake_bin.is_dir():
+            fake_bin.mkdir()
+            for name in ("coverage", "python3"):
+                (fake_bin / name).write_text(HOST_PYTHON_FAKE, encoding="utf-8")
+                (fake_bin / name).chmod(0o755)
+        (work / "temp").mkdir(parents=True, exist_ok=True)
+        record = work / "record.jsonl"
+        environment = dict(os.environ, PATH=f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
+                           RUNNER_TEMP=str(work / "temp"), FAKE_RECORD=str(record),
+                           FAKE_FAIL=shlex.join(shlex.split(failing)))
+        result = subprocess.run([*shell, "-c", script], cwd=work, env=environment,
+                                preexec_fn=default_entry_signals, capture_output=True,
+                                text=True, timeout=60, check=False)
+        records = [json.loads(line) for line in record.read_text().splitlines()] if record.exists() else []
+        return result, records
+
+    def assert_host_python_lanes(self, run):
+        """Run the step against fakes: every command once, tools/tests in front, any failing lane fails."""
+        lines = [line.strip() for line in run.splitlines()]
+        commands = [line.removesuffix(" || rc=1") for line in lines
+                    if line.startswith(("mkdir ", "python3 ", "coverage "))]
+        self.assertEqual(sorted(commands), sorted(HOST_PYTHON_COMMANDS))
+        self.assertEqual(lines[:2], list(HOST_PYTHON_COMMANDS[:2]))
+        self.assertIn(HOST_PYTHON_FOREGROUND + " || rc=1", lines)
+        # Only a printed log is removed: a failed print keeps it for the leftover-log step.
+        self.assertIn('cat "$RUNNER_TEMP/python-lane-$lane.log" && rm -f "$RUNNER_TEMP/python-lane-$lane.log" || rc=1',
+                      lines)
+        launches =[line for line in lines if re.search(r"(^|[^&])&$", line)]
+        pids = [match.group(1) for line in lines if (match := re.fullmatch(r"(\w+)=\$!", line))]
+        waits = [line for line in lines if re.match(r"wait\b", line)]
+        self.assertEqual(len(pids), len(launches))
+        self.assertEqual(waits, [f'wait "${pid}" || rc=1' for pid in pids])
+        self.assertEqual(lines[-1], 'exit "$rc"')
+        with tempfile.TemporaryDirectory(prefix="host-python-lanes-") as directory:
+            root = Path(directory)
+
+            def run_step(label, failing=""):
+                work = root / label
+                result, records = self.run_with_host_python_fakes(run, work, failing=failing)
+                self.assertEqual(result.stdout.count("::group::"), len(launches), result.stdout)
+                for entry in records:  # also the output of the background lanes
+                    self.assertIn("ran: " + shlex.join(entry["argv"]), result.stdout)
+                # A printed lane log is removed, so the leftover-log step shows only unprinted ones.
+                self.assertEqual(list((work / "temp").iterdir()), [], "printed lane logs stay behind")
+                return work, result, [entry["argv"] for entry in records], records
+
+            work, result, ran, records = run_step("success")
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((work / "build/coverage-raw/python").is_dir())
+            self.assertEqual(sorted(ran), sorted(shlex.split(command) for command in HOST_PYTHON_COMMANDS[1:]))
+            self.assertEqual(ran[0], shlex.split(HOST_PYTHON_COMMANDS[1]))
+            serial = (shlex.split(HOST_PYTHON_COMMANDS[1]), shlex.split(HOST_PYTHON_FOREGROUND))
+            self.assertEqual(sorted(entry["argv"] for entry in records if entry["argv"] in serial), sorted(serial))
+            for entry in records:
+                if entry["argv"] in serial:
+                    self.assertEqual(entry["ignored"], [], entry["argv"])
+            # Lane commands are not pinned: inside a `( ... ) &` subshell, bash 5.2 (ubuntu-24.04) runs
+            # them with SIGINT/SIGQUIT restored and bash 5.3 keeps them ignored. The probe itself is
+            # shown to see ignored signals, so the serial [] above is not vacuous.
+            _, probe = self.run_with_host_python_fakes("trap '' INT QUIT\npython3 probe\n", root / "probe")
+            self.assertEqual(probe, [{"argv": ["python3", "probe"], "ignored": ["SIGINT", "SIGQUIT"]}])
+            for index, command in enumerate(HOST_PYTHON_COMMANDS[2:]):  # no subTest: callers expect a raise
+                _, result, ran, _ = run_step(f"fail-{index}", command)
+                self.assertNotEqual(result.returncode, 0, command)
+                self.assertIn(shlex.split(command), ran)
+
+    def test_host_python_suites_run_in_waited_lanes_with_tools_tests_in_front(self):
+        """#494: concurrent lanes keep every command; the step fails when any lane fails."""
+        step = self.host_python_step()
+        for key in ("if", "continue-on-error", "shell"):
+            self.assertNotIn(key, step)
+        self.assertEqual(step["env"], {"PYTHONDONTWRITEBYTECODE": "1"})
+        self.assert_host_python_lanes(step["run"])
+
+    def test_host_python_lane_contract_rejects_weakened_steps(self):
+        """The lane pin fails for a dropped command, a backgrounded tools/tests run, a bare wait, a
+        tools/tests failure that skips the lane waits and logs, a kept printed log or a lane that continues."""
+        run = self.host_python_step()["run"]
+        foreground = HOST_PYTHON_FOREGROUND + " || rc=1\n"
+        mutations = {
+            "dropped command": run.replace("  python3 .agents/skills/os-dev/scripts/validate_skill.py\n", "", 1),
+            "background tools/tests": run.replace(foreground, "", 1).replace(
+                "  set -e\n", f"  set -e\n  {foreground}", 1),
+            "bare wait": run.replace('wait "$lane_b" || rc=1\nwait "$lane_c" || rc=1\n', "wait\n", 1),
+            "tools/tests failure skips lane waits and logs": run.replace(
+                foreground, HOST_PYTHON_FOREGROUND + "\n", 1),
+            "printed lane log kept": run.replace(' && rm -f "$RUNNER_TEMP/python-lane-$lane.log"', "", 1),
+            "lane continues after a failure": run.replace("  set -e\n", "  set +e\n", 1),
+        }
+        for label, mutated in mutations.items():
+            with self.subTest(mutation=label):
+                self.assertNotEqual(mutated, run)
+                with self.assertRaises(AssertionError):
+                    self.assert_host_python_lanes(mutated)
+
+    def test_host_python_lane_logs_left_by_an_interrupted_run_are_printed(self):
+        """#494: after a step timeout or cancellation an always() step prints only the unprinted lane logs."""
+        job = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]
+        step = self.host_python_step()
+        leftover = job["steps"][job["steps"].index(step) + 1]
+        self.assertEqual(leftover["name"], "Python lane logs left by an interrupted run")
+        self.assertEqual(leftover["if"], "${{ always() }}")  # a step condition; the job has none
+        self.assertNotIn("if", job)
+        # A hung lane hits the step timeout first, so the job still reaches the leftover step;
+        # 15 is over twice the slowest measured serial step (363 s).
+        self.assertEqual(step["timeout-minutes"], "15")
+        self.assertLess(int(step["timeout-minutes"]), int(job["timeout-minutes"]))
+        shell = ("bash", "--noprofile", "--norc", "-eo", "pipefail")  # `shell: bash` on a runner
+        self.assertEqual(leftover["shell"], "bash")
+        interrupted = step["run"][:step["run"].index("for lane in b c")]  # stopped before printing
+        with tempfile.TemporaryDirectory(prefix="host-python-leftover-") as directory:
+            root = Path(directory)
+            for label, script in (("interrupted", interrupted), ("complete", step["run"])):
+                with self.subTest(run=label):
+                    work = root / label
+                    result, records = self.run_with_host_python_fakes(script, work)
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    (work / "temp/unrelated.log").write_text("not a lane log\n", encoding="utf-8")
+                    printed, _ = self.run_with_host_python_fakes(leftover["run"], work, shell=shell)
+                    self.assertEqual(printed.returncode, 0, printed.stderr)
+                    self.assertNotIn("not a lane log", printed.stdout)
+                    if label == "complete":
+                        self.assertEqual(printed.stdout, "")
+                        continue
+                    self.assertEqual(printed.stdout.count("::group::"), 2, printed.stdout)
+                    serial = (shlex.split(HOST_PYTHON_COMMANDS[1]), shlex.split(HOST_PYTHON_FOREGROUND))
+                    lanes = [entry["argv"] for entry in records if entry["argv"] not in serial]
+                    self.assertEqual(len(lanes), len(HOST_PYTHON_COMMANDS) - 3)
+                    for argv in lanes:
+                        self.assertIn("ran: " + shlex.join(argv), printed.stdout)
+                    self.assertNotIn("ran: " + shlex.join(serial[1]), printed.stdout)
 
     def test_actionlint_is_pinned_in_required_host_gate(self):
         """Workflow validation is required, checksum-pinned and narrowly scoped."""
@@ -1217,6 +1405,60 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                 self.assertEqual(job.get("continue-on-error", "false"), "false")
                 self.assertTrue(any("run" in step for step in job["steps"]))
 
+    def test_every_automatic_gate_workflow_reports_on_the_queue_commit(self):
+        """A merge-queue commit starts every automatic gate unfiltered (#494 D1 step 1)."""
+        catalogue = tomllib.loads((ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8"))
+        gated = [workflow["path"] for workflow in catalogue["workflow"]
+                 if any(job["class"] in ("core", "rwa") and job["activation"] == "automatic"
+                        for job in workflow.get("job", []))]
+        # #494: exact, so adding or removing a gated workflow is a deliberate edit; no other
+        # workflow runs on the queue commit.
+        self.assertEqual(len(gated), 25)
+        self.assertEqual({path for path, workflow in self.workflows.items()
+                          if isinstance(workflow.get("on"), dict) and "merge_group" in workflow["on"]},
+                         set(gated))
+        for path in gated:
+            with self.subTest(path=path):
+                # Exactly this mapping: no paths, paths-ignore or branches filter.
+                self.assertEqual(self.workflows[path]["on"]["merge_group"],
+                                 {"types": ["checks_requested"]})
+                # A queue ref is refs/heads/gh-readonly-queue/..., so its group never cancels a
+                # pull_request or main run. The fallback form resolves to github.ref on a queue commit.
+                group = self.workflows[path]["concurrency"]["group"]
+                self.assertTrue("${{ github.ref }}" in group or (
+                    "${{ github.event_name }}" in group
+                    and "${{ github.event.pull_request.number || github.ref }}" in group), group)
+
+    def test_select_steps_plan_a_queue_commit_from_its_own_head_and_base(self):
+        """#494: every select-ci step and BASE_REF use ci.yml's exact pull_request, merge_group and push values."""
+        head = "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}"
+        base = "${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}"
+        ref = "${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref_name }}"
+        steps = [(path, job_id, step) for path, job_id, step in self.steps() if path in self.workflows]
+        selects = [(path, job_id, step) for path, job_id, step in steps
+                   if step.get("uses") == "./.github/actions/select-ci"]
+        base_refs = [(path, job_id, step["env"]["BASE_REF"]) for path, job_id, step in steps
+                     if "BASE_REF" in step.get("env", {})]
+        # ci.yml has two select steps (enforced and candidate); the three select jobs one each.
+        self.assertEqual((len(selects), len(base_refs)), (5, 3))
+        for path, job_id, step in selects:
+            with self.subTest(path=path, job=job_id, step=step.get("name")):
+                self.assertEqual((step["with"]["head-sha"], step["with"]["base-sha"]), (head, base))
+                # ci.yml passes no base-ref; where one is passed it is exactly this.
+                self.assertEqual(step["with"].get("base-ref", ref), ref)
+        for path, job_id, value in base_refs:
+            with self.subTest(path=path, job=job_id):
+                self.assertEqual(value, ref)
+
+    def test_waited_queue_check_names_are_unique_on_the_queue_commit(self):
+        """merge-hold keys queue-commit check runs by name, so each waited name has one producer."""
+        names = [job.get("name", job_id) for workflow in self.workflows.values()
+                 if isinstance(workflow.get("on"), dict) and "merge_group" in workflow["on"]
+                 for job_id, job in workflow["jobs"].items()]
+        for name in ("host-quality", "qemu-smoke", "merge-hold"):
+            with self.subTest(name=name):
+                self.assertEqual(names.count(name), 1)
+
     def test_paths_ignore_skips_only_metadata_or_tooling_metadata_with_a_main_backstop(self):
         """Metadata-only changes must not start native matrices; code still must.
 
@@ -1336,7 +1578,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         # Entries ahead count as finished once this job's own name completed on them;
         # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
         self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
-        self.assertLess(int(job["timeout-minutes"]), 60)
+        self.assertLess(int(job["timeout-minutes"]), 100)  # the planned queue check timeout
         checkout, load, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
         self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
@@ -1375,6 +1617,81 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         })
         read = set(re.findall(r'os\.environ(?:\.get)?[\[(]"([A-Z_]+)"', source))
         self.assertLessEqual(read - {"GITHUB_RUN_ID", "GITHUB_STEP_SUMMARY"}, set(decide["env"]))
+
+    def test_merge_hold_recheck_reruns_from_the_default_branch_after_every_gate_workflow(self):
+        """#494 B9: merge-hold decides at once on pull_request; an event-driven re-check re-runs it."""
+        with open(ROOT / ".github/ci-impact.toml", "rb") as handle:
+            catalogue = tomllib.load(handle)
+        self.assertEqual(catalogue["policy"]["budgets"],
+                         {"pull_request_wait_minutes": 0, "merge_group_wait_minutes": 80})
+        spec = importlib.util.spec_from_file_location("merge_hold_recheck", ROOT / "tools/merge_hold_recheck.py")
+        recheck = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(recheck)
+        gates = recheck.gate_workflows(catalogue)
+        self.assertIn(".github/workflows/ci.yml", gates)
+        self.assertNotIn(".github/workflows/merge-hold.yml", gates)
+        path = ".github/workflows/merge-hold-recheck.yml"
+        workflow = self.workflows[path]
+        # The trigger list is exactly the name of every gate workflow, so each gate run that
+        # the script waits for starts another re-check when it completes, plus every other
+        # catalogue workflow with a pull_request trigger: merge-hold counts their runs too, so
+        # one that ends after the last gate can leave it Pending (#494 B10).
+        others = {row["path"] for row in catalogue["workflow"] if "pull_request" in row["events"]}
+        triggers = (gates | others) - {".github/workflows/merge-hold.yml"}
+        self.assertIn(".github/workflows/windows-qemu-test-version.yml", triggers)
+        self.assertNotIn(path, triggers)
+        self.assertEqual(list(workflow["on"]), ["workflow_run"])
+        trigger = workflow["on"]["workflow_run"]
+        self.assertEqual(set(trigger), {"workflows", "types", "branches-ignore"})
+        self.assertEqual(trigger["types"], ["in_progress", "completed"])
+        self.assertEqual(trigger["branches-ignore"], ["main"])
+        self.assertEqual(sorted(trigger["workflows"]), sorted({self.workflows[item]["name"] for item in triggers}))
+        self.assertEqual(len(trigger["workflows"]), len(triggers))
+        self.assertNotIn(workflow["name"], trigger["workflows"])
+        self.assertNotIn(self.workflows[".github/workflows/merge-hold.yml"]["name"], trigger["workflows"])
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertEqual(workflow["concurrency"], {
+            "group": "merge-hold-recheck-${{ github.event.workflow_run.event }}-"
+                     "${{ github.event.workflow_run.head_repository.full_name }}-"
+                     "${{ github.event.workflow_run.head_sha }}-"
+                     "${{ github.event.workflow_run.run_attempt > 1 && "
+                     "format('{0}-{1}-{2}', github.event.workflow_run.id, "
+                     "github.event.workflow_run.run_attempt, github.event.action) || "
+                     "github.event.action }}",
+            "cancel-in-progress": "false"})
+        self.assertEqual(list(workflow["jobs"]), ["recheck"])
+        job = workflow["jobs"]["recheck"]
+        self.assertEqual(job["if"], "github.event.workflow_run.event == 'pull_request' && "
+                                    "github.event.workflow_run.head_repository.full_name == github.repository && "
+                                    "(github.event.action == 'completed' || "
+                                    "github.event.workflow_run.run_attempt > 1)")
+        self.assertEqual(job["timeout-minutes"], "5")
+        # Either lifecycle path, including conflict confirmation, stays below the timeout.
+        rerun_budget = (recheck.RERUN_POST_LIMIT * (recheck.RERUN_CONFIRM_POLLS - 1)
+                        * recheck.RERUN_CONFIRM_SECONDS)
+        completed_budget = recheck.WAIT_POLLS * recheck.POLL_SECONDS + rerun_budget
+        cancel_budget = ((recheck.CANCEL_CONFIRM_POLLS
+                          + recheck.FORCE_CANCEL_CONFIRM_POLLS - 2)
+                         * recheck.RERUN_CONFIRM_SECONDS + rerun_budget)
+        wait_budget = max(completed_budget, cancel_budget)
+        self.assertLessEqual(wait_budget, 5 * 60)
+        self.assertEqual(job["permissions"],
+                         {"actions": "write", "contents": "read", "pull-requests": "read"})
+        for key in ("needs", "continue-on-error", "strategy", "defaults", "container", "services", "env"):
+            self.assertNotIn(key, job)
+        checkout, run = job["steps"]
+        self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
+        # No ref: workflow_run checks out the default branch, never pull request code.
+        self.assertEqual(checkout["with"], {
+            "persist-credentials": "false",
+            "sparse-checkout": "tools/merge_hold_recheck.py\n.github/ci-impact.toml\n",
+            "sparse-checkout-cone-mode": "false"})
+        self.assertNotIn("uses", run)
+        self.assertEqual(run["run"], "python3 -B tools/merge_hold_recheck.py")
+        self.assertEqual(run["env"], {"GH_TOKEN": "${{ github.token }}", "REPO": "${{ github.repository }}"})
+        for step in (checkout, run):
+            for key in ("if", "continue-on-error", "working-directory"):
+                self.assertNotIn(key, step)
 
     def test_only_artifact_uploads_can_tolerate_errors(self):
         """Storage failure may be optional; failed builds, tests and collectors are not."""
@@ -1795,7 +2112,7 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
     def test_native_legs_are_independent_isolated_and_bounded(self):
         job = self.jobs["native-window-session"]
         self.assertNotIn("needs", job)
-        self.assertEqual(job["strategy"]["max-parallel"], "3")
+        self.assertEqual(job["strategy"]["max-parallel"], "5")
         self.assertEqual(job["strategy"]["fail-fast"], "false")
         self.assertEqual(job["timeout-minutes"], "${{ matrix.timeout }}")
         legs = {entry["leg"]: entry for entry in matrix_combinations(job)}
@@ -2087,6 +2404,34 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
 
 SHADOW_SELECTOR = ROOT / "tools/ci_impact.py"
 SELECT_ACTION = ".github/actions/select-ci/action.yml"
+CANDIDATE_INCREMENT = "# Candidate increment:"
+
+
+def candidate_drift(candidate, catalogue):
+    """Why the candidate breaks its declared increment state (#494 C3), or None.
+
+    Its leading comment block declares `# Candidate increment: <none or a name>` once.
+    With none, the candidate is that comment header plus a verbatim copy of the catalogue.
+    """
+    leading = []
+    for line in candidate.splitlines():
+        if not line.startswith("#"):
+            break
+        leading.append(line)
+    declared = [line[len(CANDIDATE_INCREMENT):].strip() for line in leading
+                if line.startswith(CANDIDATE_INCREMENT)]
+    if len(declared) != 1 or not declared[0]:
+        return f"the header must declare '{CANDIDATE_INCREMENT} <none or a name>' exactly once"
+    if declared[0] != "none":
+        # A declared increment names its issue, so a look-alike such as "None" cannot switch the check off.
+        return None if re.search(r"#[0-9]+", declared[0]) else "a declared increment names its issue (#<number>)"
+    header = candidate[:len(candidate) - len(catalogue)]
+    if not candidate.endswith(catalogue) or not header.endswith("\n") \
+            or any(not line.startswith("#") for line in header.splitlines()):
+        return "with no declared increment the candidate must be its header plus a verbatim catalogue copy"
+    return None
+
+
 SHADOW_CATALOGUE = """\
 schema_version = 1
 revision = 1
@@ -2163,6 +2508,10 @@ class CiImpactShadowTests(unittest.TestCase):
                                              "catalogue": ".github/ci-impact.candidate.toml",
                                              "out": "build/ci-impact/plan-candidate.json"})
         self.assertNotIn("id", candidate)
+        self.assertEqual(select["id"], "select")
+        for key in ("if", "continue-on-error"):  # a failed candidate step stays a failed job
+            self.assertNotIn(key, candidate)
+            self.assertNotIn(key, select)
         preserve, = [step for step in steps if step.get("uses") == "./.github/actions/preserve-evidence"]
         self.assertEqual(preserve["if"], "${{ always() }}")
         self.assertEqual(preserve["with"], {
@@ -2176,6 +2525,9 @@ class CiImpactShadowTests(unittest.TestCase):
         self.assertNotIn("${{", coverage["run"])
         self.assertNotIn("--strict", coverage["run"])
         self.assertNotIn("continue-on-error", coverage)
+        # It depends on the enforced plan only: a failed advisory candidate step does not skip it.
+        self.assertEqual(coverage["if"], "${{ !cancelled() && steps.select.outcome == 'success' }}")
+        self.assertLess(steps.index(candidate), steps.index(coverage))
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
 
     def test_only_the_shadow_job_reads_the_candidate_catalogue(self):
@@ -2198,6 +2550,34 @@ class CiImpactShadowTests(unittest.TestCase):
             ["python3", "-B", "-I", str(SHADOW_SELECTOR), "validate", str(ROOT / ".github/ci-impact.candidate.toml")],
             capture_output=True, text=True, check=False).returncode, 0)
         self.assertEqual(candidate["schema_version"], 1)
+
+    def test_the_candidate_copies_the_catalogue_until_an_increment_is_declared(self):
+        """#494 C3: the candidate never drifts silently; an intentional increment is declared in its header."""
+        catalogue = (ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8")
+        candidate = (ROOT / ".github/ci-impact.candidate.toml").read_text(encoding="utf-8")
+        self.assertIsNone(candidate_drift(candidate, catalogue))
+        # The rule itself, on a synthetic candidate around the real catalogue.
+        marker = CANDIDATE_INCREMENT + " none\n"
+        copy = "# CI impact CANDIDATE catalogue (fixture)\n" + marker + "#\n" + catalogue
+        self.assertIsNone(candidate_drift(copy, catalogue))
+        drifted = copy.replace("\nrevision = ", "\nrevision = 1", 1)
+        self.assertNotEqual(tomllib.loads(drifted), tomllib.loads(catalogue))
+        cases = {"candidate data drift": (drifted, catalogue),
+                 "catalogue change not copied": (copy, catalogue.replace("\nrevision = ", "\nrevision = 1", 1)),
+                 "data in the header": (copy.replace(marker, marker + "revision = 1\n", 1), catalogue),
+                 "comment drift in the copy": (copy + "# extra\n", catalogue),
+                 "no declaration": (copy.replace(marker, "", 1), catalogue),
+                 "empty declaration": (copy.replace(marker, CANDIDATE_INCREMENT + "\n", 1), catalogue),
+                 "two declarations": (copy.replace(marker, marker + marker, 1), catalogue),
+                 "look-alike of none": (copy.replace(marker, CANDIDATE_INCREMENT + " None\n", 1), catalogue),
+                 "increment without an issue": (drifted.replace(marker, CANDIDATE_INCREMENT + " C4\n", 1),
+                                                catalogue)}
+        for label, (text, base) in cases.items():
+            with self.subTest(case=label):
+                self.assertIsNotNone(candidate_drift(text, base))
+        # A declared increment may differ from the catalogue (validate still checks its data).
+        increment = drifted.replace(marker, CANDIDATE_INCREMENT + " C4 example (#494)\n", 1)
+        self.assertIsNone(candidate_drift(increment, catalogue))
 
     def test_host_quality_fails_on_an_invalid_or_drifted_catalogue(self):
         """Phase 3 (#494): merge-hold enforces plans, so catalogue drift must fail a required gate."""
@@ -2336,6 +2716,13 @@ class CiImpactShadowTests(unittest.TestCase):
                                             "tested": tested})
             self.assertEqual(outputs["plan-id"], plan["plan_id"])
             self.assertEqual(plan["ref"], "")  # no base-ref: the phase-2 command line
+            # The summary names the catalogue, so the enforced plan is never mistaken for the candidate.
+            summary = (repo.parent / "pull-request" / "summary.md").read_text(encoding="utf-8")
+            self.assertTrue(summary.startswith("\n# Plan from the enforced catalogue `.github/ci-impact.toml`\n"),
+                            summary)
+            self.assertIn("\nSelector source for the enforced catalogue `.github/ci-impact.toml`: `base`. "
+                          "merge-hold recomputes and enforces its own plan.\n", summary)
+            self.assertNotIn("candidate", summary)
 
             # Phase 4: the target branch reaches the base selector as --base-ref.
             result, outputs = self.run_action(repo, {
@@ -2396,11 +2783,19 @@ class CiImpactShadowTests(unittest.TestCase):
             plan = json.loads((repo / outputs["plan-path"]).read_text(encoding="ascii"))
             self.assertEqual((outputs["mode"], plan["fallback"]), ("select", None))
             self.assertEqual(plan["catalogue"]["path"], ".github/ci-impact.candidate.toml")
+            summary = (repo.parent / "candidate" / "summary.md").read_text(encoding="utf-8")
+            self.assertTrue(summary.startswith("\n# Plan from the advisory candidate catalogue "
+                                               "`.github/ci-impact.candidate.toml`\n"), summary)
+            self.assertIn("\nSelector source for the advisory candidate catalogue "
+                          "`.github/ci-impact.candidate.toml`: `base`. Advisory: nothing consumes this plan.\n",
+                          summary)
+            self.assertNotIn("enforce", summary)
             for index, (key, value) in enumerate((("OUT", "../plan.json"), ("OUT", "build/ci-impact/sub/plan.json"),
                                                   ("CATALOGUE", "--catalogue=x.toml"),
                                                   ("CATALOGUE", "tools/x.toml"))):
                 result, _ = self.run_action(repo, {**candidate_env, key: value}, f"reject-{index}")
                 self.assertEqual(result.returncode, 2, (key, value))
+                self.assertEqual((repo.parent / f"reject-{index}" / "summary.md").read_text(encoding="utf-8"), "")
 
             # A malformed base is rejected before it reaches git; the plan widens.
             result, outputs = self.run_action(repo, {

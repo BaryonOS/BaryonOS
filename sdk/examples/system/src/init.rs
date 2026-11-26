@@ -577,8 +577,15 @@ fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle, held: boo
             == Err(Error::Kernel(entropy)),
         78,
     );
+    // H05-T5c: a test-system-s3-blk-reinit kernel sets word 632 to the
+    // expected magnitude: 6 (authority, after the validated virtio-blk
+    // re-init) or 24 (lane 0 quarantined after a refused re-init).
+    let block = match support::word(632) {
+        0 => -14,
+        magnitude => -(magnitude as i64),
+    };
     check(
-        native::block_read(BlockDevice::from_handle(power), 0, 0, 1) == Err(Error::Kernel(-14)),
+        native::block_read(BlockDevice::from_handle(power), 0, 0, 1) == Err(Error::Kernel(block)),
         79,
     );
 }

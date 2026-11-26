@@ -957,6 +957,20 @@ class CatalogueValidationTests(TestCase):
         with REAL_CATALOGUE.open("rb") as handle:
             self.assertEqual(ci_impact.validate(tomllib.load(handle)), [])
 
+    def test_every_automatic_real_gate_job_runs_on_the_queue_commit(self):
+        """#494 D1 step 1: a merge_group trigger is useless if the gate job's own condition skips it."""
+        with REAL_CATALOGUE.open("rb") as handle:
+            catalogue = tomllib.load(handle)
+        checked = 0
+        for workflow in catalogue["workflow"]:
+            jobs = {job["id"]: job for job in workflow.get("job", [])}
+            for job in jobs.values():
+                if job["class"] in ci_impact.SELECTABLE and job["activation"] == "automatic":
+                    checked += 1
+                    with self.subTest(job=f"{workflow['path']}#{job['id']}"):
+                        self.assertIs(ci_impact.job_runs(jobs, job["id"], "merge_group"), True)
+        self.assertGreaterEqual(checked, 38)
+
     def test_real_catalogue_registers_the_token_guard_script_for_its_native_users(self):
         # #494 C1 (D-2): tools/tokenguard.py runs this core_only script in both workflows.
         with REAL_CATALOGUE.open("rb") as handle:
@@ -1019,6 +1033,39 @@ class CatalogueValidationTests(TestCase):
             catalogue["policy"]["core_only"].append(pattern)
             with self.subTest(core_only=pattern):
                 self.assertProblem(catalogue, "policy.core_only overlaps always_full, which @nonnative would hide")
+
+    def test_nonnative_gates_that_run_on_pull_request_must_run_on_push(self):
+        # #494 C2 review (B4): a pull_request-only gate would lose the push backstop silently.
+        backstop = {"branches": ["main"], "paths_ignore": "@metadata"}
+        rejected = "@nonnative needs every gate that runs on pull_request to run on push to main too"
+
+        def leaves(condition=None, prep=None, pull_filter="@nonnative"):
+            catalogue = valid_catalogue()
+            workflow = catalogue["workflow"][1]
+            workflow["trigger"] = {"pull_request": {"paths_ignore": pull_filter}, "push": backstop}
+            if condition:
+                workflow["job"][0]["condition"] = condition
+            if prep:
+                workflow["job"].insert(0, {"id": "prep", "class": "rwa", "activation": "automatic",
+                                           "condition": prep, "inputs": ["apps/prep/**"]})
+                workflow["job"][1]["needs"] = ["prep"]
+            return catalogue
+
+        def backstop_problems(catalogue):
+            return [problem for problem in ci_impact.validate(catalogue) if rejected in problem]
+
+        self.assertEqual(ci_impact.validate(leaves()), [])
+        pull_only = "${{ github.event_name == 'pull_request' }}"
+        self.assertEqual(backstop_problems(leaves(pull_only)), [f"leaves#quality: {rejected} (the backstop)"])
+        # Through a needs prerequisite: the gate and its prerequisite both lose the push run.
+        self.assertEqual(backstop_problems(leaves(prep="${{ github.event_name != 'push' }}")),
+                         [f"leaves#prep: {rejected} (the backstop)", f"leaves#quality: {rejected} (the backstop)"])
+        # Push-only gates and gates of a workflow without @nonnative are not affected.
+        self.assertEqual(ci_impact.validate(leaves("${{ github.event_name == 'push' }}")), [])
+        self.assertEqual(ci_impact.validate(leaves(pull_only, pull_filter="@metadata")), [])
+        for path in (REAL_CATALOGUE, REAL_CATALOGUE.with_name("ci-impact.candidate.toml")):
+            with self.subTest(catalogue=path.name), path.open("rb") as handle:
+                self.assertEqual(ci_impact.validate(tomllib.load(handle)), [])
 
     def test_real_central_changes_start_every_native_workflow_with_a_paths_ignore_filter(self):
         # #494 phase 5 C2 (N3): catalogue, selector, merge-hold, candidate and workflow changes
@@ -1351,6 +1398,11 @@ class CoverageTests(TestCase):
         self.assertIsNotNone(problem("dispatch", ["pull_request"], None))
         self.assertIsNotNone(problem("label:x", ["push"], None))
         self.assertIsNotNone(problem("push-branch:release", ["pull_request"], None))
+        # #494 B9: a workflow_run-only workflow (the merge-hold re-check) has its own activation.
+        self.assertTrue(ci_impact.ACTIVATION_RE.fullmatch("workflow-run"))
+        self.assertIsNone(problem("workflow-run", ["workflow_run"], None))
+        self.assertIsNotNone(problem("workflow-run", ["pull_request"], None))
+        self.assertIsNotNone(problem("automatic", ["workflow_run"], None))
         catalogue = tomllib.loads(COVERAGE_CATALOGUE.replace(
             'id = "host"\nname = "host"\nclass = "core"\nactivation = "automatic"',
             'id = "host"\nname = "host"\nclass = "operational"\nactivation = "schedule"'))
@@ -1578,7 +1630,7 @@ class EnforcementPrerequisiteTests(FixtureTestCase):
     def test_budgets_are_required_and_bounded(self):
         for change, fragment in (
             (lambda b: b.clear(), "policy.budgets.pull_request_wait_minutes"),
-            (lambda b: b.update(merge_group_wait_minutes=46), "merge_group_wait_minutes must be"),
+            (lambda b: b.update(merge_group_wait_minutes=81), "merge_group_wait_minutes must be"),
             (lambda b: b.update(pull_request_wait_minutes=True), "pull_request_wait_minutes must be"),
             (lambda b: b.update(pull_request_wait_minutes=-1), "pull_request_wait_minutes must be"),
             (lambda b: b.update(extra=1), "policy.budgets: unknown key: extra"),

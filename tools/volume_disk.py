@@ -552,6 +552,35 @@ def empty_image_bytes() -> bytes:
     )
 
 
+# `seeded-read`: domain 0 content for a read-only mount (A03-T2c). Object,
+# name and length; content is `fixture(obj, 1, length)`, domain 1 stays empty.
+SEED_READ = ((0, b"seed-a.txt", CHUNK + 100), (1, b"seed-b.txt", 300))
+
+
+def seed_read(image: bytearray) -> None:
+    """Generation-1 table in slot 1 (slot 0 zero, as `corrupt`) listing the
+    SEED_READ objects at revision 1, with their chunks written in order."""
+    entries = [empty_entry() for _ in range(OBJECTS)]
+    chunk = 0
+    for obj, name, length in SEED_READ:
+        data = fixture(obj, 1, length)
+        chunks, sums = [], []
+        for start in range(0, length, CHUNK):
+            part = data[start:start + CHUNK]
+            at = (FIRST + DATA_START + chunk * CHUNK_SECTORS) * SECTOR
+            image[at:at + len(part)] = part
+            chunks.append(chunk)
+            sums.append(fnv(part))
+            chunk += 1
+        current = dict(empty_version(), revision=1, length=length, name=name,
+                       content_sum=fnv(data), chunks=chunks, sums=sums)
+        entries[obj] = dict(empty_entry(), revision=1, request_id=1, created=1, modified=1,
+                            present=True, current=current)
+    for index, sector in enumerate(encode_table(1, 1, entries)):
+        start = (FIRST + TABLE_SECTORS + index) * SECTOR
+        image[start:start + SECTOR] = sector
+
+
 def create_image(path: Path, variant: str = "empty") -> dict:
     """Create a fresh 1 MiB image: canaries outside the scope, zero volume.
 
@@ -574,6 +603,8 @@ def create_image(path: Path, variant: str = "empty") -> dict:
     elif variant == "foreign":
         start = FIRST * SECTOR + 64 * 1024 + 0x40
         image[start:start + 8] = b"_BHRfS_M"
+    elif variant == "seeded-read":
+        seed_read(image)
     elif variant != "empty":
         raise ValueError("unknown volume variant")
     path.write_bytes(bytes(image))

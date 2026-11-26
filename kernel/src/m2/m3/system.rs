@@ -201,8 +201,21 @@ fn suspend_state() -> &'static mut Suspend {
 #[cfg(feature = "test-system-s3")]
 fn device_io() -> (u64, u64, u64) {
     let (keyring, accounted) = keyring::device_accesses();
-    (keyring, m5::device_accesses(), accounted)
+    // H05-T5c: plus the volume re-init subset (0 outside test-system-s3-blk-reinit).
+    (
+        keyring,
+        m5::device_accesses(),
+        accounted + m5::reinit_accounted(),
+    )
 }
+/// H05-T5c labelled injections: each must end in the lane-0 quarantine.
+#[cfg(feature = "test-system-s3-blk-reinit")]
+const BLK_QUARANTINE_EXPECTED: bool = cfg!(any(
+    feature = "test-system-s3-blk-reinit-busy",
+    feature = "test-system-s3-blk-reinit-identity",
+    feature = "test-system-s3-blk-reinit-capacity",
+    feature = "test-system-s3-blk-reinit-no-reset-ack"
+));
 #[cfg(feature = "test-system-s3")]
 pub(super) fn device_access_suppressed() {
     let p = suspend_state();
@@ -307,6 +320,11 @@ pub(super) fn after_wake(slot: usize, number: u64, code: i64) {
 pub(super) fn tick_after_wake(s: &State) {
     #[cfg(feature = "test-system-s3-reinit")]
     if !keyring::reinit_done() {
+        return;
+    }
+    // H05-T5c: also the volume re-init, validated or quarantined (owner Q4).
+    #[cfg(feature = "test-system-s3-blk-reinit")]
+    if !m5::blk_reinit_settled() {
         return;
     }
     let p = suspend_state();
@@ -554,6 +572,19 @@ pub(super) fn manifest(s: &mut State) {
         // then reaches the authority check (-6) instead of the -14 refusal.
         #[cfg(feature = "test-system-s3-reinit")]
         put(s, INIT, 624, 1);
+        // H05-T5c: the expected post-wake block refusal magnitude: authority
+        // (-6) after the validated re-init, -24 once lane 0 is quarantined.
+        #[cfg(feature = "test-system-s3-blk-reinit")]
+        put(
+            s,
+            INIT,
+            632,
+            if BLK_QUARANTINE_EXPECTED {
+                m5::QUARANTINED.unsigned_abs()
+            } else {
+                6
+            },
+        );
         put(s, APP, 104, power);
         // SHUTDOWN is accepted only on domain 1, init's volume ingress.
         put(s, VOLUME, 104, 2);
@@ -1024,6 +1055,11 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         let handle = suspend_state().key_entropy;
         keyring::reinit_poll(s, KEY, handle);
     }
+    // H05-T5c: lane 0 after the virtio-rng re-init, until settled.
+    #[cfg(feature = "test-system-s3-blk-reinit")]
+    if resumed() && keyring::reinit_done() && !m5::blk_reinit_settled() {
+        m5::blk_reinit_poll(s);
+    }
     keyring::broker_tick(s);
     m5::broker_tick(s);
     #[cfg(feature = "native-system-net")]
@@ -1244,6 +1280,16 @@ fn finish(s: &mut State) -> ! {
         } else {
             -14
         };
+        // H05-T5c: block reaches the authority check (-6) after the validated
+        // re-init, or the quarantine refusal (-24); -14 in every other profile.
+        #[cfg(feature = "test-system-s3-blk-reinit")]
+        let block = if BLK_QUARANTINE_EXPECTED {
+            m5::QUARANTINED
+        } else {
+            -6
+        };
+        #[cfg(not(feature = "test-system-s3-blk-reinit"))]
+        let block = -14;
         let ok = p.granted
             && p.resumed
             && p.ticked
@@ -1253,7 +1299,7 @@ fn finish(s: &mut State) -> ! {
             } else {
                 p.log[..p.count] == [-8, -6, -4, -1, 0, -14] && p.held_refusals == 0
             }
-            && p.lost[..p.lost_count] == [(0x60, entropy), (0x40, -14)]
+            && p.lost[..p.lost_count] == [(0x60, entropy), (0x40, block)]
             && p.other == 0;
         if !ok {
             for code in &p.log[..p.count] {
@@ -1278,6 +1324,23 @@ fn finish(s: &mut State) -> ! {
                 b"SYSTEM:SUSPEND_REINIT_ENTROPY_AUTH:",
                 p.lost[0].1.unsigned_abs(),
             );
+        }
+        #[cfg(feature = "test-system-s3-blk-reinit")]
+        {
+            let (quarantined, stale, [master, slave, line], carried) =
+                m5::blk_reinit_evidence().unwrap_or_else(|| fail(b"S3_BLK_REINIT"));
+            require(
+                quarantined == BLK_QUARANTINE_EXPECTED,
+                b"S3_BLK_REINIT_OUTCOME",
+            );
+            print_number(b"SYSTEM:SUSPEND_BLK_QUARANTINED:", u64::from(quarantined));
+            print_number(b"SYSTEM:SUSPEND_BLK_STALE_TICKET:", stale.unsigned_abs());
+            print_number(b"SYSTEM:SUSPEND_BLK_PIC_MASTER:", u64::from(master));
+            print_number(b"SYSTEM:SUSPEND_BLK_PIC_SLAVE:", u64::from(slave));
+            print_number(b"SYSTEM:SUSPEND_BLK_INTX_LINE:", u64::from(line));
+            // O13: the lane-0 latch table survived the re-init or quarantine.
+            require(carried, b"S3_BLK_LATCH_CARRIED");
+            print_number(b"SYSTEM:SUSPEND_BLK_LATCH_CARRIED:", u64::from(carried));
         }
         // The logged magnitudes, so a host oracle can tell -14 from 0.
         #[cfg(not(feature = "test-system-s3-reinit"))]
@@ -1479,6 +1542,20 @@ fn finish(s: &mut State) -> ! {
         print_number(b"SYSTEM:SUSPEND_DEVICE_IO_AT_WAKE_VOLUME:", volume_at_wake);
         print_number(b"SYSTEM:SUSPEND_DEVICE_IO_AFTER_WAKE:", io_after);
         print_number(b"SYSTEM:SUSPEND_DEVICE_SUPPRESSED:", p.suppressed);
+        // H05-T5c: the volume re-init used its accounted path, except the busy
+        // injection, which must refuse before any device access.
+        #[cfg(feature = "test-system-s3-blk-reinit")]
+        {
+            let volume_accounted = m5::reinit_accounted();
+            print_number(
+                b"SYSTEM:SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME:",
+                volume_accounted,
+            );
+            require(
+                (volume_accounted > 0) != cfg!(feature = "test-system-s3-blk-reinit-busy"),
+                b"S3_BLK_ACCOUNTED",
+            );
+        }
         // The re-init profile must have used its accounted path; no other may.
         let reinit = cfg!(feature = "test-system-s3-reinit");
         require(
@@ -1500,6 +1577,16 @@ fn finish(s: &mut State) -> ! {
         }
         serial::write(if cfg!(feature = "test-system-s3-held-completion") {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_HELD_COMPLETION:PASS\nM1:PASS\n"[..]
+        } else if cfg!(feature = "test-system-s3-blk-reinit-busy") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT_BUSY:PASS\nM1:PASS\n"
+        } else if cfg!(feature = "test-system-s3-blk-reinit-identity") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT_IDENTITY:PASS\nM1:PASS\n"
+        } else if cfg!(feature = "test-system-s3-blk-reinit-capacity") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT_CAPACITY:PASS\nM1:PASS\n"
+        } else if cfg!(feature = "test-system-s3-blk-reinit-no-reset-ack") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT_NO_ACK:PASS\nM1:PASS\n"
+        } else if cfg!(feature = "test-system-s3-blk-reinit") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT:PASS\nM1:PASS\n"
         } else if cfg!(feature = "test-system-s3-reinit") {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_REINIT:PASS\nM1:PASS\n"[..]
         } else if cfg!(feature = "test-system-s3") {

@@ -30,6 +30,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py', '.agents/**', '.claude/**', '.claude-plugin/**', '.codex/**', 'plugins/**', '.c8rc.json', '.coveragerc', '.coderabbit.yaml', 'LICENSE', 'MPL-2.0-FILES.txt']
+  # Gates also report on the merge-queue commit (main plus the queued pull
+  # requests), with no path filter, so a queue commit runs the full scope.
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main]
     paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']

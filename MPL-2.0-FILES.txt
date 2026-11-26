@@ -642,6 +642,7 @@ services/net-tls/src/profile.rs
 services/net-tls/src/random.rs
 services/net-tls/src/time.rs
 services/net-tls/tests/loopback.rs
+services/net-tls/tests/openssl_peer.mjs
 services/net-tls/tests/profile.rs
 services/net-tls/tests/random.rs
 services/net-tls/tests/time.rs

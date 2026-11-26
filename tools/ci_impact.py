@@ -65,7 +65,7 @@ NONNATIVE = "@nonnative"
 ZERO_SHA = "0" * 40
 SHA_RE = re.compile(r"[0-9a-f]{40}")
 CITATION_RE = re.compile(r"[^:\s]+:[1-9][0-9]*(-[1-9][0-9]*)?")
-ACTIVATION_RE = re.compile(r"automatic|dispatch|schedule|label:[^\s]+|push-branch:[^\s]+")
+ACTIVATION_RE = re.compile(r"automatic|dispatch|schedule|workflow-run|label:[^\s]+|push-branch:[^\s]+")
 DEP_TABLES = ("dependencies", "dev-dependencies", "build-dependencies")
 ROOT_ONLY_TARGETS = ("bin", "test", "example", "bench")
 
@@ -81,7 +81,7 @@ GIT_TIMEOUT = 120
 TOP_KEYS = {"schema_version", "revision", "policy", "input_sets", "crate_escape", "workflow"}
 POLICY_KEYS = {"mode", "always_full", "inert", "core_only", "events", "budgets"}
 BUDGET_KEYS = ("pull_request_wait_minutes", "merge_group_wait_minutes")
-MAX_WAIT_MINUTES = 45  # below the 50-minute merge-hold job timeout
+MAX_WAIT_MINUTES = 80  # below the 90-minute merge-hold job timeout
 WORKFLOW_KEYS = {"path", "owner", "granularity", "events", "obligation", "trigger", "job"}
 TRIGGER_KEYS = {"types", "branches", "paths", "paths_ignore"}
 JOB_KEYS = {"id", "name", "class", "activation", "condition", "needs", "timeout_minutes",
@@ -697,6 +697,8 @@ def validate(catalogue):
         # or merge-hold could not tell a legitimate skip from a missing gate.
         by_id = {job["id"]: job for job in jobs
                  if isinstance(job, dict) and isinstance(job.get("id"), str) and job["id"] in graph}
+        pull_spec = trigger.get("pull_request")
+        nonnative = isinstance(pull_spec, dict) and pull_spec.get("paths_ignore") == NONNATIVE
         for job_id, job in by_id.items():
             if cycles or job.get("class") not in SELECTABLE:
                 continue
@@ -704,6 +706,11 @@ def validate(catalogue):
                 if event in wf_events and job_runs(by_id, job_id, event) is None:
                     add(f"{stem(path)}#{job_id}: condition-undecidable on {event}: "
                         f"{job.get('condition')!r} or a needs prerequisite")
+            # A gate that @nonnative may skip on pull_request must run on push: that is its backstop.
+            if nonnative and job_runs(by_id, job_id, "pull_request") is not False \
+                    and job_runs(by_id, job_id, "push") is not True:
+                add(f"{stem(path)}#{job_id}: {NONNATIVE} needs every gate that runs on pull_request "
+                    "to run on push to main too (the backstop)")
         # A selected gate whose prerequisite is never selected would be skipped by GitHub.
         classes = {job["id"]: job.get("class") for job in jobs
                    if isinstance(job, dict) and isinstance(job.get("id"), str) and job["id"] in graph}
@@ -1403,6 +1410,8 @@ def activation_problem(activation, on_events, condition):
         return None if "pull_request" in on_events else "label activation without pull_request"
     if activation.startswith("push-branch:"):
         return None if "push" in on_events else "push-branch activation without push"
+    if activation == "workflow-run":
+        return None if "workflow_run" in on_events else "workflow-run activation without workflow_run"
     event = "schedule" if activation == "schedule" else "workflow_dispatch"
     if event not in on_events:
         return f"{activation} activation without {event}"
