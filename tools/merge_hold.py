@@ -594,6 +594,11 @@ def run_order(run):
     return (started, run["id"])
 
 
+def read_state(run):
+    """What two reads of one run must share for the jobs read between them to belong to it."""
+    return run.get("id"), run.get("run_attempt"), run.get("status")
+
+
 def job_matches(row, job):
     # Runtime matrix: the check name is a template (excluded rows carry no variant field).
     if row.get("variant") == "*" or EXPRESSION.search(row.get("check_name") or ""):
@@ -700,22 +705,23 @@ def gate_report(token, repo, pull, head_sha, plan, queue_branch=None):
             if job.get("run_id") == run["id"]]
         # A re-run between the two reads would pair this run state with another attempt's jobs.
         again = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
-        if (again.get("run_attempt"), again.get("status")) != (run.get("run_attempt"), run.get("status")):
-            # The run moved on (a skipped run that completed, a new attempt), and its completion may
-            # start no later re-check: read its jobs once more and judge that newer state only if
-            # the run held it across that read. A run that keeps changing stays pending.
+        if read_state(again) != read_state(run):
+            # The run moved on (a skipped run that completed, a new attempt). Rather than leave it
+            # pending for a later merge-hold run, read its jobs once more and judge that newer state
+            # only if the run held it across that read, under the requested id, and is no older than
+            # the listing. A run that keeps changing or lags behind the listing stays pending.
             jobs = [job for job in fetch_listing(
                 token, f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
                 if job.get("run_id") == run["id"]]
             settled = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
-            if (settled.get("run_attempt"), settled.get("status")) != (again.get("run_attempt"),
-                                                                        again.get("status")):
+            attempt, listed = settled.get("run_attempt"), run.get("run_attempt")
+            if (read_state(settled) != read_state(again) or settled.get("id") != run["id"]
+                    or not (isinstance(attempt, int) and isinstance(listed, int) and attempt >= listed)):
                 pending.append(f"{workflow}: {where} changed while it was read (now attempt "
                                f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
                 continue
-            # Judge the settled record as a whole, never fields of the stale listing; the id is
-            # the one these reads were made for.
-            run = dict(settled, id=run["id"])
+            # Judge the settled record as a whole, never fields of the stale listing.
+            run = settled
             where = f"run {run['id']} attempt {run.get('run_attempt')}"
             # The settled record replaces the listed one, so it must keep the listing's binding
             # (run_matches: pull request, or merge_group queue commit); otherwise it never counts.
@@ -790,7 +796,7 @@ def pull_request_gates(token, repo, number, head_sha):
             break
         if not runs_open(token, repo, pull, head_sha, plan):
             # A gate may have finished during the report: decide once more. Pending again
-            # with nothing left running (a run changed while read and finished) cannot
+            # with nothing left running (a run that kept changing while it was read) cannot
             # resolve by waiting, so decide now.
             if fresh:
                 break
