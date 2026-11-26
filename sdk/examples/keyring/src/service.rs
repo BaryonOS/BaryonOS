@@ -725,6 +725,12 @@ fn main() -> ! {
     }
     let (mut legacy_polls, mut legacy_poll_errors) = (0u64, 0u64);
     loop {
+        // B01-LOCK red control (A5): the instance exits on its own once the
+        // kernel fixture asks; the kernel must report UNEXPECTED_EXIT.
+        #[cfg(feature = "test-exit-before-lock")]
+        if support::word(960) == 1 {
+            native::exit(0);
+        }
         // Relay: no domain receive until init supplied the secret.
         if relay.is_some() && held.is_none() {
             if let Some(ingress) = &mut admin {

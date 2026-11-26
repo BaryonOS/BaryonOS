@@ -1477,6 +1477,14 @@ pub(super) fn broker_summary() -> (u64, u64, bool) {
     )
 }
 
+/// B01-LOCK precondition: no request pending or answered and no reset. The
+/// offline latch is not part of it; a LOCK under this condition never sets it.
+#[cfg(feature = "native-system-lock")]
+pub(super) fn broker_quiet() -> bool {
+    let r = runtime();
+    r.pending.is_none() && r.completed.is_none() && !r.resetting
+}
+
 /// test-system-s3 alone never re-initialises: the device stays lost.
 #[cfg(all(feature = "test-system-s3", not(feature = "test-system-s3-reinit")))]
 fn reinitialised() -> bool {

@@ -6,6 +6,12 @@ use capability_core::{
     BlockScope, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, PROCESS_EXITED, PROCESS_FAULTED, RECV, SEND,
 };
 
+#[cfg(feature = "native-system-lock")]
+#[path = "system_lock.rs"]
+mod keylock;
+#[cfg(feature = "native-system-lock")]
+pub(super) use keylock::lock;
+
 const INIT: usize = 0;
 const KEY: usize = 1;
 const VOLUME: usize = 2;
@@ -111,6 +117,11 @@ pub(super) fn power(s: &State, slot: usize, a: [u64; 6]) -> i64 {
     } else {
         0
     };
+    // B01-LOCK fixture: init's grant waits (-8, not logged) until it is done.
+    #[cfg(feature = "test-system-lock")]
+    if keylock::hold(code) {
+        return -8;
+    }
     let p = power_state();
     if code == 0 {
         p.granted = true;
@@ -394,6 +405,10 @@ fn put(s: &State, slot: usize, offset: u64, value: u64) {
     write_word(s.processes[slot].physical(DATA + offset), value);
 }
 fn word(s: &State, slot: usize, offset: u64) -> u64 {
+    #[cfg(feature = "native-system-lock")]
+    if slot == KEY && keylock::locked() {
+        return keylock::key_word(offset);
+    }
     read_word(s.processes[slot].physical(DATA + offset))
 }
 #[cfg(not(feature = "native-system-materiaal"))]
@@ -1062,6 +1077,8 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     }
     keyring::broker_tick(s);
     m5::broker_tick(s);
+    #[cfg(feature = "test-system-lock")]
+    keylock::fixture(s);
     #[cfg(feature = "native-system-net")]
     network::broker_tick(s);
     supervisor::reap_orphans(s);
@@ -1157,10 +1174,12 @@ fn finish(s: &mut State) -> ! {
             && admin_bad_caller == 0
             && word(s, KEY, 256) == 0
     } else {
-        admin_seen == if RECOVER { 4 } else { 5 }
+        // B01-LOCK fixture: one more refused request carries the canary.
+        let lock_fixture = u64::from(cfg!(feature = "test-system-lock"));
+        admin_seen == if RECOVER { 4 } else { 5 } + lock_fixture
             && admin_exports == u64::from(!RECOVER)
             && admin_restores == 1
-            && admin_denied == 3
+            && admin_denied == 3 + lock_fixture
             && admin_bad_caller == 0
             && word(s, KEY, 256) == 1
     };
@@ -1486,7 +1505,14 @@ fn finish(s: &mut State) -> ! {
     #[cfg(feature = "test-system-keystate-relay")]
     relay_check_and_print(s);
     serial::write(b"SYSTEM:BROKERS:PASS\n");
+    #[cfg(feature = "native-system-lock")]
+    keylock::check_and_print();
     for slot in [KEY, VOLUME] {
+        // LOCK already ran the teardown of the Key Service instance.
+        #[cfg(feature = "native-system-lock")]
+        if slot == KEY && keylock::locked() {
+            continue;
+        }
         s.processes[slot].status = Status::Dying;
         s.cleanup(slot);
     }
@@ -1591,6 +1617,8 @@ fn finish(s: &mut State) -> ! {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_REINIT:PASS\nM1:PASS\n"[..]
         } else if cfg!(feature = "test-system-s3") {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3:PASS\nM1:PASS\n"[..]
+        } else if cfg!(feature = "test-system-lock") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_LOCK:PASS\nM1:PASS\n"
         } else {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n"
         });

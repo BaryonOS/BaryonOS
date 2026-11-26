@@ -26,7 +26,9 @@ def main() -> int:
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-keyring"))
     command = ["cargo", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(ROOT / "sdk/Cargo.toml"),
-               "-p", "nieuw-os-keyring-example", "--features", "native",
+               "-p", "nieuw-os-keyring-example", "--features",
+               # B01-LOCK red control A5 only; never part of a normal image.
+               "native,test-exit-before-lock" if "--exit-before-lock" in sys.argv[1:] else "native",
                "--bins", "--target", "x86_64-unknown-none"]
     print(json.dumps({"command": command, "target_dir": environment["CARGO_TARGET_DIR"]}), flush=True)
     return subprocess.run(command, cwd=ROOT, env=environment, check=False).returncode
