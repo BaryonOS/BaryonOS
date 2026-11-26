@@ -482,6 +482,23 @@ integration passes native security acceptance. All open implementation and
 acceptance conditions (C23–C30, native S5, U13c) remain; no production
 credentials, no physical TPM change and no progress score change.
 
+Verbatim decision (project owner, Dutch, 26 November 2026 19:55 UTC, pasted
+into the workstream B chat, session `ea7388`):
+
+> EIGENAARBESLUIT — #524
+>
+> Ik keur ADR-B03-REL05-TPM-20261125 inhoudelijk goed voor het strikt afgebakende TEST/QEMU/swtpm-profiel, inclusief C665 en M1-HAUTH.
+>
+> Verduidelijk vóór de eerstvolgende push dat C665 voorrang heeft op het oorspronkelijke besluit 6: een onbekende, vervangen, geresette of onverifieerbare TPM mag niet via DEGRADED alsnog de identiteitsbinding omzeilen. Behoud gecontroleerde halt en geauthenticeerd herstel. Stem de toepasselijke testverwachtingen daarop af, zonder de nog openstaande §7.9-beslissing stilzwijgend in te vullen.
+>
+> De bekende boot-path-revival vóór B04 blijft een open beveiligingsprobleem en wordt niet geaccepteerd als definitief restrisico. N04 blijft onder 5A totdat volledige 5B-acceptatie is aangetoond.
+>
+> Behoud alle openstaande implementatie- en acceptatievoorwaarden. Geen productiecredentials, fysieke TPM-wijzigingen of verhoging van de voortgangsscore.
+>
+> Verwerk deze verduidelijking in de reeds voorbereide lokale wijzigingen. Stem één gebundelde push af met de PR-bewaker en integreer #524 via de merge queue zodra alle geldende voorwaarden zijn vervuld.
+>
+> Geen nieuwe algemene onderzoeks- of reviewronde. Ga daarna zelfstandig verder met de resterende implementatie.
+
 Application by workstream B (the mapping of TPM classes below is B's reading
 of the owner's precedence decision, recorded for the owner to confirm or
 reverse; it is not itself an owner decision), TEST profile:
@@ -520,6 +537,27 @@ authorised recovery is mandatory; preserve user data; give a clear recovery
 message. The permission holds only within the existing TEST/QEMU/swtpm
 mandate. REL-05 stays open until every acceptance condition is met; the
 progress score stays 43/100.
+
+Verbatim decision (project owner, Dutch, 26 November 2026 20:07 UTC, pasted
+into the workstream B chat, session `ea7388`):
+
+> EIGENAARBESLUIT — REL-05 §7.9
+> Kies fail-closed: gecontroleerde halt met geauthenticeerd herstel wanneer een TPM is gewist maar zijn oorspronkelijke EK behoudt.
+> Een overeenkomende EK bewijst identiteit, niet continuïteit van de beveiligde toestand.
+> Bindende voorwaarden:
+>
+> * Geen reguliere of DEGRADED-boot wanneer een TPM-clear of verlies van noodzakelijke anchorstatus is vastgesteld.
+> * Geen automatische herprovisioning op basis van uitsluitend een overeenkomende EK.
+> * Herstel uitsluitend via een geauthenticeerde, aantoonbaar actuele recoveryprocedure.
+> * Behoud de hoogste betrouwbaar vastgestelde anti-rollback-floor.
+> * Voorkom heractivering van ingetrokken sleutels, grants en oudere anchor-instances.
+> * Wanneer alle betrouwbare freshness-records verloren zijn, is onafhankelijk geautoriseerd herstel verplicht.
+> * Behoud gebruikersgegevens.
+> * Geef een duidelijke herstelmelding.
+>
+> Deze toestemming geldt uitsluitend binnen het bestaande TEST/QEMU/swtpm-mandaat.
+> Leg dit besluit vast in §7.9 en de toepasselijke ADR. Implementeer en verifieer gericht, zonder nieuwe algemene onderzoeksronde.
+> Laat REL-05 open totdat alle acceptatievoorwaarden zijn vervuld. De voortgangsscore blijft 43/100.
 
 Consequence for this ADR: decision 6 is replaced in full. `DEGRADED` no
 longer exists. Every `ANCHOR_LOST` and `ANCHOR_BEHIND` class with a verified
