@@ -213,7 +213,13 @@ and the ADR text exists.
   allocation or revocation between that export and LOCK is lost. A lost
   revocation would make a revoked key usable again after UNLOCK, which
   falsifies ADR-043. Init must therefore export and commit immediately before
-  LOCK, and the window between the two is open question O5.
+  LOCK, and the window between the two is open question O5. The kernel cannot
+  observe that window, so the guarantee belongs to init's sequence (H, C4
+  step 2): until O5 is decided and its mechanism (a freeze from before the
+  export through LOCK, or write-ahead) exists, no non-TEST profile issues
+  LOCK, and a TEST profile that does claims no durability for a key-state
+  change after the export. B's LOCK path (C4 step 1) adds no ring-3 caller of
+  LOCK.
 - **LOCKED-AWAKE.** If SUSPEND refuses after a successful LOCK (-8 or -16),
   or the system does not sleep, the system runs without a Key Service:
   - every KEY1 and RANDOM request fails;
@@ -239,19 +245,21 @@ and the ADR text exists.
   The T5b evidence stays bound to its own commit, and the LOCK profile gets
   new evidence.
 - **C2.** `finish` tears down slot 1 and requires `entropy_objects == 0`
-  (†`system.rs:1489-1502`). It accepts a slot 1 that is already reclaimed
-  only when the state is LOCKED. Otherwise it fails with a new require
-  marker. The stats and frame-cleanup balance stay unchanged, so LOCK must
-  return every frame, including the page tables.
+  (†`system.rs:1489-1502`). It skips the slot 1 teardown only when the state
+  is LOCKED, because LOCK already ran it; otherwise its teardown is
+  unchanged. The stats and frame-cleanup balance stay unchanged, so LOCK must
+  return every frame, including the page tables. Because a LOCK case must
+  still reach normal finalisation, C2 lands in B's step (C4 step 1), not
+  in H's.
 - **C3.** The LOCK teardown is kernel-initiated and never passes through
   `observe_exit` (`system.rs:915-929`). The `UNEXPECTED_EXIT` predicate
   (†`system.rs:926-929`) stays byte-identical, and an exit or fault of slot 1
   outside LOCK still fails.
 - **C4.** The work runs in sequence, and each step needs its own lane:
   1. B lands the LOCK path (teardown, wipes and scrubs, state, counters,
-     cases A2–A6 and A9–A10) without changing SUSPEND.
-  2. H then lands KL2 in SUSPEND, init's LOCK-then-SUSPEND sequence, C1 and
-     C2, and cases A1, A7 and A8 in one change. KL2 makes every existing S3
+     C2, cases A2–A6 and A9–A10) without changing SUSPEND.
+  2. H then lands KL2 in SUSPEND, init's LOCK-then-SUSPEND sequence, C1,
+     and cases A1, A7 and A8 in one change. KL2 makes every existing S3
      profile refuse unless init locks first, so these parts must land
      together.
 
@@ -266,8 +274,13 @@ requirements and leaves the mechanism to a later decision:
 
 - U1: UNLOCK creates a fresh instance; it never revives the old one (KL6).
 - U2: the instance reaches READY only after 1024 bytes of fresh startup
-  entropy pass the health tests, which needs the post-wake rng re-init.
-  Otherwise it stays BLOCKED and fails closed.
+  entropy pass the same health tests as at boot. After a wake, this needs
+  the post-wake rng re-init first. In LOCKED-AWAKE no wake occurred, so that
+  re-init (gated on `resumed()`, †`system.rs:1053-1057`) never runs; the
+  device needs no re-init, but the fresh instance needs a new entropy grant
+  from the kernel broker, which is part of the open UNLOCK mechanism. On
+  either path, if no fresh entropy passes the health tests, the instance
+  stays BLOCKED and fails closed; S5 stays reachable.
 - U3: it restores the durable state only with a secret obtained through
   session authentication (KL7). A wrong or absent secret leaves it not READY:
   no domain traffic and no re-grant.
