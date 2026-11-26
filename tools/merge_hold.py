@@ -617,7 +617,7 @@ def gate_report(token, repo, pull, head_sha, plan):
             settled = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
             attempt, listed = settled.get("run_attempt"), run.get("run_attempt")
             if (read_state(settled) != read_state(again) or settled.get("id") != run["id"]
-                    or not (isinstance(attempt, int) and isinstance(listed, int) and attempt >= listed)):
+                    or not (type(attempt) is int and type(listed) is int and attempt >= listed)):
                 pending.append(f"{workflow}: {where} changed while it was read (now attempt "
                                f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
                 continue
@@ -628,11 +628,26 @@ def gate_report(token, repo, pull, head_sha, plan):
         # Bind the jobs to the judged attempt: `filter=latest` can lag behind the run record or
         # run ahead of it. A partial "re-run failed jobs" still passes, because GitHub copies the
         # carried-over jobs into the new attempt with its run_attempt (live check of 26 November
-        # 2026 on runs 45644765624, 45649628788 and 45629883279).
-        if any(not isinstance(job.get("run_attempt"), int) or job["run_attempt"] != run.get("run_attempt")
-               for job in jobs):
+        # 2026 on runs 45644765624, 45649628788 and 45629883279). A bool or float is no attempt.
+        if type(run.get("run_attempt")) is not int or any(
+                type(job.get("run_attempt")) is not int or job["run_attempt"] != run["run_attempt"]
+                for job in jobs):
             pending.append(f"{workflow}: {where} listed jobs of another attempt; re-run merge-hold")
             continue
+        # A blocking run conclusion needs a listed job that explains it, in any class (an advisory
+        # failure does): `filter=latest` can omit the failed job, so the listed ones say too little.
+        conclusion = run.get("conclusion")
+        if not running and conclusion in BLOCKING_CONCLUSIONS and not any(
+                job.get("conclusion") in BLOCKING_CONCLUSIONS for job in jobs):
+            if jobs:
+                pending.append(f"{workflow}: {where} concluded {conclusion} but lists no such job; "
+                               "re-run merge-hold")
+            else:
+                # Failed, not Pending: a run without any job (startup_failure, or cancelled before a
+                # job started) ran no gate, re-running merge-hold cannot change that, and main already
+                # fails such a run that has an expected gate ("missing from").
+                failed.append(f"{workflow}: {where} concluded {conclusion} without any job, so its gates "
+                              "never ran; re-run that workflow run or push a new head")
         if running and workflow in gated:
             pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
                            "including jobs GitHub has not created yet")
