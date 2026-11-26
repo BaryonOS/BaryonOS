@@ -143,7 +143,10 @@ jobs:
 
   native-window-session:
     name: native-window-session (${{ matrix.leg }})
-    runs-on: ubuntu-24.04
+    # Larger-runner measurement (owner, 26 November 2026): only a manual run on main, only the
+    # longest leg, only while BARYON_HEAVY_ENABLED is 'true'; every other run stays on ubuntu-24.04.
+    # The Baryon-Heavy runner group admits only this file at refs/heads/main, so no PR reaches it.
+    runs-on: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && matrix.leg == 'native-scale2' && vars.BARYON_HEAVY_ENABLED == 'true' && 'baryon-heavy-16' || 'ubuntu-24.04' }}
     # Independent legs: no needs on host-checks, no artifact hand-off. Each leg
     # builds its own probe in its own build/target directories and keeps its
     # own proof. Timeout = harness deadline(s) + 15 min for setup, locked fetch,
