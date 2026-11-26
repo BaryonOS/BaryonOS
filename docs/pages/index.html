@@ -9,7 +9,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg; font-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Baryon OS — independent operating system research</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/site.css?v=orbit-intro">
+  <link rel="stylesheet" href="/assets/site.css?v=orbit-motion">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -29,8 +29,23 @@
     </div>
   </header>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
   <div class="sky">
+    <svg class="orbit-art" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="wordmark-alpha" color-interpolation-filters="sRGB">
+          <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .333 .333 .333 0 0"></feColorMatrix>
+          <feComponentTransfer result="wordmark-mask">
+            <feFuncA type="linear" slope="8" intercept="-.7"></feFuncA>
+          </feComponentTransfer>
+          <feComposite in="SourceGraphic" in2="wordmark-mask" operator="in"></feComposite>
+        </filter>
+      </defs>
+      <use href="/assets/orbit-field.svg?v=orbit-motion#orbit-field"></use>
+      <g class="orbit-nodes">
+        <use href="/assets/orbit-field.svg?v=orbit-motion#orbit-nodes"></use>
+      </g>
+    </svg>
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow hero-eyebrow"><span class="signal" aria-hidden="true"></span> Independent OS research <span class="eyebrow-separator" aria-hidden="true">/</span> x86_64 · UEFI</p>
