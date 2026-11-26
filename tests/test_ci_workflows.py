@@ -1578,7 +1578,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         # Entries ahead count as finished once this job's own name completed on them;
         # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
         self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
-        self.assertLess(int(job["timeout-minutes"]), 60)
+        self.assertLess(int(job["timeout-minutes"]), 100)  # the planned queue check timeout
         checkout, load, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
         self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
@@ -1623,7 +1623,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         with open(ROOT / ".github/ci-impact.toml", "rb") as handle:
             catalogue = tomllib.load(handle)
         self.assertEqual(catalogue["policy"]["budgets"],
-                         {"pull_request_wait_minutes": 0, "merge_group_wait_minutes": 45})
+                         {"pull_request_wait_minutes": 0, "merge_group_wait_minutes": 80})
         spec = importlib.util.spec_from_file_location("merge_hold_recheck", ROOT / "tools/merge_hold_recheck.py")
         recheck = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(recheck)
