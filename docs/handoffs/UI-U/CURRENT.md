@@ -25,22 +25,27 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
 
 ## Current cycle
 
-- **cycle_id:** `UI-U-C8-20261125`
-- **owner session:** local session "BaryonOS - Specialist U (UI/UX)"; a
-  second UI-U session started by the PR watcher withdrew as writer.
-- **task:** U03 read-only refusal — Ctrl+S on a read-only document shows the
-  SDK's `ReadOnly` refusal again. Since #210 the `can_save` gate in
-  `ui/native/src/controller.rs` made it a silent no-op, so the native
-  materiaal `recover` probe timed out in its `readonly` phase (C7).
-- **branch:** `claude/ui-u-readonly-ctrl-s-20261125` (based on `main`),
-  worktree `~/projects/BaryonOS-worktrees/ui-u-cycle8`.
+- **cycle_id:** `UI-U-C9-20261126`
+- **owner session:** local session "BaryonOS - Specialist U (UI/UX)".
+- **task:** #545, two observation gaps in the native window-session harness.
+  (1) The kernel reporter now samples on compositor words 464/480
+  (Material/Calculator completed frames), so a frame that completes on a
+  RETAIN without a commit is still printed. (2) After F6 the harness waits for
+  `SHELL_READY == 1` as well as the focus flip, so the following captures
+  cannot show the previous taskbar state. Guest behaviour is unchanged.
+- **branch:** `claude/ui-u-545-reporter-20261126` (based on `main`
+  `8033e2dd`, after R's #578), worktree `~/projects/BaryonOS-worktrees/ui-u-545`.
 - **PR:** recorded in the PR itself and in its HANDOFF comment after merge.
-- **Evidence scope:** host tests (`chain.rs`
-  `readonly_reopened_ctrl_s_refuses_visibly`, with a mutation control) and
-  local native `normal` and `recover` probe runs; results are in the PR.
-  Hosted gates never run the `recover` case.
+- **Evidence scope:** host tests (`tools/test_window_session.py`) and a local
+  native clipboard/workspace scale 1 run; results are in the PR. Hosted
+  `native-window-session` legs remain the acceptance gates.
+- **Next:** #537, then #541 (InputLost banner). Review of R's R02 candidate (1)
+  (`ipc_wait` reply deadline in the SUR1 client); R is the writer.
 
 ## Previous cycles
+
+- `UI-U-C8-20261125`: U03 read-only Ctrl+S refusal, merged as #523
+  (`55eeccc7`) through the merge queue; HANDOFF comment on #523.
 
 - `UI-U-C7-20261125`: #449 native materiaal probe run (no code change);
   `normal` and `keyboard` passed with raw exit 33, `recover` timed out (fixed
@@ -86,7 +91,9 @@ closure = Closed. No schema or permission changes and no artificial issues.
 - Deny copy (`Service(Access)`) stays generic until U03-T3 part 2 proves a real
   deny path; its test stays ignored.
 - #449 is closed (C7 native run). The `recover` readonly-phase timeout found
-  there is fixed by C8.
+  there is fixed by C8 (#523).
+- #559 (Orbitaal `progress.svg`, closes #568) touches protected lead files and
+  waits for the project owner's content review.
 - #448 (Editor 700–783 px compact overlap/collapse): changes frozen frames and
   needs the frame-change list and design approval.
 - U04-K1: no keyboard-only defect remains pinned by an ignored test; held-key
@@ -118,6 +125,11 @@ closure = Closed. No schema or permission changes and no artificial issues.
 7. A `can_save` gate on a shortcut must still surface a read-only refusal;
    the probe's kernel watchdog (20 000 ticks) is the only symptom otherwise.
 8. Host Rust gates use toolchain `1.100.0` (CI), not the `1.90.0` in AGENTS.md.
+9. With the merge queue active, `gh pr merge N --squash --match-head-commit
+   <sha>` enqueues; on a BLOCKED PR it silently enables auto-merge instead, so
+   check `mergeStateStatus` CLEAN and `autoMergeRequest` null first.
+10. `tools/test_window_session.py` pins the exact compositor activity offsets;
+    change it together with `snapshots` in `kernel/src/m2/m3/window_session.rs`.
 
 ## Next executable task
 
