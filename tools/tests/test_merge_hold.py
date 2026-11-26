@@ -1518,7 +1518,7 @@ class GateTests(TestCase):
         """D2 round 5: a failed run whose listed jobs show no blocking conclusion is not judged."""
         self.assertFalse(passed)
         self.assertIn(f"Pending: {LEAVES}: run 2 attempt 2 concluded failure but lists no such job; "
-                      "re-run merge-hold", out)
+                      "re-run merge-hold; if it persists, re-run that workflow run", out)
         self.assertIn("1 pending; 0 failed.", out)
 
     def assert_run_without_any_job(self, passed, out, workflow, run_id, attempt, conclusion="failure"):

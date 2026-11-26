@@ -641,7 +641,7 @@ def gate_report(token, repo, pull, head_sha, plan):
                 job.get("conclusion") in BLOCKING_CONCLUSIONS for job in jobs):
             if jobs:
                 pending.append(f"{workflow}: {where} concluded {conclusion} but lists no such job; "
-                               "re-run merge-hold")
+                               "re-run merge-hold; if it persists, re-run that workflow run")
             else:
                 # Failed, not Pending: a run without any job (startup_failure, or cancelled before a
                 # job started) ran no gate, re-running merge-hold cannot change that, and the loop below

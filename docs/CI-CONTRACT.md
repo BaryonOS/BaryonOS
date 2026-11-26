@@ -613,7 +613,8 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
 - a completed run whose own conclusion is blocking (`failure`, `cancelled`,
   `timed_out`, `startup_failure`, `action_required` or `stale`) while none of
   its listed jobs, in any class, has such a conclusion: **pending** ("concluded
-  … but lists no such job; re-run merge-hold"), because `filter=latest` can
+  … but lists no such job; re-run merge-hold; if it persists, re-run that
+  workflow run"), because `filter=latest` can
   omit the failed job. An advisory job's failure explains the run, so that run
   still passes. A run that lists no job at all (a `startup_failure`, or a run
   cancelled before any job started) ran no gate: **failed**, not pending,
