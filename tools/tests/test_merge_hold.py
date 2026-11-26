@@ -1377,13 +1377,16 @@ class MergeGroupTests(TestCase):
 
     def test_a_settled_queue_run_that_no_longer_matches_the_binding_is_not_counted(self):
         # The re-read moved on to attempt 2 and held it; only the binding of that record differs.
+        # Its jobs carry attempt 2, so the job attempt binding does not hide a binding line that
+        # lets the jobs be judged anyway.
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", attempt=2)]}
         for why, over in (("pull_request event", {"event": "pull_request", "pull_requests": OWN_PULL}),
                           ("another queue commit", {"head_sha": E}),
                           ("other queue branch", {"head_branch": f"gh-readonly-queue/main/pr-9-{BASE}"}),
                           ("other repository", {"repository": {"full_name": "x/r"}}),
                           ("other head repository", {"head_repository": {"full_name": "fork/r"}})):
             with self.subTest(why=why):
-                code, out, _ = self.run_group(self.QUEUE, rereads={2: {"run_attempt": 2, **over}})
+                code, out, _ = self.run_group(self.QUEUE, rereads={2: {"run_attempt": 2, **over}}, group_jobs=jobs)
                 self.assertEqual(code, 1, out)
                 self.assertIn(f"::error::Pending: {LEAVES}: run 2 attempt 2 no longer matches {GROUP} when "
                               "read again; re-run merge-hold", out)
@@ -2210,8 +2213,11 @@ class GateTests(TestCase):
         self.assertNotIn("run 5", out)
 
     def test_a_settled_record_that_no_longer_lists_this_pull_request_is_not_counted(self):
-        """The settled record replaces the listed one, so it must keep the pull_request binding too."""
-        passed, out, _ = self.decide(settle_during_read={2: {"run_attempt": 2, "pull_requests": []}})
+        """The settled record replaces the listed one, so it must keep the pull_request binding too.
+        Its jobs carry attempt 2, so the job attempt binding does not hide a binding line that
+        lets the jobs be judged anyway."""
+        passed, out, _ = self.decide(settle_during_read={2: {"run_attempt": 2, "pull_requests": []}},
+                                     later_jobs={2: [job(24, 2, "quality (viewer)", attempt=2)]})
         self.assertFalse(passed)
         self.assertIn(f"Pending: {LEAVES}: run 2 attempt 2 no longer matches {HEAD} when read again; "
                       "re-run merge-hold", out)
