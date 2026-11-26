@@ -611,8 +611,9 @@ sampled runs,
 [45649628788](https://github.com/BaryonOS/BaryonOS/actions/runs/45649628788)
 and
 [45629883279](https://github.com/BaryonOS/BaryonOS/actions/runs/45629883279),
-read on 26 November 2026 with the REST API version that merge-hold sends
-(`X-GitHub-Api-Version: 2022-11-28`), so such a re-run passes. GitHub does not
+read on 26 November 2026, so such a re-run passes. merge-hold requests REST API
+version `2022-11-28` (`X-GitHub-Api-Version`); the version used for those
+sample reads was not recorded. GitHub does not
 document that copied attempt number, and it is not guaranteed for every
 partial re-run: a carried-over job listed under its old attempt leaves the run
 pending ("listed jobs of another attempt"). A job's class comes only from rows of its own workflow. Per expected execution exactly one
