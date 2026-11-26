@@ -191,6 +191,8 @@ class MergeGroupTests(TestCase):
             if "/check-runs?" in url:
                 queue = polls.get(url.split("/commits/")[1].split("/")[0], polls[None])
                 answer_ = queue.pop(0) if len(queue) > 1 else queue[0]
+                if callable(answer_):  # an answer that depends on the URL, e.g. its page
+                    answer_ = answer_(url)
                 if isinstance(answer_, Exception):
                     raise answer_
                 return answer_
@@ -238,7 +240,7 @@ class MergeGroupTests(TestCase):
         one = [entry(1, 8, GROUP, OTHER)]
         code, out, _ = self.run_group(one, trees={GROUP: "1" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 1)
-        self.assertIn("do not run on merge_group", out)
+        self.assertIn("does not yet judge the gates on merge_group", out)
         for runs_, why in (([], "no run"), ([gate_run(OTHER, "failure")], "failed"),
                            ([gate_run(OTHER, run_id=1), gate_run(OTHER, "failure", run_id=2)], "newer failed"),
                            ([gate_run(OTHER, None, status="in_progress")], "running"),
@@ -318,7 +320,7 @@ class MergeGroupTests(TestCase):
             trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 0, out)
         # Phase 3: PR 8's gates ran on its own head. If its entry lands another tree
-        # (PR 7's change on top), the selected workflows never tested that tree.
+        # (PR 7's change on top), no gate verdict that merge-hold judges covers that tree.
         code, out, _ = self.run_group(
             queue,
             labels={7: [merge_hold.LABEL]},
@@ -357,6 +359,39 @@ class MergeGroupTests(TestCase):
         poll = calls[polls[0]]
         self.assertIn(f"/commits/{GROUP}/check-runs?", poll)
         self.assertIn(f"app_id={merge_hold.ACTIONS_APP_ID}", poll)
+
+    def test_required_checks_beyond_the_first_page_are_read_in_the_same_poll(self):
+        # With every gate workflow on merge_group a queue commit can carry more than
+        # 100 check runs; a required check on page 2 must not make the group wait.
+        filler = {"check_runs": [{"name": f"filler {index}", "status": "in_progress",
+                                  "conclusion": None} for index in range(100)]}
+        # host-quality completes on page 1 and qemu-smoke on page 2: both pages must count.
+        first = {"check_runs": filler["check_runs"][:99] + DONE["check_runs"][:1]}
+        second = {"check_runs": DONE["check_runs"][1:]}
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=[lambda url: second if url.endswith("&page=2") else first])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 0)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual([url.rsplit("&", 1)[1] for url in polls], ["page=1", "page=2"])
+        # #494: check runs have their own cap (justified at CHECK_RUN_MAX_PAGES); the other
+        # listings keep MAX_PAGES.
+        cap = merge_hold.CHECK_RUN_MAX_PAGES
+        self.assertEqual((cap, merge_hold.MAX_PAGES), (5, 50))
+        # cap - 1 full pages and a short last page are still read in one poll.
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=[lambda url: DONE if url.endswith(f"&page={cap}") else filler])
+        self.assertEqual(code, 0, out)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual([url.rsplit("&", 1)[1] for url in polls], [f"page={page}" for page in range(1, cap + 1)])
+        # Past cap full pages the read fails and the group fails closed at the deadline.
+        code, out, calls = self.run_group(self.QUEUE, checks=[lambda url: filler])
+        self.assertEqual(code, 1, out)
+        self.assertIn("Too many pages", out)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual(len([url for url in polls if url.endswith("&page=1")]), calls.count("sleep") + 1)
+        # Each poll requests exactly cap pages, never one past it.
+        self.assertEqual(len(polls), cap * (calls.count("sleep") + 1))
 
     def assertLabelsReadAfterWait(self, calls):
         last_poll = max(i for i, url in enumerate(calls) if "/check-runs?" in url)
@@ -780,6 +815,36 @@ class GateTests(TestCase):
         self.assertIn("Not a pass: s: not applicable (path filter)", out)
         self.assertIn("Plan sha256:" + "0" * 64, out)
 
+    def test_filter_hiding_a_registered_input_fails(self):
+        # #494 C1: a path filter may hide only metadata; a hidden registered input fails at once.
+        plan = plan_fixture()
+        plan["selected"][-1]["filter_hidden_inputs"] = ["tests/test_volume_archive.py"]
+        passed, out, state = self.decide(plan=plan)
+        self.assertFalse(passed, out)
+        self.assertIn("::error::Failed: s: its path filter hides registered input(s) "
+                      '"tests/test_volume_archive.py", so the gate did not run', out)
+        self.assertIn("2 applicable gate(s) passed; 0 filtered out; 0 pending; 1 failed.", out)
+        self.assertNotIn("not applicable (path filter)", out)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_filter_hiding_only_metadata_is_not_a_pass_but_does_not_block(self):
+        plan = plan_fixture()
+        plan["selected"][-1]["filter_hidden_inputs"] = []
+        passed, out, _ = self.decide(plan=plan)
+        self.assertTrue(passed, out)
+        self.assertIn("Not a pass: s: not applicable (path filter)", out)
+        self.assertNotIn("Passed: s:", out)
+
+    def test_hidden_input_listing_is_bounded(self):
+        paths = [f"tests/t{i}.py" for i in range(7)]
+        self.assertEqual(merge_hold.hidden_listing(paths),
+                         '"tests/t0.py", "tests/t1.py", "tests/t2.py", "tests/t3.py", "tests/t4.py" and 2 more')
+        # A path chosen by the pull request cannot inject a workflow command or break the log.
+        listed = merge_hold.hidden_listing(["tests/a\n::error::spoof.py", "tests/\udcff.py"])
+        self.assertNotIn("\n", listed)
+        listed.encode("ascii")
+        self.assertEqual(merge_hold.hidden_listing(["tests/a%0A::error::x.py"]), '"tests/a%250A::error::x.py"')
+
     def test_missing_or_running_runs_are_pending_and_block(self):
         for runs_, fragment in (([wf_run(1, CI)], "no .github/workflows/leaves.yml run"),
                                 ([wf_run(1, CI), wf_run(3, LEAVES, "in_progress", None)], "which is in_progress"),
@@ -789,6 +854,49 @@ class GateTests(TestCase):
                 self.assertFalse(passed)
                 self.assertIn(fragment, out)
                 self.assertIn("gh run rerun 123 --failed", out)
+
+    def test_an_unknown_filter_result_keeps_the_gate_expected_and_names_the_cause(self):
+        # #494 K10: an undefined filter result stays fail-closed; only the message says why and what helps.
+        from ci_impact import FILTER_FILE_LIMIT
+        self.assertEqual(merge_hold.FILTER_FILE_LIMIT, FILTER_FILE_LIMIT)
+        cases = (({"changes": {"count": 301}},
+                  "its path-filter result is undefined above 300 changed files (this change has 301; "
+                  "GitHub evaluates only the first 300), so GitHub may never start it. It stays expected "
+                  "(fail-closed, docs/CI-CONTRACT.md K10); if GitHub skipped it, only a smaller pull request "
+                  "or a new head clears it"),
+                 # Above the limit wins over a fallback code: the count, not the diff, is the cause.
+                 ({"changes": {"count": 301}, "mode": "full",
+                   "fallback": {"code": "shallow-history", "detail": [], "reasons": ["shallow-history"]}},
+                  "its path-filter result is undefined above 300 changed files (this change has 301; "
+                  "GitHub evaluates only the first 300), so GitHub may never start it"),
+                 ({"changes": {"count": 0}, "mode": "full",
+                   "fallback": {"code": "shallow-history", "detail": [], "reasons": ["shallow-history"]}},
+                  "its path-filter result is unknown: the changed-file list is incomplete (fallback "
+                  "shallow-history), so GitHub may never start it. It stays expected (fail-closed, "
+                  "docs/CI-CONTRACT.md K10); if GitHub skipped it, only a re-run with a usable diff or "
+                  "a new head clears it"),
+                 ({}, "its path-filter result is unknown for a change without changed files, so GitHub "
+                      "may never start it"))
+        for over, note in cases:
+            plan = plan_fixture(**over)
+            plan["selected"][2]["blocked_by_filter"] = None  # leaves: no run below
+            self.assertIn(plan["selected"][2], merge_hold.expected_gates(plan))
+            with self.subTest(plan=over):
+                passed, out, _ = self.decide(plan=plan, runs_=[wf_run(1, CI)])
+                self.assertFalse(passed, out)
+                self.assertIn(f"::error::Pending: quality (viewer): no {LEAVES} run for {HEAD} yet; {note}", out)
+                self.assertIn("::error::Exception: a gate with an unknown path-filter result may never start, "
+                              "so waiting for it does not help; its Pending line names the remedy.", out)
+        # A known filter result keeps the plain line, and a started run is judged as usual.
+        passed, out, _ = self.decide(runs_=[wf_run(1, CI)])
+        self.assertFalse(passed, out)
+        self.assertIn(f"no {LEAVES} run for {HEAD} yet\n", out + "\n")
+        self.assertNotIn("Exception:", out)
+        plan = plan_fixture()
+        plan["selected"][2]["blocked_by_filter"] = None
+        passed, out, _ = self.decide(plan=plan)
+        self.assertTrue(passed, out)
+        self.assertNotIn("path-filter result", out)
 
     def test_expected_job_outcomes_other_than_success_block(self):
         for conclusion in ("failure", "cancelled", "timed_out", "skipped", "action_required", "neutral", None):
