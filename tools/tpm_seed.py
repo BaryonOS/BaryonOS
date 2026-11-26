@@ -31,6 +31,9 @@ CC = {"NV_UndefineSpace": 0x122, "HierarchyChangeAuth": 0x129, "NV_DefineSpace":
 PT_PERMANENT, PT_LOCKOUT_COUNTER = 0x200, 0x20E
 # TPM_RC_AUTH_FAIL on session 1: a wrong authValue on a DA-protected entity.
 RC_AUTH_FAIL = 0x98E
+# TPM_RC_RETRY: the command did not run; resend it. libtpms 0.9 (swtpm 0.7.3 in CI,
+# USE_DA_USED) answers the first DA-checked authorization after Startup this way once.
+RC_RETRY, RETRIES = 0x922, 3
 # TPMA_NV (Part 2, 13.4) and the frozen templates of crates/update-core/src/trial_tpm.rs.
 OWNERWRITE, AUTHWRITE, POLICYWRITE, WRITEALL = 1 << 1, 1 << 2, 1 << 3, 1 << 12
 AUTHREAD, POLICYREAD, NO_DA, WRITTEN, PLATFORMCREATE = 1 << 18, 1 << 19, 1 << 25, 1 << 29, 1 << 30
@@ -68,12 +71,16 @@ class Tpm:
     def cmd(self, cc, handles=b"", auth=None, params=b""):
         """Response code and response bytes of one command."""
         body = handles + (auth or b"") + params
-        self.sock.sendall(struct.pack(">HII", 0x8002 if auth else 0x8001, 10 + len(body), CC[cc]) + body)
-        head = self.read(10)
-        size, rc = struct.unpack(">I", head[2:6])[0], struct.unpack(">I", head[6:10])[0]
-        if not 10 <= size <= 4096:
-            raise RuntimeError("Invalid swtpm response size")
-        return rc, head + self.read(size - 10)
+        for _ in range(RETRIES):
+            self.sock.sendall(struct.pack(">HII", 0x8002 if auth else 0x8001, 10 + len(body), CC[cc]) + body)
+            head = self.read(10)
+            size, rc = struct.unpack(">I", head[2:6])[0], struct.unpack(">I", head[6:10])[0]
+            if not 10 <= size <= 4096:
+                raise RuntimeError("Invalid swtpm response size")
+            response = head + self.read(size - 10)
+            if rc != RC_RETRY:
+                break
+        return rc, response
 
     def ok(self, cc, *args, **kwargs):
         rc, response = self.cmd(cc, *args, **kwargs)

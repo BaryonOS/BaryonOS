@@ -2,6 +2,7 @@ import hashlib
 import os
 import re
 import shutil
+import struct
 import sys
 import tempfile
 import unittest
@@ -328,6 +329,31 @@ class NativeTpmBackendTests(unittest.TestCase):
                     with self.subTest(other=other), self.assertRaisesRegex(ValueError, "Reused TPM state"):
                         with probe.backend(report, other):
                             pass
+
+
+class TpmSeedRetryTests(unittest.TestCase):
+    """TPM_RC_RETRY (libtpms 0.9 in CI) is resent, a bounded number of times."""
+
+    def test_tpm_rc_retry_is_resent_and_bounded(self):
+        class Socket:
+            def __init__(self, codes):
+                self.replies, self.sent = b"".join(struct.pack(">HII", 0x8001, 10, rc) for rc in codes), []
+
+            def sendall(self, data):
+                self.sent.append(data)
+
+            def recv(self, size):
+                chunk, self.replies = self.replies[:size], self.replies[size:]
+                return chunk
+
+        tpm = object.__new__(tpm_seed.Tpm)
+        tpm.sock = Socket((tpm_seed.RC_RETRY, tpm_seed.RC_AUTH_FAIL))
+        self.assertEqual(tpm.cmd("NV_Read")[0], tpm_seed.RC_AUTH_FAIL)
+        self.assertEqual(len(tpm.sock.sent), 2)
+        self.assertEqual(tpm.sock.sent[0], tpm.sock.sent[1])
+        tpm.sock = Socket((tpm_seed.RC_RETRY,) * tpm_seed.RETRIES)
+        self.assertEqual(tpm.cmd("NV_Read")[0], tpm_seed.RC_RETRY)
+        self.assertEqual(len(tpm.sock.sent), tpm_seed.RETRIES)
 
 
 @unittest.skipUnless(shutil.which("swtpm"), "NOT RUN: swtpm absent")
