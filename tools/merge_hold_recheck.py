@@ -11,8 +11,8 @@ does not emit `workflow_run.requested` for re-runs, so that activity invalidates
 an older passing or still-active merge-hold before the gate can finish. Every
 gate workflow owns an automatic `core` or `rwa` job in the catalogue; the other listed
 workflows are completion triggers only, because a run of those can still leave
-merge-hold at Pending (a run that changed while it was read, or a job the base
-catalogue does not know).
+merge-hold at Pending (docs/CI-CONTRACT.md lists the cases, such as a run that
+changed while it was read or a job the base catalogue does not know).
 
 For a completed `pull_request` run from this repository it re-runs the newest
 merge-hold run of each listed pull request whose current head is still the run's

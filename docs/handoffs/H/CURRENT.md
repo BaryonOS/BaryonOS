@@ -5,13 +5,13 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 | Field | Value |
 |---|---|
-| cycle_id | `h02-t5-20261125` |
-| Location | local H session (took over from the cloud H session via #503; cloud HANDOFF on #507, comment 7151275971) |
-| Task | H02-T5 native per-port refusal (hub, non-boot tablet, high-speed keyboard, storage) — implemented, native evidence at `1bb81100`, hosted gates pending |
-| Branch | `claude/h02-t5-usb-refusal-20261125` (base main `ad55e019`) |
-| PR | #515 (draft) |
-| Previous | #507 (H06-T8) merged as `78dc7b18`; ledger H06-T8 is `verified` in this branch |
-| Score | 43/100 unchanged; H02 and H06 stay open |
+| cycle_id | `h05-t5c-verified-20261126` |
+| Location | local H session; the latest `HANDOFF H` comment is on #515 |
+| Task | H05-T5c virtio-blk re-initialisation after an S3 wake: slice 1 (kernel re-init, quarantine `-24`, O13 latch carryover) merged; slices 2–4 open |
+| Branch | `claude/h05-t5c-verified-20261126` (ledger follow-up); slice 1 came from `claude/h05-t5c-blk-reinit-20261125` |
+| PR | #556 merged as `945847d8` (26 Nov 2026); ledger H05-T5c is `verified` (hosted gates green on `0e9e1b91`) |
+| Previous | #515 (H02-T5) merged as `744f1b75`; ledger H02-T5 is `verified`; native evidence bound to `f8662109`. T5c evidence: [h05-s3-blk-reinit-20261125](../../verification/h05-s3-blk-reinit-20261125/README.md) |
+| Score | 43/100 unchanged; H02, H05 and H06 stay open |
 
 ## Blockers
 
@@ -33,15 +33,24 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 7. HMP `info cpus` no longer reports `(halted)` in current QEMU; `info registers` still prints `HLT=1`.
 8. A bash gate helper that sets a global `name` clobbers the caller's variable: use `local` in step/mutant functions, or mutant runs silently target the wrong build directory.
 9. `evaluate_fixture` markers that end in `:` are value markers (prefix plus non-empty value); every other fixture marker must be the whole line.
-
 10. QEMU routes QMP input to a USB HID device only after the guest's first interrupt-IN poll; wait on MFINDEX before printing a READY marker. Reset Device on a disabled slot completes with code 11 and Slot ID 0.
 11. Any `kernel/` or `tools/` change, including the runner, changes the source fingerprint: rebuild before `run_usb_hid.py`. `NOS_QEMU_MACHINE` accepts only recorded machines (`pc-q35-8.2`), not `q35`.
+12. `run_system.py` puts the QMP socket at `build/<gate>/run/system-<case>-<32 hex>/qmp.sock`; it must stay below 108 bytes. Keep case names short; never shorten the 32-hex suffix, which `capture_system.py` and the RANDOM/images validators pin.
 
 ## Next task
 
-H02-T5 evidence: [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md).
-Remaining on #515: hosted `native-xhci` green on the final head, merge main,
-`progress.py --write`/`--check`, ready, `merge-hold` rerun, squash-merge with
-the expected head, `HANDOFF H` comment; flip H02-T5 to `verified` in the next
-PR. Then the next H item: H05 virtio-blk reinit after S3 wake (security review
-first); H04 needs agreement with N.
+H02-T5 is done; its evidence is in
+[h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md).
+
+H05-T5c slice 1 is merged (#556, `945847d8`) and `verified` in the ledger.
+
+Slices 2–4 of T5c wait for the following:
+
+- Slice 2 needs B's LOCK/UNLOCK ADR (key erasure).
+- Slice 3 is S's remount.
+- Slice 4 is the ring-3 re-grant.
+
+Other open items:
+
+- H04 (in-flight TX at a link-down edge) needs agreement with N.
+- Physical H02–H06 work stays blocked on the owner decisions above.

@@ -1,6 +1,9 @@
 # ADR-NET-ISSUER-YYYYMMDD (date set on adoption) — Network grant issuer, helper subgrants, regrant and durable denial
 
-**Status: PROPOSED — owner decision required.** This file is a draft for
+**Status: ACCEPTED 25 November 2026 as ADR-NET-ISSUER-20261125 in
+[DECISIONS.md](../DECISIONS.md), which records the chosen options and the
+questions that stay open; the entry there takes precedence.** Original status:
+PROPOSED — owner decision required. This file is a draft for
 adoption into `docs/DECISIONS.md`. Nothing in it is adopted, implemented or
 tested. Every "Recommendation" below is a recommendation, not a decision.
 Baseline: `origin/main` `2f4ac6ae814fac18bca52ff80d4b9f774d12bec2`; all
