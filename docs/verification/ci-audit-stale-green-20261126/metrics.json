@@ -1,0 +1,94 @@
+{
+  "schema": "baryonos.independent-ci-audit",
+  "schema_version": 1,
+  "captured_on": "2026-11-26",
+  "source_manifest": "sources.json",
+  "baseline_commit": "04fd62453a1720fb295bb21e3e3eb8ca27955790",
+  "historical_60_pr_reference": {
+    "period_start": "2026-11-23T14:10:56Z",
+    "period_end": "2026-11-25T11:33:26Z",
+    "median_minutes_to_required_green": 11.1,
+    "mean_ci_rounds_per_pr": 6.42,
+    "mean_runner_minutes_per_pr": 910.1,
+    "mean_workflow_runs_per_pr": 148.0,
+    "mean_executed_jobs_per_pr": 327.4,
+    "cancelled_runner_minutes_percent": 24.8
+  },
+  "capacity_burst": {
+    "period_start": "2026-11-26T07:15:00Z",
+    "period_end": "2026-11-26T07:45:00Z",
+    "runs": 99,
+    "runner_jobs": 127,
+    "snapshot_cutoff": "2026-11-26T07:49:50Z",
+    "observed_peak_concurrent_jobs": 20,
+    "running_jobs_per_minute": {"count": 31, "median": 18, "p90": 19, "max": 20},
+    "non_matrix_wait_seconds": {"count": 101, "median": 183, "p90": 544, "max": 752},
+    "matrix_limited_wait_seconds": {"count": 26, "median": 812, "p90": 933, "max": 1309},
+    "limit": "Observed repository load only; this does not establish an organization capacity limit."
+  },
+  "pr_550": {
+    "head_sha": "b59e537a7ec7fdb7b54849114562856da0818d70",
+    "actions_checks": 83,
+    "executed_jobs": 73,
+    "job_wall_clock_minutes_sum": 215.0,
+    "native_window_wall_clock_minutes": 40.7
+  },
+  "median_job_execution_seconds": {
+    "host_quality": 535.5,
+    "qemu_smoke": 130,
+    "codeql_rust": 635,
+    "native_smp": 949,
+    "native_system": 646,
+    "native_window_host_checks": 706,
+    "native_window_scale2": 1238,
+    "native_window_switcher_scale2": 760,
+    "merge_hold": 24,
+    "merge_hold_recheck": 8
+  },
+  "same_tree_duplication": {
+    "pull_request": 515,
+    "pr_head": "33b1d7be3613dfca41529d93614183e283381989",
+    "main_commit": "744f1b75b68dc45dd2ab4d150a65cc827402e381",
+    "tree": "2face506e98d17231ee65b4089a1086c8748e266",
+    "pr_runner_minutes": 260.3,
+    "main_runner_minutes": 206.8,
+    "combined_runner_minutes": 467.1
+  },
+  "stale_green_observation": {
+    "pull_request": 515,
+    "head_sha": "3ce662a4e307c22e8f087bd1f7b1df44c2ce8b36",
+    "merge_hold": {
+      "run_id": 45644771961,
+      "attempt": 1,
+      "conclusion": "success",
+      "started_at": "2026-11-25T15:24:16Z",
+      "completed_at": "2026-11-25T16:18:47Z"
+    },
+    "later_ci": {
+      "run_id": 45644771873,
+      "attempt": 2,
+      "conclusion": "success",
+      "started_at": "2026-11-25T16:34:19Z",
+      "completed_at": "2026-11-25T16:34:43Z"
+    },
+    "newer_merge_hold_count": 0
+  },
+  "main_branch_filter_counterfactual": {
+    "period_start": "2026-11-26T07:15:00Z",
+    "period_end": "2026-11-26T07:55:00Z",
+    "matched_upstream_completions": 47,
+    "main_push_recheck_runs_removed": 21,
+    "skipped_job_records_removed": 21,
+    "pr_recheck_runs_preserved": 26,
+    "runner_jobs_saved": 0,
+    "runner_minutes_saved": 0,
+    "script_api_calls_saved": 0,
+    "combined_patch_limit": "Adding in_progress creates administrative activity runs for started PR workflows; the branch filter only offsets that correctness cost and is not a runner-time optimization."
+  },
+  "not_run": [
+    "Live merge_group validation: the merge queue is inactive.",
+    "Enterprise capacity-setting inspection: the available token lacks the required enterprise administration visibility.",
+    "Post-change hosted rerun acceptance: the workflow is not on the default branch yet.",
+    "Native OS acceptance: this change only affects CI orchestration."
+  ]
+}

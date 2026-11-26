@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Complete M6e/S06 gate: host tests, then thirty-two real QEMU invocations in order.
+"""Complete M6e/S06 gate: host tests, then thirty-four real QEMU invocations in order.
 
 normal -> cold read-only recover (same image) -> S09 archive export into a
 disjoint range of that image (volume mounted read-only) -> restore of only that
@@ -24,6 +24,11 @@ refused, and the restored domain after a cold boot refusing a second restore;
 l2-restore-cut (real kill inside an INSTALL_COMMIT of that restore) -> cold
 recover-l2-cut, which must find every planned object fully installed or
 never-used, exactly the commits before the cut, and refuse a second restore.
+S09 O13 (N38), each on a fresh image with a fresh disk 1 of canaries:
+o13-latch (a labelled, injected WRITE device error must latch the broker and
+leave disk 1 untouched) and o13-latch-0x44 (syscall 0x44 calls and disk-1
+WRITEs must match the expected event sequence; disk 1 holds only the
+admitted WRITEs).
 Every stage is bound to one frozen source fingerprint. The host test inputs
 under tests/ fall outside that fingerprint, so they are frozen separately and
 re-checked before the verdict. Only the final summary with passed=true counts
@@ -69,7 +74,8 @@ PLAN = [("normal", None), ("recover", "normal"), ("archive-export", "recover"),
         ("install", None), ("install-recover", "install"), ("install-cut", None),
         ("recover-cut", "install-cut"),
         ("l2-export", "archive-export"), ("l2-restore", "l2-export"), ("l2-corrupt", "l2-export"),
-        ("l2-used", "l2-restore"), ("l2-restore-cut", "l2-export"), ("recover-l2-cut", "l2-restore-cut")]
+        ("l2-used", "l2-restore"), ("l2-restore-cut", "l2-export"), ("recover-l2-cut", "l2-restore-cut"),
+        ("o13-latch", None), ("o13-latch-0x44", None)]
 
 
 def main() -> int:

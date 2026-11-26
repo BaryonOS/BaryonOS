@@ -20,13 +20,17 @@ class OracleTests(unittest.TestCase):
     def test_reports_and_readonly_are_distinct(self):
         for case in probe.FEATURES:
             result = probe.evaluate(case, transcript(case), 33, False)
-            self.assertEqual(result["usb_reports"], case != "readonly")
+            self.assertEqual(result["usb_reports"], case != "readonly" and case not in probe.REFUSALS)
             self.assertEqual(result["same_port_reattach"], case in ("reattach", "reattach-mouse"))
             self.assertEqual(result["reattach_device"],
                              {"reattach": "keyboard", "reattach-mouse": "mouse"}.get(case))
+            self.assertEqual(result["refusal_reason"], probe.REFUSALS.get(case))
             self.assertFalse(result["input_policy_authority"])
             for other in probe.FEATURES:
-                if other != case:
+                # Both are refused on speed before Enable Slot; the guest cannot tell them apart.
+                if {case, other} == {"refuse-hs-kbd", "refuse-storage"}:
+                    self.assertEqual(transcript(case), transcript(other))
+                elif other != case:
                     with self.subTest(case=case, other=other), self.assertRaises(ValueError):
                         probe.evaluate(case, transcript(other), 33, False)
 
@@ -100,6 +104,30 @@ class OracleTests(unittest.TestCase):
         for exit_code, timed_out in ((0, False), (33, True)):
             with self.assertRaises(ValueError):
                 probe.evaluate("reattach-mouse", good, exit_code, timed_out)
+
+    def test_refusal_markers_are_mandatory_unique_and_ordered(self):
+        self.assertEqual(probe.REFUSALS, {"refuse-hub": "HUB", "refuse-tablet": "NOT_BOOT",
+                                          "refuse-hs-kbd": "SPEED", "refuse-storage": "SPEED"})
+        for case, reason in probe.REFUSALS.items():
+            expected = probe.markers(case)
+            self.assertEqual(probe.FEATURES[case], "native-usb-hid-refusal")
+            slot = ("USB:REFUSE:SLOT_DISABLED",) if reason != "SPEED" else ()
+            self.assertEqual(expected, probe.START + slot + ("USB:REFUSE:" + reason,) + probe.REFUSAL + probe.END)
+            self.assertNotIn("USB:REPORTS:PASS", expected)
+            good = transcript(case)
+            for marker in slot + ("USB:REFUSE:" + reason,) + probe.REFUSAL:
+                with self.subTest(case=case, missing=marker), self.assertRaises(ValueError):
+                    probe.evaluate(case, good.replace(marker + "\n", ""), 33, False)
+                with self.subTest(case=case, duplicate=marker), self.assertRaises(ValueError):
+                    probe.evaluate(case, good.replace(marker + "\n", marker + "\n" + marker + "\n"), 33, False)
+            swapped = good.replace("USB:REFUSE:MOUSE_DOWN\nUSB:REFUSE:MOUSE_UP",
+                                   "USB:REFUSE:MOUSE_UP\nUSB:REFUSE:MOUSE_DOWN")
+            self.assertNotEqual(swapped, good)
+            with self.subTest(case=case, reordered=True), self.assertRaises(ValueError):
+                probe.evaluate(case, swapped, 33, False)
+            # Serving the refused device would add evidence the oracle must reject.
+            with self.subTest(case=case, served=True), self.assertRaises(ValueError):
+                probe.evaluate(case, good.replace("USB:REFUSE:PORT_HELD\n", "USB:ENUM:KEYBOARD\nUSB:REFUSE:PORT_HELD\n"), 33, False)
 
     def test_all_mandatory_markers_are_required(self):
         for marker in probe.BOOT + ("XHCI:BEGIN",) + probe.markers("reports") + ("XHCI:PASS",):
@@ -199,6 +227,14 @@ MOUSE_WAITS = REATTACH_WAITS[:7] + ["USB:REPORTS:PASS", "USB:REATTACH:HELD_BUTTO
                                      "USB:REATTACH:DETACHED", "USB:REATTACH:READY",
                                      "USB:REATTACH:MOUSE_DOWN", "USB:REATTACH:MOUSE_UP",
                                      "USB:REATTACH:UNPLUG:PASS"]
+
+
+REFUSAL_WAITS = ["USB:REFUSE:READY", "USB:REFUSE:MOUSE_DOWN", "USB:REFUSE:MOUSE_UP",
+                 "USB:REFUSE:UNPLUG:PASS", "USB:REFUSE:RECOVER:READY", "USB:REFUSE:RECOVER:KEY_DOWN"]
+
+
+class FailingRecoverAddQmp(FakeQmp):
+    fail = ("device_add", "hid-kbd-g2")
 
 
 class LifecycleTests(unittest.TestCase):
@@ -360,6 +396,57 @@ class LifecycleTests(unittest.TestCase):
                     # Only the sequence's own release: no extra cleanup input.
                     self.assertEqual(requests.count(released_b), 1)
                 self.assertTrue(process.killed and process.reaped)
+
+    def test_refusal_sequence_is_exact(self):
+        for case in probe.REFUSALS:
+            with self.subTest(case=case):
+                process = ExitingProcess()
+                result, seen, requests = self._reattach(process, FakeQmp, case=case)
+                self.assertIsNone(result["error"])
+                self.assertEqual(seen, REFUSAL_WAITS)
+                self.assertEqual(requests, [
+                    ("input-send-event", {"events": [probe._move("x", 7), probe._move("y", -3), probe._button(True)]}),
+                    ("input-send-event", {"events": [probe._button(False)]}),
+                    ("device_del", {"id": "usb-refused"}),
+                    ("device_add", probe._keyboard("hid-kbd-g2")),
+                    ("input-send-event", {"events": [probe._key("a", True)]}),
+                    ("input-send-event", {"events": [probe._key("a", False)]})])
+                self.assertFalse(process.killed)
+                self.assertTrue(process.reaped)
+
+    def test_refusal_failures_release_every_held_input(self):
+        released_left = ("input-send-event", {"events": [probe._button(False)]})
+        released_a = ("input-send-event", {"events": [probe._key("a", False)]})
+        for fail, cleanup in (("USB:REFUSE:MOUSE_DOWN", released_left),
+                              ("USB:REFUSE:RECOVER:KEY_DOWN", released_a)):
+            with self.subTest(fail=fail):
+                process = FakeProcess()
+                result, _, requests = self._reattach(process, FakeQmp, fail, case="refuse-hub")
+                self.assertIn("Guest rejected", result["error"])
+                self.assertEqual(requests[-1], cleanup)
+                self.assertTrue(process.killed and process.reaped)
+        process = FakeProcess()
+        result, seen, requests = self._reattach(process, FailingRecoverAddQmp, case="refuse-tablet")
+        self.assertIn("QMP command failed", result["error"])
+        self.assertEqual(seen[-1], "USB:REFUSE:UNPLUG:PASS")
+        self.assertEqual(requests[-1], ("device_add", probe._keyboard("hid-kbd-g2")))
+        self.assertTrue(process.killed and process.reaped)
+
+    def test_refused_device_arguments(self):
+        drivers = {"refuse-hub": "usb-hub", "refuse-tablet": "usb-tablet",
+                   "refuse-hs-kbd": "usb-kbd", "refuse-storage": "usb-storage"}
+        for case, driver in drivers.items():
+            fields = probe.refused_device(case, "disk.img")[-1].split(",")
+            self.assertEqual(fields[:2], [driver, "id=usb-refused"])
+            self.assertIn("port=1", fields)
+        self.assertIn("usb_version=2", probe.refused_device("refuse-hs-kbd", "")[-1].split(","))
+        self.assertIn("usb_version=1", probe.refused_device("refuse-tablet", "")[-1].split(","))
+        self.assertEqual(probe.refused_device("refuse-storage", "disk.img")[:2],
+                         ["-drive", "if=none,id=refused-disk,format=raw,file=disk.img"])
+        with self.assertRaises(ValueError):
+            probe.refused_device("reports", "")
+        with self.assertRaises(ValueError):
+            probe.refused_device("refuse-storage", "/a,b/disk.img")
 
     def test_failed_manifest_leaves_failed_report(self):
         with tempfile.TemporaryDirectory() as directory, patch.object(probe, "BUILD", Path(directory)), \
