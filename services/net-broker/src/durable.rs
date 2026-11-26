@@ -53,8 +53,9 @@ pub fn chain_after(prev: &Digest, store: &Digest) -> Digest {
 /// Errors of the kernel anchor service; none of them is ever an acceptance.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AnchorError {
-    /// Degraded boot, TPM absent or faulty, index missing, never extended or
-    /// with a changed public area.
+    /// Run-time TPM fault or clear, or the N04 index missing, squatted, never
+    /// extended or with a changed public area. A TPM absent, cleared or
+    /// replaced before boot halts the loader (REL-05 §7.9), so N04 never runs.
     Unavailable,
     /// The read-back after an extend differs from the expected chain value.
     Corrupt,
