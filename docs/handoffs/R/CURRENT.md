@@ -33,8 +33,8 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
 - **Subtask:** re-baseline the native window session on `ffea3883` (five KVM
   runs, `~/projects/BaryonOS-scratch/r/baseline3/`) and rank the next
   compositor-turn bottleneck (per-turn `yield_now`, one acknowledgement per
-  tile). Compositor source is U's: agree one writer with U before any change
-  in `sdk/examples/compositor` or `ui/surface-protocol`.
+  tile). Compositor source is U's; U agreed on 26 Nov that R is single writer
+  for candidates (1) and (2) below, with U as reviewer.
   Report any `kernel/` write set to the PR guard in advance.
 - **Driver:** `~/projects/BaryonOS-scratch/r/baseline3.sh` (meta.txt with load
   average per run, build.log, run<N>.log, report<N>.json). Build dirs must stay
@@ -227,9 +227,29 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   scheduler continues the caller after ordinary system calls
   (`kernel/src/m2/m3.rs`; kernel owner, needs an explicit decision).
 
+## Candidate (2) in draft PR #578 (26 Nov 2026)
+
+- `5aedee77` makes the window compositor read the clock once per pass instead
+  of once per message and per reply flush (`sdk/examples/window-session`
+  only; activity/commit counting and reporter words 464/480, which belong to
+  U's #545, are unchanged). U reviewed it without blockers; the comment-only
+  review fix leaves the kernel ELF byte-identical.
+- Local KVM A/B against `ffea3883` (5+5 runs, not hosted): all runs raw 33 and
+  passed; `reopened` 0.72 → 0.43 s, `list` 0.67 → 0.42 s, `editor`
+  0.65 → 0.40 s (medians); run duration 19.25 → 17.21 s. High-contrast frames
+  are identical; the frames that differ are focus-switch captures that also
+  vary on `main`. Materiaal normal, keyboard and recover pass on B. Evidence:
+  `docs/verification/r02-compositor-turn-ab-20261126/`.
+
 ## Next action
 
-1. Agree with U which of candidates (1) and (2) R implements as single writer;
-   raise (3) with the PR guard and the kernel owner before any `kernel/` write.
-2. After agreement: implement in this branch, host tests and native gates,
-   one draft push with metadata (M11, UI, Refs #530), then the merge queue.
+1. #578: hosted `native-window-session` (scale 1 and 2) green on the final
+   head, open-run check `[]`, ready, then the merge queue
+   (`--match-head-commit`). Report the landing to the PR guard and U.
+2. Candidate (1) as a separate PR after #578: SUR1 client waits with
+   `ipc_wait` for the reply (`ui/surface-protocol/src/client.rs` plus the
+   runtime transport hunk), with the negative test U asked for (non-answering
+   endpoint keeps the existing deadline/Delivery error, bounded poll budget,
+   ABI < 1.10 falls back to the current path).
+3. Candidate (3) goes to the PR guard as a proposal (interfaces and evidence)
+   for the kernel owner and the project owner; R does not write `kernel/`.
