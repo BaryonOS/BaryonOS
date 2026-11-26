@@ -16,7 +16,6 @@ import os
 from pathlib import Path
 import re
 import subprocess
-import sys
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
