@@ -644,8 +644,8 @@ def gate_report(token, repo, pull, head_sha, plan):
                                "re-run merge-hold")
             else:
                 # Failed, not Pending: a run without any job (startup_failure, or cancelled before a
-                # job started) ran no gate, re-running merge-hold cannot change that, and main already
-                # fails such a run that has an expected gate ("missing from").
+                # job started) ran no gate, re-running merge-hold cannot change that, and the loop below
+                # already fails such a run that has an expected gate ("missing from").
                 failed.append(f"{workflow}: {where} concluded {conclusion} without any job, so its gates "
                               "never ran; re-run that workflow run or push a new head")
         if running and workflow in gated:
