@@ -18,11 +18,14 @@ ENV = {"GH_TOKEN": "x", "REPO": "o/r", "EVENT_NAME": "pull_request",
        "PR_NUMBER": "7", "HEAD_SHA": HEAD}
 GROUP = "c" * 40
 BASE = "d" * 40
+QUEUE_BRANCH = f"gh-readonly-queue/main/pr-8-{BASE}"
 GROUP_ENV = {"GH_TOKEN": "x", "REPO": "o/r", "EVENT_NAME": "merge_group",
              "PR_NUMBER": "", "HEAD_SHA": "",
+             "BASE_SHA": BASE, "TESTED_SHA": GROUP,
              "MERGE_GROUP_HEAD_SHA": GROUP,
-             "MERGE_GROUP_HEAD_REF": f"refs/heads/gh-readonly-queue/main/pr-8-{BASE}",
-             "MERGE_GROUP_BASE_REF": "refs/heads/main"}
+             "MERGE_GROUP_HEAD_REF": "refs/heads/" + QUEUE_BRANCH,
+             "MERGE_GROUP_BASE_REF": "refs/heads/main",
+             "MERGE_GROUP_BASE_SHA": BASE}
 
 
 def comment(body, association="MEMBER"):
@@ -172,12 +175,29 @@ class MergeGroupTests(TestCase):
 
     def run_group(self, nodes, labels=None, comments=None, trees=None,
                   env=None, answer=None, checks=None, ahead=None, on_sleep=None,
-                  commits=None, gate_runs=None):
-        """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest."""
+                  commits=None, gate_runs=None, group_runs=None, group_jobs=None, plan=None, ancestor=0):
+        """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest.
+
+        Run listings are keyed by the URL's event and head_sha and returned verbatim, as
+        GitHub would list them: gate_runs[sha] answers event=pull_request (default: one
+        successful merge-hold run), group_runs[sha] answers event=merge_group (default:
+        the passing gate runs of GROUP); group_jobs[run id] lists their jobs. plan is
+        what the mocked selector returns (default: group_plan()); self.plans records its calls.
+        """
         labels, comments, trees = labels or {}, comments or {}, trees or {}
         polls = {sha: list(answers) for sha, answers in (commits or {}).items()}
         polls[GROUP], polls[None] = list(checks or [DONE]), list(ahead or [DONE])
-        calls = []
+        group_runs = {GROUP: [group_run(1, CI), group_run(2, LEAVES)]} if group_runs is None else group_runs
+        group_jobs = GOOD_JOBS if group_jobs is None else group_jobs
+        calls, self.plans = [], []
+
+        def recompute(*args, **kwargs):
+            self.plans.append((args, kwargs))
+            return plan or group_plan()
+
+        def git(*args):
+            # Ancestry as given; no base catalogue, so the wait budget is WAIT_SECONDS.
+            return (ancestor, "") if args[0] == "merge-base" else (128, "")
 
         def fetch(token, url):
             calls.append(url)
@@ -196,10 +216,21 @@ class MergeGroupTests(TestCase):
                 if isinstance(answer_, Exception):
                     raise answer_
                 return answer_
+            if "/jobs?" in url:
+                listed = group_jobs.get(int(url.split("/runs/")[1].split("/")[0]), [])
+                return {"total_count": len(listed), "jobs": listed}
             if "/actions/runs?" in url:
                 head = url.split("head_sha=")[1].split("&")[0]
-                listed = (gate_runs or {}).get(head, [gate_run(head)])
+                event = url.split("event=")[1].split("&")[0]
+                if event == "merge_group":
+                    listed = group_runs.get(head, [])
+                else:
+                    self.assertEqual(event, "pull_request")
+                    listed = (gate_runs or {}).get(head, [gate_run(head)])
                 return {"total_count": len(listed), "workflow_runs": listed}
+            if "/actions/runs/" in url:  # re-read of one listed merge_group run
+                run_id = int(url.rsplit("/", 1)[1])
+                return next(dict(run) for listed in group_runs.values() for run in listed if run["id"] == run_id)
             if url.endswith("/graphql"):
                 self.assertEqual(payload["variables"], {"owner": "o", "name": "r"})
                 return answer if answer is not None else {"data": {"repository": {
@@ -221,6 +252,8 @@ class MergeGroupTests(TestCase):
         with mock.patch.dict(os.environ, env or GROUP_ENV, clear=True), \
                 mock.patch.object(merge_hold, "fetch_all", fetch), \
                 mock.patch.object(merge_hold, "call", call), \
+                mock.patch.object(merge_hold, "recompute_plan", recompute), \
+                mock.patch.object(merge_hold, "git", git), \
                 mock.patch.object(merge_hold.time, "sleep", sleep), \
                 mock.patch.object(merge_hold.time, "monotonic", lambda: clock[0]), \
                 contextlib.redirect_stdout(out):
@@ -238,9 +271,10 @@ class MergeGroupTests(TestCase):
 
     def test_member_needs_its_own_gate_verdict_and_the_landing_tree(self):
         one = [entry(1, 8, GROUP, OTHER)]
+        # D1 step 2: an unheld member may land another tree; the queue-commit gate report covers it.
         code, out, _ = self.run_group(one, trees={GROUP: "1" * 40, OTHER: "2" * 40})
-        self.assertEqual(code, 1)
-        self.assertIn("does not yet judge the gates on merge_group", out)
+        self.assertEqual(code, 0, out)
+        self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 0 failed.", out)
         for runs_, why in (([], "no run"), ([gate_run(OTHER, "failure")], "failed"),
                            ([gate_run(OTHER, run_id=1), gate_run(OTHER, "failure", run_id=2)], "newer failed"),
                            ([gate_run(OTHER, None, status="in_progress")], "running"),
@@ -319,15 +353,17 @@ class MergeGroupTests(TestCase):
             comments={7: [comment("acceptance-released: " + HEAD)]},
             trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 0, out)
-        # Phase 3: PR 8's gates ran on its own head. If its entry lands another tree
-        # (PR 7's change on top), no gate verdict that merge-hold judges covers that tree.
-        code, out, _ = self.run_group(
-            queue,
-            labels={7: [merge_hold.LABEL]},
-            comments={7: [comment("acceptance-released: " + HEAD)]},
-            trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "3" * 40})
+        # D1 step 2: PR 8's entry lands another tree (PR 7's change on top); the gates
+        # judged on the queue commit cover that tree, so it passes while they pass.
+        trees = {"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "3" * 40}
+        released = {7: [comment("acceptance-released: " + HEAD)]}
+        code, out, _ = self.run_group(queue, labels={7: [merge_hold.LABEL]}, comments=released, trees=trees)
+        self.assertEqual(code, 0, out)
+        self.assertIn("#8: No acceptance hold is set.", out)
+        code, out, _ = self.run_group(queue, labels={7: [merge_hold.LABEL]}, comments=released, trees=trees,
+                                      group_jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]})
         self.assertEqual(code, 1, out)
-        self.assertIn("#8: ::error::The applicable gates ran on", out)
+        self.assertIn("::error::Failed: quality (viewer): failure in run 2", out)
 
     def test_released_pr_ahead_whose_own_entry_lands_another_tree_fails(self):
         queue = [entry(1, 7, "e" * 40, HEAD), entry(2, 8, GROUP, OTHER)]
@@ -675,6 +711,221 @@ class MergeGroupTests(TestCase):
                 self.assertEqual(code, 1, out)
                 self.assertIn("::error::", out)
 
+    # D1 option B step 2 (#494): every applicable gate is judged on the queue commit itself.
+    ONE = [entry(1, 8, GROUP, OTHER)]
+
+    def assertFailsAtOnce(self, out, calls):
+        self.assertIn("::error::merge-hold could not decide", out)
+        self.assertFalse([url for url in calls if "/check-runs?" in url or url.endswith("/graphql")])
+        self.assertNotIn("sleep", calls)
+
+    def test_queue_commit_gates_decide_after_the_wait_with_the_merge_group_plan(self):
+        code, out, calls = self.run_group(self.QUEUE)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.plans, [((BASE, GROUP, GROUP, "main"), {"event": "merge_group"})])
+        self.assertIn("Passed: quality (viewer): success in run 2 attempt 1", out)
+        self.assertIn(f"queue commit {GROUP} ({QUEUE_BRANCH})", out)
+        listings = [i for i, url in enumerate(calls) if f"/actions/runs?head_sha={GROUP}&event=merge_group&" in url]
+        self.assertEqual(len(listings), 2)  # one wait poll, then the full report
+        last_poll = max(i for i, url in enumerate(calls) if "/check-runs?" in url)
+        jobs = [i for i, url in enumerate(calls) if "/jobs?" in url]
+        self.assertLess(listings[0], last_poll)
+        self.assertGreater(min(jobs), last_poll)
+        self.assertGreater(min(i for i, url in enumerate(calls) if url.endswith("/labels")), max(jobs))
+
+    def test_failed_or_missing_gate_on_the_queue_commit_fails_the_group(self):
+        for conclusion in ("failure", "cancelled", "timed_out", "skipped", "action_required", "neutral", None):
+            with self.subTest(conclusion=conclusion):
+                code, out, _ = self.run_group(
+                    self.ONE, group_jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", conclusion)]})
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"::error::Failed: quality (viewer): {conclusion} in run 2", out)
+        code, out, _ = self.run_group(self.ONE, group_jobs={**GOOD_JOBS, 2: []})
+        self.assertEqual(code, 1, out)
+        self.assertIn("::error::Failed: quality (viewer): missing from run 2", out)
+        # A report with only Pending lines after the wait fails too: the queue removes the group.
+        code, out, _ = self.run_group(self.ONE, group_jobs={
+            **GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", None, "in_progress")]})
+        self.assertEqual(code, 1, out)
+        self.assertIn("1 pending; 0 failed.", out)
+        self.assertIn("::error::Pending: quality (viewer): still running in run 2", out)
+        # A failed core job that the plan did not expect is never ignored.
+        code, out, _ = self.run_group(self.ONE, group_jobs={
+            **GOOD_JOBS, 1: [job(11, 1, "host-quality"), job(13, 1, "renamed", "failure")]})
+        self.assertEqual(code, 1, out)
+        self.assertIn("renamed: failure in run 1 attempt 1", out)
+        self.assertIn("not expected by the plan", out)
+        # A path filter that hides a registered input fails as on pull_request.
+        plan = group_plan()
+        plan["selected"][-1]["filter_hidden_inputs"] = ["tests/test_volume_archive.py"]
+        code, out, _ = self.run_group(self.ONE, plan=plan)
+        self.assertEqual(code, 1, out)
+        self.assertIn("its path filter hides registered input(s)", out)
+
+    def test_open_or_missing_gate_runs_fail_closed_at_the_deadline(self):
+        older = group_run(2, LEAVES, created_at="2026-11-24T19:00:00Z")
+        for why, listed in (("no run", [group_run(1, CI)]),
+                            ("running", [group_run(1, CI), group_run(2, LEAVES, status="in_progress", conclusion=None)]),
+                            ("newer run still running", [group_run(1, CI), older,
+                                                         group_run(3, LEAVES, status="queued", conclusion=None)])):
+            with self.subTest(why=why), mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+                code, out, calls = self.run_group(self.ONE, group_runs={GROUP: listed})
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"did not complete in time: ['applicable gate runs on {GROUP}", out)
+                self.assertFalse([url for url in calls if url.endswith("/labels") or "/jobs?" in url])
+
+    def test_gate_wait_reads_holds_and_withdrawals_after_the_gates_finish(self):
+        def queue_gates(labels, comments, nodes, hold=None, withdraw=None):
+            listing[GROUP] = [group_run(1, CI), group_run(2, LEAVES)]
+            if hold:
+                labels[hold] = [merge_hold.LABEL]
+            if withdraw:
+                comments[withdraw] = []
+
+        for hold, withdraw, expected in ((None, None, 0), (7, None, 1), (None, 8, 1)):
+            with self.subTest(hold=hold, withdraw=withdraw):
+                listing = {GROUP: [group_run(1, CI), group_run(2, LEAVES, status="in_progress", conclusion=None)]}
+                code, out, calls = self.run_group(
+                    self.QUEUE, group_runs=listing, labels={8: [merge_hold.LABEL]},
+                    comments={8: [comment("acceptance-released: " + OTHER)]}, trees={GROUP: "1" * 40, OTHER: "1" * 40},
+                    on_sleep=lambda labels, comments, nodes: queue_gates(labels, comments, nodes, hold, withdraw))
+                self.assertEqual(code, expected, out)
+                self.assertEqual(calls.count("sleep"), 1)
+                self.assertLabelsReadAfterWait(calls)
+                if expected:
+                    self.assertIn(f"#{hold or withdraw}: ::error::", out)
+
+    def test_the_newest_queue_run_and_attempt_decide(self):
+        older = group_run(2, LEAVES, created_at="2026-11-24T19:00:00Z")
+        code, out, _ = self.run_group(
+            self.ONE, group_runs={GROUP: [group_run(1, CI), older, group_run(3, LEAVES, conclusion="failure")]},
+            group_jobs={**GOOD_JOBS, 3: [job(31, 3, "quality (viewer)", "failure")]})
+        self.assertEqual(code, 1, out)
+        self.assertIn("Failed: quality (viewer): failure in run 3 attempt 1", out)
+        rerun = group_run(2, LEAVES, conclusion="failure", attempt=2, run_started_at="2026-11-24T22:00:00Z")
+        newer = group_run(3, LEAVES, run_started_at="2026-11-24T21:00:00Z")
+        code, out, _ = self.run_group(
+            self.ONE, group_runs={GROUP: [group_run(1, CI), rerun, newer]},
+            group_jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")], 3: [job(31, 3, "quality (viewer)")]})
+        self.assertEqual(code, 1, out)
+        self.assertIn("Failed: quality (viewer): failure in run 2 attempt 2", out)
+
+    def test_queue_runs_without_matching_provenance_are_ignored(self):
+        # Each case differs from a counted run in one field, in the listing GitHub returns for
+        # head_sha=GROUP&event=merge_group, so only the run binding can reject it.
+        for why, over in (("rebuilt entry's old commit", {"head_sha": "0" * 40}),
+                          ("another entry's queue commit", {"head_sha": E}),
+                          ("other queue branch", {"head_branch": f"gh-readonly-queue/main/pr-9-{BASE}"}),
+                          ("no head branch", {"head_branch": None}),
+                          ("other repository", {"repository": {"full_name": "x/r"}}),
+                          ("other head repository", {"head_repository": {"full_name": "fork/r"}}),
+                          ("no head repository", {"head_repository": None}),
+                          ("pull_request event", {"event": "pull_request", "pull_requests": OWN_PULL}),
+                          ("push event", {"event": "push"})):
+            with self.subTest(why=why), mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+                code, out, calls = self.run_group(
+                    self.ONE, group_runs={GROUP: [group_run(1, CI), group_run(2, LEAVES, **over)]})
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"applicable gate runs on {GROUP} are still open or have not started", out)
+                self.assertFalse([url for url in calls if url.endswith("/labels")])
+
+    def test_concurrent_entries_count_only_this_group_commit(self):
+        e_branch = f"gh-readonly-queue/main/pr-7-{BASE}"
+        own_e = [group_run(5, CI, head_sha=E, head_branch=e_branch), group_run(6, LEAVES, head_sha=E, head_branch=e_branch)]
+        jobs = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")],
+                5: [job(51, 5, "host-quality")], 6: [job(61, 6, "quality (viewer)")]}
+        queue = [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)]
+        code, out, calls = self.run_group(queue, group_runs={E: own_e, GROUP: [group_run(1, CI), group_run(
+            2, LEAVES, conclusion="failure")]}, group_jobs=jobs)
+        self.assertEqual(code, 1, out)
+        self.assertIn("Failed: quality (viewer): failure in run 2", out)
+        self.assertFalse([url for url in calls if f"/actions/runs?head_sha={E}" in url])
+        # The entry ahead's gate runs, even if listed for this commit, never stand in for its own.
+        with mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+            code, out, _ = self.run_group(queue, group_runs={GROUP: [group_run(1, CI)] + own_e[1:]}, group_jobs=jobs)
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"applicable gate runs on {GROUP}", out)
+
+    def test_pull_request_success_on_the_queue_commit_does_not_count(self):
+        stale = wf_run(2, LEAVES, head_sha=GROUP, head_branch=QUEUE_BRANCH)
+        with mock.patch.object(merge_hold, "WAIT_SECONDS", 0):
+            code, out, calls = self.run_group(self.ONE, gate_runs={GROUP: [stale]},
+                                              group_runs={GROUP: [group_run(1, CI)]})
+        self.assertEqual(code, 1, out)
+        self.assertFalse([url for url in calls if f"head_sha={GROUP}&event=pull_request" in url])
+        self.assertTrue([url for url in calls if f"head_sha={GROUP}&event=merge_group" in url])
+
+    def test_failed_predecessor_keeps_the_walk_and_this_group_gates_are_judged(self):
+        a1, a2 = "1" * 40, "2" * 40
+        failed_hold = {"check_runs": [{"name": "merge-hold", "status": "completed", "conclusion": "failure"}]
+                       + DONE["check_runs"][:2]}
+        queue = [entry(1, 7, a1, HEAD), entry(2, 9, a2, "9" * 40), entry(3, 8, GROUP, OTHER)]
+        commits = {a2: [failed_hold], a1: [DONE]}
+        code, out, calls = self.run_group(queue, commits=commits)
+        self.assertEqual(code, 0, out)
+        self.assertTrue([url for url in calls if f"/commits/{a1}/check-runs?" in url])
+        code, out, _ = self.run_group(queue, commits=commits,
+                                      group_jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]})
+        self.assertEqual(code, 1, out)
+        self.assertIn("::error::Failed: quality (viewer): failure in run 2", out)
+
+    def test_member_verdict_is_bound_to_its_current_head(self):
+        # The only successful pull_request merge-hold is on an older head of PR 8.
+        older = dict(gate_run(OTHER), head_sha="0" * 40)
+        code, out, _ = self.run_group(self.ONE, gate_runs={OTHER: [older]})
+        self.assertEqual(code, 1, out)
+        self.assertIn("#8: ::error::No successful pull_request merge-hold", out)
+        # A release for another head does not carry over, whatever the queue-commit gates say.
+        code, out, _ = self.run_group(self.ONE, labels={8: [merge_hold.LABEL]},
+                                      comments={8: [comment("acceptance-released: " + HEAD)]},
+                                      trees={GROUP: "1" * 40, OTHER: "1" * 40})
+        self.assertEqual(code, 1, out)
+        self.assertIn("#8: ::error::The 'acceptance-pending' label is set", out)
+
+    def test_shadow_policy_reports_queue_gates_without_blocking_or_waiting(self):
+        plan = group_plan(policy_mode="shadow")
+        jobs = {**GOOD_JOBS, 1: [job(11, 1, "host-quality", "failure")]}
+        for why, listed in (("failed and running", [group_run(1, CI, conclusion="failure"),
+                                                     group_run(2, LEAVES, status="in_progress", conclusion=None)]),
+                            ("never started", [group_run(1, CI, conclusion="failure")])):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(self.ONE, plan=plan, group_runs={GROUP: listed}, group_jobs=jobs)
+                self.assertEqual(code, 0, out)
+                self.assertNotIn("sleep", calls)
+                self.assertIn("::warning::(shadow, not blocking) Failed: host-quality: failure in run 1", out)
+                self.assertIn("::warning::(shadow, not blocking) Pending: ", out)
+
+    def test_queue_inputs_and_plan_are_bound_before_any_wait(self):
+        bad = "g" * 40
+
+        def plan_on(base):
+            return group_plan(shas={"base": base, "merge_base": base, "head": GROUP, "tested": GROUP},
+                              catalogue={"source_sha": base, "blob": "f" * 40})
+
+        # Each plan matches what the code passes the selector, so only the guard under test can fail it.
+        for why, env, plan in (
+                ("base is not the group's", dict(GROUP_ENV, BASE_SHA=OTHER), plan_on(OTHER)),
+                ("checkout is not the queue commit", dict(GROUP_ENV, TESTED_SHA=OTHER), None),
+                ("malformed base", dict(GROUP_ENV, BASE_SHA=bad, MERGE_GROUP_BASE_SHA=bad), plan_on(bad)),
+                ("empty tested", dict(GROUP_ENV, TESTED_SHA=""), None),
+                ("no event base", {k: v for k, v in GROUP_ENV.items() if k != "MERGE_GROUP_BASE_SHA"}, None),
+                ("no BASE_SHA", {k: v for k, v in GROUP_ENV.items() if k != "BASE_SHA"}, None),
+                ("pull_request plan", GROUP_ENV, group_plan(event="pull_request")),
+                ("plan of a pull request head", GROUP_ENV, plan_fixture()),
+                ("plan of another queue commit", GROUP_ENV,
+                 group_plan(shas={"base": BASE, "merge_base": BASE, "head": OTHER, "tested": OTHER})),
+                ("plan for another branch", GROUP_ENV, group_plan(ref="release")),
+                ("untrusted selector", GROUP_ENV, group_plan(selector={"trusted": False})),
+                ("unusable fallback", GROUP_ENV, group_plan(fallback={"code": "fetch-failed"}))):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(self.QUEUE, env=env, plan=plan)
+                self.assertEqual(code, 1, out)
+                self.assertFailsAtOnce(out, calls)
+        code, out, calls = self.run_group(self.QUEUE, ancestor=1)
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"does not contain the base {BASE}", out)
+        self.assertFailsAtOnce(out, calls)
+
 
 class FetchTests(TestCase):
     @staticmethod
@@ -759,6 +1010,19 @@ def job(job_id, run_id, name, conclusion="success", status="completed"):
 
 GOOD_RUNS = [wf_run(1, CI), wf_run(2, LEAVES)]
 GOOD_JOBS = {1: [job(11, 1, "host-quality"), job(12, 1, "advice")], 2: [job(21, 2, "quality (viewer)")]}
+
+
+def group_run(run_id, path, **over):
+    """A merge_group run of a gate workflow on the queue commit GROUP (MergeGroupTests)."""
+    return wf_run(run_id, path, **{"event": "merge_group", "head_sha": GROUP, "head_branch": QUEUE_BRANCH,
+                                   "pull_requests": [], **over})
+
+
+def group_plan(**over):
+    """The selector's merge_group plan for GROUP on BASE: mode full, fallback merge-group."""
+    return plan_fixture(**{"event": "merge_group", "mode": "full",
+                           "fallback": {"code": "merge-group", "detail": ["merge_group"], "reasons": ["merge-group"]},
+                           "shas": {"base": BASE, "merge_base": BASE, "head": GROUP, "tested": GROUP}, **over})
 
 
 class GateTests(TestCase):
@@ -1319,10 +1583,13 @@ class RecomputeTests(TestCase):
                 "json.dump({'argv': sys.argv[1:], 'isolated': sys.flags.isolated}, open(out, 'w'))\n")
             with mock.patch.object(merge_hold, "__file__", str(Path(tmp, "merge_hold.py"))):
                 plan = merge_hold.recompute_plan(BASE, HEAD, MERGE, "main", repo_dir=tmp)
+                queue = merge_hold.recompute_plan(BASE, GROUP, GROUP, "main", repo_dir=tmp, event="merge_group")
         self.assertEqual(plan["isolated"], 1)
         self.assertEqual(plan["argv"][:7], ["plan", "--event=pull_request", f"--base-sha={BASE}",
                                             f"--head-sha={HEAD}", f"--tested-sha={MERGE}", "--base-ref=main",
                                             f"--repo={tmp}"])
+        self.assertEqual(queue["argv"][:6], ["plan", "--event=merge_group", f"--base-sha={BASE}",
+                                             f"--head-sha={GROUP}", f"--tested-sha={GROUP}", "--base-ref=main"])
 
     def test_missing_or_failing_selector_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -1350,10 +1617,17 @@ class RecomputeTests(TestCase):
             tested = repo.git("rev-parse", "HEAD")
             with mock.patch.object(merge_hold, "__file__", str(fixture.SELECTOR.parent / "merge_hold.py")):
                 plan = merge_hold.recompute_plan(base, head, tested, "main", repo_dir=tmp)
+                # D1 step 2: the queue commit is both head and tested commit.
+                queue = merge_hold.recompute_plan(base, tested, tested, "main", repo_dir=tmp, event="merge_group")
         merge_hold.check_plan(plan, base, head, tested, "main")
         self.assertEqual(plan["mode"], "select")
         self.assertEqual([row["id"] for row in merge_hold.expected_gates(plan)],
                          ["ci#host-quality", "leaves#quality/solo"])
+        merge_hold.check_plan(queue, base, tested, tested, "main", event="merge_group")
+        self.assertEqual((queue["mode"], queue["fallback"]["code"]), ("full", "merge-group"))
+        self.assertEqual([row["id"] for row in merge_hold.expected_gates(queue)], ["ci#host-quality"])
+        with self.assertRaises(ValueError):  # bound to its event
+            merge_hold.check_plan(queue, base, tested, tested, "main")
 
 
 if __name__ == "__main__":
