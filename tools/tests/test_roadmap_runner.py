@@ -71,9 +71,12 @@ class Ledger(unittest.TestCase):
             def preflight():
                 controller.callbacks = "cb"
                 return "a" * 40
-            # Patched: pgrep also sees tagged processes of a concurrent run on the host.
+            # Patched: pgrep also sees tagged processes of a concurrent run on the host, and concurrent
+            # CI lanes write ignored files under build/ between the claim's snapshot and acquire().
             with unittest.mock.patch.object(rr, "LEDGER", ledger), \
                     unittest.mock.patch.object(rr.Controller, "refuse_live_workers"), \
+                    unittest.mock.patch.object(controller, "ignored_files",
+                                               return_value={"build/x": [0o100644, 1, 2, 3, 4]}), \
                     unittest.mock.patch.object(rr, "git_callbacks", return_value="cb"), \
                     unittest.mock.patch.object(controller, "preflight", side_effect=preflight):
                 with self.assertRaisesRegex(rr.Stop, "lock"):
@@ -763,10 +766,12 @@ class Session(unittest.TestCase):
                 self.assertEqual(json.loads(marker.read_text())["baseline"], "before")
                 fresh = rr.Controller(rr.Config(), root / "state")
                 no_worker = rr.subprocess.CompletedProcess([], 1, "", "")
+                # nested_git stubbed: concurrent CI lanes create and remove directories under build/.
                 with unittest.mock.patch.object(rr, "git_callbacks", return_value=later), \
                         unittest.mock.patch.object(fresh, "ignored_files", return_value={}), \
                         unittest.mock.patch.object(rr, "load_ledger", return_value={"tasks": []}), \
                         unittest.mock.patch.object(rr, "planted_modules", return_value=[]), \
+                        unittest.mock.patch.object(rr, "nested_git", return_value=[]), \
                         unittest.mock.patch.object(rr.subprocess, "run", return_value=no_worker), \
                         unittest.mock.patch.object(rr, "git", side_effect=rr.Stop("git reached")) as git:
                     with self.assertRaisesRegex(rr.Stop, "interrupted session" if stops else "git reached"):

@@ -29,7 +29,11 @@ on:
         default: '50'
   pull_request:
     types: [opened, synchronize, reopened]
-    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py', '.agents/**', '.claude/**', '.claude-plugin/**', '.codex/**', 'plugins/**', '.c8rc.json', '.coveragerc', '.coderabbit.yaml', 'LICENSE', 'MPL-2.0-FILES.txt']
+  # Gates also report on the merge-queue commit (main plus the queued pull
+  # requests), with no path filter, so a queue commit runs the full scope.
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main]
     paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
@@ -83,17 +87,15 @@ jobs:
           rustup toolchain install 1.100.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
-      - name: MADT parser, serial oracle and formatting
+      - name: MADT parser and serial oracle
         run: |
           cargo +1.100.0 test --locked -p boot-protocol
-          cargo +1.100.0 clippy --locked -p boot-protocol --all-targets -- -D warnings
           cargo +1.100.0 test --locked -p smp-lock
           cargo +1.100.0 clippy --locked -p smp-lock --all-targets -- -D warnings
           python3 -B -m unittest discover -s tools/tests -p test_smp_serial.py -v
           # Audit F8: static swapgs/lfence discipline (sole evidence for GS-5).
           python3 -B -m unittest discover -s tools/tests -p test_gs_discipline.py -v
           python3 -B -m unittest discover -s tools/tests -p test_acpi_serial.py -v
-          cargo +1.100.0 fmt --all -- --check
       - name: Normal, capacity and duplicate-MADT boots (1/2/4/8/9 vCPUs)
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-native-smp

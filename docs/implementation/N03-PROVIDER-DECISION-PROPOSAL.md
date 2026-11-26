@@ -1,7 +1,9 @@
 # N03 — TLS provider, test peer and time authority: decision proposal
 
-**Status: PROPOSED, 23 November 2026, awaiting a decision by the project owner
-and the security authority.** This memo selects nothing, adds no dependency
+**Status: DECIDED 25 November 2026 — see ADR-N03-PROVIDER-20261125 in
+[DECISIONS.md](../DECISIONS.md), which takes precedence over this memo.**
+Original status: PROPOSED, 23 November 2026, awaiting a decision by the project owner
+and the security authority. This memo selects nothing, adds no dependency
 and changes no security contract. It prepares the "Owner/SEC ADR on provider
 and test peer pinning" on which roadmap task N03-T2 is blocked. The evidence
 it relies on is the 23 November refresh in

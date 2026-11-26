@@ -126,19 +126,30 @@ pub fn discover_function(function: Function) -> Result<Discovery, Error> {
         config[offset..offset + 4].copy_from_slice(&cfg_read(offset as u16).to_le_bytes());
     }
     let regions = parse_capabilities(&config, &bars)?;
-    // Disable MSI/MSI-X as well as INTx; first driver polls without IRQ routing.
+    quiesce_interrupts(function, &config)?;
+    Ok(Discovery {
+        function,
+        config,
+        bars,
+        regions,
+    })
+}
+
+/// Disable MSI/MSI-X as well as INTx; the driver polls without IRQ routing.
+/// Walks the bounded capability list of the snapshot `config`.
+fn quiesce_interrupts(function: Function, config: &[u8; 256]) -> Result<(), Error> {
     let mut at = config[0x34] as usize;
     let mut count = 0;
     while at != 0 && count < 48 {
         if !(0x40..=0xfc).contains(&at) || !at.is_multiple_of(4) {
             return Err(Error::Protocol);
         }
-        let word = cfg_read(at as u16);
+        let word = cfg_read(function, at as u16);
         if config[at] == 5 {
-            cfg_write(at as u16, word & !(1 << 16));
+            cfg_write(function, at as u16, word & !(1 << 16));
         }
         if config[at] == 0x11 {
-            cfg_write(at as u16, (word & !(1 << 31)) | (1 << 30));
+            cfg_write(function, at as u16, (word & !(1 << 31)) | (1 << 30));
         }
         at = config[at + 1] as usize;
         count += 1;
@@ -146,12 +157,162 @@ pub fn discover_function(function: Function) -> Result<Discovery, Error> {
     if at != 0 {
         return Err(Error::Protocol);
     }
-    Ok(Discovery {
+    Ok(())
+}
+
+/// How the six BAR dwords of the fixed function compare with discovery after
+/// an S3 wake (H05-T5c; a copy of the virtio-rng H05-T5b rule). No BAR is
+/// ever sized again.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BarState {
+    /// Every BAR dword still equals the discovered value.
+    Kept,
+    /// Every BAR lost its address (only read-only type bits remain); the
+    /// discovered values were written back and read back equal.
+    Restored,
+}
+
+/// Classify the current BAR dwords against the discovered ones. Accepted are
+/// exactly two states: all unchanged, or all addresses cleared with the
+/// read-only type bits intact. Anything else (a mixture, a different non-zero
+/// base, changed type bits) is refused: the device then stays offline.
+pub fn classify_bars(saved: [u32; 6], now: [u32; 6]) -> Result<BarState, Error> {
+    if now == saved {
+        return Ok(BarState::Kept);
+    }
+    let mut i = 0;
+    while i < 6 {
+        let low = saved[i];
+        let (type_bits, wide) = if low & 1 != 0 {
+            (3, false)
+        } else {
+            (15, low & 6 == 4)
+        };
+        if now[i] != low & type_bits {
+            return Err(Error::Range);
+        }
+        if wide {
+            if i == 5 || now[i + 1] != 0 {
+                return Err(Error::Range);
+            }
+            i += 2;
+        } else {
+            i += 1;
+        }
+    }
+    Ok(BarState::Restored)
+}
+
+fn saved_dword(config: &[u8; 256], offset: usize) -> u32 {
+    u32::from_le_bytes([
+        config[offset],
+        config[offset + 1],
+        config[offset + 2],
+        config[offset + 3],
+    ])
+}
+
+/// The identity dwords compared after a wake, in this order: 0x00
+/// vendor/device, 0x08 revision/class, 0x2c subsystem, 0x34 capability
+/// pointer (its low byte; the rest is reserved).
+const IDENTITY: [u16; 4] = [0x00, 0x08, 0x2c, 0x34];
+
+/// Pure identity comparison (H05-T5c I4): every dword of `IDENTITY` must equal
+/// the discovered snapshot, and the snapshot must be the modern virtio-blk.
+pub fn identity_matches(saved: &[u8; 256], now: [u32; 4]) -> Result<(), Error> {
+    if saved_dword(saved, 0) != 0x10421af4 || now[0] != 0x10421af4 {
+        return Err(Error::Offline);
+    }
+    for (i, offset) in IDENTITY.into_iter().enumerate() {
+        let mask = if offset == 0x34 { 0xff } else { u32::MAX };
+        if saved_dword(saved, offset as usize) & mask != now[i] & mask {
+            return Err(Error::Protocol);
+        }
+    }
+    Ok(())
+}
+
+/// Re-validate the primary function after an S3 wake without sizing any BAR
+/// (H05-T5c I2-I4, I13): identity first with config reads only, then the six
+/// BAR dwords (restored only from the all-cleared state and read back),
+/// memory decode with INTx disabled and no bus mastering, the capability
+/// regions (equal to `saved`) and the MSI/MSI-X quiesce of discovery. No MMIO;
+/// DMA stays impossible until `Device::initialize_profile`.
+pub fn rediscover(saved: &Discovery) -> Result<BarState, Error> {
+    let function = saved.function;
+    if function != Function::Primary {
+        return Err(Error::Unsupported);
+    }
+    let now = IDENTITY.map(|offset| cfg_read(function, offset));
+    identity_matches(&saved.config, now)?;
+    // Decode and bus mastering off while the BARs may change.
+    command(function, (cfg_read(function, 4) as u16 & !7) | (1 << 10));
+    let mut old = [0u32; 6];
+    let mut bars = [0u32; 6];
+    for i in 0..6 {
+        old[i] = saved_dword(&saved.config, 0x10 + i * 4);
+        bars[i] = cfg_read(function, 0x10 + i as u16 * 4);
+    }
+    let state = classify_bars(old, bars)?;
+    if state == BarState::Restored {
+        for (i, value) in old.iter().enumerate() {
+            cfg_write(function, 0x10 + i as u16 * 4, *value);
+        }
+        for (i, value) in old.iter().enumerate() {
+            if cfg_read(function, 0x10 + i as u16 * 4) != *value {
+                return Err(Error::Range);
+            }
+        }
+    }
+    // The discovery state: memory decode, INTx disabled, no bus mastering.
+    command(
         function,
-        config,
-        bars,
-        regions,
-    })
+        (cfg_read(function, 4) as u16 & !7) | 2 | (1 << 10),
+    );
+    let cmd = cfg_read(function, 4);
+    if cmd & 7 != 2 || cmd & (1 << 10) == 0 {
+        return Err(Error::Protocol);
+    }
+    let mut config = [0u8; 256];
+    for offset in (0..256).step_by(4) {
+        config[offset..offset + 4]
+            .copy_from_slice(&cfg_read(function, offset as u16).to_le_bytes());
+    }
+    if parse_capabilities(&config, &saved.bars)? != saved.regions {
+        return Err(Error::Protocol);
+    }
+    quiesce_interrupts(function, &config)?;
+    Ok(state)
+}
+
+/// Negotiated transport state recorded by `initialize_profile` (H05-T5c I7).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Negotiated {
+    /// Feature bits the device offered (before any test-only masking).
+    pub offered: u64,
+    /// Feature bits the driver accepted.
+    pub features: u64,
+    /// queue_size_max of queue 0.
+    pub queue_max: u16,
+    /// queue_notify_off of queue 0.
+    pub notify_offset: u16,
+    /// Capacity in 512-byte sectors.
+    pub capacity: u64,
+}
+
+/// Pure negotiated-state comparison (H05-T5c I7): after re-init every field
+/// must equal the pre-sleep value, and the queue must still hold `QUEUE_SIZE`.
+pub fn negotiated_matches(saved: Negotiated, now: Negotiated) -> Result<(), Error> {
+    if now.queue_max < QUEUE_SIZE {
+        return Err(Error::Unsupported);
+    }
+    if now.capacity != saved.capacity {
+        return Err(Error::Range);
+    }
+    if now != saved {
+        return Err(Error::Protocol);
+    }
+    Ok(())
 }
 pub struct Device {
     function: Function,
@@ -165,6 +326,7 @@ pub struct Device {
     ready: bool,
     operation: virtio_core::Operation,
     prepared: bool,
+    negotiated: Negotiated,
 }
 impl Device {
     /// Kernel passes only supervisor UC mappings corresponding to the validated
@@ -226,6 +388,13 @@ impl Device {
                 length: 512,
             },
             prepared: false,
+            negotiated: Negotiated {
+                offered: 0,
+                features: 0,
+                queue_max: 0,
+                notify_offset: 0,
+                capacity: 0,
+            },
         };
         // SAFETY: All addresses come from validated supervisor UC BAR mappings.
         unsafe {
@@ -240,6 +409,7 @@ impl Device {
             write32(common, 1);
             let high = read32(common + 4);
             let mut offered = u64::from(low) | (u64::from(high) << 32);
+            result.negotiated.offered = offered;
             if no_flush {
                 offered &= !(1 << 9);
             }
@@ -248,6 +418,7 @@ impl Device {
             } else {
                 virtio_core::negotiate_features(offered)?
             };
+            result.negotiated.features = features;
             write32(common + 8, 0);
             write32(common + 12, features as u32);
             write32(common + 8, 1);
@@ -260,7 +431,8 @@ impl Device {
                 return Err(Error::Protocol);
             }
             write16(common + 22, 0);
-            if read16(common + 24) < QUEUE_SIZE {
+            result.negotiated.queue_max = read16(common + 24);
+            if result.negotiated.queue_max < QUEUE_SIZE {
                 return Err(Error::Unsupported);
             }
             write16(common + 24, QUEUE_SIZE);
@@ -280,6 +452,7 @@ impl Device {
             write64(common + 40, pool.available);
             write64(common + 48, pool.used);
             let queue_offset = read16(common + 30);
+            result.negotiated.notify_offset = queue_offset;
             let relative = info.regions.notify_address(&info.bars, queue_offset)?
                 - info.bars[info.regions.notify.bar as usize].base;
             result.notify = mapped[info.regions.notify.bar as usize]
@@ -302,6 +475,7 @@ impl Device {
                 }
             }
             result.capacity = capacity.ok_or(Error::Protocol)?;
+            result.negotiated.capacity = result.capacity;
             if result.capacity < 8 {
                 return Err(Error::Range);
             }
@@ -526,6 +700,10 @@ impl Device {
     pub fn pending(&self) -> bool {
         self.pending
     }
+    /// The transport state recorded by `initialize_profile`; no device access.
+    pub fn negotiated(&self) -> Negotiated {
+        self.negotiated
+    }
     pub fn kick(&mut self) {
         if self.pending && self.ready {
             // SAFETY: Validated own queue notify register, no pointer argument.
@@ -575,7 +753,188 @@ unsafe fn write64(a: u64, v: u64) {
 }
 #[cfg(test)]
 mod tests {
-    use super::Function;
+    use super::*;
+    use virtio_core::{Binding, Operation, Policy};
+
+    /// QEMU q35, 00:05.0 BAR4 64-bit prefetchable, before and after a wake
+    /// that cleared the addresses (the H05-T5b observation on 00:06.0).
+    const DISCOVERED: [u32; 6] = [0, 0x8000_1000, 0, 0, 0x0000_800c, 0xc0];
+    const WOKEN: [u32; 6] = [0, 0, 0, 0, 0xc, 0];
+
+    #[test]
+    fn classify_bars_keeps_or_restores_only_from_the_cleared_state() {
+        assert_eq!(classify_bars(DISCOVERED, DISCOVERED), Ok(BarState::Kept));
+        assert_eq!(classify_bars(DISCOVERED, WOKEN), Ok(BarState::Restored));
+        assert_eq!(classify_bars([0; 6], [0; 6]), Ok(BarState::Kept));
+        assert_eq!(
+            classify_bars([0xc001, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0]),
+            Ok(BarState::Restored)
+        );
+        for now in [
+            [0, 0x8000_1000, 0, 0, 0xc, 0],
+            [0, 0, 0, 0, 0x0000_800c, 0xc0],
+            [0, 0x8000_2000, 0, 0, 0x0000_800c, 0xc0],
+            [0, 0, 0, 0, 0xc, 0xc1],
+            [0, 0, 0, 0, 0x0000_900c, 0],
+            [0, 0, 0, 0, 0x4, 0],
+            [0, 0, 0, 0, 0x0, 0],
+            [0, 1, 0, 0, 0xc, 0],
+            [0x1000, 0, 0, 0, 0xc, 0],
+            [0, 0, 0, 0x8, 0xc, 0],
+            [u32::MAX; 6],
+        ] {
+            assert_eq!(
+                classify_bars(DISCOVERED, now),
+                Err(Error::Range),
+                "{now:x?}"
+            );
+        }
+        assert_eq!(
+            classify_bars([0x1000, 0, 0, 0, 0, 4], [0, 0, 0, 0, 0, 4]),
+            Err(Error::Range)
+        );
+    }
+
+    fn snapshot() -> ([u8; 256], [u32; 4]) {
+        let mut config = [0u8; 256];
+        let identity: [u32; 4] = [0x1042_1af4, 0x0100_0001, 0x0002_1af4, 0x0000_0098];
+        for (offset, value) in IDENTITY.into_iter().zip(identity) {
+            config[offset as usize..offset as usize + 4].copy_from_slice(&value.to_le_bytes());
+        }
+        (config, identity)
+    }
+
+    #[test]
+    fn rediscover_identity_refuses_every_changed_field() {
+        let (saved, now) = snapshot();
+        assert_eq!(identity_matches(&saved, now), Ok(()));
+        // Reserved bits above the capability pointer byte are ignored.
+        let mut reserved = now;
+        reserved[3] |= 0xff00;
+        assert_eq!(identity_matches(&saved, reserved), Ok(()));
+        for (i, bits) in [(1, 1), (1, 1 << 24), (2, 1), (2, 1 << 16), (3, 4)] {
+            let mut changed = now;
+            changed[i] ^= bits;
+            assert_eq!(
+                identity_matches(&saved, changed),
+                Err(Error::Protocol),
+                "{i} {bits:x}"
+            );
+        }
+        // A different function or a vanished device: Offline.
+        let mut other = now;
+        other[0] = 0x1044_1af4;
+        assert_eq!(identity_matches(&saved, other), Err(Error::Offline));
+        other[0] = u32::MAX;
+        assert_eq!(identity_matches(&saved, other), Err(Error::Offline));
+        let mut wrong = saved;
+        wrong[2] = 0x44;
+        assert_eq!(identity_matches(&wrong, now), Err(Error::Offline));
+    }
+
+    const SAVED: Negotiated = Negotiated {
+        offered: (1 << 32) | (1 << 9) | (1 << 5),
+        features: (1 << 32) | (1 << 9),
+        queue_max: 256,
+        notify_offset: 0,
+        capacity: 4096,
+    };
+
+    #[test]
+    fn negotiated_state_compare_refuses_any_difference() {
+        assert_eq!(negotiated_matches(SAVED, SAVED), Ok(()));
+        let changes = [
+            Negotiated {
+                capacity: 4097,
+                ..SAVED
+            },
+            Negotiated {
+                capacity: 4095,
+                ..SAVED
+            },
+            Negotiated {
+                offered: SAVED.offered | (1 << 33),
+                ..SAVED
+            },
+            Negotiated {
+                features: SAVED.features & !(1 << 9),
+                ..SAVED
+            },
+            Negotiated {
+                queue_max: 128,
+                ..SAVED
+            },
+            Negotiated {
+                notify_offset: 1,
+                ..SAVED
+            },
+        ];
+        let expected = [
+            Error::Range,
+            Error::Range,
+            Error::Protocol,
+            Error::Protocol,
+            Error::Protocol,
+            Error::Protocol,
+        ];
+        for (now, error) in changes.into_iter().zip(expected) {
+            assert_eq!(negotiated_matches(SAVED, now), Err(error), "{now:?}");
+        }
+        // A queue smaller than QUEUE_SIZE is refused even if it was so before.
+        let small = Negotiated {
+            queue_max: QUEUE_SIZE - 1,
+            ..SAVED
+        };
+        assert_eq!(negotiated_matches(small, small), Err(Error::Unsupported));
+    }
+
+    /// I9 on the public Policy API, as the kernel re-init drives it: one
+    /// `start_reset` -> `reset_completed(true)` on the same object keeps the
+    /// ticket sequence (observed on a copy), advances the epoch by one and
+    /// refuses every pre-sleep ticket and epoch.
+    #[test]
+    fn policy_epoch_ticket_floor_survives_the_reinit_reset() {
+        let binding = Binding {
+            pid: 7,
+            object_key: 1 << 32,
+        };
+        let read = Operation::Read {
+            sector: 0,
+            offset: 0,
+            length: 1,
+        };
+        let next = |policy: &Policy| {
+            let mut probe = *policy;
+            probe.prepare(binding, read, 8, 0, 1).unwrap().ticket
+        };
+        let mut policy = Policy::new();
+        policy.reset_completed(true).unwrap();
+        for _ in 0..3 {
+            let r = policy.prepare(binding, read, 8, 0, 1).unwrap();
+            policy.publish(r.epoch, r.ticket).unwrap();
+            policy
+                .complete(r.epoch, r.ticket, Completion::Success)
+                .unwrap();
+            policy.consume(binding, r.ticket).unwrap();
+        }
+        let floor = next(&policy);
+        let epoch = policy.epoch();
+        assert_eq!(floor, 4);
+        policy.start_reset().unwrap();
+        policy.reset_completed(true).unwrap();
+        assert_eq!(policy.epoch(), epoch + 1);
+        assert_eq!(next(&policy), floor, "the ticket floor never restarts");
+        assert_eq!(policy.peek(binding, floor - 1), Err(Error::WrongTicket));
+        let mut probe = policy;
+        let r = probe.prepare(binding, read, 8, 0, 1).unwrap();
+        assert_eq!(probe.publish(epoch, r.ticket), Err(Error::StaleEpoch));
+        // A refused re-init quarantines the same object; no ticket restarts.
+        let mut refused = policy;
+        refused.start_reset().unwrap();
+        assert_eq!(refused.reset_completed(false), Err(Error::Offline));
+        assert_eq!(refused.phase(), virtio_core::Phase::Quarantined);
+        assert_eq!(refused.start_reset(), Err(Error::Offline));
+    }
     #[test]
     fn only_two_fixed_functions_are_reachable() {
         // Exhaustive match: adding a variant fails to compile here.
