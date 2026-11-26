@@ -89,7 +89,10 @@ workflow_dispatch = "manual"
 # merge-hold decides at once (0) and fails with "Pending" while gates run, so it
 # holds no runner while it waits; merge-hold-recheck.yml re-runs it once the gate
 # runs of the head have finished (#494 B9, docs/CI-CONTRACT.md "Waiting"). On
-# merge_group it still waits. Both stay below the 50-minute job timeout.
+# merge_group it still waits, now also for every applicable gate run of the queue
+# commit, and ends early when the group leaves the queue or a gate has failed
+# (D1 step 2, docs/CI-CONTRACT.md "merge_group"). Both stay below the 50-minute
+# job timeout.
 [policy.budgets]
 pull_request_wait_minutes = 0
 merge_group_wait_minutes = 45

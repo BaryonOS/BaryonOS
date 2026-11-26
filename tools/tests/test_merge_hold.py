@@ -218,6 +218,7 @@ class MergeGroupTests(TestCase):
                 return answer_
             if "/jobs?" in url:
                 listed = group_jobs.get(int(url.split("/runs/")[1].split("/")[0]), [])
+                listed = listed() if callable(listed) else listed  # an answer per read, e.g. one that fails once
                 return {"total_count": len(listed), "jobs": listed}
             if "/actions/runs?" in url:
                 head = url.split("head_sha=")[1].split("&")[0]
@@ -892,6 +893,8 @@ class MergeGroupTests(TestCase):
                 code, out, calls = self.run_group(self.ONE, plan=plan, group_runs={GROUP: listed}, group_jobs=jobs)
                 self.assertEqual(code, 0, out)
                 self.assertNotIn("sleep", calls)
+                # Not judged early either: the only run listing is the final report's.
+                self.assertEqual(len([url for url in calls if f"head_sha={GROUP}&event=merge_group" in url]), 1)
                 self.assertIn("::warning::(shadow, not blocking) Failed: host-quality: failure in run 1", out)
                 self.assertIn("::warning::(shadow, not blocking) Pending: ", out)
 
@@ -925,6 +928,124 @@ class MergeGroupTests(TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn(f"does not contain the base {BASE}", out)
         self.assertFailsAtOnce(out, calls)
+
+    # Round 2 (#494): shadow keeps the base's equal-tree rule; the gate wait ends early.
+    def test_unheld_member_lands_another_tree_only_after_an_enforced_clean_report(self):
+        trees = {GROUP: "1" * 40, OTHER: "2" * 40}
+        rule = (f"#8: ::error::The applicable gates ran on {OTHER}, but its queue entry {GROUP} lands a "
+                "different tree, and merge-hold does not yet judge the gates on merge_group. Update the branch.")
+        failed = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]}
+        pending = {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", None, "in_progress")]}
+        code, out, _ = self.run_group(self.ONE, trees=trees)
+        self.assertEqual(code, 0, out)  # enforced and clean: the queue-commit report covers the landing tree
+        self.assertIn("#8: No acceptance hold is set.", out)
+        shadow = group_plan(policy_mode="shadow")
+        for why, jobs in (("clean", GOOD_JOBS), ("failed", failed)):
+            with self.subTest(policy="shadow", report=why):
+                code, out, _ = self.run_group(self.ONE, trees=trees, plan=shadow, group_jobs=jobs)
+                self.assertEqual(code, 1, out)
+                self.assertIn(rule, out)
+                code, out, _ = self.run_group(self.ONE, plan=shadow, group_jobs=jobs)
+                self.assertEqual(code, 0, out)  # an equal tree still passes under shadow
+        # Enforced with a Failed or only a Pending line: the group fails anyway and the member keeps the rule.
+        for why, jobs in (("failed", failed), ("pending", pending)):
+            with self.subTest(policy="enforce", report=why):
+                code, out, _ = self.run_group(self.ONE, trees=trees, group_jobs=jobs)
+                self.assertEqual(code, 1, out)
+                self.assertIn(rule, out)
+                code, out, _ = self.run_group(self.ONE, group_jobs=jobs)
+                self.assertEqual(code, 1, out)
+                self.assertIn("#8: No acceptance hold is set.", out)
+
+    def test_group_that_leaves_the_queue_during_the_gate_wait_fails_after_two_reads(self):
+        # Gate runs stay open, so only the queue read of every gate poll can end this wait early.
+        def remove(labels, comments, nodes):
+            nodes[:] = [node for node in nodes if node["headCommit"]["oid"] != GROUP]
+
+        def rebuild(labels, comments, nodes):
+            for node in nodes:
+                if node["headCommit"]["oid"] == GROUP:
+                    node["headCommit"] = {"oid": "f" * 40}
+
+        listed = [group_run(1, CI), group_run(2, LEAVES, status="in_progress", conclusion=None)]
+        for why, change in (("removed", remove), ("rebuilt", rebuild)):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group([entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)],
+                                                  group_runs={GROUP: listed}, on_sleep=change)
+                self.assertEqual(code, 1, out)
+                self.assertIn("no longer in the merge queue", out)
+                self.assertEqual(calls.count("sleep"), 2)
+                self.assertFalse([url for url in calls if url.endswith("/labels") or "/jobs?" in url])
+
+    def test_a_failed_gate_ends_the_gate_wait_with_its_full_report(self):
+        def checks(name, conclusion):
+            return [{"check_runs": DONE["check_runs"] + [
+                {"id": 99, "name": name, "status": "completed", "conclusion": conclusion}]}]
+
+        running = group_run(2, LEAVES, status="in_progress", conclusion=None)
+        storage = group_run(3, STORAGE, status="in_progress", conclusion=None)  # keeps the runs open
+        for why, answers, listed, jobs, line in (
+                ("failed job in a running run", checks("quality (viewer)", "failure"), [group_run(1, CI), running],
+                 {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "failure")]},
+                 f"::error::Failed: quality (viewer): failure in run 2 attempt 1 ({LEAVES})"),
+                ("skipped expected gate", checks("quality (viewer)", "skipped"), [group_run(1, CI), running],
+                 {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "skipped")]},
+                 f"::error::Failed: quality (viewer): skipped in run 2 attempt 1 ({LEAVES})"),
+                ("unexpected failed job", checks("renamed", "failure"), [group_run(1, CI), running],
+                 {**GOOD_JOBS, 1: [job(11, 1, "host-quality"), job(13, 1, "renamed", "failure")]},
+                 "::error::Failed: renamed: failure in run 1 attempt 1"),
+                ("cancelled run", [DONE], [group_run(1, CI), group_run(2, LEAVES, conclusion="cancelled"), storage],
+                 {**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", "cancelled")]},
+                 f"::error::Failed: quality (viewer): cancelled in run 2 attempt 1 ({LEAVES})"),
+                ("run without jobs", [DONE], [group_run(1, CI), group_run(2, LEAVES, conclusion="startup_failure"),
+                                              storage],
+                 {**GOOD_JOBS, 2: []}, f"::error::Failed: quality (viewer): missing from run 2 attempt 1 ({LEAVES})")):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(self.QUEUE, checks=answers, group_runs={GROUP: listed},
+                                                  group_jobs=jobs)
+                self.assertEqual(code, 1, out)
+                self.assertIn(line, out)
+                self.assertNotIn("sleep", calls)
+                self.assertNotIn("did not complete in time", out)
+                # One wait poll and the report that ended it, which also decides: no second report.
+                self.assertEqual(len([url for url in calls if f"head_sha={GROUP}&event=merge_group" in url]), 2)
+
+    def test_a_failure_the_report_does_not_count_is_judged_once_and_the_wait_goes_on(self):
+        advisory = [{"check_runs": DONE["check_runs"] + [
+            {"id": 97, "name": "advice", "status": "completed", "conclusion": "failure"}]}]
+        listing = {GROUP: [group_run(1, CI), group_run(2, LEAVES, status="in_progress", conclusion=None)]}
+        sleeps = []
+
+        def finish(labels, comments, nodes):
+            sleeps.append(1)
+            if len(sleeps) == 2:
+                listing[GROUP] = [group_run(1, CI), group_run(2, LEAVES)]
+
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=advisory, group_runs=listing, on_sleep=finish,
+            group_jobs={**GOOD_JOBS, 1: [job(11, 1, "host-quality"), job(12, 1, "advice", "failure")]})
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 2)
+        # The early report of the first poll reads two runs' jobs, the final report two more.
+        self.assertEqual(len([url for url in calls if "/jobs?" in url]), 4)
+
+    def test_an_early_report_that_could_not_be_read_is_made_again(self):
+        reads = []
+
+        def leaves_jobs():
+            reads.append(1)
+            if len(reads) == 1:
+                raise OSError("HTTP 502")
+            return [job(21, 2, "quality (viewer)", "failure")]
+
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=[{"check_runs": DONE["check_runs"] + [
+                {"id": 99, "name": "quality (viewer)", "status": "completed", "conclusion": "failure"}]}],
+            group_runs={GROUP: [group_run(1, CI), group_run(2, LEAVES, status="in_progress", conclusion=None)]},
+            group_jobs={**GOOD_JOBS, 2: leaves_jobs})
+        self.assertEqual(code, 1, out)
+        self.assertIn(f"::error::Failed: quality (viewer): failure in run 2 attempt 1 ({LEAVES})", out)
+        self.assertEqual(calls.count("sleep"), 1)
 
 
 class FetchTests(TestCase):

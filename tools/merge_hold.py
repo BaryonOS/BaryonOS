@@ -23,8 +23,14 @@ A hold added after that final read, until GitHub merges the group, is not seen
 (ADR-MERGE-HOLD-20261113). The 45-minute deadline covers the group's
 own checks and gate runs and the whole chain ahead, each position adding up to one poll.
 A group whose commit has left the queue (ejected or rebuilt) can never merge;
-once its own checks have completed, two consecutive well-formed reads, one
-poll apart, that both lack it end the wait with a failure. It then evaluates
+once its own checks have completed, every poll reads the queue first, also
+while gate runs are open, and two consecutive well-formed reads, one poll
+apart, that both lack it end the wait with a failure. Under an enforcing plan
+a gate of the queue commit that has already failed ends the wait too: a newest
+gate run that completed without success, or a completed check run with a
+blocking conclusion (any conclusion but success for an expected gate), makes
+one full gate report, and a Failed line in it fails the group with that report.
+It then evaluates
 every pull request whose changes the merge-queue commit contains: the queue
 entry whose commit is the group head plus
 every entry ahead of it that has not merged yet (a merged one is already on
@@ -72,9 +78,11 @@ but have not been observed live yet: the first queue trial must capture one real
 run payload. Every member still needs its hold decision, a released hold an
 entry tree equal to the released head tree, and a successful `pull_request`
 merge-hold on its own head (defense in depth). An unheld member may land a tree
-other than its head's, because the queue-commit report covers that tree. Under
-`shadow` the group neither waits for gate runs nor blocks on them, as before
-step 2.
+other than its head's only when the queue-commit report was enforced and clean
+(no Pending or Failed line), because only then does it cover that tree; under
+`shadow`, or with any Pending or Failed line, its entry tree must equal its head
+tree as before step 2. Under `shadow` the group neither waits for gate runs nor
+blocks on them, as before step 2.
 """
 
 import json
@@ -226,6 +234,14 @@ class LeftQueue(ValueError):
     """This group's commit is no longer in the merge queue, so the group can never merge."""
 
 
+class GateFailed(Exception):
+    """A gate of the queue commit has already failed; report is the full gate report that shows it."""
+
+    def __init__(self, report):
+        super().__init__("an applicable gate failed on the merge queue commit")
+        self.report = report
+
+
 def left_queue(nodes, head_sha, number):
     """True only if this well-formed queue read positively shows the group has left it.
 
@@ -321,37 +337,65 @@ def completed_runs(token, repo, sha):
             raise ValueError("Too many pages")
 
 
-def unfinished(token, repo, sha, names):
-    """Names of the check runs on sha that have not completed."""
-    done = completed_runs(token, repo, sha)
-    return [f"{name} on {sha}" for name in names if name not in done]
+def end_on_failed_gate(token, repo, sha, plan, queue_branch, checks, newest, judged):
+    """Raise GateFailed when the full gate report of the queue commit already has a Failed line.
+
+    A full report costs about two requests per counted run, so it is made only when this
+    poll shows a failure not judged before: a newest gate run that completed without
+    success, or a completed check run of the commit (checks, by name) with a blocking
+    conclusion or, for an expected gate, any conclusion but success. Only the report
+    decides, so its Failed lines are those the final report gives; a trigger it does not
+    count (an advisory job, a superseded run) is not judged again. judged collects the
+    triggers already judged, and only after a report was read.
+    """
+    expected = expected_gates(plan)
+    triggers = {("run", run["id"], run.get("run_attempt")) for run in newest.values()
+                if run.get("status") == "completed" and run.get("conclusion") != "success"}
+    triggers |= {("check", check.get("id"), name) for name, check in checks.items()
+                 if check.get("conclusion") in BLOCKING_CONCLUSIONS
+                 or (check.get("conclusion") != "success" and any(job_matches(row, check) for row in expected))}
+    if triggers <= judged:
+        return
+    report = gate_report(token, repo, None, sha, plan, queue_branch=queue_branch)
+    judged |= triggers
+    if report[2]:
+        raise GateFailed(report)
 
 
-def still_running(token, repo, sha, number, plan, queue_branch):
+def still_running(token, repo, sha, number, plan, queue_branch, judged):
     """What this group still waits for: its own checks and gate runs, then the entries ahead.
 
-    Under an enforcing plan every gated workflow run of this group's own commit
-    must be closed and every expected gate must have a run (runs_open with the
-    merge_group binding) before the walk; under `shadow` the gates do not block,
-    so they are not awaited either.
+    Once host-quality and qemu-smoke have completed, every poll reads the queue
+    first, so a group that has left it raises LeftQueue also while its gate runs
+    are open. Under an enforcing plan every gated workflow run of this group's own
+    commit must then be closed and every expected gate must have a run (the
+    merge_group binding of run_matches) before the walk, and a gate that has
+    already failed raises GateFailed (end_on_failed_gate); under `shadow` the gates
+    do not block, so they are neither awaited nor judged early.
     Entries ahead are walked from the nearest outward. The walk stops at the
     first entry whose `merge-hold` concluded `success`: only a successful run
     went through this same wait, so every entry ahead of it had finished. A
     `merge-hold` that ended otherwise (failed early, cancelled, runner lost)
     proves nothing about the entries ahead of it, so the walk continues. Each
-    run makes one REST request per check-run page of each entry walked plus one
-    GraphQL query per poll; usually that is one page of the nearest entry only. "The rate limit for
+    poll makes one REST request per check-run page of this commit and of each entry
+    walked, one GraphQL query and, under an enforcing plan, one run listing of this
+    commit; usually that is one page each. A full gate report is added only for a
+    failure not judged before (end_on_failed_gate). "The rate limit for
     GITHUB_TOKEN is 1,000 requests per hour per repository"
     (https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api);
     beyond it reads fail, are retried and, at the deadline, fail closed.
     """
-    pending = unfinished(token, repo, sha, WAIT_CHECKS)
+    done = completed_runs(token, repo, sha)
+    pending = [f"{name} on {sha}" for name in WAIT_CHECKS if name not in done]
     if pending:
         return pending
-    if plan.get("policy_mode") != "shadow" and runs_open(token, repo, None, sha, plan, queue_branch):
-        return [f"applicable gate runs on {sha} are still open or have not started"]
     nodes = queue_nodes(token, repo)
     _, position = own_position(nodes, sha, number)
+    if plan.get("policy_mode") != "shadow":
+        newest = newest_gate_runs(token, repo, None, sha, plan, queue_branch)
+        end_on_failed_gate(token, repo, sha, plan, queue_branch, done, newest, judged)
+        if gates_open(newest, plan):
+            return [f"applicable gate runs on {sha} are still open or have not started"]
     ahead = [node for node in nodes if node["position"] < position]
     for node in sorted(ahead, key=lambda node: node["position"], reverse=True):
         oid = commit_oid(node)
@@ -369,6 +413,9 @@ def still_running(token, repo, sha, number, plan, queue_branch):
 def wait_for_checks(token, repo, sha, number, plan, queue_branch, budget=WAIT_SECONDS):
     """Block until this group's checks, its gate runs and the entries ahead have finished; raise at the deadline.
 
+    Return None, or the full gate report (passed, pending, failed) of the queue
+    commit when an already failed gate ended the wait early; that report then
+    decides, and its Failed lines fail the group.
     Only the timing depends on this: the decision afterwards reads the queue,
     labels and comments live and fails closed. API errors and unbuilt entries
     are retried, because waiting longer never weakens the hold. An entry ahead
@@ -378,11 +425,13 @@ def wait_for_checks(token, repo, sha, number, plan, queue_branch, budget=WAIT_SE
     single read may lag behind the queue.
     """
     deadline = time.monotonic() + budget
-    absent = 0
+    absent, judged = 0, set()
     while True:
         try:
-            pending = still_running(token, repo, sha, number, plan, queue_branch)
+            pending = still_running(token, repo, sha, number, plan, queue_branch, judged)
             absent = 0
+        except GateFailed as failed:
+            return failed.report
         except LeftQueue:
             absent += 1
             if absent >= 2:
@@ -392,7 +441,7 @@ def wait_for_checks(token, repo, sha, number, plan, queue_branch, budget=WAIT_SE
             absent = 0
             pending = [f"queue or check-run read failed: {exc}"]
         if not pending:
-            return
+            return None
         if time.monotonic() >= deadline:
             raise ValueError(f"required checks did not complete in time: {pending}")
         time.sleep(POLL_SECONDS)
@@ -577,22 +626,33 @@ def runs_open(token, repo, pull, head_sha, plan, queue_branch=None):
     the wait goes on and the next full report decides, so a transient API error
     neither ends the wait nor fails the job. queue_branch binds runs as in run_matches.
     """
-    workflows = gated_workflows(plan) - {GATE_WORKFLOW}
-    event = "pull_request" if queue_branch is None else "merge_group"
-    url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event={event}"
     try:
-        runs = [run for run in fetch_listing(token, url, "workflow_runs")
-                if run.get("path") in workflows and run_matches(run, repo, pull, head_sha, queue_branch)]
-        newest = {}
-        for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
-            order = run_order(run)  # every counted run must be orderable, the first one too
-            if run["path"] not in newest or order > run_order(newest[run["path"]]):
-                newest[run["path"]] = run
+        newest = newest_gate_runs(token, repo, pull, head_sha, plan, queue_branch)
     except (OSError, ValueError, TypeError) as error:
         # A run without a start or creation time also lands here: the wait goes on and the
         # next full report (at the latest at the deadline) fails closed on it.
         print(f"::warning::merge-hold wait poll failed ({error}); still waiting", file=sys.stderr)
         return True
+    return gates_open(newest, plan)
+
+
+def newest_gate_runs(token, repo, pull, head_sha, plan, queue_branch=None):
+    """The newest matching run of each gated workflow for this head, by path (one run listing); raise on doubt."""
+    workflows = gated_workflows(plan) - {GATE_WORKFLOW}
+    event = "pull_request" if queue_branch is None else "merge_group"
+    url = f"{API}/repos/{repo}/actions/runs?head_sha={head_sha}&event={event}"
+    runs = [run for run in fetch_listing(token, url, "workflow_runs")
+            if run.get("path") in workflows and run_matches(run, repo, pull, head_sha, queue_branch)]
+    newest = {}
+    for run in runs:  # the newest run decides, as in gate_report; a superseded open run does not count
+        order = run_order(run)  # every counted run must be orderable, the first one too
+        if run["path"] not in newest or order > run_order(newest[run["path"]]):
+            newest[run["path"]] = run
+    return newest
+
+
+def gates_open(newest, plan):
+    """True while one of these newest gate runs is open or an expected gate's workflow has no run."""
     return (any(run.get("status") != "completed" for run in newest.values())
             or any(row["workflow"] not in newest for row in expected_gates(plan)))
 
@@ -807,10 +867,12 @@ def merge_group_hold(token, repo):
     branch = head_ref.removeprefix("refs/heads/")
     # Decide last: the gates, labels and comments are read only after this group's
     # checks and gate runs and every entry ahead (which merge first) have finished.
-    wait_for_checks(token, repo, head_sha, int(match.group(1)), plan, branch, base_wait_seconds(base_sha))
-    passed_gates, pending, failed = gate_report(token, repo, None, head_sha, plan, queue_branch=branch)
+    early = wait_for_checks(token, repo, head_sha, int(match.group(1)), plan, branch, base_wait_seconds(base_sha))
+    # A gate that already failed ended the wait: that full report decides, as the final one would.
+    passed_gates, pending, failed = early or gate_report(token, repo, None, head_sha, plan, queue_branch=branch)
     _, report, tail = gate_lines(plan, passed_gates, pending, failed)
-    ok = (not failed and not pending) or plan.get("policy_mode") == "shadow"
+    enforce, clean = plan.get("policy_mode") != "shadow", not failed and not pending
+    ok = clean or not enforce
     members = group_members(token, repo, head_ref, head_sha)
     lines = []
     for node in members:
@@ -818,14 +880,19 @@ def merge_group_hold(token, repo):
         number, pr_head = pull["number"], pull["headRefOid"]
         passed, message, labels = pull_request_hold(token, repo, number, pr_head)
         # A released hold covers only the tree it ran on, so this PR's own queue
-        # entry (the commit main becomes when it merges) must land that tree. The
-        # gates of the tree this group lands are judged on the queue commit above.
+        # entry (the commit main becomes when it merges) must land that tree. An
+        # unheld member may land another tree only when the enforced queue-commit
+        # report above is clean, because only then do its gates cover that tree.
         same_tree = tree(token, repo, entry_commit) == tree(token, repo, pr_head)
         if passed and LABEL in labels and not same_tree:
             passed, message = False, (
                 f"Acceptance for {pr_head} covers its own tree, but its queue entry "
                 f"{entry_commit} lands a different tree. Update the branch and re-release, "
                 "or let the pull requests ahead merge first.")
+        elif passed and not same_tree and not (enforce and clean):
+            passed, message = False, (
+                f"The applicable gates ran on {pr_head}, but its queue entry {entry_commit} lands a "
+                "different tree, and merge-hold does not yet judge the gates on merge_group. Update the branch.")
         elif passed and not pull_request_gates_passed(token, repo, pr_head, number):
             passed, message = False, (
                 f"No successful pull_request merge-hold verified the applicable gates on {pr_head}.")
