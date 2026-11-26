@@ -1,10 +1,11 @@
 # Event-driven re-check for merge-hold (#494 B9). merge-hold decides at once on
 # pull_request (policy.budgets.pull_request_wait_minutes = 0) and fails with
 # "Pending" while gates still run, instead of holding a runner while it polls.
-# When a gate workflow finishes for a same-repository pull request, this
-# workflow re-runs the newest failed, timed-out or cancelled merge-hold run of
-# that head once no gate run is open any more; the re-run decides again from
-# live data. It never passes or fails a check itself. `workflows` lists the
+# When a watched gate re-run starts for a same-repository pull request, this
+# workflow invalidates an older passing or still-active merge-hold. When a
+# listed workflow finishes, it invalidates older passing evidence immediately
+# and retries a red hold once no gate run is open; the re-run decides again
+# from live data. It never passes or fails a check itself. `workflows` lists the
 # `name:` of every workflow that owns an automatic core or rwa job in
 # .github/ci-impact.toml and, as triggers only, of every other catalogue
 # workflow with a pull_request trigger, whose runs can also leave merge-hold
@@ -44,22 +45,24 @@ on:
       - Security alert summary
       - Storage resilience acceptance
       - Windows QEMU native Materiaal test bundle
-    types: [completed]
+    types: [in_progress, completed]
+    # Main-push activities cannot affect a pull request hold; filter them before
+    # GitHub creates a skipped re-check job. Merge-queue refs use gh-readonly-queue/.
+    branches-ignore: [main]
 
 # The job block below replaces these for its token.
 permissions:
   contents: read
 
 concurrency:
-  # One re-check per head at a time; a queued one is replaced by a newer one, never a running one.
-  # Keyed like the job condition, so a skipped push, merge_group or fork run never replaces a
-  # pending pull request re-check.
-  group: merge-hold-recheck-${{ github.event.workflow_run.event }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_sha }}
+  # Initial activities coalesce per head and action. Both lifecycle activities of every re-run
+  # attempt get a unique key, so a later completion cannot replace its pending invalidation.
+  group: merge-hold-recheck-${{ github.event.workflow_run.event }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_sha }}-${{ github.event.workflow_run.run_attempt > 1 && format('{0}-{1}-{2}', github.event.workflow_run.id, github.event.workflow_run.run_attempt, github.event.action) || github.event.action }}
   cancel-in-progress: false
 
 jobs:
   recheck:
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository.full_name == github.repository
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository.full_name == github.repository && (github.event.action == 'completed' || github.event.workflow_run.run_attempt > 1)
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
