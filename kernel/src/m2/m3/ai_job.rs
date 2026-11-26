@@ -184,6 +184,13 @@ pub(super) fn observe_exit(s: &State, slot: usize, _: u64) {
         b"JOB_PREEMPTED_DURATION",
     );
     let job_irqs = e.timer[0] - e.timer_mark;
+    if job_irqs < MIN_JOB_TIMER_IRQS {
+        // Diagnostic only: shows whether ticks went to the canary or were coalesced.
+        print_number(b"AIJOB:DIAG:JOB_IRQS:", job_irqs);
+        print_number(b"AIJOB:DIAG:CANARY_IRQS:", e.timer[1]);
+        print_number(b"AIJOB:DIAG:JOB_TICKS:", end - start);
+        print_number(b"AIJOB:DIAG:LIFETIME_TICKS:", s.ticks - e.spawn_ticks);
+    }
     require(job_irqs >= MIN_JOB_TIMER_IRQS, b"JOB_TIMER_PREEMPTION");
     if e.runs == 0 {
         e.macs = word(s, 0, MACS);
