@@ -241,15 +241,27 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   vary on `main`. Materiaal normal, keyboard and recover pass on B. Evidence:
   `docs/verification/r02-compositor-turn-ab-20261126/`.
 
+- #578 landed as `8033e2dd` through the merge queue (26 Nov 2026, 21:54Z);
+  all 17 files are identical to the reviewed head `60dcad68`.
+
 ## Next action
 
-1. #578: hosted `native-window-session` (scale 1 and 2) green on the final
-   head, open-run check `[]`, ready, then the merge queue
-   (`--match-head-commit`). Report the landing to the PR guard and U.
-2. Candidate (1) as a separate PR after #578: SUR1 client waits with
-   `ipc_wait` for the reply (`ui/surface-protocol/src/client.rs` plus the
-   runtime transport hunk), with the negative test U asked for (non-answering
-   endpoint keeps the existing deadline/Delivery error, bounded poll budget,
-   ABI < 1.10 falls back to the current path).
-3. Candidate (3) goes to the PR guard as a proposal (interfaces and evidence)
-   for the kernel owner and the project owner; R does not write `kernel/`.
+1. Candidate (1) as a separate PR (branch `claude/r02-sur1-ipc-wait-20261126`,
+   cut from `8033e2dd`): the SUR1 client waits with `ipc_wait` for the reply
+   (`ui/surface-protocol/src/client.rs` plus a default method on the runtime
+   `Transport` trait). Materiaal uses a poll budget of 100 000, so one 1-tick
+   wait per budget step would raise the worst case to about 1000 s. U agreed
+   (26 Nov 2026, 21:57Z) to one absolute reply deadline per `receive_reply`
+   of 100 ticks (1 s, half the 200-tick stage deadline, so the client error
+   comes first), the iteration budget as the second bound and the existing
+   `yield_now` path below ABI 1.10. U's review conditions: (a) record today's
+   worst reply latency in ticks in the native `calculator-restored`,
+   `recovered` and `workspace-selected` runs; if it exceeds 10 ticks, use
+   200 ticks and justify it; (b) a negative test where a never-answering
+   reply endpoint gives Delivery within the deadline plus one pass, without a
+   hang; (c) after a Delivery error the window does not freeze and the app
+   follows the existing recovery or InputLost path (serial marker until the
+   banner in #541).
+2. Candidate (3) (single-CPU scheduler continuation) belongs to Specialist K
+   (project-owner decision, 26 Nov 2026, 21:25Z). R does not write `kernel/`
+   and supplies window-session A/B measurements on request.
