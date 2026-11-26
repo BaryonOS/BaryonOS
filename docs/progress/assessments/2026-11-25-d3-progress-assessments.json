@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "ea38dcc692de657f7b3c025b223033e3af2b0bb8",
+  "assessment_basis": "parent_commit",
+  "branch": "docs/progress-assessments-20261125",
+  "task": "D3 per-task assessment files and CI owner decisions D1/D2 (#494)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Tooling and policy only: per-task assessment files with the full header validation; no criterion, evidence or native result changes."
+}

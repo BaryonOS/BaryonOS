@@ -18,12 +18,19 @@ on:
       - 'crates/**'
       - '.cargo/**'
       - 'sdk/**'
+      - 'ui/**'
+      - 'experiments/**'
+      - 'tests/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
       - '.github/workflows/volume-acceptance.yml'
       - '.github/actions/**'
       - '.github/actions/preserve-evidence/**'
+  # Gates also report on the merge-queue commit (main plus the queued pull
+  # requests), with no path filter, so a queue commit runs the full scope.
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read

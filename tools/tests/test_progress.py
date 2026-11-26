@@ -183,6 +183,98 @@ class ProgressReviewTests(unittest.TestCase):
         self.assertEqual(self.run_main("--write")[0], 0)
         self.assertEqual(self.run_main("--check")[0], 0)
 
+    def task_file(self, name="2026-11-25-pr-1-test.json", **over):
+        record = {"date": "2026-11-25", "source_commit": "c" * 40, "assessment_basis": "parent_commit",
+                  "branch": "topic", "task": "Unchanged-score task", "previous_score": 0,
+                  "summary": "0/100 unchanged; host fixture only."}
+        record.update(over)
+        folder = self.root / progress.ASSESSMENTS
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / name).write_text(json.dumps(record))
+        return folder / name
+
+    def test_task_assessment_files_get_the_header_rules_and_change_no_view(self):
+        """ADR-PROGRESS-ASSESSMENTS-20261125: per-PR files, full validation, central register untouched."""
+        self.load()
+        self.assertEqual(self.run_main("--write")[0], 0)
+        views = {p: p.read_bytes() for p in (self.root / "README.md", self.root / "docs/PROGRESS.md")}
+        self.task_file()
+        self.task_file("2026-11-25-pr-2-other.json", task="A parallel task")
+        status, message = self.run_main("--check")
+        self.assertEqual(status, 0, message)
+        self.assertIn("2 task assessment file(s)", message)
+        self.assertEqual(views, {p: p.read_bytes() for p in views})
+        self.assertEqual(len(self.load()["task_assessments"]), 2)
+
+    def test_invalid_task_assessment_files_are_rejected(self):
+        self.load()
+        bad = [
+            ({"date": "2026-11-5"}, "Invalid isoformat|Date must use YYYY-MM-DD"),
+            ({"source_commit": "abc"}, "Full source commit is missing"),
+            ({"branch": "a|b"}, "Invalid assessment field: branch"),
+            ({"task": ""}, "Invalid assessment field: task"),
+            ({"summary": "x\ny"}, "Invalid assessment field: summary"),
+            ({"assessment_basis": ""}, "Invalid assessment field: assessment_basis"),
+            ({"previous_score": None}, "records the unchanged score"),
+            ({"previous_score": 101}, "Invalid previous score"),
+            ({"previous_score": True}, "Invalid previous score"),
+            ({"date": "2026-11-26"}, "file name date differs"),
+            ({"extra": 1}, "fields must be exactly"),
+        ]
+        for over, fragment in bad:
+            with self.subTest(over=over):
+                path = self.task_file(**over)
+                with self.assertRaisesRegex(ValueError, fragment):
+                    progress.load_progress()
+                path.unlink()
+        for name in ("pr-1.json", "2026-11-25-PR.json", "2026-11-25-x.txt"):
+            with self.subTest(name=name):
+                path = self.task_file(name)
+                with self.assertRaisesRegex(ValueError, "name must be"):
+                    progress.load_progress()
+                path.unlink()
+        folder = self.root / progress.ASSESSMENTS
+        for name, content, fragment in (("2026-11-25-list.json", "[]", "fields must be exactly"),
+                                        ("2026-11-25-dup.json", '{"date": "2026-11-25", "date": "2026-11-25"}',
+                                         "Duplicate key"),
+                                        ("2026-11-25-big.json", " " * (progress.ASSESSMENT_MAX_BYTES + 1), "larger than")):
+            with self.subTest(name=name):
+                (folder / name).write_text(content)
+                with self.assertRaisesRegex(ValueError, fragment):
+                    progress.load_progress()
+                (folder / name).unlink()
+        (folder / "2026-11-25-dir.json").mkdir()
+        with self.assertRaisesRegex(ValueError, "regular file"):
+            progress.load_progress()
+        (folder / "2026-11-25-dir.json").rmdir()
+        target = self.task_file("2026-11-25-real.json")
+        (target.parent / "2026-11-25-link.json").symlink_to(target)
+        with self.assertRaisesRegex(ValueError, "regular file"):
+            progress.load_progress()
+
+    def test_a_later_score_change_never_turns_older_or_newer_task_files_red(self):
+        """Review of #519: a score change merged after a newer task file must keep main green."""
+        self.task_file("2026-11-26-newer.json", date="2026-11-26", previous_score=0)
+        self.task_file("2026-11-20-old.json", date="2026-11-20", previous_score=7)
+        self.data["tracks"][0]["gates"][0].update(status="accepted", evidence=["evidence.txt"])
+        self.data["assessment"].update(previous_score=0)
+        self.assertEqual(len(self.load()["task_assessments"]), 2)
+
+    def test_header_keeps_its_rules_and_assessment_basis_is_checked_when_present(self):
+        self.data["assessment"]["assessment_basis"] = "a|b"
+        with self.assertRaisesRegex(ValueError, "^Invalid assessment field: assessment_basis$"):
+            self.load()
+        for key, value, message in (("date", "2026/11/24", None), ("source_commit", "a" * 39, "Full source commit is missing"),
+                                    ("task", " ", "Invalid assessment field: task"), ("previous_score", -1, "Invalid previous score")):
+            with self.subTest(key=key):
+                self.data["assessment"] = {"date": "2026-11-24", "source_commit": "a" * 40, "branch": "test",
+                                           "task": "Test report", "summary": "Synthetic fixture", "previous_score": 0,
+                                           key: value}
+                with self.assertRaises(ValueError) as caught:
+                    self.load()
+                if message:
+                    self.assertEqual(str(caught.exception), message)
+
     def test_zero_svg_means_no_acceptance_not_no_implementation(self):
         rendered = progress.svg(self.load())
         self.assertIn("No criteria accepted", rendered)

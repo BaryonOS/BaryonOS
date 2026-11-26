@@ -13,6 +13,12 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "docs/progress.json"
+# One file per task or pull request that leaves the score unchanged (ADR-PROGRESS-ASSESSMENTS-20261125):
+# parallel pull requests add distinct files instead of rewriting the shared assessment object.
+ASSESSMENTS = "docs/progress/assessments"
+ASSESSMENT_FILE = re.compile(r"(\d{4}-\d{2}-\d{2})-[a-z0-9][a-z0-9-]{0,80}\.json")
+ASSESSMENT_MAX_BYTES = 16 * 1024
+ASSESSMENT_KEYS = {"date", "source_commit", "assessment_basis", "branch", "task", "previous_score", "summary"}
 README_MARKERS = ("<!-- OS-PROGRESS:BEGIN -->", "<!-- OS-PROGRESS:END -->")
 RUBRIC_MARKERS = ("<!-- OS-RUBRIC:BEGIN -->", "<!-- OS-RUBRIC:END -->")
 IMPLEMENTATION_STATES = ("implemented", "partial", "missing", "unknown")
@@ -115,12 +121,7 @@ def load_progress() -> dict:
     data = json.loads(DATA.read_text(encoding="utf-8"))
     require(data.get("schema_version") == 1, "Unknown progress.json schema version")
     require(integer(data.get("rubric_version"), 1, 1000), "Invalid rubric version")
-    assessment = data["assessment"]
-    require(dt.date.fromisoformat(assessment["date"]).isoformat() == assessment["date"], "Date must use YYYY-MM-DD")
-    require(re.fullmatch(r"[0-9a-f]{40}", assessment["source_commit"]) is not None, "Full source commit is missing")
-    for key in ("branch", "task", "summary"):
-        require(label(assessment[key]), f"Invalid assessment field: {key}")
-    require(assessment["previous_score"] is None or integer(assessment["previous_score"], 0, 100), "Invalid previous score")
+    validate_assessment(data["assessment"])
     tracks = data["tracks"]
     require(isinstance(tracks, list) and bool(tracks), "No rubric tracks")
     identifiers: set[str] = set()
@@ -149,7 +150,56 @@ def load_progress() -> dict:
         total += subtotal
     require(total == 100, f"Rubric totals {total}; exactly 100 required")
     validate_delivery_review(data)
+    data["task_assessments"] = load_task_assessments(data)
     return data
+
+
+def validate_assessment(assessment: dict, where: str = "") -> None:
+    """Apply the assessment rules to the register header and to every task assessment file."""
+    require(dt.date.fromisoformat(assessment["date"]).isoformat() == assessment["date"], where + "Date must use YYYY-MM-DD")
+    require(re.fullmatch(r"[0-9a-f]{40}", assessment["source_commit"]) is not None, where + "Full source commit is missing")
+    for key in ("branch", "task", "summary"):
+        require(label(assessment[key]), f"{where}Invalid assessment field: {key}")
+    require(assessment["previous_score"] is None or integer(assessment["previous_score"], 0, 100),
+            where + "Invalid previous score")
+    require("assessment_basis" not in assessment or label(assessment["assessment_basis"]),
+            where + "Invalid assessment field: assessment_basis")
+
+
+def unique_keys(pairs: list) -> dict:
+    """Reject duplicate JSON keys instead of silently keeping the last one."""
+    keys = [key for key, _ in pairs]
+    require(len(keys) == len(set(keys)), "Duplicate key in assessment file")
+    return dict(pairs)
+
+
+def load_task_assessments(data: dict) -> list[dict]:
+    """Validate docs/progress/assessments/*.json: the header rules, plus file-level traceability.
+
+    A task file records a task that left the score unchanged, so its score must be an integer.
+    Like the header's previous_score it is the recorded value, not recomputed: tying it to the
+    current score would turn main red whenever a score change merges after a newer task file.
+    Files never change the score or the generated views.
+    """
+    folder = ROOT / ASSESSMENTS
+    if not folder.exists() and not folder.is_symlink():
+        return []
+    require(folder.is_dir() and not folder.is_symlink(), "Assessment directory is not a plain directory")
+    records = []
+    for path in sorted(folder.iterdir()):
+        where = f"{path.relative_to(ROOT)}: "
+        match = ASSESSMENT_FILE.fullmatch(path.name)
+        require(match is not None, where + "name must be YYYY-MM-DD-<lowercase-slug>.json")
+        require(path.is_file() and not path.is_symlink(), where + "must be a regular file")
+        require(path.stat().st_size <= ASSESSMENT_MAX_BYTES, f"{where}larger than {ASSESSMENT_MAX_BYTES} bytes")
+        record = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_keys)
+        require(isinstance(record, dict) and set(record) == ASSESSMENT_KEYS,
+                where + "fields must be exactly " + ", ".join(sorted(ASSESSMENT_KEYS)))
+        validate_assessment(record, where)
+        require(record["date"] == match[1], where + "file name date differs from the assessment date")
+        require(integer(record["previous_score"], 0, 100), where + "a task assessment records the unchanged score")
+        records.append(record)
+    return records
 
 
 def score(track: dict) -> int:
@@ -316,7 +366,8 @@ def main() -> int:
             print("Stale progress view: " + ", ".join(str(p.relative_to(ROOT)) for p in stale), file=sys.stderr)
             print("Review docs/progress.json and run tools/progress.py --write.", file=sys.stderr)
             return 1
-        print(f"Baryon OS: {total_score(data)}/100 points ({total_score(data)}%); rubric v{data['rubric_version']}; {'updated' if args.write else 'consistent'}.")
+        print(f"Baryon OS: {total_score(data)}/100 points ({total_score(data)}%); rubric v{data['rubric_version']}; "
+              f"{len(data['task_assessments'])} task assessment file(s); {'updated' if args.write else 'consistent'}.")
         print("This checks calculation, references, and generated views; it does not run native tests or assess evidence content.")
         return 0
     except (ValueError, KeyError, TypeError, OSError) as exc:

@@ -1002,8 +1002,36 @@ fn read_range(a: [u64; 6]) -> Result<(), i64> {
     Ok(())
 }
 
+/// O13 syscall 0x44 (S09 2.7, L2): a WRITE holder latches every destination
+/// entry wholly inside its scope. Shape, authority and range only: it ignores
+/// the lane's offline, reset, error and phase state (the service calls it when
+/// the lane is stuck) and performs no device access. Idempotent.
+fn latch(s: &State, slot: usize, a: [u64; 6]) -> Result<u64, i64> {
+    if a[1..].iter().any(|v| *v != 0) {
+        return Err(-1);
+    }
+    let auth = m4::engine()
+        .check_block(s.processes[slot].pid, a[0], BLOCK_WRITE)
+        .map_err(|e| e.code())?;
+    let scope = auth.scope();
+    let dev = match scope.device {
+        0 => 0,
+        1 if cfg!(feature = "test-volume-archive-device") => 1,
+        _ => return Err(-5),
+    };
+    // Range (no whole entry inside the scope) is -5 here, not err()'s -1.
+    runtime().lanes[dev]
+        .policy
+        .latch_scope(scope.first_sector, scope.sector_count)
+        .map(|()| 0)
+        .map_err(|_| -5)
+}
+
 /// Generic broker: authority, scope, ticket binding and bounded copies only.
 fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
+    if n == 0x44 {
+        return latch(s, slot, a);
+    }
     if !matches!(n, 0x40..=0x43) {
         return Err(-2);
     }
@@ -1118,6 +1146,11 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             return Err(-5);
         }
         let sector = auth.sector(a[1]).map_err(|e| e.code())?;
+        // O13 enforcement: before the input copy, the Policy and any device
+        // access, so a latched WRITE changes no counter (N38 (i): -5, not -3).
+        if n == 0x42 && runtime().lanes[dev].policy.write_latched(sector) {
+            return Err(-5);
+        }
         if n == 0x40 {
             Operation::Read {
                 sector,
@@ -1134,7 +1167,10 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         None
     };
     let r = runtime();
+    // O13 L1b: from here a device-side refusal of a WRITE or FLUSH latches
+    // (latch_operation ignores READ); the lane's own transient -8 does not.
     if r.lanes[dev].offline != 0 {
+        r.lanes[dev].policy.latch_operation(op);
         return Err(r.lanes[dev].offline);
     }
     // K5: only this device's own state can refuse the submission.
@@ -1142,11 +1178,19 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     if lane.resetting || lane.error.is_some() || lane.policy.phase() != Phase::Ready {
         return Err(-8);
     }
-    let capacity = lane.device.as_ref().ok_or(-14)?.capacity;
-    let request = lane
-        .policy
-        .prepare(binding, op, capacity, s.ticks, TIMEOUT)
-        .map_err(err)?;
+    let Some(capacity) = lane.device.as_ref().map(|d| d.capacity) else {
+        lane.policy.latch_operation(op);
+        return Err(-14);
+    };
+    let request = match lane.policy.prepare(binding, op, capacity, s.ticks, TIMEOUT) {
+        Ok(request) => request,
+        // Range is a caller-shape error; every other arm fails closed.
+        Err(e @ virtio_core::Error::Range) => return Err(err(e)),
+        Err(e) => {
+            lane.policy.latch_operation(op);
+            return Err(err(e));
+        }
+    };
     device_access();
     if let Err(error) =
         r.lanes[dev]
@@ -1159,6 +1203,7 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
             .policy
             .reject_prepared(binding, request.ticket)
             .unwrap();
+        r.lanes[dev].policy.latch_operation(op);
         return Err(err(error));
     }
     r.lanes[dev]

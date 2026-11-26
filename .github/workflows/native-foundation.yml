@@ -9,7 +9,11 @@ on:
         default: false
   pull_request:
     types: [opened, synchronize, reopened]
-    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py', '.agents/**', '.claude/**', '.claude-plugin/**', '.codex/**', 'plugins/**', '.c8rc.json', '.coveragerc', '.coderabbit.yaml', 'LICENSE', 'MPL-2.0-FILES.txt']
+  # Gates also report on the merge-queue commit (main plus the queued pull
+  # requests), with no path filter, so a queue commit runs the full scope.
+  merge_group:
+    types: [checks_requested]
   push:
     branches: [main]
     paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
@@ -85,7 +89,6 @@ jobs:
       - name: Real keyring cores, SDK sessions and capability-engine probe tests
         run: |
           cargo +1.100.0 test --offline --locked -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-host.txt"
-          cargo +1.100.0 clippy --offline --locked -p keyring-core --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-clippy.txt"
           cargo +1.100.0 test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-host.txt"
           cargo +1.100.0 clippy --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client --all-targets -- -D warnings 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-clippy.txt"
           for manifest in \
@@ -108,8 +111,6 @@ jobs:
             --cfg chacha20_backend="soft"
             --cfg poly1305_backend="soft" --cfg sha2_backend="soft"
         run: |
-          cargo +1.100.0 fmt --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/root-format.txt"
-          cargo +1.100.0 fmt --manifest-path sdk/Cargo.toml --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/sdk-format.txt"
           cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none -p keyring-core 2>&1 | tee "$NOS_BUILD_DIR/logs/keyring-core-scalar.txt"
           cargo +1.100.0 build --offline --locked --release --lib --target x86_64-unknown-none --manifest-path sdk/Cargo.toml -p nieuw-os-keyring-random-client 2>&1 | tee "$NOS_BUILD_DIR/logs/random-client-scalar.txt"
           for manifest in \

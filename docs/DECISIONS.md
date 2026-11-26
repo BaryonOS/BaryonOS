@@ -5,6 +5,215 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-SPECIALIST-TEAM-20261125 — Permanent specialists A, P, L and R; handoffs, naming and context rotation
+
+**Status:** decided by the project owner on 25 November 2026. The owner gave the
+decision to the PR guard session at about 11:25Z. The owner then confirmed the
+wording for recording in the CI specialist session at about 11:45Z ("Yes,
+confirmed"). The CI checkpoint is #494, comment 7161215540. Item 8 was decided
+separately at about 12:35Z and given to the PR guard. At about 13:30Z, in the
+CI session while #527 was under review, the owner clarified that the context
+thresholds in item 5 apply only to the executing specialists and that the PR
+guard rotates only at the owner's explicit request. These chat-only
+sources are recorded in the CI specialist's record on #494, comment
+7162652798. The owner's formal review of
+this pull request, on the current text, is the confirmation that D2 requires.
+
+**Problem:** six workstream sessions handled their own pull requests under
+`ADR-MERGE-DELEGATION-20261123`: S09, U, N, UI/UX design, B and H. Applications,
+personal NAS, local AI and quantum runtime, and system-wide reliability had no
+permanent owner. Handoff locations, session names and the rule for when a
+session's context must rotate were only in issue comments.
+
+**Decision:**
+
+1. **New permanent specialists.** The project owner starts each session; agents
+   never start, fork or replace specialist chats.
+   - **A:** A01–A04, applications, SDK and ecosystem.
+   - **P:** P01–P04, personal NAS and multiple devices.
+   - **L:** L01–L02, local AI and quantum runtime. L also holds the research
+     line for future physical QPU and hybrid hardware.
+   - **R:** R01–R03, reliability, performance and release. R is responsible
+     for performance and reliability across the whole system.
+2. **Merge delegation.** `ADR-MERGE-DELEGATION-20261123`, with its amendments
+   (including D2 of `ADR-PROGRESS-ASSESSMENTS-20261125`), also applies to A, P,
+   L and R. Each owns its pull requests up to a protected squash merge with the
+   expected head and verification on `main`. No additional central gate is
+   added. Protected files still follow the review rules of that ADR and D2.
+3. **Session names.** The sessions are named "BaryonOS - Specialist <X>", where
+   X is R, L, A, S, N, CI, P, B, H or U. "U" stands for UI/UX and is displayed
+   as "Specialist U (UI/UX)". The coordination session is "BaryonOS - PR
+   Bewaker" (PR guard).
+4. **Handoffs.** Each specialist keeps one compact resume pointer in
+   `docs/handoffs/<letter>/CURRENT.md`. CI uses `docs/handoffs/CI/`, UI/UX
+   uses the existing `docs/handoffs/UI-U/` and the PR guard uses
+   `docs/handoffs/PR-WATCHER/`. A resume pointer records the scope
+   and mandate once. It holds no live head SHAs, locks, PIDs or cursors. Live checkpoints
+   stay in the pull request description and the workstream's handoff issue
+   comment.
+5. **Context rotation.** These thresholds apply only to the executing
+   specialists (A, B, CI, H, L, N, P, R, S and U):
+   - 65% context use is a moment to assess, not a stop;
+   - from about 60%, the session updates its durable checkpoint and finishes
+     the current phase;
+   - above about 75%, it starts no new large phase;
+   - by 80–85% at the latest, a verified handoff is ready.
+
+   The PR guard does not follow these thresholds. It rotates its own context
+   only at the project owner's explicit request. For the executing
+   specialists, ownership of a subtask continues across a rotation. For every
+   session, including the PR guard, no replacement chat is started.
+6. **Product priority.** The product is a general-purpose OS with European data
+   sovereignty. Conventional PCs and laptops come first, then server and
+   business use. It aims at broad consumer and professional compatibility.
+   Market potential is a research question, not an assumption. The design
+   ambition and product specification remain in `docs/DESIGN-AMBITION.md` and
+   `docs/implementation/PRODUCT-SPEC.md`.
+7. **Quantum.**
+   - From this decision on, post-quantum cryptography is a current obligation.
+     It builds on ADR-007, ADR-012, ADR-017 and ADR-028; those decisions alone
+     scheduled it for later integration.
+   - B owns the PQC content: `docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md`
+     and the PQC policy in `docs/implementation/QUANTUM-SPEC.md`. That content
+     must address harvest-now-decrypt-later exposure and the classical
+     dependencies that remain.
+   - L keeps the local quantum-execution part of `QUANTUM-SPEC.md` (L02).
+   - Physical quantum hardware is a future research line for L and does not
+     block the consumer release.
+   - No claim of full quantum resistance is made without bounded evidence.
+
+8. **Tracking issues (project owner, 25 November 2026, about 12:35Z, given to
+   the PR guard).** Owner wording: "Alle specialisten mogen voortaan
+   zelfstandig noodzakelijke, inhoudelijk gerechtvaardigde trackingissues en
+   subtaken binnen hun eigen werkstroom aanmaken, zonder afzonderlijke
+   toestemming te vragen. Controleer vooraf op duplicaten. Leg deze
+   bevoegdheid duurzaam vast en communiceer haar naar alle specialisten. Het
+   aanmaken van issues is ondersteunend aan de ontwikkeling, geen vervanging
+   voor implementatie." (All specialists may from now on create necessary,
+   substantively justified tracking issues and subtasks within their own
+   workstream without asking separate permission. Check for duplicates first.
+   Record this authority durably and communicate it to all specialists.
+   Creating issues supports development and does not replace implementation.)
+   - The authority belongs to the executing specialists listed in item 5. The
+     PR guard's role is unchanged.
+   - A specialist checks for duplicates before creating an issue.
+   - An issue stays within the specialist's own workstream.
+
+**Alternatives:** none recorded. The owner recorded no alternatives that were
+considered, and the record does not establish why four new specialists were
+chosen rather than another split.
+
+**Rationale/sources:**
+
+- **Rationale:** the gaps described under Problem. No further
+  rationale is recorded.
+- **Sources:**
+  - the owner's decision given to the PR guard at about 11:25Z;
+  - the owner's confirmation in the CI session at about 11:45Z, recorded in
+    the CI checkpoint (#494, comment 7161215540);
+  - the tracking-issue decision of about 12:35Z, given to the PR guard;
+  - the clarification of item 5 during the review of #527;
+  - the CI specialist's record of these chat-only sources on #494, comment
+    7162652798;
+  - the PR guard's operational history in #503.
+
+**Consequences:**
+
+- `AGENTS.md` lists the ten specialists and the naming rule in the merge
+  delegation paragraph.
+- The PR guard routes signals, metadata checks and CLEAR_READY verification
+  (CLEAR_READY is the signal that a session's context may be cleared safely) to
+  A, P, L and R in the same way as to the existing workstreams.
+- Issues #494 (CI) and #503 (PR guard) stay the places for decisions,
+  operational notices and history.
+- Item 8 replaces the earlier practice of asking the owner before creating an
+  issue. The PR guard communicates it to all specialists.
+
+**Security invariant:**
+
+- Apart from two expansions, no authority is widened beyond
+  `ADR-MERGE-DELEGATION-20261123` as amended by D2. Item 2 extends that merge
+  delegation to A, P, L and R. Item 8 lets the executing specialists create
+  necessary, substantively justified tracking issues and subtasks in their own
+  workstream, after a duplicate check, without separate permission.
+- Protected-file review, `ADR-MERGE-HOLD-20261113`, required checks and branch
+  protection are unchanged.
+- The PR guard has no commit, push, merge, label or review authority.
+- Issue creation is limited to a specialist's own workstream.
+
+**Test evidence:** `progress.py --check`, `check_english_docs.py` and
+`tools.tests.test_agent_governance` pass. They check the documents only; they
+do not prove that sessions follow the rules.
+
+**Review trigger:** added by the CI specialist when recording this decision;
+it is not part of the owner's wording. Reassess this decision when any of the
+following occurs:
+
+- a delegated specialist merges a change that `ADR-MERGE-DELEGATION-20261123`
+  as amended by D2 would block;
+- a CLEAR_READY handoff fails to resume its subtask;
+- the PR guard needs write authority to do its job;
+- issue creation produces duplicates or backlog without implementation.
+
+**Rollback:** a new project-owner decision.
+
+## ADR-PROGRESS-ASSESSMENTS-20261125 — Per-task assessment files; CI owner decisions D1 and D2
+
+**Status:** decided by the project owner on 25 November 2026 (#494, comments
+7155783661 and 7155944783). Owner wording: "D3 goedkeuren met behoud van alle
+assessmentvalidatie" (approve D3 while keeping all assessment validation);
+"D1 optie B na geverifieerde merge_group-integratie" (D1 option B after a
+verified merge_group integration); D2: "Yes, option C".
+
+**Problem:** every pull request rewrote the single `assessment` object in
+`docs/progress.json`, so any two open pull requests conflicted on the same
+lines. Since 23 November, 24 of 54 commits on `main` touched the file; #500
+needed four extra CI rounds for it.
+
+**Decision (D3):** a task or pull request that leaves the score unchanged adds
+its own file `docs/progress/assessments/<YYYY-MM-DD>-<slug>.json` with the same
+fields as the `assessment` object (`date`, `source_commit`,
+`assessment_basis`, `branch`, `task`, `previous_score`, `summary`). A score
+change still updates the `assessment` object, the criteria and the generated
+views in `docs/progress.json`, `README.md`, `docs/PROGRESS.md` and the SVG.
+The fixed criteria register and the rubric stay central and unchanged.
+
+`tools/progress.py --check` applies every existing assessment rule to the
+header and to each file, unchanged, and checks `assessment_basis` wherever it
+is present. It adds checks for each file:
+
+- an exact field set, with duplicate keys rejected;
+- a plain, non-symlinked file of at most 16 KiB;
+- a file name whose date matches the recorded date;
+- an integer score.
+
+Files never change the score or the generated views. Like the header's
+`previous_score`, a file's score is the recorded value and is not recomputed.
+Tying it to the current score would turn `main` red whenever a score change
+merges after a task file with a newer date.
+
+**D2 (amends ADR-MERGE-DELEGATION-20261123):**
+
+- For CI files (`.github/**`, `tools/merge_hold.py`, `tools/ci_impact.py`), an independent AI review satisfies "reviewed by someone other than the merging workstream". The review is done by a separate agent without write access, and bot findings must be resolved.
+- Policy, register and security files (any `AGENTS.md` or `CLAUDE.md`, `tools/progress.py`, `docs/progress.json`, `docs/DECISIONS.md`, keys) still need the project owner's review.
+
+**D1 (extends ADR-MERGE-HOLD-20261113):** the merge queue is enabled only after a verified `merge_group` integration:
+
+1. the selected workflows gain `merge_group` triggers at full scope;
+2. merge-hold judges the queue commit;
+3. a queue trial with at least two entries passes.
+
+Enabling the queue in the ruleset is a separate step that needs the project owner's explicit confirmation at that moment. It must not weaken any existing security or acceptance gate. The strict up-to-date rule and merge-hold stay until the queue has proved itself.
+
+**Rollback:** a new project-owner decision restores the previous format in one PR:
+
+1. revert the AGENTS.md progress rule so that an unchanged score again updates the `assessment` header in `docs/progress.json`, and restore the header-only description in `docs/PROGRESS.md`;
+2. convert every open pull request that adds a task file into a header update, or close it, before the loader goes, so that no record merges unvalidated;
+3. replace the task-file loader in `tools/progress.py` with a check that fails while `docs/progress/assessments/` exists, so that a task file merged after step 2 turns the check red instead of staying unvalidated (the header validation is unchanged and stays);
+4. remove `docs/progress/assessments/` after the lead copies any record that must be kept into the header or `docs/history/`.
+
+D1 and D2 are rolled back by a new project-owner decision.
+
 ## ADR-UI-NOTIFICATIONS-20261125 — Alt+N panel as the single notification centre
 
 **Status:** accepted; project-owner decision of 25 November 2026 for UI-U

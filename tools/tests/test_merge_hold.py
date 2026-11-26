@@ -191,6 +191,8 @@ class MergeGroupTests(TestCase):
             if "/check-runs?" in url:
                 queue = polls.get(url.split("/commits/")[1].split("/")[0], polls[None])
                 answer_ = queue.pop(0) if len(queue) > 1 else queue[0]
+                if callable(answer_):  # an answer that depends on the URL, e.g. its page
+                    answer_ = answer_(url)
                 if isinstance(answer_, Exception):
                     raise answer_
                 return answer_
@@ -238,7 +240,7 @@ class MergeGroupTests(TestCase):
         one = [entry(1, 8, GROUP, OTHER)]
         code, out, _ = self.run_group(one, trees={GROUP: "1" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 1)
-        self.assertIn("do not run on merge_group", out)
+        self.assertIn("does not yet judge the gates on merge_group", out)
         for runs_, why in (([], "no run"), ([gate_run(OTHER, "failure")], "failed"),
                            ([gate_run(OTHER, run_id=1), gate_run(OTHER, "failure", run_id=2)], "newer failed"),
                            ([gate_run(OTHER, None, status="in_progress")], "running"),
@@ -318,7 +320,7 @@ class MergeGroupTests(TestCase):
             trees={"e" * 40: "1" * 40, HEAD: "1" * 40, GROUP: "2" * 40, OTHER: "2" * 40})
         self.assertEqual(code, 0, out)
         # Phase 3: PR 8's gates ran on its own head. If its entry lands another tree
-        # (PR 7's change on top), the selected workflows never tested that tree.
+        # (PR 7's change on top), no gate verdict that merge-hold judges covers that tree.
         code, out, _ = self.run_group(
             queue,
             labels={7: [merge_hold.LABEL]},
@@ -357,6 +359,39 @@ class MergeGroupTests(TestCase):
         poll = calls[polls[0]]
         self.assertIn(f"/commits/{GROUP}/check-runs?", poll)
         self.assertIn(f"app_id={merge_hold.ACTIONS_APP_ID}", poll)
+
+    def test_required_checks_beyond_the_first_page_are_read_in_the_same_poll(self):
+        # With every gate workflow on merge_group a queue commit can carry more than
+        # 100 check runs; a required check on page 2 must not make the group wait.
+        filler = {"check_runs": [{"name": f"filler {index}", "status": "in_progress",
+                                  "conclusion": None} for index in range(100)]}
+        # host-quality completes on page 1 and qemu-smoke on page 2: both pages must count.
+        first = {"check_runs": filler["check_runs"][:99] + DONE["check_runs"][:1]}
+        second = {"check_runs": DONE["check_runs"][1:]}
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=[lambda url: second if url.endswith("&page=2") else first])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(calls.count("sleep"), 0)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual([url.rsplit("&", 1)[1] for url in polls], ["page=1", "page=2"])
+        # #494: check runs have their own cap (justified at CHECK_RUN_MAX_PAGES); the other
+        # listings keep MAX_PAGES.
+        cap = merge_hold.CHECK_RUN_MAX_PAGES
+        self.assertEqual((cap, merge_hold.MAX_PAGES), (5, 50))
+        # cap - 1 full pages and a short last page are still read in one poll.
+        code, out, calls = self.run_group(
+            self.QUEUE, checks=[lambda url: DONE if url.endswith(f"&page={cap}") else filler])
+        self.assertEqual(code, 0, out)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual([url.rsplit("&", 1)[1] for url in polls], [f"page={page}" for page in range(1, cap + 1)])
+        # Past cap full pages the read fails and the group fails closed at the deadline.
+        code, out, calls = self.run_group(self.QUEUE, checks=[lambda url: filler])
+        self.assertEqual(code, 1, out)
+        self.assertIn("Too many pages", out)
+        polls = [url for url in calls if f"/commits/{GROUP}/check-runs?" in url]
+        self.assertEqual(len([url for url in polls if url.endswith("&page=1")]), calls.count("sleep") + 1)
+        # Each poll requests exactly cap pages, never one past it.
+        self.assertEqual(len(polls), cap * (calls.count("sleep") + 1))
 
     def assertLabelsReadAfterWait(self, calls):
         last_poll = max(i for i, url in enumerate(calls) if "/check-runs?" in url)
@@ -780,6 +815,36 @@ class GateTests(TestCase):
         self.assertIn("Not a pass: s: not applicable (path filter)", out)
         self.assertIn("Plan sha256:" + "0" * 64, out)
 
+    def test_filter_hiding_a_registered_input_fails(self):
+        # #494 C1: a path filter may hide only metadata; a hidden registered input fails at once.
+        plan = plan_fixture()
+        plan["selected"][-1]["filter_hidden_inputs"] = ["tests/test_volume_archive.py"]
+        passed, out, state = self.decide(plan=plan)
+        self.assertFalse(passed, out)
+        self.assertIn("::error::Failed: s: its path filter hides registered input(s) "
+                      '"tests/test_volume_archive.py", so the gate did not run', out)
+        self.assertIn("2 applicable gate(s) passed; 0 filtered out; 0 pending; 1 failed.", out)
+        self.assertNotIn("not applicable (path filter)", out)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_filter_hiding_only_metadata_is_not_a_pass_but_does_not_block(self):
+        plan = plan_fixture()
+        plan["selected"][-1]["filter_hidden_inputs"] = []
+        passed, out, _ = self.decide(plan=plan)
+        self.assertTrue(passed, out)
+        self.assertIn("Not a pass: s: not applicable (path filter)", out)
+        self.assertNotIn("Passed: s:", out)
+
+    def test_hidden_input_listing_is_bounded(self):
+        paths = [f"tests/t{i}.py" for i in range(7)]
+        self.assertEqual(merge_hold.hidden_listing(paths),
+                         '"tests/t0.py", "tests/t1.py", "tests/t2.py", "tests/t3.py", "tests/t4.py" and 2 more')
+        # A path chosen by the pull request cannot inject a workflow command or break the log.
+        listed = merge_hold.hidden_listing(["tests/a\n::error::spoof.py", "tests/\udcff.py"])
+        self.assertNotIn("\n", listed)
+        listed.encode("ascii")
+        self.assertEqual(merge_hold.hidden_listing(["tests/a%0A::error::x.py"]), '"tests/a%250A::error::x.py"')
+
     def test_missing_or_running_runs_are_pending_and_block(self):
         for runs_, fragment in (([wf_run(1, CI)], "no .github/workflows/leaves.yml run"),
                                 ([wf_run(1, CI), wf_run(3, LEAVES, "in_progress", None)], "which is in_progress"),
@@ -789,6 +854,49 @@ class GateTests(TestCase):
                 self.assertFalse(passed)
                 self.assertIn(fragment, out)
                 self.assertIn("gh run rerun 123 --failed", out)
+
+    def test_an_unknown_filter_result_keeps_the_gate_expected_and_names_the_cause(self):
+        # #494 K10: an undefined filter result stays fail-closed; only the message says why and what helps.
+        from ci_impact import FILTER_FILE_LIMIT
+        self.assertEqual(merge_hold.FILTER_FILE_LIMIT, FILTER_FILE_LIMIT)
+        cases = (({"changes": {"count": 301}},
+                  "its path-filter result is undefined above 300 changed files (this change has 301; "
+                  "GitHub evaluates only the first 300), so GitHub may never start it. It stays expected "
+                  "(fail-closed, docs/CI-CONTRACT.md K10); if GitHub skipped it, only a smaller pull request "
+                  "or a new head clears it"),
+                 # Above the limit wins over a fallback code: the count, not the diff, is the cause.
+                 ({"changes": {"count": 301}, "mode": "full",
+                   "fallback": {"code": "shallow-history", "detail": [], "reasons": ["shallow-history"]}},
+                  "its path-filter result is undefined above 300 changed files (this change has 301; "
+                  "GitHub evaluates only the first 300), so GitHub may never start it"),
+                 ({"changes": {"count": 0}, "mode": "full",
+                   "fallback": {"code": "shallow-history", "detail": [], "reasons": ["shallow-history"]}},
+                  "its path-filter result is unknown: the changed-file list is incomplete (fallback "
+                  "shallow-history), so GitHub may never start it. It stays expected (fail-closed, "
+                  "docs/CI-CONTRACT.md K10); if GitHub skipped it, only a re-run with a usable diff or "
+                  "a new head clears it"),
+                 ({}, "its path-filter result is unknown for a change without changed files, so GitHub "
+                      "may never start it"))
+        for over, note in cases:
+            plan = plan_fixture(**over)
+            plan["selected"][2]["blocked_by_filter"] = None  # leaves: no run below
+            self.assertIn(plan["selected"][2], merge_hold.expected_gates(plan))
+            with self.subTest(plan=over):
+                passed, out, _ = self.decide(plan=plan, runs_=[wf_run(1, CI)])
+                self.assertFalse(passed, out)
+                self.assertIn(f"::error::Pending: quality (viewer): no {LEAVES} run for {HEAD} yet; {note}", out)
+                self.assertIn("::error::Exception: a gate with an unknown path-filter result may never start, "
+                              "so waiting for it does not help; its Pending line names the remedy.", out)
+        # A known filter result keeps the plain line, and a started run is judged as usual.
+        passed, out, _ = self.decide(runs_=[wf_run(1, CI)])
+        self.assertFalse(passed, out)
+        self.assertIn(f"no {LEAVES} run for {HEAD} yet\n", out + "\n")
+        self.assertNotIn("Exception:", out)
+        plan = plan_fixture()
+        plan["selected"][2]["blocked_by_filter"] = None
+        passed, out, _ = self.decide(plan=plan)
+        self.assertTrue(passed, out)
+        self.assertNotIn("path-filter result", out)
 
     def test_expected_job_outcomes_other_than_success_block(self):
         for conclusion in ("failure", "cancelled", "timed_out", "skipped", "action_required", "neutral", None):
@@ -954,6 +1062,130 @@ class GateTests(TestCase):
         passed, _, state = self.decide(polls=[[wf_run(1, CI)]])
         self.assertFalse(passed)
         self.assertEqual(state["sleeps"], 0)  # budget 0: decide at once
+
+    def test_wait_polls_with_one_run_listing_and_reports_only_when_runs_finish(self):
+        """#494 maintenance: a 40-minute budget must stay far below the GITHUB_TOKEN rate limit."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        polls = [running] * 30 + [GOOD_RUNS]
+        passed, out, state = self.decide(plan=plan, polls=polls)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 30)
+        # Two full reports (start and end), each reading jobs and re-reading every counted run;
+        # the 30 polls in between cost one run listing each.
+        self.assertEqual(sum("/jobs?" in url for url in state["calls"]), 4)
+        self.assertEqual(sum("/actions/runs?" in url for url in state["calls"]), 2 + 1 + 30)
+
+    def test_pending_with_nothing_left_running_decides_at_once(self):
+        """A run that already finished after changing between reads cannot resolve by waiting."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        passed, out, state = self.decide(plan=plan, rerun_during_read={2: {"run_attempt": 2}})
+        self.assertFalse(passed)
+        self.assertIn("changed while it was read", out)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_an_open_run_without_a_selectable_gate_does_not_hold_the_wait(self):
+        """Review of #517: only gated workflows keep the wait going."""
+        advisory = ".github/workflows/advisory.yml"
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45},
+                            excluded=plan_fixture()["excluded"] + [
+                                {"id": "adv#a", "class": "advisory", "workflow": advisory, "job": "a",
+                                 "check_name": "a", "reason": "advisory"}])
+        runs_ = [wf_run(1, CI), wf_run(2, LEAVES), wf_run(5, advisory, "in_progress", None)]
+        passed, out, state = self.decide(plan=plan, runs_=runs_, rerun_during_read={2: {"run_attempt": 2}})
+        self.assertFalse(passed)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_a_failed_poll_keeps_waiting_and_the_full_report_decides(self):
+        """Review of #517: a transient API error during the wait neither ends it nor fails the job."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        real = merge_hold.fetch_listing
+        failures = [OSError("HTTP 502"), ValueError("listing changed")]
+        raised = []
+
+        def flaky(token, url, key):
+            if key == "workflow_runs":
+                STATE["listings"] += 1
+                if STATE["listings"] in (2, 3):  # the first two wait polls; the first listing is the report's
+                    raised.append(failures[len(raised)])
+                    raise raised[-1]
+            return real(token, url, key)
+
+        STATE = {"listings": 0}
+        with mock.patch.object(merge_hold, "fetch_listing", flaky):
+            passed, out, state = self.decide(plan=plan, polls=[running] * 3 + [GOOD_RUNS])
+        self.assertTrue(passed, out)
+        self.assertEqual(raised, failures)
+        self.assertEqual(state["sleeps"], 3)
+
+    def test_an_unorderable_run_in_a_wait_poll_counts_as_open(self):
+        """Graphify on #517: run_order in the poll belongs inside the poll's error handling."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        unorderable = [wf_run(1, CI), wf_run(2, LEAVES), wf_run(3, LEAVES, created_at=None)]
+        with mock.patch.object(merge_hold, "fetch_listing", return_value=unorderable), \
+                mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertTrue(merge_hold.runs_open("t", "o/r", PULL, HEAD, plan))
+        self.assertIn("still waiting", err.getvalue())
+
+    def test_a_lone_unorderable_run_in_a_wait_poll_counts_as_open(self):
+        """CodeRabbit on #542: the first (here the only) run of a workflow is validated too."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        lone = [wf_run(1, CI), wf_run(2, LEAVES, created_at=None)]
+        with mock.patch.object(merge_hold, "fetch_listing", return_value=lone), \
+                mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertTrue(merge_hold.runs_open("t", "o/r", PULL, HEAD, plan))
+        self.assertIn("still waiting", err.getvalue())
+
+    def test_a_gate_that_finishes_during_the_first_report_is_seen(self):
+        """CodeRabbit on #517: a stale pending report is refreshed once before it decides."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        reports = iter([[wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]])
+        real = merge_hold.fetch_listing
+
+        def finishing(token, url, key):
+            if key == "workflow_runs" and "/jobs" not in url:
+                stale = next(reports, None)
+                if stale is not None:  # the first report still sees leaves running
+                    return stale
+            return real(token, url, key)
+
+        with mock.patch.object(merge_hold, "fetch_listing", finishing):
+            passed, out, state = self.decide(plan=plan)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 0)
+
+    def test_a_rerun_that_finishes_during_the_report_after_polling_is_refreshed(self):
+        """CodeRabbit on #517: after a poll the next stale report still gets one refresh."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        running = [wf_run(1, CI), wf_run(2, LEAVES, "in_progress", None)]
+        done = [wf_run(1, CI), wf_run(2, LEAVES, conclusion="success", attempt=2)]
+        jobs = {**GOOD_JOBS, 2: [job(24, 2, "quality (viewer)")]}
+        reads = {"n": 0}
+        real = merge_hold.fetch_listing
+
+        def listing(token, url, key):
+            if key == "workflow_runs":
+                reads["n"] += 1
+                if reads["n"] == 4:  # the report after the poll (read 3) still sees attempt 1 running
+                    return running
+            return real(token, url, key)
+
+        with mock.patch.object(merge_hold, "fetch_listing", listing):
+            passed, out, state = self.decide(plan=plan, polls=[running, done], jobs=jobs)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 1)
+
+    def test_a_superseded_open_run_does_not_hold_the_wait(self):
+        """CodeRabbit on #517: the wait poll applies gate_report's newest-run rule."""
+        plan = plan_fixture(budgets={"pull_request_wait_minutes": 40, "merge_group_wait_minutes": 45})
+        older_open = dict(wf_run(2, LEAVES, "in_progress", None), created_at="2026-11-24T19:00:00Z")
+        newer_open = wf_run(3, LEAVES, "in_progress", None)
+        polls = [[wf_run(1, CI), older_open, newer_open], [wf_run(1, CI), older_open, wf_run(3, LEAVES)]]
+        jobs = {**GOOD_JOBS, 3: [job(31, 3, "quality (viewer)")]}
+        passed, out, state = self.decide(plan=plan, polls=polls, jobs=jobs)
+        self.assertTrue(passed, out)
+        self.assertEqual(state["sleeps"], 1)
 
     def test_failure_ends_the_wait_at_once(self):
         plan = plan_fixture(budgets={"pull_request_wait_minutes": 10, "merge_group_wait_minutes": 45})

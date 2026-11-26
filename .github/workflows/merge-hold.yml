@@ -15,7 +15,9 @@
 # commit's tools/merge_hold.py and tools/ci_impact.py, never the pull request's
 # copies. On pull_request it recomputes the CI impact plan and requires every
 # applicable automatic gate to have passed on the pull request head; see
-# docs/CI-CONTRACT.md "Enforcement". This file may add environment variables,
+# docs/CI-CONTRACT.md "Enforcement". With the catalogue's pull_request wait budget
+# of 0 it fails "Pending" while gates run, and merge-hold-recheck.yml re-runs it
+# once they have finished (#494 B9). This file may add environment variables,
 # but must keep every one an older base merge_hold.py reads.
 name: Merge hold
 
