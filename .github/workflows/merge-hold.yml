@@ -68,52 +68,13 @@ jobs:
           fetch-depth: 0
       - name: Load merge-hold and the selector from the base commit
         id: base
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
-        run: |
-          set -euo pipefail
-          tested="$(git rev-parse HEAD)"
-          if [ "$EVENT_NAME" = pull_request ]; then
-            # GitHub's merge commit: first parent is the base tip, second the head.
-            read -r _ base second extra <<< "$(git rev-list --parents -n 1 HEAD)"
-            if [ -n "${extra:-}" ] || [ "${second:-}" != "$HEAD_SHA" ]; then
-              echo "::error::The checked-out merge commit does not join the base tip and the pull request head."
-              exit 1
-            fi
-          else
-            # T: the merge base of the queue commit and protected main. Any doubt fails closed,
-            # because no trusted copy of the tools could be identified.
-            main=refs/remotes/origin/main
-            if ! git fetch --no-tags --quiet origin "+refs/heads/main:$main"; then
-              echo "::error::Could not fetch main; failing closed."
-              exit 1
-            fi
-            base="$(git merge-base "$tested" "$main")" || base=""
-            if ! [[ "$base" =~ ^[0-9a-f]{40}$ ]] \
-                || ! git merge-base --is-ancestor "$base" "$main" \
-                || ! git merge-base --is-ancestor "$base" "$MERGE_GROUP_BASE_SHA" \
-                || ! git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"; then
-              echo "::error::The queue commit, merge group base and main do not descend from one main commit; failing closed."
-              exit 1
-            fi
-          fi
-          if ! [[ "$base" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "::error::No usable base commit; failing closed."
-            exit 1
-          fi
-          dir="$RUNNER_TEMP/merge-hold-base"
-          mkdir -p "$dir"
-          git cat-file blob "$base:tools/merge_hold.py" > "$dir/merge_hold.py"
-          if git cat-file -e "$base:tools/ci_impact.py" 2> /dev/null; then
-            git cat-file blob "$base:tools/ci_impact.py" > "$dir/ci_impact.py"
-          fi
-          {
-            echo "base-sha=$base"
-            echo "tested-sha=$tested"
-          } >> "$GITHUB_OUTPUT"
+        # One shared copy of the trusted-base derivation (T on merge_group), also used by
+        # the merge-group gates of the other workflows (ADR-CI-MERGE-GROUP-SELECT-20261126).
+        uses: ./.github/actions/trusted-base
+        with:
+          event-name: ${{ github.event_name }}
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          merge-group-base-sha: ${{ github.event.merge_group.base_sha }}
       - name: Fail while acceptance is pending or an applicable gate has not passed
         shell: bash
         env:

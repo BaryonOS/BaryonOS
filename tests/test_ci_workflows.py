@@ -30,6 +30,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_ACTION = ".github/actions/preserve-evidence/action.yml"
+TRUSTED_BASE_ACTION = ".github/actions/trusted-base/action.yml"
 CACHE_ACTION_VERSION = "v6.1.0"
 CACHE_ACTION_SHA = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
 ACTIONLINT_VERSION = "1.7.12"
@@ -1718,32 +1719,16 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         for step in (checkout, load, decide):
             for key in ("if", "continue-on-error", "working-directory"):
                 self.assertNotIn(key, step)
-        # Phase 3 (#494): the decision runs the base commit's copies, never the PR's.
-        self.assertNotIn("uses", load)
+        # Phase 3 (#494): the decision runs the base commit's copies, never the PR's. The
+        # derivation is the one shared action the merge-group gates use too (PR B).
         self.assertEqual(load["id"], "base")
-        self.assertNotIn("${{", load["run"])
-        for needle in ('git rev-list --parents -n 1 HEAD', '"$second" != "$HEAD_SHA"',
-                       'git cat-file blob "$base:tools/merge_hold.py"',
-                       'git cat-file blob "$base:tools/ci_impact.py"', 'set -euo pipefail'):
-            self.assertIn(needle.replace('"$second"', '"${second:-}"'), load["run"])
-        # merge_group (ADR-CI-MERGE-GROUP-SELECT-20261126): the base files come from T, the merge base of
-        # the queue commit and freshly fetched main, never from merge_group.base_sha (an unlanded entry ahead).
-        for needle in ('git fetch --no-tags --quiet origin "+refs/heads/main:$main"',
-                       'base="$(git merge-base "$tested" "$main")" || base=""',
-                       'git merge-base --is-ancestor "$base" "$main"',
-                       'git merge-base --is-ancestor "$base" "$MERGE_GROUP_BASE_SHA"',
-                       'git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"'):
-            self.assertIn(needle, load["run"])
-        self.assertNotIn('base="$MERGE_GROUP_BASE_SHA"', load["run"])
-        # merge_hold.py reads the same ref this step fetches (D2 N1).
-        main_ref = re.search(r'^MAIN_REF = "([^"]+)"$', (ROOT / "tools/merge_hold.py").read_text(), re.M)
-        self.assertIsNotNone(main_ref)
-        self.assertIn(f"main={main_ref.group(1)}\n", load["run"])
-        self.assertEqual(load["env"], {
-            "EVENT_NAME": "${{ github.event_name }}",
-            "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
-            "MERGE_GROUP_BASE_SHA": "${{ github.event.merge_group.base_sha }}",
+        self.assertEqual(load["uses"], "./.github/actions/trusted-base")
+        self.assertEqual(load["with"], {
+            "event-name": "${{ github.event_name }}",
+            "head-sha": "${{ github.event.pull_request.head.sha }}",
+            "merge-group-base-sha": "${{ github.event.merge_group.base_sha }}",
         })
+        self.assert_trusted_base_action()
         self.assertNotIn("uses", decide)
         self.assertEqual(decide["shell"], "bash")
         self.assertEqual(decide["run"].strip(), 'python3 -B -I "$RUNNER_TEMP/merge-hold-base/merge_hold.py"')
@@ -1763,6 +1748,109 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         })
         read = set(re.findall(r'os\.environ(?:\.get)?[\[(]"([A-Z_]+)"', source))
         self.assertLessEqual(read - {"GITHUB_RUN_ID", "GITHUB_STEP_SUMMARY"}, set(decide["env"]))
+
+    def assert_trusted_base_action(self):
+        """The one T derivation (ADR-CI-MERGE-GROUP-SELECT-20261126), pinned by its needles."""
+        action = self.actions[TRUSTED_BASE_ACTION]
+        self.assertEqual(action["runs"]["using"], "composite")
+        self.assertEqual(set(action["inputs"]), {"event-name", "head-sha", "merge-group-base-sha"})
+        self.assertEqual(action["outputs"], {
+            "base-sha": {"description": action["outputs"]["base-sha"]["description"],
+                         "value": "${{ steps.base.outputs.base-sha }}"},
+            "tested-sha": {"description": action["outputs"]["tested-sha"]["description"],
+                           "value": "${{ steps.base.outputs.tested-sha }}"}})
+        load, = action["runs"]["steps"]
+        for key in ("if", "continue-on-error", "working-directory", "uses"):
+            self.assertNotIn(key, load)
+        self.assertEqual((load["id"], load["shell"]), ("base", "bash"))
+        self.assertNotIn("${{", load["run"])
+        for needle in ('git rev-list --parents -n 1 HEAD', '"$second" != "$HEAD_SHA"',
+                       'git cat-file blob "$base:tools/merge_hold.py"',
+                       'git cat-file blob "$base:tools/ci_impact.py"', 'set -euo pipefail'):
+            self.assertIn(needle.replace('"$second"', '"${second:-}"'), load["run"])
+        # merge_group (ADR-CI-MERGE-GROUP-SELECT-20261126): the base files come from T, the merge base of
+        # the queue commit and freshly fetched main, never from merge_group.base_sha (an unlanded entry ahead).
+        for needle in ('git fetch --no-tags --quiet origin "+refs/heads/main:$main"',
+                       'base="$(git merge-base "$tested" "$main")" || base=""',
+                       'git merge-base --is-ancestor "$base" "$main"',
+                       'git merge-base --is-ancestor "$base" "$MERGE_GROUP_BASE_SHA"',
+                       'git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"'):
+            self.assertIn(needle, load["run"])
+        self.assertNotIn('base="$MERGE_GROUP_BASE_SHA"', load["run"])
+        # merge_hold.py reads the same ref this step fetches (D2 N1).
+        main_ref = re.search(r'^MAIN_REF = "([^"]+)"$', (ROOT / "tools/merge_hold.py").read_text(), re.M)
+        self.assertIsNotNone(main_ref)
+        self.assertIn(f"main={main_ref.group(1)}\n", load["run"])
+        self.assertEqual(load["env"], {
+            "EVENT_NAME": "${{ inputs.event-name }}",
+            "HEAD_SHA": "${{ inputs.head-sha }}",
+            "MERGE_GROUP_BASE_SHA": "${{ inputs.merge-group-base-sha }}",
+        })
+        # No inline copy elsewhere: every T derivation goes through this action.
+        for path, job_id, step in self.steps():
+            if path != TRUSTED_BASE_ACTION:
+                with self.subTest(path=path, job=job_id, step=step.get("name")):
+                    self.assertNotIn("merge-base --is-ancestor", step.get("run", ""))
+
+    def test_trusted_base_action_takes_t_from_main_never_from_the_queue_base(self):
+        """Execute the shared action: T is the merge base with fetched main; any doubt fails before a copy."""
+        action = self.actions[TRUSTED_BASE_ACTION]
+        script = action["runs"]["steps"][0]["run"]
+        environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+        environment.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)
+
+        def git(cwd, *args):
+            return subprocess.run(["git", "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid",
+                                   "-c", "commit.gpgsign=false", "-c", "init.defaultBranch=main", *args],
+                                  cwd=cwd, check=True, capture_output=True, text=True, env=environment).stdout.strip()
+
+        def commit(repo, label):
+            (repo / "tools").mkdir(exist_ok=True)
+            (repo / "tools/merge_hold.py").write_text(f"# {label}\n", encoding="utf-8")
+            (repo / "tools/ci_impact.py").write_text(f"# {label} selector\n", encoding="utf-8")
+            git(repo, "add", "-A")
+            git(repo, "commit", "-q", "-m", label)
+            return git(repo, "rev-parse", "HEAD")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            origin, repo = root / "origin.git", root / "repo"
+            repo.mkdir()
+            git(repo, "init", "-q")
+            main = commit(repo, "main")
+            ahead = commit(repo, "ahead")  # the unlanded queue commit of the entry ahead
+            queue = commit(repo, "queue")
+            git(root, "init", "-q", "--bare", str(origin))
+            git(repo, "push", "-q", str(origin), f"{main}:refs/heads/main")
+            git(repo, "remote", "add", "origin", str(origin))
+
+            def run(label, **env):
+                temp = root / label
+                temp.mkdir()
+                out = temp / "output.txt"
+                out.write_text("", encoding="utf-8")
+                result = subprocess.run(["bash", "-c", script], cwd=repo, capture_output=True, text=True,
+                                        check=False, env={**environment, "RUNNER_TEMP": str(temp),
+                                                          "GITHUB_OUTPUT": str(out), **env})
+                outputs = dict(line.split("=", 1) for line in out.read_text(encoding="utf-8").splitlines())
+                copied = temp / "merge-hold-base/merge_hold.py"
+                return result, outputs, copied.read_text(encoding="utf-8") if copied.exists() else None
+
+            result, outputs, copied = run("stacked", EVENT_NAME="merge_group", MERGE_GROUP_BASE_SHA=ahead)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(outputs, {"base-sha": main, "tested-sha": queue})
+            self.assertEqual(copied, "# main\n")  # protected main's copy, not the entry ahead's
+            for label, base in (("not-an-ancestor", git(repo, "rev-parse", "HEAD^{tree}")),
+                                ("empty-base", ""), ("ahead-of-queue", "f" * 40)):
+                with self.subTest(case=label):
+                    result, outputs, copied = run(label, EVENT_NAME="merge_group", MERGE_GROUP_BASE_SHA=base)
+                    self.assertEqual(result.returncode, 1, result.stdout)
+                    self.assertEqual((outputs, copied), ({}, None))
+            git(repo, "remote", "set-url", "origin", str(root / "missing.git"))
+            result, outputs, copied = run("no-main", EVENT_NAME="merge_group", MERGE_GROUP_BASE_SHA=ahead)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("Could not fetch main", result.stdout)
+            self.assertEqual((outputs, copied), ({}, None))
 
     def test_merge_hold_recheck_reruns_from_the_default_branch_after_every_gate_workflow(self):
         """#494 B9: merge-hold decides at once on pull_request; an event-driven re-check re-runs it."""
