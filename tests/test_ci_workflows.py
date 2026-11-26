@@ -1059,9 +1059,15 @@ class WorkflowContractTests(unittest.TestCase):
             self.assertEqual(sorted(ran), sorted(shlex.split(command) for command in HOST_PYTHON_COMMANDS[1:]))
             self.assertEqual(ran[0], shlex.split(HOST_PYTHON_COMMANDS[1]))
             serial = (shlex.split(HOST_PYTHON_COMMANDS[1]), shlex.split(HOST_PYTHON_FOREGROUND))
-            for entry in records:  # the background entries prove the probe sees an ignored signal
-                self.assertEqual(entry["ignored"], [] if entry["argv"] in serial else ["SIGINT", "SIGQUIT"],
-                                 entry["argv"])
+            self.assertEqual(sorted(entry["argv"] for entry in records if entry["argv"] in serial), sorted(serial))
+            for entry in records:
+                if entry["argv"] in serial:
+                    self.assertEqual(entry["ignored"], [], entry["argv"])
+            # Lane commands are not pinned: inside a `( ... ) &` subshell, bash 5.2 (ubuntu-24.04) runs
+            # them with SIGINT/SIGQUIT restored and bash 5.3 keeps them ignored. The probe itself is
+            # shown to see ignored signals, so the serial [] above is not vacuous.
+            _, probe = self.run_with_host_python_fakes("trap '' INT QUIT\npython3 probe\n", root / "probe")
+            self.assertEqual(probe, [{"argv": ["python3", "probe"], "ignored": ["SIGINT", "SIGQUIT"]}])
             for index, command in enumerate(HOST_PYTHON_COMMANDS[2:]):  # no subTest: callers expect a raise
                 _, result, ran, _ = run_step(f"fail-{index}", command)
                 self.assertNotEqual(result.returncode, 0, command)
