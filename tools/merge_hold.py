@@ -513,7 +513,7 @@ def run_order(run):
 
 def read_state(run):
     """What two reads of one run must share for the jobs read between them to belong to it."""
-    return run.get("id"), run.get("run_attempt"), run.get("status")
+    return run.get("id"), run.get("run_attempt"), run.get("status"), run.get("conclusion"), run.get("head_sha")
 
 
 def job_matches(row, job):
@@ -618,15 +618,21 @@ def gate_report(token, repo, pull, head_sha, plan):
             settled = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
             attempt, listed = settled.get("run_attempt"), run.get("run_attempt")
             if (read_state(settled) != read_state(again) or settled.get("id") != run["id"]
+                    or settled.get("head_sha") != run.get("head_sha")
                     or not (type(attempt) is int and type(listed) is int and attempt >= listed)):
                 pending.append(f"{workflow}: {where} changed while it was read (now attempt "
                                f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
                 continue
-            # A completed attempt never runs again: a same-attempt re-read that says so contradicts
-            # the listing, and judging it as running would skip the conclusion cross-check.
-            if run.get("status") == "completed" and attempt == listed and settled.get("status") != "completed":
-                pending.append(f"{workflow}: {where} was listed completed but re-read as "
-                               f"{settled.get('status')} in the same attempt; re-run merge-hold")
+            # A completed attempt never runs again or changes its conclusion, and a running one gains
+            # a conclusion only when it completes: a same-attempt re-read that says otherwise
+            # contradicts the listing, and judging it could skip the conclusion cross-check.
+            if attempt == listed and (
+                    (run.get("status") == "completed" and settled.get("status") != "completed")
+                    or (run.get("status") == "completed" and settled.get("conclusion") != run.get("conclusion"))
+                    or (settled.get("status") != "completed" and settled.get("conclusion") != run.get("conclusion"))):
+                pending.append(f"{workflow}: {where} was listed {run.get('status')} ({run.get('conclusion')}) "
+                               f"but re-read as {settled.get('status')} ({settled.get('conclusion')}) in the "
+                               "same attempt; re-run merge-hold")
                 continue
             # Judge the settled record as a whole, never fields of the stale listing.
             run = settled
