@@ -12,6 +12,7 @@ Third-party code and fonts retain their own license terms. Applying MPL-2.0 to p
 | Noto Sans Mono bitmap data | OFL-1.1 for the font data, MIT for the Rust crate code; full notices are included in [native/THIRD-PARTY.md](ui/native/THIRD-PARTY.md) and [compositor/THIRD-PARTY.md](sdk/examples/compositor/THIRD-PARTY.md), together with their `licenses/` directories |
 | SplitMix64 algorithm | Public-domain statement by Sebastiano Vigna; source attribution is preserved in `experiments/quantum/qsim-core/src/sampler.rs` and [quantum/THIRD-PARTY.md](experiments/quantum/THIRD-PARTY.md) |
 | `days_from_civil` calendar calculation | Public-domain statement by Howard Hinnant; source attribution is preserved in `drivers/rtc/src/lib.rs` |
+| Contributor Covenant 3.0 adaptation in `CODE_OF_CONDUCT.md` | CC BY-SA 4.0; the source, steward, adaptation, and licence are identified in the file's attribution section |
 
 ## Registered dependencies
 
