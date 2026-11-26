@@ -2112,7 +2112,7 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
     def test_native_legs_are_independent_isolated_and_bounded(self):
         job = self.jobs["native-window-session"]
         self.assertNotIn("needs", job)
-        self.assertEqual(job["strategy"]["max-parallel"], "3")
+        self.assertEqual(job["strategy"]["max-parallel"], "5")
         self.assertEqual(job["strategy"]["fail-fast"], "false")
         self.assertEqual(job["timeout-minutes"], "${{ matrix.timeout }}")
         legs = {entry["leg"]: entry for entry in matrix_combinations(job)}
