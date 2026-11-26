@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "58a0eb2a0e9887782feb225aba2b7ad813b5e42a",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05: REL-05 section 7.9 follow-up (recovery marker scope, independent anchor check, TEST loader gap stated) (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. At source 58a0eb2a BOOT:RECOVERY:REQUIRED follows only identity mismatch, unenrolled, NVRAM reset and anchor-loss halts; the host invariant checker refuses any handover without an intact anchor independently of the model, and an ANCHOR_BEHIND-boots mutant fails three suites. update-core tests, rustfmt and clippy pass; os-loader (with and without tpm-hauth-provision-test), update-tool and the SDK update example build. The TEST M1-HAUTH loader still re-provisions and boots after a clear, which currently violates REL-05 section 7.9 conditions 1 and 2; no native case ran; REL-05 stays open; no criterion accepted."
+}
