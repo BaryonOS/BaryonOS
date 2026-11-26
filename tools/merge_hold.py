@@ -511,6 +511,11 @@ def run_order(run):
     return (started, run["id"])
 
 
+def read_state(run):
+    """What two reads of one run must share for the jobs read between them to belong to it."""
+    return run.get("id"), run.get("run_attempt"), run.get("status"), run.get("conclusion"), run.get("head_sha")
+
+
 def job_matches(row, job):
     # Runtime matrix: the check name is a template (excluded rows carry no variant field).
     if row.get("variant") == "*" or EXPRESSION.search(row.get("check_name") or ""):
@@ -601,10 +606,98 @@ def gate_report(token, repo, pull, head_sha, plan):
             if job.get("run_id") == run["id"]]
         # A re-run between the two reads would pair this run state with another attempt's jobs.
         again = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
-        if (again.get("run_attempt"), again.get("status")) != (run.get("run_attempt"), run.get("status")):
-            pending.append(f"{workflow}: {where} changed while it was read (now attempt "
-                           f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
+        if read_state(again) != read_state(run):
+            # The run moved on (a skipped run that completed, a new attempt). Rather than leave it
+            # pending for a later merge-hold run, read its jobs once more and judge that newer state
+            # only if the run held it across that read, under the requested id, and is no older than
+            # the listing. A run that keeps changing or lags behind the listing stays pending.
+            earlier = jobs
+            jobs = [job for job in fetch_listing(
+                token, f"{API}/repos/{repo}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
+                if job.get("run_id") == run["id"]]
+            settled = call(token, f"{API}/repos/{repo}/actions/runs/{run['id']}")
+            attempt, listed = settled.get("run_attempt"), run.get("run_attempt")
+            if (read_state(settled) != read_state(again) or settled.get("id") != run["id"]
+                    or settled.get("head_sha") != run.get("head_sha")
+                    or not (type(attempt) is int and type(listed) is int and attempt >= listed)):
+                pending.append(f"{workflow}: {where} changed while it was read (now attempt "
+                               f"{again.get('run_attempt')}, {again.get('status')}); re-run merge-hold")
+                continue
+            # A completed attempt never runs again or changes its conclusion, and a running one gains
+            # a conclusion only when it completes: a same-attempt re-read that says otherwise
+            # contradicts the listing, and judging it could skip the conclusion cross-check.
+            if attempt == listed and (
+                    (run.get("status") == "completed" and settled.get("status") != "completed")
+                    or (run.get("status") == "completed" and settled.get("conclusion") != run.get("conclusion"))
+                    or (settled.get("status") != "completed" and settled.get("conclusion") != run.get("conclusion"))):
+                pending.append(f"{workflow}: {where} was listed {run.get('status')} ({run.get('conclusion')}) "
+                               f"but re-read as {settled.get('status')} ({settled.get('conclusion')}) in the "
+                               "same attempt; re-run merge-hold")
+                continue
+            # Judge the settled record as a whole, never fields of the stale listing.
+            run = settled
+            where = f"run {run['id']} attempt {run.get('run_attempt')}"
+            running = run.get("status") != "completed"
+            # A job the first read listed for the judged attempt, or without an integer attempt (a
+            # failed unregistered or continue-on-error job too), must still be listed by the second
+            # read, and a completed one with the same status, conclusion and name (a renamed failed
+            # gate could otherwise pass as another check). A job that completes between the reads is
+            # the normal settle. Jobs of an older attempt are not compared.
+            kept = {job["id"]: job for job in jobs}
+            ours = [job for job in earlier
+                    if type(job.get("run_attempt")) is not int or job["run_attempt"] == attempt]
+            dropped = [job for job in ours if job["id"] not in kept]
+            changed = [job for job in ours if job["id"] in kept and job.get("status") == "completed"
+                       and (kept[job["id"]].get("status"), kept[job["id"]].get("conclusion"),
+                            kept[job["id"]].get("name")) != ("completed", job.get("conclusion"), job.get("name"))]
+            # Jobs of a newer attempt in the first read: the run went back to an older record.
+            newer = sorted({job["run_attempt"] for job in earlier
+                            if type(job.get("run_attempt")) is int and job["run_attempt"] > attempt})
+            if newer:
+                pending.append(f"{workflow}: {where} first listed jobs of a newer attempt "
+                               f"({', '.join(map(str, newer))}) than the one it settled on; re-run merge-hold")
+            if dropped:
+                pending.append(f"{workflow}: {where} dropped job(s) "
+                               f"{', '.join(str(job.get('name')) for job in dropped)} between two reads; "
+                               "re-run merge-hold")
+            if changed:
+                pending.append(f"{workflow}: {where} changed the completed record of job(s) "
+                               f"{', '.join(str(job.get('name')) for job in changed)} between two reads; "
+                               "re-run merge-hold")
+            if newer or dropped or changed:
+                continue
+        # Bind the jobs to the judged attempt: `filter=latest` can lag behind the run record or
+        # run ahead of it. A partial "re-run failed jobs" passes when GitHub lists the carried-over
+        # jobs with the new run_attempt, as it did in three sampled runs on 26 November 2026
+        # (45644765624, 45649628788, 45629883279; observed, not documented); a carried-over job
+        # under its old attempt stays pending here. A bool or float is no attempt.
+        if type(run.get("run_attempt")) is not int or any(
+                type(job.get("run_attempt")) is not int or job["run_attempt"] != run["run_attempt"]
+                for job in jobs):
+            pending.append(f"{workflow}: {where} listed jobs of another attempt; re-run merge-hold")
             continue
+        # A blocking run conclusion needs a listed job that explains it, in any class (an advisory
+        # failure does): `filter=latest` can omit the failed job, so the listed ones say too little.
+        conclusion = run.get("conclusion")
+        if not running and conclusion in BLOCKING_CONCLUSIONS and not any(
+                job.get("conclusion") in BLOCKING_CONCLUSIONS for job in jobs):
+            if jobs:
+                pending.append(f"{workflow}: {where} concluded {conclusion} but lists no such job; "
+                               "re-run merge-hold; if it persists, re-run that workflow run")
+            else:
+                # Failed, not Pending: a run without any job (startup_failure, or cancelled before a
+                # job started) ran no gate, re-running merge-hold cannot change that, and the loop below
+                # already fails such a run that has an expected gate ("missing from"). This applies to
+                # every counted workflow, trigger-only and advisory-only too: an unregistered or omitted
+                # failed job of such a run would otherwise pass. Two other causes reach this line: a
+                # jobs listing that lags behind a run with jobs (a merge-hold re-run clears it), and a
+                # run cancelled by concurrency without any job that wins run_order's same-second tie by
+                # its higher id (materiaal-probe, 1 in its last 300 pull_request runs on 26 November
+                # 2026); a re-run of that workflow run or the next pull request event clears that one,
+                # a merge-hold re-run does not.
+                failed.append(f"{workflow}: {where} concluded {conclusion}, but GitHub listed no job for it; "
+                              "re-run merge-hold if the jobs listing lagged, or re-run that workflow run (or "
+                              "push a new head) if it ended before any job started")
         if running and workflow in gated:
             pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
                            "including jobs GitHub has not created yet")
@@ -667,7 +760,7 @@ def pull_request_gates(token, repo, number, head_sha):
             break
         if not runs_open(token, repo, pull, head_sha, plan):
             # A gate may have finished during the report: decide once more. Pending again
-            # with nothing left running (a run changed while read and finished) cannot
+            # with nothing left running (a run that kept changing while it was read) cannot
             # resolve by waiting, so decide now.
             if fresh:
                 break
@@ -697,6 +790,9 @@ def pull_request_gates(token, repo, number, head_sha):
         if any(NEVER_STARTS in line for line in pending):
             lines.append(f"{prefix}Exception: a gate with an unknown path-filter result may never start, "
                          "so waiting for it does not help; its Pending line names the remedy.")
+        if any("if it persists" in line for line in pending):
+            lines.append(f"{prefix}Exception: a Pending line that says \"if it persists\" may need a re-run of "
+                         "that workflow run when a merge-hold re-run does not clear it.")
     lines += ["Passed: " + line for line in passed] + ["Not a pass: " + line for line in skipped]
     return (not failed and not pending) or not enforce, lines
 
