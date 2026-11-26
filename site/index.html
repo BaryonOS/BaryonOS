@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Baryon OS is an independent operating system research project. Explore its architecture, evidence, roadmap, and browser interaction prototype.">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' data:; font-src 'none'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Baryon OS — independent operating system research</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/" aria-label="Baryon OS home">
+        <img src="/favicon.svg" alt="" width="32" height="32">
+        <span>Baryon <strong>OS</strong></span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <ul class="nav-list">
+          <li><a href="#approach">Approach</a></li>
+          <li><a href="#status">Status</a></li>
+          <li><a href="#prototype">Prototype</a></li>
+          <li><a href="#contribute">Contribute</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Independent OS research · x86_64 / UEFI</p>
+        <h1 id="hero-title">An operating system built from the kernel outward.</h1>
+        <p class="lead">Baryon OS is an experimental project developing its own boot chain, Rust kernel, system services, and desktop experience. Its design explores explicit authority and user control over data.</p>
+        <div class="actions">
+          <a class="button button-primary" href="https://github.com/BaryonOS/BaryonOS">Explore the source <span aria-hidden="true">↗</span></a>
+          <a class="button button-secondary" href="#status">See project status <span aria-hidden="true">↓</span></a>
+        </div>
+        <p class="release-note"><span aria-hidden="true" class="note-mark"></span><strong>Research software.</strong> There is no supported production release. Do not use it for daily work or sensitive production data.</p>
+      </div>
+      <aside class="stack-panel" aria-label="Baryon OS architecture, from firmware to desktop">
+        <p class="panel-label">THE RESEARCH STACK</p>
+        <ol class="stack-list">
+          <li><span class="stack-index">01</span><span>UEFI / OVMF</span><small>firmware entry</small></li>
+          <li><span class="stack-index">02</span><span>Custom Rust loader</span><small>boot chain</small></li>
+          <li><span class="stack-index">03</span><span><code>no_std</code> Rust kernel</span><small>isolation</small></li>
+          <li><span class="stack-index">04</span><span>Processes and services</span><small>bounded authority</small></li>
+          <li><span class="stack-index">05</span><span>Native desktop</span><small>product work</small></li>
+        </ol>
+        <p class="panel-footnote">Components have different levels of implementation and test evidence. See the current project record for their accepted scope.</p>
+      </aside>
+    </section>
+
+    <section id="approach" class="section section-divider">
+      <div class="wrap">
+        <div class="section-heading">
+          <p class="eyebrow">The approach</p>
+          <h2>System research and product design, developed together.</h2>
+        </div>
+        <div class="approach-grid">
+          <article class="feature">
+            <span class="feature-number">01 / SYSTEM</span>
+            <h3>Independent foundations</h3>
+            <p>The project develops its own x86_64 boot chain and kernel rather than using an existing operating system kernel as its foundation. Processes and services are designed around bounded capabilities.</p>
+            <a class="inline-link" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/ARCHITECTURE.md">Read the architecture <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="feature">
+            <span class="feature-number">02 / EXPERIENCE</span>
+            <h3>Familiar ways to work</h3>
+            <p>The product goal pairs recognisable desktop interactions with explicit access to documents, apps, and connected storage. The interface prototypes explore these flows while native integration continues.</p>
+            <a class="inline-link" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/DESIGN-AMBITION.md">Read the product ambition <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="feature">
+            <span class="feature-number">03 / EVIDENCE</span>
+            <h3>Claims with a clear boundary</h3>
+            <p>Builds, host tests, QEMU runs, hardware trials, and human evaluation are distinct evidence levels. A browser mockup does not demonstrate kernel enforcement or a working release.</p>
+            <a class="inline-link" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/TEST-STRATEGY.md">Read the test strategy <span aria-hidden="true">↗</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="status" class="section section-divider">
+      <div class="wrap status-layout">
+        <div class="section-heading">
+          <p class="eyebrow">Current status</p>
+          <h2>Follow the evidence, not a launch date.</h2>
+          <p>The repository contains an independent boot chain, process and capability infrastructure, services, drivers, an SDK, and native UI work. Integration and acceptance remain in progress. The linked records carry the current scope and open gaps.</p>
+        </div>
+        <div class="link-grid">
+          <a class="resource-card" href="https://github.com/BaryonOS/BaryonOS#current-status">
+            <span class="resource-kicker">Overview</span>
+            <strong>Project README</strong>
+            <span>Architecture, status, and next reading steps <span aria-hidden="true">↗</span></span>
+          </a>
+          <a class="resource-card" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md">
+            <span class="resource-kicker">Acceptance</span>
+            <strong>Progress register</strong>
+            <span>Fixed criteria and evidence levels <span aria-hidden="true">↗</span></span>
+          </a>
+          <a class="resource-card" href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROJECT-STATE.md">
+            <span class="resource-kicker">Execution</span>
+            <strong>Project state</strong>
+            <span>Current checkpoint and remaining work <span aria-hidden="true">↗</span></span>
+          </a>
+          <a class="resource-card" href="https://github.com/BaryonOS/BaryonOS/tree/main/docs/verification">
+            <span class="resource-kicker">Verification</span>
+            <strong>Evidence archive</strong>
+            <span>Recorded tests and their limitations <span aria-hidden="true">↗</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="prototype" class="section section-divider">
+      <div class="wrap prototype-panel">
+        <div class="prototype-copy">
+          <p class="eyebrow">Interaction research</p>
+          <h2>Explore the Materiaal browser simulation.</h2>
+          <p>The interactive prototype uses fictitious data to examine documents, permissions, storage and desktop flows. It runs in your browser. It is not Baryon OS running on its own kernel and does not perform real NAS synchronisation, cryptographic verification, package installation, or AI inference.</p>
+          <p class="prototype-warning"><strong>Use fictional information only.</strong> The simulation is not a security boundary or a place to store real data.</p>
+          <a class="button button-primary" href="/prototype/">Open browser simulation <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="prototype-slate" aria-hidden="true">
+          <div class="slate-top"><span></span><span></span><span></span><b>Materiaal · simulation</b></div>
+          <div class="slate-body">
+            <div class="slate-menu"><i></i><i></i><i></i><i></i></div>
+            <div class="slate-content"><div class="slate-line long"></div><div class="slate-line"></div><div class="slate-card"></div><div class="slate-card second"></div></div>
+          </div>
+          <div class="slate-label">BROWSER PROTOTYPE / SYNTHETIC DATA</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contribute" class="section section-divider final-section">
+      <div class="wrap contribute-layout">
+        <div>
+          <p class="eyebrow">Open development</p>
+          <h2>Inspect the work. Help shape what comes next.</h2>
+          <p>Contributions and careful review are welcome within the project's architecture and security boundaries. Start with the contributor guide and the current issues.</p>
+        </div>
+        <div class="contribute-links">
+          <a href="https://github.com/BaryonOS/BaryonOS/blob/main/CONTRIBUTING.md">Contributor guide <span aria-hidden="true">↗</span></a>
+          <a href="https://github.com/BaryonOS/BaryonOS/issues">Open issues <span aria-hidden="true">↗</span></a>
+          <a href="https://github.com/BaryonOS/BaryonOS/discussions">Discussions <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>Baryon OS <span>·</span> Independent operating system research</p>
+      <div>
+        <a href="https://github.com/BaryonOS/BaryonOS/blob/main/SECURITY.md">Report a vulnerability</a>
+        <a href="https://github.com/BaryonOS/BaryonOS/blob/main/LICENSING.md">Licensing</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
