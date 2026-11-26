@@ -81,6 +81,14 @@ compile_error!("USB HID and legacy xHCI negative cases require separate boots");
 ))]
 compile_error!("USB reattach and the read-only DMA fault require separate boots");
 #[cfg(all(
+    feature = "native-usb-hid-refusal",
+    any(
+        feature = "usb-hid-reattach-core",
+        feature = "test-usb-hid-readonly-fault"
+    )
+))]
+compile_error!("USB refusal, reattach and the read-only DMA fault require separate boots");
+#[cfg(all(
     feature = "native-usb-hid-reattach",
     feature = "native-usb-hid-mouse-reattach"
 ))]

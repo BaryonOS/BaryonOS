@@ -154,6 +154,34 @@ fn render_native_window_material_walkthrough_oracle() {
             assert_eq!(ui.view().screen, Screen::Material);
             assert!(ui.view().objects.is_empty());
             snapshot(&ui, "initial", directory.as_deref());
+            {
+                // Interim until #541: a window switch away delivers
+                // Cancel(FocusLost) and the banner stays until the next key.
+                let host = Host::new();
+                let (mut draft, mut original, mut staging) = ([0; 4096], [0; 4096], [0; 4096]);
+                let mut lost = controller(
+                    &host,
+                    EditMode::ReadWrite,
+                    Buffers {
+                        draft: &mut draft,
+                        original: &mut original,
+                        staging: &mut staging,
+                    },
+                );
+                lost.resize(Viewport::new(width, height, scale, 1).unwrap())
+                    .unwrap();
+                lost.set_compositor_cursor(true).unwrap();
+                lost.refresh().unwrap();
+                lost.deliver(InputEnvelope {
+                    epoch: INPUT_EPOCH,
+                    sequence: 1,
+                    generation: 1,
+                    event: Event::Cancel(CancelReason::FocusLost),
+                })
+                .unwrap();
+                assert_eq!(lost.view().status, Status::InputLost);
+                snapshot(&lost, "initial-focus-lost", directory.as_deref());
+            }
             key(
                 &mut ui,
                 INPUT_EPOCH,
