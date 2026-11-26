@@ -353,6 +353,9 @@ is [B03-REL05-TRIAL-BOOT-TPM.md](implementation/B03-REL05-TRIAL-BOOT-TPM.md).
 Design only: nothing is implemented or tested. It would amend ADR-049
 decisions 2 and 4 for a new loader feature `signed-boot-trial`; `signed-boot`
 keeps ADR-049 semantics, including the REL-05 hazard, until gate migration.
+On 26 November 2026 the project owner approved this ADR in substance for the
+strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH (last
+amendment below).
 
 **Problem:** the signed loader raises `NieuwOsMinVersion` when a slot
 verifies, before the kernel runs, so a signed but broken release makes the
@@ -382,7 +385,9 @@ previous good release a permanent `DOWNGRADE` (REL-05).
    list `HEALTH-LIST-1`. The kernel still contains no cryptography.
 5. While a trial is pending the update service does not write slots (amends
    ADR-049 decision 4).
-6. A missing, faulty, cleared, replaced or inconsistent TPM gives a degraded
+6. *(Superseded in part: C665 takes precedence, see the amendment of
+   26 November 2026 below.)* A missing, faulty, cleared, replaced or
+   inconsistent TPM gives a degraded
    boot (known-good only, no trial, no floor write, explicit markers), except
    that a reachable TPM whose phase PCR cannot be extended halts the boot
    (`BOOT:FAIL:TPM_EXTEND`): handing over with PCR 13 at its reset value would
@@ -463,6 +468,36 @@ owner and not accepted as a residual by B: code that runs at PCR 13 = 0³²
 store one reboot later; the revival is refused at run time within a boot,
 not across a hostile boot path. 5A stays in force. Contract:
 [COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
+
+**Amendment, 26 November 2026 (project-owner decision on PR #524: approval
+and C665 precedence):** the project owner approved this ADR in substance for
+the strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH, and
+decided (translated from Dutch) that C665 takes precedence over decision 6: an
+unknown, replaced, reset or unverifiable TPM must not bypass the identity
+binding through `DEGRADED`; the controlled halt and authenticated recovery
+stay. The open REL-05 §7.9 question is not decided by this amendment.
+Consequences for the TEST profile:
+
+- `DEGRADED` follows only a TPM identity that section 10.5 of the
+  specification verified. A TPM that is absent, fails before or during the
+  identity proof, or shows PCR 13 dirty at loader start has no verified
+  identity: the loader prints the class marker, halts with
+  `BOOT:FAIL:TPM_IDENTITY`, writes nothing and runs no kernel. An unenrolled
+  TPM (`BOOT:FAIL:TPM_UNENROLLED`), another or unproven endorsement key,
+  including a replaced TPM or one reset to new seeds (`BOOT:FAIL:TPM_IDENTITY`),
+  and an NVRAM reset (`BOOT:FAIL:UEFI_FLOOR_MISSING`) halt as before. A failed
+  extend still halts with `BOOT:FAIL:TPM_EXTEND`. Recovery is authenticated
+  only (section 10.5).
+- Decision 6 keeps `DEGRADED` only for a verified TPM whose anchor is lost or
+  behind (`ANCHOR_LOST`, `ANCHOR_BEHIND`). Whether a cleared TPM that still
+  proves its enrolled endorsement key degrades or halts is REL-05 §7.9; it
+  stays open, and the host model's current `DEGRADED` result for that case is
+  not an owner decision.
+- The boot-path revival at PCR 13 = 0³² before B04 stays an open security
+  problem, not an accepted residual risk. N04 stays under 5A until the full 5B
+  integration passes native security acceptance. All open implementation and
+  acceptance conditions (C23–C30, native S5, U13c) remain; no production
+  credentials, no physical TPM change and no progress score change.
 
 **Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
 extension, kernel profile and health service; the characterization of PR #514

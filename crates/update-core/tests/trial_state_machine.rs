@@ -200,7 +200,12 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
     // C665/U13: an unidentified TPM is never written and never trialled.
     // An enrolled device whose ENROLL file was deleted looks unenrolled, so
     // UNENROLLED must fail closed too (review: record existence is not protected).
-    if dev == Dev::IdentityMismatch || dev == Dev::Unenrolled {
+    // Owner decision 26 Nov: C665 prevails over decision 6, so a TPM without a
+    // verified identity (absent, faulty, dirty PCR 13) halts too, never DEGRADED.
+    if matches!(
+        dev,
+        Dev::IdentityMismatch | Dev::Unenrolled | Dev::Absent | Dev::Fault | Dev::PcrDirty
+    ) {
         let halt = if dev == Dev::Unenrolled {
             Halt::TpmUnenrolled
         } else {
@@ -208,10 +213,10 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
         };
         assert_eq!(plan.outcome, Outcome::Halt(halt), "{}", ctx());
         assert!(plan.writes.is_empty(), "U13 write: {}", ctx());
+        assert!(!degraded, "unverified TPM degraded: {}", ctx());
         return pre.clone();
     }
-    if degraded || dev != Dev::Ready && dev != Dev::ExtendBroken {
-        assert!(degraded, "non-ready TPM must degrade: {}", ctx());
+    if degraded {
         assert!(plan.writes.is_empty(), "I7 write: {}", ctx());
         assert!(trial_binding(plan).is_none(), "I7 trial: {}", ctx());
     }
@@ -292,8 +297,13 @@ fn check_plan(pre: &Store, disk: &Disk, dev: Dev, plan: &Plan) -> Store {
                     assert_eq!(h.extend, Some(Phase::Closed), "{}", ctx());
                 }
                 Mode::Degraded(class) => {
-                    let want = (class != TpmClass::Absent).then_some(Phase::Closed);
-                    assert_eq!(h.extend, want, "{}", ctx());
+                    // Only a verified TPM with a lost or behind anchor degrades.
+                    assert!(
+                        matches!(class, TpmClass::AnchorLost | TpmClass::AnchorBehind),
+                        "{}",
+                        ctx()
+                    );
+                    assert_eq!(h.extend, Some(Phase::Closed), "{}", ctx());
                     // I7 on the mode itself, not only the path.
                     assert!(degraded, "{}", ctx());
                     assert_eq!(h.version, pre.uefi, "I7 mode version: {}", ctx());
@@ -508,7 +518,7 @@ fn exhaustive_single_step_and_every_crash_prefix() {
 }
 
 #[test]
-fn every_tpm_fault_class_degrades_without_writes() {
+fn every_tpm_fault_class_fails_closed_without_writes() {
     let options = disk_options();
     let mut garbage = provisioned(1, 3);
     garbage.trial = Some([0x11; RECORD_LEN]);
@@ -684,8 +694,8 @@ fn reachable_states_crash_consistency_and_attempt_bounds() {
             panic!("state space larger than expected");
         }
         // Boots under every TPM condition.
-        // Fault and PcrDirty take the same no-write path as Absent (covered over
-        // arbitrary states by every_tpm_fault_class_degrades_without_writes).
+        // Fault and PcrDirty take the same no-write halt as Absent (covered over
+        // arbitrary states by every_tpm_fault_class_fails_closed_without_writes).
         for dev in [
             Dev::Ready,
             Dev::Absent,
@@ -1047,16 +1057,27 @@ fn tpm_missing_faulty_cleared_replaced_or_rolled_back() {
     let snapshot = m.store.clone();
     m.boot(Kernel::Healthy);
     m.boot(Kernel::Crash); // floor 2
+
+    // C16, C17a, C22 and a replaced or reset TPM (C18): no verified identity,
+    // so a controlled halt and no DEGRADED route (owner decision 26 Nov: C665
+    // prevails over decision 6).
     for (dev, marker) in [
-        (Dev::Absent, "BOOT:TPM:ABSENT"),
-        (Dev::Fault, "BOOT:TPM:FAULT"),
-        (Dev::PcrDirty, "BOOT:TPM:FAULT:PCR_DIRTY"),
+        (Dev::Absent, Some("BOOT:TPM:ABSENT")),
+        (Dev::Fault, Some("BOOT:TPM:FAULT")),
+        (Dev::PcrDirty, Some("BOOT:TPM:FAULT:PCR_DIRTY")),
+        (Dev::IdentityMismatch, None),
     ] {
         let (plan, b) = m.boot_with(dev, Kernel::Healthy);
-        assert!(has(&b, marker) && has(&b, "BOOT:MODE:DEGRADED") && has(&b, "BOOT:FLOOR:2"));
+        assert!(marker.is_none_or(|x| has(&b, x)) && has(&b, "BOOT:FAIL:TPM_IDENTITY"));
+        assert!(!b
+            .iter()
+            .any(|x| x == "BOOT:MODE:DEGRADED" || x.starts_with("BOOT:SLOT:")));
+        assert_eq!(plan.outcome, Outcome::Halt(Halt::TpmIdentity));
         assert!(plan.writes.is_empty());
     }
-    // C18 cleared, C21 squatted/replaced: anchor lost, UEFI floor kept.
+    // C18a: a cleared TPM that still proves its enrolled EK loses its anchor.
+    // DEGRADED versus halt here is the open owner question REL-05 §7.9: this
+    // pins the current model, not an owner decision. C21 squatted: anchor lost.
     let kept = m.store.clone();
     m.store = Store {
         uefi: 2,
@@ -1196,9 +1217,12 @@ fn known_good_requires_the_finalized_manifest() {
             "{plan:?}"
         );
     }
-    // DEGRADED cannot read the record: ambiguity halts.
-    let plan = boot(&s, &both, 1, Dev::Absent);
-    check_plan(&s, &both, Dev::Absent, &plan);
+    // DEGRADED (verified TPM, squatted anchor) cannot read the record:
+    // ambiguity halts.
+    s.public_ok = false;
+    let plan = boot(&s, &both, 1, Dev::Ready);
+    check_plan(&s, &both, Dev::Ready, &plan);
+    assert!(plan.path.iter().any(|p| *p == State::Degraded), "{plan:?}");
     assert_eq!(plan.outcome, Outcome::Halt(Halt::NoValidSlot));
 }
 

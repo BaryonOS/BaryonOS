@@ -189,7 +189,7 @@ None of them is ever an acceptance; N04 maps each to a denial (fail closed).
 
 | Error | Produced by the kernel anchor service when |
 |---|---|
-| `Unavailable` | the boot is `DEGRADED` (the kernel does not claim the CRB, REL-05 section 10.2); the TPM is absent, faulty or times out; the index is missing, never extended, or its public area differs from the constants (cleared, replaced or squatted TPM) |
+| `Unavailable` | the boot is `DEGRADED` (verified TPM identity with a lost or behind anchor; the kernel does not claim the CRB, REL-05 section 10.2); the TPM is faulty or times out at run time; the index is missing, never extended, or its public area differs from the constants (cleared, replaced or squatted TPM) |
 | `Corrupt` | read-back mismatch after the extend |
 | `Conflict` | the chain differs from `expected` |
 | `RateLimited` | the per-domain extend budget of this boot is spent, or the TPM reports `TPM_RC_NV_RATE` |
@@ -397,8 +397,11 @@ Listed in REL-05 section 14; the host model assumes them, S5 must prove them.
   (boot-services-only variable). The host model assumes it.
 - REL-05 section 7 item 9 still routes a cleared TPM to a `DEGRADED`
   known-good boot, which runs the kernel with an empty ownerAuth; M1-HAUTH
-  and C665 require a halt until authorised recovery. Open conflict, resolved
-  in the loader slice.
+  and C665 require a halt until authorised recovery. Owner decision of
+  26 November 2026: C665 takes precedence over ADR decision 6 for every TPM
+  without a verified identity (absent, faulty, unenrolled, replaced or reset:
+  halt, never `DEGRADED`); a cleared TPM that still proves its enrolled EK
+  remains the open question REL-05 §7.9.
 - U26 Loader record design: *designed* as `LREC` (table above; probe
   b03-rel05-lrec-probe-20261125; codec `update_core::trial::LoaderRecord`). The clear-is-denial result rests on it;
   the loader code, native S5 tests and power-loss atomicity (U22) are open.
@@ -425,7 +428,7 @@ kernel (T3) reaches every domain. There is no cloud, NAS or software fallback
 Cold restart accept; roll forward once after a cut at A1; accept after a cut
 at X; replayed older store refused; sibling store refused after an
 acknowledgement; stray extend → denial; lost response → no double extend;
-TPM absent, cleared, squatted or never provisioned → `Unavailable`; replaced
+TPM absent → the loader halts (REL-05 C16); cleared, squatted or never provisioned → `Unavailable`; replaced
 TPM → `Foreign` until authorised genesis; same-TPM re-genesis with a fresh
 instance after a stray extend; `Conflict` on a concurrent extend;
 spent budget → `RateLimited`; a network capability cannot reach the update

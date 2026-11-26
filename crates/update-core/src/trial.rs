@@ -297,6 +297,10 @@ pub enum Identity {
     Mismatch,
 }
 
+/// `Absent`, `Fault` and `PcrDirty` carry no verified identity, so [`step`]
+/// halts on them without a write: C665 takes precedence over ADR decision 6
+/// (project owner, 26 November 2026) and `DEGRADED` follows only a verified
+/// identity.
 // No allocator in the loader; one value per boot, so the size is irrelevant.
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -304,8 +308,7 @@ pub enum Tpm {
     /// No TCG2 protocol and no ACPI `TPM2` table: no TPM, no extend possible.
     Absent,
     /// TCG2 present and anything failed (including `GetCapability`), or an
-    /// ACPI `TPM2` table without TCG2. The `CLOSED` extend is still attempted;
-    /// if it fails the executor calls [`Plan::extend_failed`] and halts.
+    /// ACPI `TPM2` table without TCG2. No kernel runs, so no extend is needed.
     Fault,
     /// `PCR_Read(13) != 0` at loader start.
     PcrDirty,
@@ -437,7 +440,8 @@ pub struct Handover {
 pub enum Halt {
     NoValidSlot,
     TpmExtend,
-    /// [`Identity::Mismatch`]: only authenticated recovery proceeds.
+    /// [`Identity::Mismatch`], or no verified identity at all ([`Tpm::Absent`],
+    /// [`Tpm::Fault`], [`Tpm::PcrDirty`]): only authenticated recovery proceeds.
     TpmIdentity,
     /// [`Identity::Unenrolled`]: authenticated enrollment or recovery only.
     TpmUnenrolled,
@@ -601,9 +605,9 @@ impl Plan {
         }
     }
 
-    /// A planned `UefiFloor` write failed. Halt instead of re-stepping as
-    /// `Tpm::Fault`: DEGRADED trusts only the UEFI copy, which would then lie
-    /// below `FLOOR` after a failed heal (review finding C686).
+    /// A planned `UefiFloor` write failed. Halt with this reason instead of
+    /// re-stepping: a `DEGRADED` boot would trust only the UEFI copy, which
+    /// then lies below `FLOOR` after a failed heal (review finding C686).
     pub fn uefi_write_failed(&mut self) {
         self.outcome = Outcome::Halt(Halt::UefiFloorWrite);
         self.path.push(State::Halt);
@@ -717,8 +721,20 @@ fn halt_no_slot(plan: &mut Plan) {
     plan.outcome = Outcome::Halt(Halt::NoValidSlot);
 }
 
-/// Section 10.2. Never writes. The floor is the UEFI copy: TPM content is
-/// untrusted here (a squatted index must not be able to raise it).
+/// Owner decision of 26 November 2026: C665 prevails over ADR decision 6. A
+/// TPM without a verified identity never reaches `DEGRADED`; it halts like a
+/// failed identity proof, with no write and no kernel.
+fn unverified(mut plan: Plan, class: TpmClass) -> Plan {
+    plan.path.push(State::Halt);
+    plan.markers.push(Marker::Tpm(class));
+    plan.markers.push(Marker::FailTpmIdentity);
+    plan.outcome = Outcome::Halt(Halt::TpmIdentity);
+    plan
+}
+
+/// Section 10.2, reached only with a verified TPM identity. Never writes. The
+/// floor is the UEFI copy: TPM content is untrusted here (a squatted index
+/// must not be able to raise it).
 fn degraded(obs: &Observation, mut plan: Plan, class: TpmClass) -> Plan {
     plan.path.push(State::Degraded);
     plan.markers.push(Marker::Tpm(class));
@@ -726,7 +742,7 @@ fn degraded(obs: &Observation, mut plan: Plan, class: TpmClass) -> Plan {
     let floor = obs.uefi_floor;
     plan.floor = floor;
     plan.markers.push(Marker::Floor(floor));
-    let extend = (class != TpmClass::Absent).then_some(Phase::Closed);
+    let extend = Some(Phase::Closed);
     let hint = u8::from(obs.hint == 1);
     // Only the confirmed version: a slot above the UEFI floor was never
     // confirmed and may be a rejected trial, which the untrusted TPM content
@@ -759,9 +775,9 @@ pub fn step(obs: &Observation, health_list: u16) -> Plan {
     };
     plan.path.push(State::Init);
     let anchor = match obs.tpm {
-        Tpm::Absent => return degraded(obs, plan, TpmClass::Absent),
-        Tpm::Fault => return degraded(obs, plan, TpmClass::Fault),
-        Tpm::PcrDirty => return degraded(obs, plan, TpmClass::PcrDirty),
+        Tpm::Absent => return unverified(plan, TpmClass::Absent),
+        Tpm::Fault => return unverified(plan, TpmClass::Fault),
+        Tpm::PcrDirty => return unverified(plan, TpmClass::PcrDirty),
         Tpm::Ready(anchor) => anchor,
     };
     // C665/U13: no record of an unidentified TPM is trusted or written.
