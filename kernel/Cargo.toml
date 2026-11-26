@@ -224,6 +224,14 @@ test-system-s3-reinit = ["test-system-s3"]
 # SUSPEND must refuse it (-8), then one labelled gate-defect injection sleeps
 # anyway so that only the post-wake latch keeps the teardown reset off the device.
 test-system-s3-held-completion = ["test-system-s3"]
+# H05-T5c slice 1: kernel-driven virtio-blk (00:05.0) re-init after the wake,
+# discarded canary READ; no block capability is issued. Built on the rng re-init.
+test-system-s3-blk-reinit = ["test-system-s3-reinit"]
+# Labelled test-only injections (owner Q6): each must end in the lane-0 quarantine.
+test-system-s3-blk-reinit-busy = ["test-system-s3-blk-reinit"]
+test-system-s3-blk-reinit-identity = ["test-system-s3-blk-reinit"]
+test-system-s3-blk-reinit-capacity = ["test-system-s3-blk-reinit"]
+test-system-s3-blk-reinit-no-reset-ack = ["test-system-s3-blk-reinit"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 test-system-nas-interrupt = ["native-system-nas-probe"]

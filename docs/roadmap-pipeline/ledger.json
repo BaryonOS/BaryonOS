@@ -2339,7 +2339,7 @@
       "criterion": "H02",
       "milestone": "M9",
       "executor": "lead",
-      "status": "active",
+      "status": "verified",
       "title": "Native per-port refusal of out-of-profile USB devices (QEMU)",
       "goal": "An out-of-profile device on one root port (hub, HID without a boot interface, high-speed keyboard, storage) is refused with a reason-specific marker; its slot is disabled and its DCBAA entry cleared when one was allocated, the port stays unenabled, and the in-profile device on the other port still enumerates and delivers reports. Previous behaviour: every refusal ended the whole controller run (xhci.rs result.expect after stop).",
       "invariant": "A refused device never receives SET_CONFIGURATION, an interrupt/input endpoint context, a Session or an input path. Only the temporary EP0 control context needed to read its descriptors before Session::new may exist; refusal cleanup disables that slot and clears its DCBAA entry. Refusal never stops service of the other in-profile port.",
@@ -2380,15 +2380,21 @@
       "non_claimable": "QEMU only. Storage reaches only the speed refusal: QEMU usb-storage attaches at high speed on the USB2-only fixture controller, so a class-level storage refusal is not exercised. No hub support, physical hotplug or H02 acceptance.",
       "risk": "medium",
       "size": "M",
-      "evidence_level": "native QEMU/TCG (QEMU 10.2.1, pc-q35-8.2): four refusal cases and four regression cases raw 33, six mutants fail; hosted native-xhci pending",
-      "next": "Hosted native-xhci and merge-hold green on the final head, squash-merge #515, then set H02-T5 verified.",
+      "evidence_level": "native QEMU/TCG (QEMU 10.2.1, pc-q35-8.2): four refusal cases and four regression cases raw 33, six mutants fail; hosted native-xhci green on the merged head 33b1d7be",
+      "next": "H05-T5c virtio-blk re-initialisation after an S3 wake (slice 1 local, waits for S #539); physical USB devices, hubs and hotplug wait for the owner decisions OD-HW-*.",
       "history": [
         {
           "event": "active",
           "at": "2026-11-25",
           "reason": "Local H session cycle h02-t5-20261125 from main ad55e019. Feasibility probe: hub and tablet reject at Session (code 14, indistinguishable), high-speed keyboard and storage at speed (code 8); identical on default q35 and pc-q35-8.2 with QEMU 10.2.1."
+        },
+        {
+          "event": "verified",
+          "at": "2026-11-25",
+          "reason": "PR #515 squash-merged as 744f1b75; tested head 33b1d7be (main 0fe66b51 merged, H hunks identical to 729c4158) passed all applicable hosted gates including native-xhci and merge-hold; native evidence bound to source f8662109."
         }
-      ]
+      ],
+      "source_commit": "744f1b75b68dc45dd2ab4d150a65cc827402e381"
     },
     {
       "id": "H03-T3",
@@ -2867,6 +2873,95 @@
         "receipt": "docs/verification/progress-reassessment-20261124/ledger-reconciliation.json",
         "summary": "PR480 passes the 12-stage hosted POWER gate, including reinitialisation and cold recovery. The original local BARS=RESTORED result is retained; no BARS=KEPT branch result is inferred from the aggregate gate."
       }
+    },
+    {
+      "id": "H05-T5c",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "active",
+      "title": "virtio-blk lane 0 kernel re-initialisation after an S3 wake, quarantine on refusal (test-system-s3-blk-reinit, slice 1)",
+      "goal": "After a validated wake and the virtio-rng re-init, re-validate and re-initialise the virtio-blk primary lane fail-closed (full identity, no BAR sizing, acknowledged reset, same Policy with epoch + 1) and run a discarded kernel canary READ; a refusal quarantines lane 0 (-24) and the system continues to S5 and cold recovery. No ring-3 block capability and no relaxation of block_objects == 0.",
+      "deps": [
+        "H05-T5b"
+      ],
+      "write_paths": [
+        "kernel/Cargo.toml",
+        "tools/build.py",
+        "kernel/src/m2/m3/volume.rs",
+        "kernel/src/m2/m3/system.rs",
+        "drivers/virtio-blk/src/lib.rs",
+        "sdk/examples/system/src/init.rs",
+        "tools/run_system.py",
+        "tests/test_system_harness.py",
+        "docs/verification/h05-s3-blk-reinit-20261125/"
+      ],
+      "checks": [
+        "python3 -B tools/test_power_system.py (22 stages including power-s3-blk-reinit and four labelled injections, raw 0; every blk case prints SUSPEND_BLK_LATCH_CARRIED=1)",
+        "cargo +1.100.0 test/clippy -D warnings/fmt for drivers/virtio-blk",
+        "python3 -B -m unittest tests.test_system_harness",
+        "python3 -B tools/build.py --kernel-feature native-acpi-s3 && python3 -B tools/run_sleep.py --case cycles",
+        "python3 -B -u tools/test_volume.py (M6e gate, unchanged by this slice)",
+        "O13 carryover mutants: a fresh lane Policy on the re-init success path and on the capacity quarantine path each fail with SYSTEM:FAIL:S3_BLK_LATCH_CARRIED (raw 35)"
+      ],
+      "evidence_level": "Local native QEMU/TCG only (QEMU 10.2.1, pc-q35-8.2, BARS=RESTORED) on the main 2289a271 merge: success path and four labelled kernel-side injections (busy, identity, capacity, no-reset-ack) reach the real quarantine path; the O13 latch table of lane 0 is carried through re-init and quarantine; 22-stage local POWER gate and 34-stage M6e gate pass. Hosted native-power runs on the PR head.",
+      "non_claimable": "No ring-3 block re-grant, remount or key-erasure SUSPEND gate (slices 2-4). The canary READ is kernel-driven and discarded. Injections are kernel-side labels, not device faults; BARS=KEPT, real BAR/capacity changes, IOMMU/DMA isolation and physical S3 are unmeasured. The O13 latch is registered after the wake and before the reset, so the carryover check proves the same Policy through re-init and quarantine, not survival across the sleep itself; no production profile registers a latch. The native stale-ticket peek is tautological (nothing pending); the evidence is the old-epoch publish refusal plus the ticket-floor check. Re-init is one-shot and safe only because SUSPEND is granted once per boot; any multi-cycle S3 slice must reset this state on each wake.",
+      "next": "Hosted native-power gate on the PR head, then independent review; slice 2 (H05-T5d) follows.",
+      "blocker": null
+    },
+    {
+      "id": "H05-T5d",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "blocked",
+      "title": "Q3 key-erasure SUSPEND gate for block data (slice 2, with B)",
+      "goal": "Q3: a key-erasure SUSPEND gate for block data, designed with workstream B, before any post-wake block re-grant.",
+      "deps": [
+        "H05-T5c"
+      ],
+      "write_paths": [],
+      "checks": [],
+      "evidence_level": "None: planned slice, not implemented.",
+      "non_claimable": "Nothing implemented; no key-erasure or SUSPEND gate change is claimed.",
+      "next": "Blocked until the preceding slice is verified and the owner/workstream design exists.",
+      "blocker": "Depends on H05-T5c and a joint design with the named workstream."
+    },
+    {
+      "id": "H05-T5e",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "blocked",
+      "title": "Q2 mandatory remount after an S3 wake (slice 3, with S)",
+      "goal": "Q2: a mandatory remount of the volume after an S3 wake, designed with workstream S, before any ring-3 access.",
+      "deps": [
+        "H05-T5d"
+      ],
+      "write_paths": [],
+      "checks": [],
+      "evidence_level": "None: planned slice, not implemented.",
+      "non_claimable": "Nothing implemented; no remount or post-wake integrity claim.",
+      "next": "Blocked until the preceding slice is verified and the owner/workstream design exists.",
+      "blocker": "Depends on H05-T5d and a joint design with the named workstream."
+    },
+    {
+      "id": "H05-T5f",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "blocked",
+      "title": "Q1 fresh-generation ring-3 block re-grant after an S3 wake (slice 4)",
+      "goal": "Re-grant block access to ring-3 only as a fresh capability generation after slices 2 and 3; block_objects == 0 may be relaxed only then.",
+      "deps": [
+        "H05-T5e"
+      ],
+      "write_paths": [],
+      "checks": [],
+      "evidence_level": "None: planned slice, not implemented.",
+      "non_claimable": "Nothing implemented; block_objects == 0 and the SUSPEND storage gate stay unchanged until this slice exists.",
+      "next": "Blocked until the preceding slice is verified and the owner/workstream design exists.",
+      "blocker": "Depends on H05-T5e and a joint design with the named workstream."
     },
     {
       "id": "H05-T6",
