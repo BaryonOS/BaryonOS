@@ -634,7 +634,8 @@ only the head's run listing and makes the next full decision once no gated
 workflow run is open or the budget ends; a failed poll counts as open, and
 pending gates with nothing left running decide at once. `merge_group` keeps
 `merge_group_wait_minutes = 45` and still waits that way; that budget now
-also covers every gate run of the queue commit (see **merge_group** below).
+also covers the plan and every gate run of the queue commit (see
+**merge_group** below).
 
 **Re-check.** `.github/workflows/merge-hold-recheck.yml` runs on
 `workflow_run` (`in_progress` and `completed`) of every workflow that owns an
@@ -812,19 +813,37 @@ itself:
   superseded run) is not judged again, so these reports stay rare.
 - After the wait, which also covers the entries ahead
   (ADR-MERGE-HOLD-20261113), one full gate report on the queue commit decides
-  with the `pull_request` rules above; any Pending or Failed line fails the
-  group and the queue removes it.
+  with the `pull_request` rules above, the settle step and the job attempt
+  binding included; any Pending or Failed line fails the group and the queue
+  removes it.
 - Each member still needs its hold decision, a successful newest
   `pull_request` merge-hold run on its own head, and, for a released hold, a
   queue entry whose tree equals the released head tree. An unheld member may
   land another tree only when the queue-commit report was enforced and clean (no
   Pending or Failed line); under `shadow`, or with any such line, its queue
   entry tree must equal its head tree.
+- That report judges only this group's own entry tree, the queue commit. A
+  member ahead lands the tree of its own entry E. When that tree differs from
+  its head's, the member also needs the newest merge-hold run on E to have
+  concluded `success`: event `merge_group`, head SHA E, a queue branch of that
+  pull request, and this repository as repository and head repository. That
+  run judged the gates on E. A missing, running or failed run fails the member
+  at the decision; the wait before it already waits for E's merge-hold check
+  run when the walk reaches E. The ruleset's "Only merge non-failing pull
+  requests" setting, which the merge-queue rule must enable, keeps E from
+  merging without that success.
 - Under `shadow` the group neither waits for gate runs nor blocks on them, and
   no gate ends its wait early.
 
-The 45-minute budget covers the group's own checks, every gate run of the
-queue commit and the chain of entries ahead; the deadline fails closed. A
+The 45-minute budget is counted from before the plan. The plan and the
+catalogue read, the group's own checks, every gate run of the queue commit and
+the chain of entries ahead share it, less a 3-minute reserve kept back for the
+decision after the wait; the deadline fails closed. Up to the wait's last poll
+the job therefore takes at most 43 minutes. The last poll, the decision and the
+workflow steps before the script must fit the remaining 7 minutes of the
+50-minute job timeout. The decision makes 2 + 2N + 4M requests for N counted
+runs and M members, at most 2 + 4N + 5M. Those 7 minutes are an assumption, not
+a guarantee; the job timeout stays the fail-closed backstop. A
 queue trial with at least two entries (D1 step 3) is still required before the
 queue may be enabled. merge-hold reads every page of a queue commit's check
 runs, up to `CHECK_RUN_MAX_PAGES` (five pages of 100); a full fifth page fails
