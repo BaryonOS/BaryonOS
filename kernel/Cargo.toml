@@ -400,7 +400,7 @@ test-volume-archive-disk-wrong = ["test-volume-archive-device"]
 test-volume-archive-disk-cut = ["test-volume-archive-device"]
 test-volume-archive-disk-verify = ["test-volume-archive-device"]
 # S09 O13 N38 slice 1 (a, b, c, e): disk-1 latch entry plus one labelled,
-# simulated WRITE device error; not a PLAN stage yet.
+# simulated WRITE device error; M6e gate stage (tools/test_volume.py).
 test-volume-o13-latch = ["test-volume-archive-device"]
 # S09 O13 N38 slice 2 (f): syscall 0x44 on test-scripted disk-1 latch entries
 # and handle scopes; no injected fault; never with test-volume-o13-latch.

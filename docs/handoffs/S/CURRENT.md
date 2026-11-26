@@ -26,6 +26,11 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   equal to the tested head `45cb3136`). Neither merge accepts S09.
 - **Owner:** the local S session ("BaryonOS - Specialist S"). Lane order and
   push permission come from the PR guard; the merge lane protocol applies.
+  Immediately before `gh pr merge` (PR guard, 26 November 2026):
+  `gh run list -R BaryonOS/BaryonOS --commit <full head SHA> --limit 200
+  --json databaseId,workflowName,status --jq '[.[] | select(.status !=
+  "completed" and .workflowName != "Merge hold")]'` must print exactly `[]`;
+  any other output, including empty output on an API error, means wait.
 - **Open PRs:** none for S. Copilot review quota is exhausted until
   3 December 2026; Codex review quota is exhausted; use subagent review.
 
@@ -33,15 +38,17 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 | Worktree (`~/projects/BaryonOS-worktrees/`) | Branch | HEAD | Content |
 |---|---|---|---|
-| `s-n38` | `claude/s09-n38-latch-main-20261126` | see HANDOFF comment | N38 slices 1+2 (six commits) rebased onto `29a159cc`, plus this file |
+| `s-n38` | `claude/s09-n38-latch-main-20261126` | see HANDOFF comment | N38 slices 1+2 rebased onto `29a159cc`, the gate integration (34 stages, pins moved) and this file |
 | `s-seed` | `claude/s09-volume-seed-read-20261125` | `6206b8c8` | `seeded-read` image variant for A03-T2c (base `c04ea98d`) |
 | `s-catv2` | `claude/s09-catalog-v2-spec-20261125` | `e86aa336` | `docs/implementation/S09-CATALOG-V2.md` revision 1 (base `c04ea98d`) |
 
 Verified on the rebased `s-n38` source (26 November 2026, toolchain 1.100.0,
 exit 0): `o13-latch` and `o13-latch-0x44` PASS raw 33 (`build/n38main/`),
 `test_volume_*.py` 214 OK (2 skipped), `test_system_harness` OK,
-`progress.py --check` consistent. The full M6e gate has not been rerun on
-this head (last 32/32 PASS on `9664801e`); it is required before the push.
+`progress.py --check` consistent. Full M6e gate on `0dd4c84e` (before the
+integration): 32/32 PASS (`build/s1126gate/`). The 34-stage gate on the
+integration head is required before the push; `actionlint` is not installed
+on this host.
 
 The older pushed branch `claude/s09-n38-latch-stacked-20261125` (`9664801e`,
 on `e093c837`) is superseded by the rebased branch; it is not force-pushed.
@@ -61,6 +68,12 @@ answers.
 - Owed to H: the quarantine code -24 mapping (fail closed, separate from
   -13/-14) once H's code is on `main`; the post-wake remount
   generation-check design item. H05-T5c may start now that #539 is on `main`.
+- Landing order with H05-T5c (agreed with H, 26 November 2026; both change
+  `kernel/Cargo.toml`, `tools/build.py` and `kernel/src/m2/m3/volume.rs`):
+  the first branch with a green local gate and the lane lands first; the
+  second merges `main` (no rebase or force-push) and reruns its native gates.
+  N38 registers latches only in the `test-volume-o13-latch*` profiles, never
+  combined with `test-system-s3-blk-reinit`.
 
 ## Lessons
 
