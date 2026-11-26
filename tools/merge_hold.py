@@ -85,10 +85,13 @@ other than its head's only when the queue-commit report was enforced and clean
 its entry tree must equal its head tree as before step 2. For this group's own
 entry that report judges the landing tree itself, the queue commit. A member
 ahead of this group lands tree(E) of its own entry E, which this report does not
-judge; its landing is covered by that entry's own required merge-hold, which
-judges the gates on E, together with the ruleset's "Only merge non-failing pull
-requests" setting, which the merge-queue rule must enable. Under `shadow` the
-group neither waits for gate runs nor blocks on them, as before step 2.
+judge; such a lifted member ahead therefore also needs the newest merge-hold run
+on E to have concluded success (entry_hold_passed: event `merge_group`, head SHA
+E, a queue branch of that pull request, this repository), because that run
+judged the gates on E. The ruleset's "Only merge non-failing pull requests"
+setting, which the merge-queue rule must enable, keeps E from merging without
+it. Under `shadow` the group neither waits for gate runs nor blocks on them, as
+before step 2.
 """
 
 import json
@@ -888,6 +891,26 @@ def pull_request_gates_passed(token, repo, pr_head, number, base_ref="main"):
     return newest.get("status") == "completed" and newest.get("conclusion") == "success"
 
 
+def entry_hold_passed(token, repo, entry_commit, number):
+    """True when the newest merge_group merge-hold run on the queue entry commit of a member ahead succeeded.
+
+    One run listing, bound as the queue-commit runs are (run_matches): event merge_group, head
+    SHA entry_commit, and this repository as repository and head repository. The entry's own
+    queue ref is not in the queue read and its suffix is not documented, so the head branch
+    must be a queue ref of this pull request; the head SHA ties the run to the entry.
+    """
+    url = f"{API}/repos/{repo}/actions/runs?head_sha={entry_commit}&event=merge_group"
+    runs = [run for run in fetch_listing(token, url, "workflow_runs")
+            if run.get("path") == GATE_WORKFLOW
+            and (ref := QUEUE_REF.fullmatch(f"refs/heads/{run.get('head_branch')}")) is not None
+            and int(ref.group(1)) == number
+            and run_matches(run, repo, None, entry_commit, run["head_branch"])]
+    if not runs:
+        return False
+    newest = max(runs, key=run_order)
+    return newest.get("status") == "completed" and newest.get("conclusion") == "success"
+
+
 def merge_group_plan(base_sha, head_sha):
     """The checked plan of the queue commit, made before any wait; raise on any doubt."""
     base, tested = os.environ["BASE_SHA"], os.environ["TESTED_SHA"]
@@ -910,18 +933,28 @@ def merge_group_hold(token, repo):
 
     Time budget. The clock starts here, before the plan. B is the base catalogue's
     merge_group budget (0 to MAX_WAIT_SECONDS, 45 min), P the time up to the wait
-    (the plan: at most SELECTOR_TIMEOUT plus two git calls of at most 120 s each,
-    about 14 min), R = DECISION_RESERVE_SECONDS (3 min). The wait gets B - P - R.
-    It checks its deadline after each poll, so it ends at most one POLL_SECONDS sleep
-    plus one poll past it, and makes one poll even when B - P - R <= 0: the plan and
-    the wait together take at most max(B - R + POLL_SECONDS, P) plus one poll, which
-    is at most max(B, P + one poll) while a poll takes no more than R - POLL_SECONDS.
-    R is an allowance, not a proof, for the decision after the wait (the final gate
-    report, about two requests per counted run, and about five per member; usually
-    well under a minute). So plan + wait + reserve <= max(B, P + one poll) + R
-    <= 45 + 3 = 48 min, below the 50-minute job timeout (merge-hold.yml
-    timeout-minutes), for every catalogue budget. The workflow steps before this
-    script are outside this clock; the job timeout stays the fail-closed backstop.
+    (the plan and the catalogue read: at most SELECTOR_TIMEOUT plus two git calls of
+    at most 120 s each, about 14 min), R = DECISION_RESERVE_SECONDS (3 min). The wait
+    gets B - P - R. It checks its deadline after each poll, so it ends at most one
+    POLL_SECONDS sleep plus one poll past it, and makes one poll even when
+    B - P - R <= 0. Up to that last poll the script therefore takes at most
+    max(B - R + POLL_SECONDS, P) <= max(43, 14) = 43 min, for every catalogue budget.
+
+    Assumption, not a proof: the last poll, the decision after the wait and the
+    workflow steps before this script (outside this clock) together take at most
+    about 7 minutes, the 50-minute job timeout (merge-hold.yml timeout-minutes)
+    less those 43 minutes. The decision makes, one page each: one run listing and
+    two requests per counted run of the queue commit (its jobs and a re-read; four
+    for a run that moved on and is read again), one GraphQL query for the members,
+    and per member four (labels, two trees, its pull_request merge-hold) plus one
+    for the comments of a labelled member or for the merge_group merge-hold of a
+    lifted member ahead. For N counted runs and M members that is 2 + 2N + 4M
+    requests, at most 2 + 4N + 5M; with the 24 gate workflows besides merge-hold
+    that have a merge_group trigger (26 November 2026) and five members, 70 to 123.
+    A poll makes about three plus one per entry walked. The assumption thus needs
+    about 3 s per request on average, while call() allows up to 20 s each, so it
+    can fail; the job timeout then stays the fail-closed backstop. In the usual case
+    (quick polls, a decision within R) the total stays within max(B, P) + R, 48 min.
     """
     start = time.monotonic()
     head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
@@ -955,9 +988,10 @@ def merge_group_hold(token, repo):
         # unheld member may land another tree only when the enforced queue-commit
         # report above is clean. For this group's own entry that report judges the
         # landing tree itself. A member ahead lands tree(E) of its own entry E,
-        # which this report does not judge; its landing is covered by that entry's
-        # own required merge-hold together with the ruleset's "Only merge
-        # non-failing pull requests" setting (the merge-queue rule must enable it).
+        # which this report does not judge, so E's own merge-hold must have passed
+        # (it judged the gates on E); the ruleset's "Only merge non-failing pull
+        # requests" setting (the merge-queue rule must enable it) keeps E from
+        # merging without it.
         same_tree = tree(token, repo, entry_commit) == tree(token, repo, pr_head)
         if passed and LABEL in labels and not same_tree:
             passed, message = False, (
@@ -972,6 +1006,12 @@ def merge_group_hold(token, repo):
         elif passed and not pull_request_gates_passed(token, repo, pr_head, number):
             passed, message = False, (
                 f"No successful pull_request merge-hold verified the applicable gates on {pr_head}.")
+        elif passed and not same_tree and entry_commit != head_sha and not entry_hold_passed(
+                token, repo, entry_commit, number):
+            passed, message = False, (
+                f"Its queue entry {entry_commit} lands a tree other than {pr_head}'s, which this group's "
+                f"queue-commit gate report does not judge, and no successful merge_group merge-hold on "
+                f"{entry_commit} covers it. Update the branch, or let the pull requests ahead merge first.")
         ok = ok and passed
         lines.append(f"#{number}: " + (message if passed else "::error::" + message))
     lines.append(f"Plan {plan['plan_id']}: mode {plan['mode']}"

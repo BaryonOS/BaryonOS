@@ -188,26 +188,29 @@ class MergeGroupTests(TestCase):
     def run_group(self, nodes, labels=None, comments=None, trees=None,
                   env=None, answer=None, checks=None, ahead=None, on_sleep=None,
                   commits=None, gate_runs=None, group_runs=None, group_jobs=None, plan=None, ancestor=0,
-                  rereads=None, plan_seconds=0, decision_seconds=0):
+                  rereads=None, plan_seconds=0, decision_seconds=0, git_seconds=0):
         """checks answer polls of the group commit, commits[sha] those of sha, ahead the rest.
 
         Run listings are keyed by the URL's event and head_sha and returned verbatim, as
         GitHub would list them: gate_runs[sha] answers event=pull_request (default: one
         successful merge-hold run), group_runs[sha] answers event=merge_group (default:
-        the passing gate runs of GROUP); group_jobs[run id] lists their jobs. rereads[run id]
-        overlays the fields a re-read of that listed run shows (a callable: one answer per
-        re-read, see per_read). plan is what the mocked selector returns (default:
-        group_plan()); self.plans records its calls.
-        Fake clock: only sleeps, the selector (plan_seconds) and the decision after the wait
-        (decision_seconds, charged at the first label read) take time; self.clock[0] is the
-        time at which main() returned.
+        the passing gate runs of GROUP, and for another queue entry commit one successful
+        merge-hold run of its pull request, entry_hold_run); group_jobs[run id] lists their
+        jobs. rereads[run id] overlays the fields a re-read of that listed run shows (a
+        callable: one answer per re-read, see per_read). plan is what the mocked selector
+        returns (default: group_plan()); self.plans records its calls, self.gits the git calls.
+        Fake clock: only sleeps, the selector (plan_seconds), each git call (git_seconds) and
+        the decision after the wait (decision_seconds, charged at the first label read) take
+        time; self.clock[0] is the time at which main() returned. self.calls is the call
+        log while it runs.
         """
         labels, comments, trees = labels or {}, comments or {}, trees or {}
         polls = {sha: list(answers) for sha, answers in (commits or {}).items()}
         polls[GROUP], polls[None] = list(checks or [DONE]), list(ahead or [DONE])
         group_runs = {GROUP: [group_run(1, CI), group_run(2, LEAVES)]} if group_runs is None else group_runs
         group_jobs = GOOD_JOBS if group_jobs is None else group_jobs
-        calls, self.plans = [], []
+        calls = self.calls = []
+        self.plans, self.gits = [], []
         clock = self.clock = [0.0]
 
         def recompute(*args, **kwargs):
@@ -217,6 +220,8 @@ class MergeGroupTests(TestCase):
 
         def git(*args):
             # Ancestry as given; no base catalogue, so the wait budget is WAIT_SECONDS.
+            self.gits.append(args)
+            clock[0] += git_seconds
             return (ancestor, "") if args[0] == "merge-base" else (128, "")
 
         def fetch(token, url):
@@ -246,7 +251,9 @@ class MergeGroupTests(TestCase):
                 head = url.split("head_sha=")[1].split("&")[0]
                 event = url.split("event=")[1].split("&")[0]
                 if event == "merge_group":
-                    listed = group_runs.get(head, [])
+                    number = next((node["pullRequest"]["number"] for node in nodes
+                                   if (node.get("headCommit") or {}).get("oid") == head), 9)
+                    listed = group_runs.get(head, [] if head == GROUP else [entry_hold_run(head, number)])
                 else:
                     self.assertEqual(event, "pull_request")
                     listed = (gate_runs or {}).get(head, [gate_run(head)])
@@ -346,6 +353,14 @@ class MergeGroupTests(TestCase):
                 self.assertEqual(calls.count("sleep"), sleeps)
                 self.assertEqual(self.clock[0], plan_seconds + sleeps * merge_hold.POLL_SECONDS)
                 self.assertFalse([url for url in calls if url.endswith("/labels")])
+        # The two git calls before the wait, the ancestry check and the catalogue read
+        # (base_wait_seconds), are inside the clock too: (45 min - 3 min - 2 x 120 s) / 1 min.
+        code, out, calls = self.run_group(self.QUEUE, checks=[self.OPEN], git_seconds=120)
+        self.assertEqual(code, 1, out)
+        self.assertEqual([args[:2] for args in self.gits], [("merge-base", "--is-ancestor"),
+                                                            ("cat-file", "blob")])
+        self.assertEqual(calls.count("sleep"), 38)
+        self.assertEqual(self.clock[0], 2 * 120 + 38 * merge_hold.POLL_SECONDS)
 
     def test_plan_wait_and_decision_stay_within_the_budget_plus_the_reserve(self):
         """For every catalogue budget B and plan time P (polls take no time here): the plan and
@@ -399,6 +414,51 @@ class MergeGroupTests(TestCase):
         longest_plan = merge_hold.SELECTOR_TIMEOUT + 2 * 120  # the selector and two git calls
         self.assertLess(max(merge_hold.MAX_WAIT_SECONDS, longest_plan + merge_hold.POLL_SECONDS)
                         + merge_hold.DECISION_RESERVE_SECONDS, int(timeouts[0]) * 60)
+        # The docstring's assumption: up to the wait's last poll at most 43 minutes, so the last
+        # poll, the decision and the steps before the script have about 7 minutes.
+        before_last_poll = max(merge_hold.MAX_WAIT_SECONDS - merge_hold.DECISION_RESERVE_SECONDS
+                               + merge_hold.POLL_SECONDS, longest_plan)
+        self.assertEqual((before_last_poll, int(timeouts[0]) * 60 - before_last_poll), (43 * 60, 7 * 60))
+
+    def test_the_decision_after_the_wait_makes_the_counted_requests(self):
+        """The requests of the decision after the wait, counted from the moment the wait returns (one
+        page each), as merge_group_hold's docstring states them for its 7-minute assumption: 2 + 2N + 4M
+        for N counted runs and M members, at most 2 + 4N + 5M (every run read again; every member ahead
+        lifted, which reads its entry's merge-hold, and this group's own entry labelled and released)."""
+        ends = []
+        real = merge_hold.wait_for_checks
+
+        def wait(*args, **kwargs):
+            early = real(*args, **kwargs)
+            ends.append(len(self.calls))
+            return early
+
+        for n, m in ((1, 1), (3, 2), (5, 4)):
+            workflows = [f".github/workflows/gate{i}.yml" for i in range(1, n + 1)]
+            plan = group_plan(excluded=[], selected=[row("merge-hold#merge-hold", merge_hold.GATE_WORKFLOW,
+                                                         "merge-hold", "core")]
+                              + [row(f"gate{i}#g", path, f"g{i}", "core") for i, path in enumerate(workflows, 1)])
+            listed = [group_run(i, path) for i, path in enumerate(workflows, 1)]
+            commits, heads = [f"{0xc0 + i:040x}" for i in range(m - 1)], [f"{0xa0 + i:040x}" for i in range(m - 1)]
+            queue = [entry(i + 1, 10 + i, commits[i], heads[i]) for i in range(m - 1)] + [entry(m, 8, GROUP, OTHER)]
+            gate_runs = {head: [dict(gate_run(head), pull_requests=[{"number": 10 + i, "base": {"ref": "main"}}])]
+                         for i, head in enumerate(heads)}
+            for worst in (False, True):
+                with self.subTest(n=n, m=m, worst=worst), mock.patch.object(merge_hold, "wait_for_checks", wait):
+                    ends.clear()
+                    attempt = 2 if worst else 1
+                    code, out, calls = self.run_group(
+                        queue, plan=plan, group_runs={GROUP: listed}, gate_runs=gate_runs,
+                        group_jobs={i: [job(10 * i, i, f"g{i}", attempt=attempt)] for i in range(1, n + 1)},
+                        rereads={i: {"run_attempt": 2} for i in range(1, n + 1)} if worst else None,
+                        trees={sha: "2" * 40 for sha in heads} if worst else None,
+                        labels={8: [merge_hold.LABEL]} if worst else None,
+                        comments={8: [comment("acceptance-released: " + OTHER)]} if worst else None)
+                    self.assertEqual(code, 0, out)
+                    self.assertEqual(len(ends), 1)
+                    after = calls[ends[0]:]
+                    self.assertNotIn("sleep", after)
+                    self.assertEqual(len(after), 2 + 4 * n + 5 * m if worst else 2 + 2 * n + 4 * m, after)
 
     def test_released_pr_with_the_landing_tree_passes(self):
         code, out, _ = self.run_group(
@@ -1052,11 +1112,11 @@ class MergeGroupTests(TestCase):
 
     def test_unheld_member_ahead_may_land_its_own_entry_tree_after_an_enforced_clean_report(self):
         """PR 7 is ahead and unheld; its own entry E lands a tree other than its head's. This group's
-        report judges GROUP's tree, not E's, and PR 7 still passes here. That is sound: E's tree lands
-        only when PR 7's own entry merges, which needs E's own required merge-hold (it judges the gates
-        on E, and this group's walk waits for it) under the ruleset's "Only merge non-failing pull
-        requests" setting; failing PR 7 here would only eject this group. Under shadow, or with a
-        Pending or Failed line, PR 7 keeps the equal-tree rule as before step 2."""
+        report judges GROUP's tree, not E's, and PR 7 still passes here, because E's own merge-hold
+        succeeded (it judged the gates on E; the next test pins that check) and the ruleset's "Only
+        merge non-failing pull requests" setting keeps E from merging without it. Under shadow, or
+        with a Pending or Failed line, PR 7 keeps the equal-tree rule as before step 2, and it still
+        needs its own pull_request merge-hold."""
         queue = [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)]
         trees = {E: "1" * 40, HEAD: "2" * 40, GROUP: "3" * 40, OTHER: "3" * 40}
         rule = (f"#7: ::error::The applicable gates ran on {HEAD}, but its queue entry {E} lands a "
@@ -1076,6 +1136,81 @@ class MergeGroupTests(TestCase):
                 self.assertEqual(code, 1, out)
                 self.assertIn(rule, out)
                 self.assertIn("#8: No acceptance hold is set.", out)  # its own entry lands its head tree
+        with self.subTest(member="own pull_request merge-hold failed"):
+            code, out, _ = self.run_group(queue, trees=trees, gate_runs={HEAD: [gate_run(HEAD, "failure")]})
+            self.assertEqual(code, 1, out)
+            self.assertIn(f"#7: ::error::No successful pull_request merge-hold verified the applicable gates on "
+                          f"{HEAD}.", out)
+            self.assertIn("#8: No acceptance hold is set.", out)
+
+    def test_a_lifted_member_ahead_needs_a_successful_merge_hold_on_its_own_entry(self):
+        """D2 on fix round 3: this group's report does not judge tree(E), so a lifted PR 7 ahead also
+        needs the newest merge_group merge-hold run on E, bound to E, a queue ref of PR 7 and this
+        repository, to have concluded success. E's check runs are done in every case here, so the walk
+        ends and only that one run listing at the decision differs."""
+        queue = [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)]
+        trees = {E: "1" * 40, HEAD: "2" * 40, GROUP: "3" * 40, OTHER: "3" * 40}
+        good = [group_run(1, CI), group_run(2, LEAVES)]
+        line = (f"#7: ::error::Its queue entry {E} lands a tree other than {HEAD}'s, which this group's "
+                f"queue-commit gate report does not judge, and no successful merge_group merge-hold on {E} "
+                "covers it. Update the branch, or let the pull requests ahead merge first.")
+        older, newer = {"created_at": "2026-11-24T19:00:00Z"}, {"created_at": "2026-11-24T21:00:00Z"}
+        for why, listed in (
+                ("failed", [entry_hold_run(E, 7, "failure")]),
+                ("missing", []),
+                ("in progress", [entry_hold_run(E, 7, None, status="in_progress")]),
+                ("an older success under a newer failure", [entry_hold_run(E, 7, run_id=71, **older),
+                                                            entry_hold_run(E, 7, "failure", run_id=72, **newer)]),
+                ("another workflow", [entry_hold_run(E, 7, path=CI)]),
+                ("pull_request event", [entry_hold_run(E, 7, event="pull_request")]),
+                ("another commit", [entry_hold_run(E, 7, head_sha=GROUP)]),
+                ("another pull request's queue ref", [entry_hold_run(E, 9)]),
+                ("not a queue ref", [entry_hold_run(E, 7, head_branch="topic")]),
+                ("another repository", [entry_hold_run(E, 7, repository={"full_name": "x/r"})]),
+                ("another head repository", [entry_hold_run(E, 7, head_repository={"full_name": "fork/r"})])):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(queue, trees=trees, group_runs={GROUP: good, E: listed})
+                self.assertEqual(code, 1, out)
+                self.assertIn(line, out)
+                self.assertIn("2 applicable gate(s) passed; 1 filtered out; 0 pending; 0 failed.", out)
+                self.assertIn("#8: No acceptance hold is set.", out)
+                self.assertNotIn("sleep", calls)  # fails closed at the decision, without another wait
+        for why, listed in (("succeeded", [entry_hold_run(E, 7)]),
+                            ("a newer success over an older failure",
+                             [entry_hold_run(E, 7, "failure", run_id=71, **older),
+                              entry_hold_run(E, 7, run_id=72, **newer)])):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(queue, trees=trees, group_runs={GROUP: good, E: listed})
+                self.assertEqual(code, 0, out)
+                self.assertIn("#7: No acceptance hold is set.", out)
+                self.assertEqual(len([url for url in calls if f"head_sha={E}&event=merge_group" in url]), 1)
+        # Only a lifted member ahead needs it: one whose entry lands its own head tree does not, nor does
+        # this group's own entry, whose merge-hold is this run.
+        failed = {GROUP: good, E: [entry_hold_run(E, 7, "failure")]}
+        for why, trees_ in (("member ahead with an equal tree", {E: "1" * 40, HEAD: "1" * 40}),
+                            ("own entry lifted", {GROUP: "1" * 40, OTHER: "2" * 40})):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(queue, trees=trees_, group_runs=failed)
+                self.assertEqual(code, 0, out)
+                self.assertFalse([url for url in calls if "&event=merge_group" in url and GROUP not in url])
+
+    def test_a_member_ahead_whose_entry_merge_hold_has_not_finished_waits_and_fails_closed(self):
+        """E's merge-hold still running, or not reported at all: the walk waits for it (E is the nearest
+        entry ahead), and the deadline fails closed before any label or entry run listing is read."""
+        queue = [entry(1, 7, E, HEAD), entry(2, 8, GROUP, OTHER)]
+        trees = {E: "1" * 40, HEAD: "2" * 40, GROUP: "3" * 40, OTHER: "3" * 40}
+        for why, checks, listed in (("in progress", runs("completed", "completed", "in_progress"),
+                                     [entry_hold_run(E, 7, None, status="in_progress")]),
+                                    ("missing", runs("completed", "completed"), [])):
+            with self.subTest(why=why):
+                code, out, calls = self.run_group(queue, trees=trees, commits={E: [checks]},
+                                                  group_runs={GROUP: [group_run(1, CI), group_run(2, LEAVES)],
+                                                              E: listed})
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"required checks did not complete in time: ['merge-hold on {E}']", out)
+                self.assertEqual(calls.count("sleep"), 42)
+                self.assertFalse([url for url in calls if url.endswith("/labels")
+                                  or f"head_sha={E}&event=merge_group" in url])
 
     def test_group_that_leaves_the_queue_during_the_gate_wait_fails_after_two_reads(self):
         # Gate runs stay open, so only the queue read of every gate poll can end this wait early.
@@ -1255,6 +1390,37 @@ class MergeGroupTests(TestCase):
                 self.assertNotIn("Passed: quality (viewer)", out)
                 self.assertNotIn("changed while it was read", out)
 
+    def test_a_queue_gate_run_is_not_judged_on_jobs_of_another_attempt(self):
+        """CI-SETTLE's job attempt binding holds on the queue commit too: a green attempt 2 whose
+        `filter=latest` jobs still carry attempt 1, listed so or settled from attempt 1, is not
+        attempt 2's, so the group must not pass."""
+        for why, leaves, rereads in (("unchanged", group_run(2, LEAVES, attempt=2), None),
+                                     ("settled", group_run(2, LEAVES), {2: {"run_attempt": 2}})):
+            with self.subTest(why=why):
+                code, out, _ = self.run_group(self.QUEUE, group_runs={GROUP: [group_run(1, CI), leaves]},
+                                              rereads=rereads)
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"::error::Pending: {LEAVES}: run 2 attempt 2 listed jobs of another attempt; "
+                              "re-run merge-hold", out)
+                self.assertNotIn("Passed: quality (viewer)", out)
+
+    def test_a_settled_queue_run_is_judged_only_under_its_id_and_no_older_than_the_listing(self):
+        """CI-SETTLE's id and attempt checks hold on the queue commit too. The listing shows attempt 2
+        failed; re-reads that lag at a green attempt 1, or name another run at a green attempt 3, never
+        pass it. Their jobs carry the re-read's attempt, so only those two checks keep it pending."""
+        listed = [group_run(1, CI), group_run(2, LEAVES, conclusion="failure", attempt=2)]
+        for reread in ({"run_attempt": 1, "conclusion": "success"},
+                       {"id": 99, "run_attempt": 3, "conclusion": "success"}):
+            with self.subTest(reread=reread):
+                code, out, _ = self.run_group(
+                    self.QUEUE, group_runs={GROUP: listed}, rereads={2: reread},
+                    group_jobs={**GOOD_JOBS, 2: [job(21, 2, "quality (viewer)", attempt=reread["run_attempt"])]})
+                self.assertEqual(code, 1, out)
+                self.assertIn(f"::error::Pending: {LEAVES}: run 2 attempt 2 changed while it was read (now attempt "
+                              f"{reread['run_attempt']}, completed); re-run merge-hold", out)
+                self.assertNotIn("Passed: quality (viewer)", out)
+                self.assertNotIn("run 99", out)
+
 
 class FetchTests(TestCase):
     @staticmethod
@@ -1347,6 +1513,13 @@ def group_run(run_id, path, **over):
     """A merge_group run of a gate workflow on the queue commit GROUP (MergeGroupTests)."""
     return wf_run(run_id, path, **{"event": "merge_group", "head_sha": GROUP, "head_branch": QUEUE_BRANCH,
                                    "pull_requests": [], **over})
+
+
+def entry_hold_run(commit, number, conclusion="success", run_id=70, path=merge_hold.GATE_WORKFLOW, **over):
+    """The merge_group merge-hold run on the queue entry commit of pull request number (a member ahead)."""
+    return group_run(run_id, path, **{
+        "head_sha": commit, "head_branch": f"gh-readonly-queue/main/pr-{number}-{BASE}",
+        "conclusion": conclusion, **over})
 
 
 def group_plan(**over):
