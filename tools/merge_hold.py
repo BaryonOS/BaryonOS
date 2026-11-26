@@ -744,6 +744,14 @@ def gate_report(token, repo, pull, head_sha, plan, queue_branch=None):
                                "re-run merge-hold")
                 continue
             running = run.get("status") != "completed"
+        # Bind the jobs to the judged attempt: `filter=latest` can lag behind the run record or
+        # run ahead of it. A partial "re-run failed jobs" still passes, because GitHub copies the
+        # carried-over jobs into the new attempt with its run_attempt (live check of 26 November
+        # 2026 on runs 45644765624, 45649628788 and 45629883279).
+        if any(not isinstance(job.get("run_attempt"), int) or job["run_attempt"] != run.get("run_attempt")
+               for job in jobs):
+            pending.append(f"{workflow}: {where} listed jobs of another attempt; re-run merge-hold")
+            continue
         if running and workflow in gated:
             pending.append(f"{workflow}: {where} is still {run.get('status')}; its gates must finish, "
                            "including jobs GitHub has not created yet")

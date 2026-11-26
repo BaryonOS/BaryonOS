@@ -580,8 +580,17 @@ an older success never masks a newer running or failed run, and a later
 re-run of an older run counts. Its jobs come from
 `/actions/runs/<id>/jobs?filter=latest` (every page, `run_id` checked), which
 reflects the latest attempt after a re-run. The run is read again after its
-jobs; if its attempt or status changed in between, it counts as pending. A
-job's class comes only from rows of its own workflow. Per expected execution exactly one
+jobs. If its id, attempt or status changed in between, merge-hold reads the
+jobs once more and the run a third time, and judges that third record only if
+the second and third reads agree, name the requested run id and show an
+attempt no older than the listing; otherwise the run counts as pending
+("changed while it was read"). The judged record and its jobs must also
+belong together: a listed job whose `run_attempt` is missing, not an integer
+or another attempt than the judged record's leaves the run pending as a whole
+("listed jobs of another attempt"). After a partial "re-run failed jobs"
+GitHub copies the carried-over jobs into the new attempt with that attempt's
+number (checked on three runs on 26 November 2026), so such a re-run still
+passes. A job's class comes only from rows of its own workflow. Per expected execution exactly one
 job with the rendered check name must have concluded `success`; a runtime
 matrix (`id = "*"`) needs at least one matching job, all successful. Then:
 
@@ -628,50 +637,92 @@ pending gates with nothing left running decide at once. `merge_group` keeps
 also covers every gate run of the queue commit (see **merge_group** below).
 
 **Re-check.** `.github/workflows/merge-hold-recheck.yml` runs on
-`workflow_run` (`completed`) of every workflow that owns an automatic `core` or
-`rwa` job in the catalogue (a gate workflow) and of every other catalogue
-workflow with a `pull_request` trigger, merge-hold excluded
+`workflow_run` (`in_progress` and `completed`) of every workflow that owns an
+automatic `core` or `rwa` job in the catalogue (a gate workflow) and of every
+other catalogue workflow with a `pull_request` trigger, merge-hold excluded
 (`tests/test_ci_workflows.py` pins the list against the catalogue), for
-`pull_request` runs whose head is in this repository. The other workflows
+`pull_request` runs whose head is in this repository. Activities on `main` are
+filtered before GitHub creates a re-check run; they cannot change a pull request
+hold. The other workflows
 (today the Copilot environment, the Materiaal probe, the security alert summary
 and the Windows QEMU bundle) are triggers only: merge-hold counts their runs
-too, and a run that changed while merge-hold read it, or a running job that the
-base catalogue does not know, leaves merge-hold at "Pending". Its script,
-`tools/merge_hold_recheck.py`, re-runs the newest merge-hold run of each listed
-pull request whose current head is still the run's head, but only when
+too, and a run that did not settle while merge-hold read it, a run whose listed
+jobs belong to another attempt, or a running job that the base catalogue does
+not know, leaves merge-hold at "Pending". Its script,
+`tools/merge_hold_recheck.py`, handles the two activities separately.
 
-- no run of a gate workflow is still open for the head (the triggering attempt
-  counts as finished even if the listing lags; a new attempt of the same run,
-  which keeps the run id, still counts as open). Each open one normally starts
-  another re-check when it completes (see Limits for the exceptions). Open runs
-  of the other workflows do not hold merge-hold, so the re-check does not wait
-  for them; one that ends later starts its own re-check;
-- that merge-hold run concluded `failure`, `timed_out` or `cancelled`
-  (re-run of the failed jobs; for `cancelled`, of the whole run); and
-- its latest attempt started before the triggering run finished. A later
-  attempt has normally already seen that result.
+When an attempt greater than one of a gate workflow enters `in_progress`, the
+script immediately invalidates older passing merge-hold evidence. GitHub treats
+`success`, `neutral` and `skipped` as passing required checks, so all three are
+re-run as a whole. An older hold that is still active is cancelled, followed by
+exact run id and attempt, and force-cancelled if regular cancellation does not
+reach a terminal state within six reads. A terminal passing race is re-run; a
+terminal blocking conclusion remains red. A newer attempt covers the gate only
+when it started strictly after the gate boundary. GitHub does not emit
+`workflow_run.requested` for re-runs, so `in_progress` is the earliest
+applicable activity. Initial attempts create a skipped re-check job, and
+`in_progress` attempts of trigger-only workflows are a script no-op.
 
-A merge-hold run that is still queued or running but whose latest attempt
-started before the triggering run finished may have read the gate state just
-before that run ended. The re-check then reads the run listing again, up to
+On `completed`, the script checks the newest merge-hold run of each listed pull
+request whose current head is still the run's head:
+
+- after a watched gate attempt greater than one, a passing hold that started no
+  later than the gate completion is re-run as a whole immediately, even while
+  another gate is open. Equality is re-run because timestamp resolution does
+  not order the race;
+- a hold with a blocking conclusion (`failure`, `cancelled`, `timed_out`,
+  `action_required`, `startup_failure` or `stale`) that started strictly before
+  the triggering run completed is retried only when no gate run remains open.
+  A hold at or after that boundary already covers the completion.
+
+The triggering attempt counts as finished even if the listing lags; a new
+attempt of the same run, which keeps the run id, still counts as open. Each open
+gate normally starts another re-check when it completes (see Limits for the
+exceptions). Open runs of trigger-only workflows do not hold merge-hold, so the
+re-check does not wait for them; one that ends later starts its own re-check.
+
+A merge-hold run that is still queued or running on a `completed` activity but
+whose latest attempt started before the triggering run finished may have read
+the gate state just before that run ended. The re-check then reads the run listing again, up to
 eight times 15 seconds apart (two minutes for all listed pull requests
 together, far below its 5-minute timeout), and applies the rules above to the
-newest merge-hold run in the fresh listing. The pull request head is read again
-just before the re-run request; a moved head ends the re-check for that pull
-request.
+newest merge-hold run in the fresh listing.
+
+Every selected hold and exact-run response must retain the merge-hold workflow
+path, same-repository pull request number, exact head and run id, a positive
+attempt, known status and immutable start time. The pull request head is read
+again immediately before cancel, force-cancel and every re-run POST. A regular
+cancel is polled six times and, if still active, force-cancel is polled twelve
+times, both at five-second intervals. A 409 from either endpoint is a race to
+resolve, never evidence. The helper returns normally only after a newer attempt
+strictly after the boundary, a confirmed blocking conclusion, or a stale
+passing conclusion for which a fresh re-run was requested. Exhausting both
+confirmation budgets is fatal.
 
 The re-check never sets a pull request check: the re-run merge-hold decides
 again on the same head and push-time merge commit, with live run, job, label
 and comment data, and fails closed as before, so it can only repeat a decision,
 never pass one. Every other case is a no-op. An unexpected API answer fails the
-re-check run, which changes no pull request check; the re-check run itself
-appears on the default-branch head commit, so a failed one shows there. Its job has `actions: write` (needed for the
-re-run), `contents: read` and `pull-requests: read`, a 5-minute timeout and one
-run per head at a time. On `workflow_run` GitHub always runs the default
-branch's copy of the workflow, and its checkout is the default branch, never
-pull request code. Re-check jobs for `push`, `merge_group`, `schedule`,
-`workflow_dispatch` and fork runs are skipped by the job condition and take no
-runner.
+re-check run and is never accepted as safe; an already requested cancellation
+can still leave the hold red. The re-check run itself appears on the
+default-branch head commit, so a failed one shows there. A 409,
+or a 403 that says the workflow already runs, is accepted as a duplicate POST
+only after up to six exact-run reads prove a higher attempt whose start is
+strictly after the applicable gate boundary. A higher attempt at or before the
+boundary is followed to completion and then re-run once; an unknown status,
+missing timestamp, inconclusive attempt or second unproven conflict remains
+fatal. The worst bounded cancel, force-cancel and re-run confirmation path
+sleeps for 130 seconds, below the job timeout. Its job has `actions: write`
+(needed for cancellation and the re-run), `contents: read` and
+`pull-requests: read`, a 5-minute timeout and one running job per concurrency
+key. Initial activities coalesce by head and activity. Each lifecycle activity
+of an attempt greater than one has a key that also includes the triggering run
+id and attempt, so a queued completion cannot replace its queued invalidation.
+On `workflow_run` GitHub always runs the default branch's copy of the workflow,
+and its checkout is the default branch, never pull request code. Re-check jobs
+for `push`, `merge_group`, `schedule`, `workflow_dispatch` and fork runs are
+skipped by the job condition and take no runner. The condition also skips
+`in_progress` for initial attempts.
 
 Limits. The re-check takes effect only once its workflow is on the default
 branch. If merge-hold is still open two minutes after the last watched run
@@ -683,26 +734,46 @@ unchanged: re-run the failed merge-hold job once the gates have finished
 (`gh run rerun <run id> --failed`, or any label change). An expected gate
 workflow that GitHub never starts keeps merge-hold at "Pending"; re-runs
 cannot resolve that, so push a new head or investigate the missing run. Only a
-push between the second head read and the re-run request can still make the
-re-check re-run the old head's merge-hold, which cancels the new head's first
-merge-hold; the next gate completion re-runs it. Like
+push between the head read immediately before either re-run request and that
+request can still make the re-check re-run the old head's merge-hold, which
+cancels the new head's first merge-hold; the next gate completion re-runs it.
+If GitHub accepts regular and force cancellation but never reports an exact
+terminal state within the bounded polls, the re-check fails visibly and no
+state is accepted as safe; operator investigation is required. Scheduling the
+`in_progress` re-check and its API request is not atomic with the gate re-run, so a short
+stale-green interval remains before the invalidating request. The completed
+activity is a fallback if the start activity is delayed or fails before its
+request. Eliminating
+that interval requires the merge queue or making all applicable gates directly
+required; this workflow cannot make that claim. Like
 the earlier wait, the re-check lets merge-hold turn green shortly after the
 last gate without a manual re-run, so auto-merge can follow. It does not remove
 the window in which another merge to `main` makes the pull request `behind`
 under the strict up-to-date rule. Only a merge queue does, and enabling one is
-a project-owner decision. Expected cost per head, not yet measured on hosted
-runs: a merge-hold run of about one minute, one short re-check job per finished
-watched workflow run, a wait of up to two minutes only when merge-hold is still
-open as the last watched run finishes, and usually one merge-hold re-run. While
+a project-owner decision. Expected cost per head: a merge-hold run of about one
+minute, one short re-check job per finished watched workflow run, one skipped
+administrative re-check for each initial `in_progress` activity, a short
+invalidation job for each watched gate re-run, a wait of up to two minutes only
+when merge-hold is still open as the last watched run finishes, and usually one
+merge-hold re-run. While
 merge-hold is red, each watched run that ends after the last gate re-runs it
 once more; the Materiaal probe also runs, and so starts a re-check, each time
 a label is added.
 
 API use: a full decision costs about one pull request read, one or two
 run-list pages, and one job list and one re-read per counted workflow run
-(about 30 today). A re-check costs one pull request read and one or two
+(about 30 today); a run that changed between those reads costs two job lists
+and two run reads. A re-check costs one pull request read and one or two
 run-list pages, one or two more pages per wait poll (at most eight), and one
-more pull request read plus one re-run request when it re-runs merge-hold. A successful run without an expected
+more pull request read per re-run request. It normally makes one request; a
+conflict adds at most six exact-run reads per request and at most one replacement
+request, with another pull request head read immediately before that POST,
+before it is accepted or fails. Active-hold invalidation normally adds one
+cancel POST and one exact-run read. Its bounded fallback adds up to eighteen
+exact-run reads (six regular and twelve force-cancel polls), with sixteen
+five-second sleeps, one more head read and one force-cancel POST; a passing
+completion can then add the re-run sequence above. A
+successful run without an expected
 gate is listed too, because a job with job-level `continue-on-error` can fail
 inside a run that concludes success. This stays well inside the 1,000 requests
 per hour per repository of `GITHUB_TOKEN` for several open pull requests at
