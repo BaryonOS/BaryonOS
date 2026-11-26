@@ -141,8 +141,10 @@ notice is a fixture; no full A03 acceptance.
 - Branch `claude/a03-t2c2-volume-native-20261126`, worktree
   `~/projects/BaryonOS-worktrees/a-track-t2c2`: T2c-1 db76a416 + main 2289a271 +
   S seed 6206b8c8 (merged locally with S's consent) + #535 5159f8cc; T2c-2 commits
-  16384b01 + oracle tightening 1af1a516. **Push only after S's seeded-read PR is on main and main is merged
-  in again** (S's squash has another SHA; content expected identical).
+  16384b01 + oracle tightening 1af1a516. S's seeded-read PR #561 landed on main as
+  fb4a40fa (`tools/volume_disk.py` identical to 6206b8c8); main fb4a40fa merged in
+  as ca4c35c4 and the four native cases re-passed there (build/t2c2/postmerge.log).
+  Push only on the explicit lane grant, after merging the then-current main.
 - Write set: new `kernel/src/m2/m3/task_grant_volume.rs`; `m3.rs` 2 lines (path
   swap at `mod system;`, `SYSTEM_WORKER_ELF` exclusion); `kernel/Cargo.toml`
   features `native-task-grant-volume`, `test-task-grant-volume-denied`;
