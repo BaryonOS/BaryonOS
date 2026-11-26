@@ -1189,7 +1189,15 @@ class MergeGroupTests(TestCase):
         for why, listed in (("succeeded", [entry_hold_run(E, 7)]),
                             ("a newer success over an older failure",
                              [entry_hold_run(E, 7, "failure", run_id=71, **older),
-                              entry_hold_run(E, 7, run_id=72, **newer)])):
+                              entry_hold_run(E, 7, run_id=72, **newer)]),
+                            # The listing's binding picks the run; the reads after it never see a newer
+                            # run of another workflow or one bound elsewhere.
+                            ("a newer run of another workflow",
+                             [entry_hold_run(E, 7, run_id=71, **older),
+                              entry_hold_run(E, 7, run_id=72, path=CI, **newer)]),
+                            ("a newer run from another head repository",
+                             [entry_hold_run(E, 7, run_id=71, **older),
+                              entry_hold_run(E, 7, run_id=72, head_repository={"full_name": "fork/r"}, **newer)])):
             with self.subTest(why=why):
                 code, out, calls = self.run_group(queue, trees=trees, group_runs={GROUP: good, E: listed})
                 self.assertEqual(code, 0, out)
