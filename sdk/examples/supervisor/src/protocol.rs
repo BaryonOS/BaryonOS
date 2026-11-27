@@ -18,7 +18,9 @@ pub const REQUEST: u64 = 5; // client -> worker; a = seq
 pub const REPLY: u64 = 6; // worker -> client; a = seq, b = instance, c = served
 pub const PROGRESS: u64 = 7; // client -> supervisor; a = replies, b = closed observations, c = instances
 pub const DENIED_REPORT: u64 = 8; // child -> supervisor; a = matched, b = total
-pub const DONE: u64 = 9; // client -> supervisor; a = replies, b = closed, c = instances
+/// client -> supervisor: a = replies, b = closed, c = instances. Also capless
+/// supervisor -> denied-mode client: HELLO received, so the client may exit.
+pub const DONE: u64 = 9;
 
 /// Modes passed as startup word 0 to children.
 pub const WORKER_SERVE: u64 = 0;

@@ -15,7 +15,11 @@ numeric-profile mismatch.
   baseline x86-64 integer and SSE/SSE2 instructions. Anything else is rejected,
   including x87, MMX, SSE3+, BMI/POPCNT/LZCNT/TZCNT, any VEX/EVEX form, privileged
   and system instructions, and `syscall`. `int3` is accepted only as linker padding
-  between functions. This is a bounded decoded-mnemonic check, not a formal proof.
+  between functions: after `ret`/`jmp`, or after a call whose exact target is a
+  `core::panicking` item or `rust_begin_unwind`. A call through a RIP-relative slot
+  counts only when the slot's link-time value resolves to such a symbol; the slot
+  is writable, so this binds the linked image only. This is a bounded
+  decoded-mnemonic check, not a formal proof.
 - Provenance: the build report records a SHA-256 of this directory and of
   `reference-forward`. The runner recomputes it before launch and after the run,
   because the kernel source fingerprint does not cover these trees.
@@ -23,5 +27,9 @@ numeric-profile mismatch.
   target's precompiled `core` expects them from libc.
 - Capabilities: none. The process has no IPC endpoint or network authority.
 
-Evidence limits: no native run has been recorded yet. A single CPU only, with no
+Evidence: `native-ai-job` passed natively in QEMU (raw exit 33, `AIJOB:PASS`) locally
+on b84c9a21 and in the hosted `native-system` job (run 45895542890) on 00ef4016,
+both before the gate hardening in this revision.
+
+Evidence limits: QEMU only, no physical hardware. A single CPU only, with no
 SMP or sleep/wake claim. Full Qwen does not fit `USER_QUOTA` (8 MiB per process).

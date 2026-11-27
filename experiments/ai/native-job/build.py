@@ -15,6 +15,7 @@ import json
 import os
 from pathlib import Path
 import re
+import struct
 import subprocess
 
 HERE = Path(__file__).resolve().parent
@@ -44,7 +45,12 @@ xchg cmpxchg xadd push pop call ret jmp nop cbw cwde cdqe cwd cdq cqo leave movs
 lods int""".split())
 CC = "o|no|b|c|nae|ae|nb|nc|e|z|ne|nz|be|na|a|nbe|s|ns|p|pe|np|po|l|nge|ge|nl|le|ng|g|nle"
 CONDITIONAL = re.compile(rf"^(?:j(?:{CC}|rcxz|ecxz)|set(?:{CC})|cmov(?:{CC}))$")
-TERMINATORS = {"ret", "jmp", "call", "int3"}
+TERMINATORS = {"ret", "jmp", "int3", "noreturn-call"}
+# A call ends a block only when its target never returns: v0-mangled items of
+# core::panicking (any nesting) and the panic handler `rust_begin_unwind`.
+NORETURN = re.compile(r"^_RNv(?:Nt)+Cs[0-9A-Za-z]+_4core9panicking\d|^_RNvCs[0-9A-Za-z]+_7___rustc17rust_begin_unwind$")
+DIRECT_CALL = re.compile(r"^[0-9a-f]+ <([^<>+-]+)>$")  # no `+0x`/`-0x` offset: entry addresses only
+SLOT_CALL = re.compile(r"^QWORD PTR \[rip[+-]0x[0-9a-f]+\]\s+# ([0-9a-f]+) <[^<>]+>$")
 PREFIXES = {"lock", "rep", "repz", "repe", "repnz", "repne", "data16", "addr32", "cs", "ds", "es", "ss",
             "fs", "gs", "notrack", "bnd", "xacquire", "xrelease"}
 REX = re.compile(r"^rex(?:\.[WRXB]+)?$")
@@ -54,13 +60,44 @@ XMM = re.compile(r"\bxmm(\d+)\b")
 LABEL = re.compile(r"^[0-9a-f]+ <[^>]+>:$")
 
 
-def inspect_instructions(disassembly: str) -> dict:
+def call_target(operands: str, slots: dict[int, str]) -> str | None:
+    """Exact callee symbol of a direct call, or of a RIP-relative slot call via `slots`."""
+    if match := DIRECT_CALL.match(operands):
+        return match[1]
+    if match := SLOT_CALL.match(operands):
+        return slots.get(int(match[1], 16))
+    return None
+
+
+def call_slots(binary: Path, disassembly: str, symbols: str) -> dict[int, str]:
+    """Map each RIP-relative call slot to the symbol at its link-time value.
+
+    The slots live in writable .data, so this binds only the linked image, not
+    any value the job could store there at run time.
+    """
+    data = binary.read_bytes()
+    phoff, phentsize, phnum = int.from_bytes(data[32:40], "little"), *struct.unpack_from("<HH", data, 54)
+    loads = [struct.unpack_from("<IIQQQQ", data, phoff + i * phentsize)[:6] for i in range(phnum)]
+    names = {int(parts[0], 16): parts[2] for parts in (line.split() for line in symbols.splitlines()) if len(parts) == 3}
+    slots = {}
+    for slot in {int(m[1], 16) for m in re.finditer(r"\tcall\s+QWORD PTR \[rip[+-]0x[0-9a-f]+\]\s+# ([0-9a-f]+) <", disassembly)}:
+        for kind, _, offset, vaddr, _, filesz in loads:
+            if kind == 1 and vaddr <= slot and slot + 8 <= vaddr + filesz:
+                value = int.from_bytes(data[offset + slot - vaddr:offset + slot - vaddr + 8], "little")
+                if value in names:
+                    slots[slot] = names[value]
+    return slots
+
+
+def inspect_instructions(disassembly: str, slots: dict[int, str] | None = None) -> dict:
     """Positive mnemonic allowlist (baseline GPR + SSE/SSE2) on the linked ELF.
 
     `int 0x80` is the only executable trap; `int3` is accepted only as linker
-    padding after an unconditional transfer and before the next symbol. A bounded
-    decoded-mnemonic check of GNU objdump text, not a formal proof.
+    padding after ret/jmp or a call whose exact target is a no-return panic
+    symbol, and before the next symbol. Slot calls resolve only through `slots`.
+    A bounded decoded-mnemonic check of GNU objdump text, not a formal proof.
     """
+    slots = slots or {}
     count = sse = traps = 0
     previous, padding = "", False
     for line in disassembly.splitlines():
@@ -82,7 +119,7 @@ def inspect_instructions(disassembly: str) -> dict:
         count += 1
         if mnemonic == "int3":
             if not (padding or previous in TERMINATORS):
-                raise ValueError(f"int3 outside inter-function padding at {address}")
+                raise ValueError(f"int3 outside inter-function padding at {address} (after {previous or 'nothing'})")
             padding, previous = True, mnemonic
             continue
         if padding:
@@ -101,7 +138,11 @@ def inspect_instructions(disassembly: str) -> dict:
                 raise ValueError(f"unexpected interrupt at {address}")
             traps += 1
         sse += simd
-        previous = mnemonic
+        if mnemonic == "call":
+            callee = call_target(operands.strip(), slots)
+            previous = "noreturn-call" if callee and NORETURN.match(callee) else f"call to {callee or operands.strip()}"
+        else:
+            previous = mnemonic
     if count == 0 or sse == 0 or traps == 0:
         raise ValueError("empty code, no SSE2 use or missing int 0x80 boundary")
     return {"decoded_instructions": count, "sse_sse2_instructions": sse, "int80_sites": traps}
@@ -121,7 +162,7 @@ def source_tree_sha256() -> str:
     for tree in SOURCE_TREES:
         for path in sorted(tree.rglob("*")):
             relative = path.relative_to(tree)
-            if SKIPPED & set(relative.parts) or path.is_dir():
+            if SKIPPED & set(relative.parts) or (path.is_dir() and not path.is_symlink()):
                 continue
             if path.is_symlink() or not path.is_file():
                 raise ValueError(f"unexpected source entry: {path}")
@@ -134,7 +175,8 @@ def publish(path: Path, data: bytes) -> None:
     if path.is_symlink():
         raise ValueError(f"refusing symlinked output: {path}")
     temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
+    # Owner-only: every consumer (tools/build.py, the kernel build, run_ai_job.py) runs as this user.
+    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, "wb") as handle:
         handle.write(data)
     os.replace(temporary, path)
@@ -181,7 +223,8 @@ def main() -> None:
         if undefined.strip():
             raise RuntimeError(f"undefined symbols: {undefined}")
         disassembly = run(["objdump", "-d", "-M", "intel", "--no-show-raw-insn", str(binary)], "disassembly", env)
-        report["instruction_gate"] = inspect_instructions(disassembly)
+        symbols = run(["nm", str(binary)], "symbols", env)
+        report["instruction_gate"] = inspect_instructions(disassembly, call_slots(binary, disassembly, symbols))
         report["disassembly_sha256"] = sha(output / "disassembly.stdout.txt")
         expected = run(["cargo", "+1.100.0", "run", "--manifest-path", manifest, "--locked", "--offline",
                         "--release", "--bin", "ai-job-expected"], "host-expected", host_env)
