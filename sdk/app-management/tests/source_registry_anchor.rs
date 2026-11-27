@@ -55,7 +55,9 @@ struct Model {
 }
 impl Model {
     fn new(budget: u32) -> Self {
-        let instance = instance(&[3; 32], DOMAIN, &[4; 32]);
+        // Deterministic test fixture only; this does not provision a real TPM.
+        let nonce: Hash = Sha256::digest(include_bytes!("fixtures/test-v1.pkg")).into();
+        let instance = instance(&[3; 32], DOMAIN, &nonce);
         Self {
             chain: genesis_chain(DOMAIN, &instance),
             instance,
