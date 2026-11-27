@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "9fff93f7347e097128d1f62e47634be0c88dd1a2",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/code-of-conduct-20261126",
+  "task": "Add an enforceable Code of Conduct, an evidence-bounded accessibility statement, discoverability links, and third-party attribution for the remaining GitHub Community Standards",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Repository governance, reporting routes, and accessibility-status documentation do not accept a product criterion, add native acceptance evidence, or provide an independent human accessibility audit. U04 remains open."
+}

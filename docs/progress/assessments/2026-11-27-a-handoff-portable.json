@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "aaf845f365899bf963372a275fa8a0559d607dd7",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/a-handoff-portable-20261127",
+  "task": "Portable, tool-neutral A handoff (X-C1 and owner portability requirement) with live HANDOFF link and per-PR progress duties",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Documentation only: docs/handoffs/A/CURRENT.md becomes a tool-neutral handoff; no product criterion, implementation, native acceptance evidence or human audit changes. A03 stays open."
+}

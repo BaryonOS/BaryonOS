@@ -24,6 +24,10 @@
 # once they have finished (#494 B9). On merge_group (D1 step 2) it recomputes
 # the plan for the queue commit and judges every applicable gate there, from
 # runs bound to the merge_group event, the queue commit and the queue branch.
+# There the base is the trusted base T, the merge base of the queue commit and
+# freshly fetched protected main, never merge_group.base_sha, which can be the
+# unlanded queue commit of the entry ahead; the plan selects from the diff
+# T..queue commit, which covers the entries ahead (ADR-CI-MERGE-GROUP-SELECT-20261126).
 # This file may add environment variables, but must keep every one an older
 # base merge_hold.py reads.
 name: Merge hold
@@ -64,38 +68,13 @@ jobs:
           fetch-depth: 0
       - name: Load merge-hold and the selector from the base commit
         id: base
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
-        run: |
-          set -euo pipefail
-          tested="$(git rev-parse HEAD)"
-          if [ "$EVENT_NAME" = pull_request ]; then
-            # GitHub's merge commit: first parent is the base tip, second the head.
-            read -r _ base second extra <<< "$(git rev-list --parents -n 1 HEAD)"
-            if [ -n "${extra:-}" ] || [ "${second:-}" != "$HEAD_SHA" ]; then
-              echo "::error::The checked-out merge commit does not join the base tip and the pull request head."
-              exit 1
-            fi
-          else
-            base="$MERGE_GROUP_BASE_SHA"
-          fi
-          if ! [[ "$base" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "::error::No usable base commit; failing closed."
-            exit 1
-          fi
-          dir="$RUNNER_TEMP/merge-hold-base"
-          mkdir -p "$dir"
-          git cat-file blob "$base:tools/merge_hold.py" > "$dir/merge_hold.py"
-          if git cat-file -e "$base:tools/ci_impact.py" 2> /dev/null; then
-            git cat-file blob "$base:tools/ci_impact.py" > "$dir/ci_impact.py"
-          fi
-          {
-            echo "base-sha=$base"
-            echo "tested-sha=$tested"
-          } >> "$GITHUB_OUTPUT"
+        # One shared copy of the trusted-base derivation (T on merge_group), also used by
+        # the merge-group gates of the other workflows (ADR-CI-MERGE-GROUP-SELECT-20261126).
+        uses: ./.github/actions/trusted-base
+        with:
+          event-name: ${{ github.event_name }}
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          merge-group-base-sha: ${{ github.event.merge_group.base_sha }}
       - name: Fail while acceptance is pending or an applicable gate has not passed
         shell: bash
         env:

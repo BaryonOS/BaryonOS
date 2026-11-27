@@ -251,7 +251,11 @@ impl<T: Transport> VolumeSession<T> {
                     if status != Status::Ok {
                         if matches!(
                             status,
-                            Status::Unknown | Status::Timeout | Status::NoDevice | Status::Corrupt
+                            Status::Unknown
+                                | Status::Timeout
+                                | Status::NoDevice
+                                | Status::Corrupt
+                                | Status::Quarantined
                         ) {
                             let _ = self.close();
                         }

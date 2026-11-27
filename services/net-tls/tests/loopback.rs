@@ -1107,12 +1107,22 @@ fn h2_classical_only_openssl_server_gets_no_fallback() {
     while tls.conn.is_handshaking() && result.is_ok() {
         result = tls.conn.complete_io(&mut tls.sock);
     }
+    // The refusal must be the missing shared group on both sides, not any failure.
+    let error = result.expect_err("a classical-only peer must not complete a handshake");
     assert!(
-        result.is_err(),
-        "a classical-only peer must not complete a handshake"
+        matches!(
+            error.get_ref().and_then(|e| e.downcast_ref::<Error>()),
+            Some(Error::AlertReceived(AlertDescription::HandshakeFailure))
+        ),
+        "{error:?}"
     );
     assert!(tls.conn.negotiated_key_exchange_group().is_none());
     let (events, code) = node.finish();
     assert_eq!(events[0].field("event"), Some("error"), "{events:?}");
+    assert_eq!(
+        events[0].field("code"),
+        Some("ERR_SSL_NO_SUITABLE_KEY_SHARE"),
+        "{events:?}"
+    );
     assert_ne!(code, 0);
 }

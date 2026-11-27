@@ -41,7 +41,8 @@ class FakeQemu:
 
 # Independent copy of the expected per-role (ok, error) replies.
 COUNTS = {"normal": [(16, 1), (27, 7), (11, 6)], "recover": [(4, 0), (4, 5), (0, 5)],
-          "interrupt": [(2, 0), (6, 2), (4, 2)], "repair": [(4, 0), (4, 3), (0, 3)]}
+          "interrupt": [(2, 0), (6, 2), (4, 2)], "repair": [(4, 0), (4, 3), (0, 3)],
+          "offline": [(3, 0), (8, 2), (5, 2)], "resume": [(3, 0), (15, 2), (12, 2)]}
 
 
 def transcript(case):
@@ -55,7 +56,8 @@ def transcript(case):
     head = (["NAS:REPLAY_INPUT:PASS", "NAS:MANIFEST:PASS"] if case == "recover"
             else ["NAS:MANIFEST:PASS"])
     export = {"normal": ["NAS:REPLAY_EXPORT:PASS", "NAS:GUEST_OFFLINE:PASS"],
-              "interrupt": ["NAS:PURGE_INTERRUPTED:PASS"]}.get(case, [])
+              "interrupt": ["NAS:PURGE_INTERRUPTED:PASS"],
+              "offline": ["NAS:NAS_OFFLINE:PASS"]}.get(case, [])
     return "\n".join([*runner.BOOT, *head,
                       *[f"NAS:{name}:{value:020d}" for name, value in numbers],
                       *export, "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
@@ -181,11 +183,33 @@ class NasRunnerTests(unittest.TestCase):
                 runner.evaluate("repair", text, 33, False)
 
     def test_stage_parents_are_fixed(self):
-        self.assertEqual(runner.PARENTS, {"recover": "normal", "repair": "interrupt"})
-        self.assertEqual(list(runner.FEATURES), ["normal", "recover", "interrupt", "repair"])
+        self.assertEqual(runner.PARENTS,
+                         {"recover": "normal", "repair": "interrupt", "resume": "offline"})
+        self.assertEqual(list(runner.FEATURES),
+                         ["normal", "recover", "interrupt", "repair", "offline", "resume"])
+
+    def test_offline_stage_requires_the_nas_exit_marker_and_resume_must_write(self):
+        offline, resume = transcript("offline"), transcript("resume")
+        marker = "NAS:NAS_OFFLINE:PASS\n"
+        for case, text in [
+            ("offline", offline.replace(marker, "")),
+            ("offline", offline + marker),
+            # A delivered offline edit (one more guest success) is not offline.
+            ("offline", offline.replace("NAS:RPC_OK:00000000000000000005",
+                                        "NAS:RPC_OK:00000000000000000006")),
+            ("resume", resume.replace("NAS:BROKERS:PASS", marker + "NAS:BROKERS:PASS")),
+            ("resume", resume.replace("NAS:DISK_WRITES:00000000000000000001",
+                                      "NAS:DISK_WRITES:00000000000000000000")),
+            ("resume", resume.replace("NAS:MANIFEST:PASS",
+                                      "NAS:REPLAY_INPUT:PASS\nNAS:MANIFEST:PASS")),
+        ]:
+            with self.subTest(case=case, text=text[-80:]), self.assertRaises(ValueError):
+                runner.evaluate(case, text, 33, False)
 
     def test_new_markers_and_failures_survive_safe_serial(self):
         lines = ["NAS:PURGE_INTERRUPTED:PASS", "NAS:CASE:INTERRUPT:PASS", "NAS:CASE:REPAIR:PASS",
+                 "NAS:NAS_OFFLINE:PASS", "NAS:CASE:OFFLINE:PASS", "NAS:CASE:RESUME:PASS",
+                 "NAS:FAIL:NAS_EXIT_FLAG",
                  "NAS:FAIL:INTERRUPT_RESULT", "NAS:FAIL:REPAIR_STATE",
                  "NAS:FAIL:ADMIN_NOT_WAITING", "NAS:FAIL:ADMIN_EXITED"]
         self.assertEqual(runner.safe_serial_evidence("\n".join(lines) + "\n"), "\n".join(lines) + "\n")
@@ -220,6 +244,7 @@ class NasLifecycleTests(unittest.TestCase):
             (runner.subprocess, "Popen", self.fake_popen),
             (runner, "check_nas_disk", lambda *args: {"synthetic": True}),
             (runner, "check_interrupted_image", self.fake_interrupted_oracle),
+            (runner, "check_resume_image", self.fake_interrupted_oracle),
             (runner.shutil, "which", lambda *args, **kwargs: str(self.qemu)),
             (runner.subprocess, "check_output",
              lambda command, **kwargs: "a" * 40 if command[0] == "git" else "QEMU test\n"),
@@ -252,7 +277,7 @@ class NasLifecycleTests(unittest.TestCase):
         if self.mutation:
             self.mutation(run)
         case = next(name for name in runner.FEATURES if f"nas-{name}-" in run.name)
-        if case in ("interrupt", "repair"):
+        if case in runner.NO_HANDOFF:
             self.assertNotIn("-chardev", command)
             self.assertNotIn("-fw_cfg", command)
         elif case == "normal":
@@ -333,6 +358,22 @@ class NasLifecycleTests(unittest.TestCase):
         (runner.ROOT / interrupt["image"]).write_bytes(b"\0" * (1 << 20))
         with self.assertRaises(ValueError):
             self.run_silently("repair", interrupt)
+
+    def test_resume_boots_only_on_the_exact_passing_offline_image_writable(self):
+        offline = self.run_silently("offline")
+        self.assertIs(offline["passed"], True, offline.get("error"))
+        for parent in (None, dict(offline, case="interrupt"), dict(offline, passed=False)):
+            with self.subTest(parent=None if parent is None else parent["case"]):
+                with self.assertRaises(ValueError):
+                    self.run_silently("resume", parent)
+        resume = self.run_silently("resume", offline)
+        self.assertIs(resume["passed"], True, resume.get("error"))
+        for report in (offline, resume):
+            self.assertIn("readonly=off", " ".join(report["command"]))
+        self.assertEqual(self.oracle_stages, ["offline", "resume"])
+        (runner.ROOT / offline["image"]).write_bytes(b"\0" * (1 << 20))
+        with self.assertRaises(ValueError):
+            self.run_silently("resume", offline)
 
     def test_missing_short_or_unframed_capture_fails_the_normal_run(self):
         for capture in (b"", runner.REPLAY_MAGIC + PAYLOAD[:-1], b"NOSRPL02" + PAYLOAD,

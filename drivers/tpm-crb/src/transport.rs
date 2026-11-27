@@ -108,7 +108,7 @@ pub struct Transport<I: Io> {
     deadline: u64,
     cancel_ticks: u64,
     cancel_fault: Fault,
-    expect: Option<(Expectation, bool)>,
+    expect: Option<(Expectation, codec::Tail)>,
     effect: Effect,
     response: [u8; MAX_RESPONSE],
 }
@@ -372,7 +372,13 @@ impl<I: Io> Transport<I> {
         if self.phase != Phase::Ready {
             return Err(Self::rejected(Fault::State));
         }
-        if !Self::bounded(now, deadline) || cancel_ticks == 0 || cancel_ticks > MAX_TICKS {
+        // The kernel maps the CRB buffer: a secret read must never be submitted
+        // here, because refusing its response afterwards would come too late.
+        if !Self::bounded(now, deadline)
+            || cancel_ticks == 0
+            || cancel_ticks > MAX_TICKS
+            || matches!(command.expect, Expectation::Secret)
+        {
             return Err(Self::rejected(Fault::Input));
         }
         self.clock(now)?;

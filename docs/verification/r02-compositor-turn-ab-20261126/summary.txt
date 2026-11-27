@@ -1,0 +1,53 @@
+# R02 candidate (2) A/B, A = main ffea3883, B = 5aedee77; local KVM, not hosted (26 Nov 2026)
+A commit ffea3883 kernel.elf 4d6c288a9a8063b9
+A raw_qemu_exit [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+A duration_s [19.75, 19.25, 19.55, 19.2, 18.54] median 19.25; qemu_host_cpu_s [14.31, 13.79, 13.86, 13.63, 13.89] median 13.86
+B commit 5aedee77 kernel.elf 1aaca1444a964b97
+B raw_qemu_exit [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+B duration_s [17.41, 17.21, 16.54, 17.46, 17.08] median 17.21; qemu_host_cpu_s [11.47, 11.45, 11.21, 11.64, 11.41] median 11.45
+phase: A median (min-max) | B median (min-max) | B-A median, last_input_to_verified_app_image_s
+reopened: 0.72 (0.70-0.73) | 0.43 (0.41-0.48) | -0.29
+list: 0.67 (0.65-0.67) | 0.42 (0.41-0.47) | -0.25
+editor: 0.65 (0.63-0.68) | 0.40 (0.40-0.45) | -0.25
+clipboard-pasted: 0.29 (0.27-0.32) | 0.28 (0.24-0.29) | -0.02
+clipboard-numeric: 0.29 (0.29-0.30) | 0.25 (0.24-0.29) | -0.05
+clipboard-rejected: 0.29 (0.29-0.31) | 0.30 (0.29-0.32) | +0.00
+clipboard-copied: 0.29 (0.29-0.30) | 0.30 (0.27-0.30) | +0.00
+clipboard-recovered-empty: 0.28 (0.26-0.28) | 0.28 (0.10-0.28) | -0.00
+clipboard-back: 0.27 (0.27-0.28) | 0.28 (0.26-0.28) | +0.00
+clipboard-empty: 0.27 (0.27-0.28) | 0.28 (0.09-0.28) | +0.00
+restored-editor: 0.26 (0.23-0.26) | 0.26 (0.24-0.27) | +0.00
+document-menu: 0.25 (0.23-0.25) | 0.25 (0.23-0.25) | +0.00
+document-menu-next: 0.25 (0.25-0.25) | 0.25 (0.25-0.26) | +0.00
+read-tool: 0.23 (0.23-0.25) | 0.25 (0.25-0.25) | +0.02
+document-menu-cancelled: 0.23 (0.23-0.25) | 0.25 (0.05-0.26) | +0.02
+document-menu-read: 0.23 (0.23-0.25) | 0.25 (0.25-0.26) | +0.02
+write-tool-restored: 0.23 (0.23-0.25) | 0.25 (0.25-0.26) | +0.02
+document-menu-write: 0.23 (0.23-0.25) | 0.25 (0.25-0.28) | +0.02
+saved: 0.15 (0.10-0.16) | 0.13 (0.10-0.13) | -0.03
+clipboard-reset: 0.15 (0.13-0.46) | 0.31 (0.07-0.31) | +0.16
+dirty: 0.10 (0.08-0.13) | 0.10 (0.08-0.10) | +0.00
+clipboard-calculator-copied: 0.07 (0.07-0.28) | 0.09 (0.09-0.09) | +0.02
+rebound-editor: 0.07 (0.06-0.07) | 0.07 (0.06-0.07) | -0.00
+initial: 0.05 (0.05-0.07) | 0.05 (0.05-0.07) | +0.00
+document-menu-blocked: 0.03 (0.03-0.05) | 0.05 (0.05-0.05) | +0.02
+read-tool-blocked: 0.03 (0.03-0.05) | 0.05 (0.05-0.05) | +0.02
+frame_sha256 phases compared 31, differing ['clipboard-rejected', 'clipboard-pasted', 'clipboard-back', 'recovered', 'rebound-editor']
+oracle files_sha256 distinct sets 1; paint_isolation_baseline distinct 1
+split clipboard-rejected taskbar/content: A1:e483/f3f5 A2:e483/907b A3:e483/a7a5 A4:e483/943c A5:e483/f3f5 B1:7107/bc7c B2:3e35/bc7c B3:7107/bc7c B4:7107/bc7c B5:7107/bc7c
+split clipboard-pasted taskbar/content: A1:e483/b7f1 A2:e483/0b76 A3:e483/4a00 A4:e483/66df A5:e483/d5cc B1:e483/45c0 B2:e483/d7f7 B3:e483/9536 B4:c02b/6c55 B5:e483/763a
+split clipboard-back taskbar/content: A1:7107/0874 A2:7107/0038 A3:7107/c72e A4:7107/0e13 A5:7107/37bf B1:ebc2/4f5b B2:7107/20c0 B3:e483/4f5b B4:e483/4f5b B5:097a/4f5b
+split recovered taskbar/content: A1:e483/3ce0 A2:e483/4738 A3:e483/3ce0 A4:e483/3ce0 A5:e483/3ce0 B1:e483/3ce0 B2:e483/4738 B3:e483/3ce0 B4:e483/3ce0 B5:e483/3ce0
+split rebound-editor taskbar/content: A1:e483/25aa A2:e483/267d A3:e483/25aa A4:e483/25aa A5:e483/25aa B1:e483/25aa B2:e483/267d B3:e483/25aa B4:e483/25aa B5:e483/25aa
+workspace runs A1: raw 33 passed True hc_gate True dur 38.79 B1: raw 33 passed True hc_gate True dur 37.73 B2: raw 33 passed True hc_gate True dur 37.22 A2: raw 33 passed True hc_gate True dur 39.42
+hc document-menu-high-contrast: A1:25009318 B1:25009318 B2:25009318 A2:25009318
+hc document-menu-contrast-restored: A1:568d3c32 B1:568d3c32 B2:568d3c32 A2:568d3c32
+hc calculator-high-contrast: A1:213945d6 B1:213945d6 B2:213945d6 A2:213945d6
+hc calculator-contrast-restored: A1:031b78fc B1:031b78fc B2:031b78fc A2:031b78fc
+workspace frame_sha256 phases 66, differing ['workspace-work', 'workspace-search', 'clipboard-rejected', 'clipboard-pasted', 'clipboard-back', 'lock-veld-overlay-open', 'lock-unlocked']
+Materiaal normal: passed=True; raw=33; $HOME/projects/BaryonOS-worktrees/r-turn/build/m/run/materiaal-normal-c4850608f1
+Materiaal keyboard: passed=True; raw=33; $HOME/projects/BaryonOS-worktrees/r-turn/build/m/run/materiaal-keyboard-4a95a84f9c
+Materiaal recover: passed=True; raw=33; $HOME/projects/BaryonOS-worktrees/r-turn/build/m/run/materiaal-recover-09110a7fe4
+recover result.json final ERRORS 1, SAVE_ACKS 0, DISK_WRITES 0, DISK_FLUSHES 0
+20:28:53Z B kernel.elf before nit: 1aaca1444a964b97a66a7e2884bc6d2d79afec8b1344875a3759e1b1d5c14d2b  $HOME/projects/BaryonOS-worktrees/r-turn/build/r-win/esp/kernel.elf
+20:28:57Z B kernel.elf after nit: 1aaca1444a964b97a66a7e2884bc6d2d79afec8b1344875a3759e1b1d5c14d2b  $HOME/projects/BaryonOS-worktrees/r-turn/build/r-win/esp/kernel.elf

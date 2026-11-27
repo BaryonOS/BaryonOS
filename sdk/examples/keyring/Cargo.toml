@@ -6,6 +6,8 @@ publish = false
 
 [features]
 native = []
+# B01-LOCK red control (A5): exit on the kernel fixture's request before LOCK.
+test-exit-before-lock = ["native"]
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }

@@ -1,6 +1,7 @@
 // N03-T2 H2 test peer (HOST EVIDENCE ONLY): one TLS 1.3 connection through
 // Node.js's bundled OpenSSL, driven by tests/loopback.rs. TEST-ONLY credentials
-// arrive as DER files written by the Rust test; nothing is persisted.
+// arrive as DER files that the Rust test writes under CARGO_TARGET_TMPDIR; this
+// peer writes nothing itself.
 //
 // argv: role(server|client) certDer keyDer peerCertDer group alpn servername [port]
 // stdout: one JSON line per event ("ready", "secure", "data", "error").

@@ -9,6 +9,7 @@ autotests = false
 [dependencies]
 nieuw-os-net-stack = { path = "../net-stack" }
 
+sha2 = { version = "=0.10.9", default-features = false, features = ["force-soft"] }
 smoltcp = { version = "=0.14.0", default-features = false, features = [
     "medium-ethernet", "proto-ipv4", "socket-tcp",
 ] }

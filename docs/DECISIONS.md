@@ -5,6 +5,449 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-PROGRESS-OWN-ROWS-20261127 — criterion owners maintain their own implementation and verification snapshot rows
+
+**Status:** decided by the project owner on 27 November 2026 (given in the PR
+guard session and relayed verbatim by the PR guard; no later than 12:43:34 UTC by the guard's
+`date -u` log), recorded by Specialist G at the owner's request. It amends
+the lead ownership of `docs/progress.json` in AGENTS.md and D2 of
+ADR-PROGRESS-ASSESSMENTS-20261125 for these rows only, and supersedes the
+narrower owner decision relayed shortly before it ("Ja, eigen rijen"), which
+limited a refresh to a pull request that touched progress anyway.
+
+**Owner quotation (Dutch, verbatim as relayed):** "Iedere criteriumeigenaar —
+huidig en toekomstig — heeft toestemming ÉN verantwoordelijkheid om de
+implementatie- en verificatiesnapshotrijen van het eigen criterium in
+docs/progress.json (delivery_review) zelfstandig actueel te houden, zonder per
+update toestemming te vragen."
+
+**English translation:** every criterion owner, current and future, has both
+permission and responsibility to keep the implementation and verification
+snapshot rows of its own criterion in `docs/progress.json` (`delivery_review`)
+current on its own, without asking permission for each update.
+
+**Problem:** the snapshot in docs/PROGRESS.md is generated from
+`delivery_review`, which is lead-owned and dated 24 November 2026. Since then
+many pull requests have landed, and rows such as those of A03 describe a state
+that no longer holds. A single owner cannot keep every row current.
+
+**Decision:**
+- **Scope.** Every owner of a criterion, now and in future, keeps the
+  `delivery_review` rows of its own criterion current, without asking
+  permission for each update and without waiting for a pull request that
+  touches progress for another reason.
+- **Conditions.**
+  - Only the rows of the owner's own criterion change.
+  - Each claim rests on current, source-bound evidence.
+  - A routine snapshot refresh leaves rubric, weights, acceptance conditions,
+    status and score unchanged.
+  - Formal acceptance is separate (owner clarification, 27 November 2026, no
+    later than 13:14:07 UTC by the PR guard's `date -u` log, relayed by the
+    guard; it supersedes the guard's message of 13:12:47 UTC on who performs
+    acceptance). Each specialist is the technical owner of its own criteria:
+    implementation, snapshot refresh, verification and delivering acceptance
+    evidence. The PR guard holds the mandate and responsibility for formal
+    criterion acceptance and for processing it into the official progress
+    score: once every existing acceptance condition is demonstrably met and the
+    required independent verification is complete, the guard processes the
+    acceptance and the score increase without extra owner approval, unless the
+    existing conditions explicitly require human acceptance or an owner
+    decision. The guard does not replace an independent reviewer and does not
+    change acceptance conditions, rubric, weights or safety conditions. The
+    formal score continuously matches the criteria actually achieved and
+    verified. This adds no review round or approval layer.
+  - The shared `date` and `source_commit` of `delivery_review` stay unchanged,
+    because they date every row. The refresh date and commit go into the row
+    text itself (`updated YYYY-MM-DD @<sha>: …`).
+  - A refreshed row cites repository files as commit-pinned links
+    (`https://github.com/BaryonOS/BaryonOS/blob/<40-character sha>/<path>`),
+    because the generator resolves relative paths against the shared
+    `source_commit`, not against the refresh commit. Absolute links to
+    Actions runs or jobs, pull requests and reviews stay as they are.
+  - Derived views are regenerated with `python3 tools/progress.py --write` and
+    checked with `--check`; generated files are never edited by hand.
+  - Conflicts are avoided: one owner per row, and D3 task assessment files
+    record the task itself.
+- **Unchanged.** Lead ownership of everything else in `docs/progress.json` and
+  the generated views, D1–D3, the Security Floor and the merge conditions.
+
+**Alternatives:** the lead refreshes all rows (rejected: does not scale and left
+the snapshot stale); a refresh only in a pull request that already touches
+progress (the superseded narrower decision); per-row dates in the generator
+(would change the protected `tools/progress.py`; not needed for this decision).
+
+**Evidence:** a governance decision with no code change. `python3 -B
+tools/progress.py --check` validates every refresh; it does not authenticate the
+content of a claim. Known limit: the generated README and PROGRESS summary
+still label all requirement counts with the shared `date` and `source_commit`,
+although refreshed rows describe a later revision; each such row carries its
+own date and commit. Changing that label belongs to the lead-owned
+`tools/progress.py` and is left to a separate change.
+
+**Rollback:** the project owner can withdraw or narrow the permission by a newer
+decision; lead ownership of the rows then applies again. Rows already refreshed
+stay as evidence-bound history.
+
+**Review criteria:** a routine refresh changes only the author's own criterion
+rows, leaves the shared header, score, status, rubric and weights unchanged, carries
+the date and commit in the row text, and passes `progress.py --check`.
+
+## ADR-SPECIALIST-MANDATE-20261127 — every appointed specialist enqueues and integrates its own pull requests
+
+**Status:** decided by the project owner on 27 November 2026 at about 11:49 UTC,
+relayed verbatim by the PR guard and recorded by Specialist G at the owner's
+request. It generalises ADR-MERGE-QUEUE-AUTONOMY-20261126 and amends
+ADR-MERGE-DELEGATION-20261123 and ADR-SPECIALIST-TEAM-20261125, whose mandates
+named fixed lists of sessions. ADR-MERGE-HOLD-20261113,
+ADR-CI-MERGE-GROUP-GATES-20261126, ADR-CI-MERGE-GROUP-SELECT-20261126, D1–D3 and
+the Security Floor (ADR-035) stay in force.
+
+**Source quotation (project owner, original wording):**
+
+> Alle formeel aangestelde BaryonOS-specialisten, inclusief K, G en CI, krijgen
+> zelfstandig enqueue- en integratiemandaat voor PR's binnen hun eigen
+> goedgekeurde verantwoordelijkheidsgebied. Maak ADR-MERGE-QUEUE-AUTONOMY
+> generiek van toepassing op alle huidige en toekomstige, door mij aangestelde
+> specialisten. Voorkom dat bij iedere nieuwe specialist opnieuw een afzonderlijke
+> ADR-wijziging noodzakelijk is. Voorwaarden: Respecteer specialistownership en
+> bestaande bevoegdheidsgrenzen. Behoud D1–D3, de Security Floor en alle
+> verplichte CI-checks. Geen eigen onafhankelijke review goedkeuren, checks
+> omzeilen of eigen inhoudelijke bevoegdheden uitbreiden. Respecteer de
+> operationele coördinatie van de PR-bewaker. G legt dit eigenaarbesluit formeel
+> vast in de ADR en Graphify. #604 mag onder deze voorwaarden in de wachtrij
+> blijven. Het doel blijft maximale veilige autonomie en ontwikkelsnelheid,
+> zonder terugkerende administratieve toestemmingsvragen.
+
+*English translation:* All formally appointed BaryonOS specialists, including
+K, G and CI, receive an independent enqueue and integration mandate for pull
+requests within their own approved area of responsibility. Make
+ADR-MERGE-QUEUE-AUTONOMY generally applicable to all current and future
+specialists appointed by the owner. Avoid the need for a separate ADR change for
+every new specialist. Conditions: respect specialist ownership and existing
+limits of authority. Keep D1–D3, the Security Floor and all required CI checks.
+Do not approve one's own independent review, bypass checks or extend one's own
+substantive authority. Respect the operational coordination of the PR guard. G
+records this owner decision formally in the ADR and in Graphify. #604 may stay
+in the queue under these conditions. The goal remains maximum safe autonomy and
+development speed, without recurring administrative permission requests.
+
+**Problem:** the merge mandate was tied to named sessions. Specialists appointed
+later (G and K) had no recorded mandate, so each new appointment needed a
+separate ADR change, and K's queue entry for #604 had no recorded basis.
+
+**Decision:**
+
+- **Scope.** Every specialist formally appointed by the project owner holds the
+  enqueue and integration mandate of ADR-MERGE-QUEUE-AUTONOMY-20261126 for pull
+  requests within its own approved area of responsibility. This covers the
+  current specialists A, B, CI, G, H, K, L, N, P, R, S and U, including the
+  sessions named in the earlier ADRs, and every future specialist the owner
+  appoints. A new appointment needs no ADR change; the owner's appointment
+  decision, recorded in the specialist's handoff or role contract, suffices.
+- **Conditions.**
+  - Specialist ownership and existing limits of authority are respected. A
+    specialist integrates only pull requests within its own area.
+  - D1–D3, the Security Floor and all required CI checks are kept.
+  - No specialist approves its own independent review, bypasses a check or
+    extends its own substantive authority.
+  - The operational coordination of the PR guard (dependencies, priorities,
+    exceptions) is followed. The PR guard is not an approval layer.
+- **Unchanged.**
+  - The merge conditions and command of ADR-MERGE-QUEUE-AUTONOMY-20261126.
+  - The owner reservations listed there.
+  - The PR guard's own role: it coordinates and verifies landings and merges
+    nothing.
+- **#604.** Specialist K's queue entry for #604 may stay in the queue under these
+  conditions.
+
+**Consequence:** integration within an approved area is autonomous for every
+appointed specialist without recurring permission requests. Only owner-reserved
+items and real exceptions reach the project owner.
+
+**Alternatives:** none were recorded with the owner decision. The previous
+state, a named delegation per specialist in separate ADRs and handoffs, is the
+implicit alternative this decision replaces.
+
+**Evidence:** this is a governance decision with no code change. No gate or
+test executes it; its evidence is the owner's quotation above and the merge
+conditions, required checks and gates that already apply to every integration.
+
+**Rollback:** the project owner can withdraw or narrow the mandate by a newer
+decision. Until a superseding ADR is recorded, the per-specialist delegations of
+ADR-MERGE-DELEGATION-20261123, ADR-SPECIALIST-TEAM-20261125 and
+ADR-MERGE-QUEUE-AUTONOMY-20261126 apply as before. From the owner's withdrawal
+decision until it takes effect, the affected specialist enqueues nothing and
+runs no `gh pr merge` outside the remaining mandate. Before a narrowed or
+withdrawn mandate takes effect, the affected specialist removes from the merge
+queue (or holds) each of its queued pull requests that falls outside the
+remaining mandate, and disables any armed auto-merge as before; if the
+specialist cannot act, the project owner, or a session the owner names, does
+so. The PR guard confirms both steps from GitHub: no merge-queue entry and `autoMergeRequest`
+null for each affected pull request. Pull requests already integrated are not
+reverted by the rollback alone.
+
+**Review criteria:** a pull request integrated under this ADR lies within the
+approved area of both its author and the integrating specialist, passed every
+required check and the applicable gates, and was not approved by its own author
+as an independent review. A pull request that changes a file on the Protected
+files list in `AGENTS.md` was also reviewed by someone outside the integrating
+workstream (ADR-MERGE-DELEGATION-20261123), except for the two cases that ADR
+delegates: a new child directory for new evidence and the workstream's own
+progress assessment; a specialist that both reviews and
+integrates another specialist's protected-file pull request does not meet this.
+
+## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
+
+**Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the
+P0 performance contract (owner, 26 November 2026 about 21:15 UTC). Proposed by the CI
+specialist for issue #494 on 27 November 2026, with an independent D2 review (GO, 27 November 2026; two minor findings recorded as follow-ups on #494:
+keep containment binding while `acceptance-pending` is set, and echo the rules-read warning in the step summary). It changes
+no required check name, workflow, trigger, permission or ruleset.
+
+**Problem:** on `pull_request`, merge-hold failed a head that did not contain the base tip. Since
+main lands only through the merge queue, whose `merge_group` run judges the merged tree and
+refuses a queue commit without its base, that rule only forced every open pull request into a
+main merge, a push and a full check round after each landing. From 25 November 09:37Z to
+26 November 22:27Z, 24 of 85 failed `pull_request` merge-hold runs failed on containment alone.
+
+**Decision:** on `pull_request`, missing base-tip containment emits a `::notice::` and the gate
+judgement continues unchanged, but only when all three hold: git positively reports a
+non-descendant (exit 1), the policy enforces, and
+`GET /repos/{repo}/rules/branches/{base ref}` lists an active `merge_queue` rule. Any error, a
+malformed answer or a missing rule keeps the binding error. `merge_group` containment and all
+member checks are unchanged. It takes effect only once on main, because merge-hold runs the
+base copy of `tools/merge_hold.py`.
+The code proves an active `merge_queue` rule, not that nobody can bypass it. On 27 November ruleset
+25967588 on `~DEFAULT_BRANCH` has no bypass actors. Adding a bypass actor to a ruleset with a
+merge queue requires revisiting this decision.
+
+**Source:** branch `ci/containment-advisory-20261126`; `tools/merge_hold.py`
+(`merge_queue_required`, `pull_request_gates`), `tools/tests/test_merge_hold.py`,
+`docs/CI-CONTRACT.md` (containment paragraph).
+
+**Rollback:** revert the commit; containment is binding again from the next main landing.
+
+## ADR-CI-MERGE-GROUP-SELECT-20261126 — merge-hold judges a merge group by the gates selected from its trusted main base
+
+**Status:** accepted (binding acceptance contract). The project owner
+approved the design on 26 November 2026 in the CI specialist chat at about
+20:20 UTC. At about 21:10 UTC the owner approved leaving out workflows that are
+not applicable, on the condition that only workflows whose non-applicability
+is established are left out and any doubt stays fail-closed (the two-source
+rule under Judging), with a renewed independent D2 review. Proposed by the CI specialist for issue #494 on 26 November 2026,
+after the owner's P0 request that a merge-queue group whose
+combined change is, for example, documentation only no longer waits for every
+native suite. It amends ADR-CI-SELECTION-20261124 and
+ADR-CI-MERGE-GROUP-GATES-20261126 in the sentences listed below; those
+sentences now point here. It changes no required check name, no workflow
+trigger, no ruleset and no `host-quality` or `qemu-smoke` behaviour, and it
+does not enable the merge queue.
+
+**Source:** branch `ci/merge-group-select-20261126` on base `main` `e6547bce`
+("PR A"). Skipping the unselected jobs inside each workflow on `merge_group`
+is a later change ("PR B"); until then those jobs still run but no longer
+decide.
+
+**Problem:** on `merge_group` the selector planned in full (fallback
+`merge-group`) and merge-hold expected every applicable gate of the queue
+commit, so a documentation-only group waited for, and could be ejected by,
+every native suite. Narrowing from `merge_group.base_sha` would be unsafe. In
+a stacked queue that base is the queue commit of the entry ahead, which has
+not landed: its selector and catalogue are not protected, and the diff from
+it omits the entries ahead. This was observed on queue ref
+`gh-readonly-queue/main/pr-571-9508ebfa…`, whose base `9508ebfa` is the queue
+commit of #572.
+
+**Decision:**
+
+- **Trusted base T.** T is `git merge-base <merge_group.head_sha>
+  refs/remotes/origin/main`, with `refs/heads/main` fetched from origin in the
+  same merge-hold job. `merge-hold.yml` loads `tools/merge_hold.py` and
+  `tools/ci_impact.py` from T, never from `merge_group.base_sha`. Before it
+  loads them it requires T to be a well-formed commit, an ancestor of the
+  fetched main, and an ancestor of (or equal to) `merge_group.base_sha`, and
+  that base to be an ancestor of the queue commit. `merge_hold.py` repeats
+  these checks against the same fetched ref, without fetching again, and
+  requires `BASE_SHA` to equal T and `TESTED_SHA` the queue commit.
+- **Plan.** `policy.events.merge_group` may be `select` or `full`; `manual`
+  stays invalid, and `push` and `schedule` remain forced full. Both catalogues
+  set `select` (revision 21). Under `select` the `merge_group` plan narrows
+  from the diff T..queue commit exactly as a `pull_request` plan does, with
+  the same fail-closed rules: an `always_full` path anywhere in that diff (for
+  example `.github/**`, `tools/ci_impact.py`, `tools/merge_hold.py`) or an
+  unknown path makes it full. Because T is an ancestor of the queue commit,
+  the diff covers every entry ahead in the stack as well as the group's own
+  pull request. `full` remains the rollback and keeps the fallback code
+  `merge-group`. The `select` jobs of the three narrowing workflows still
+  refuse to narrow on any event but `pull_request`.
+- **Binding.** The plan must name T as its base and merge base, the queue
+  commit as head and tested commit, `main` as target, and the catalogue and
+  selector of T (trusted). The wait budget is read from T's catalogue. The
+  report line records T, `merge_group.base_sha` and the queue commit.
+- **Judging.** The expected gates are the selected `core` and `rwa` gates of
+  that plan. A selected gate that is skipped, missing, failed or still running
+  blocks as before. Under a `select` plan a workflow is neither awaited nor
+  judged on the queue commit only when its non-applicability is established
+  by two sources: a `core` or `rwa` gate of it is excluded as
+  `no-input-match` and none is selected (catalogue), and its own
+  `pull_request` path filter, as T's catalogue records it, certainly keeps
+  it from starting for the diff T..queue commit. The selector of T lists the
+  latter workflows in the plan as `pull_request_filter_blocked`. Any doubt
+  leaves a workflow judged: no `pull_request` trigger, no path filter, a
+  negated pattern, both `paths` and `paths-ignore`, no or more than 300
+  changed paths, or a plan without the list. The queue therefore never
+  ignores a workflow that the same change would start, and be judged by, on
+  `pull_request`. Its runs, including a failed or still running one, then do
+  not affect the decision, and the report names these workflows. A workflow with a selected gate is judged whole, as before, with
+  its other jobs and unregistered jobs, and so is a workflow without any
+  `core` or `rwa` gate (advisory or trigger-only). A `full` plan is judged as
+  before. `WAIT_CHECKS` (`host-quality`, `qemu-smoke`), the walk
+  over the entries ahead, the member rules and `entry_hold_passed` are
+  unchanged.
+- **Fail-closed rules.** Where no trusted copy of the tools can be identified,
+  or the inputs contradict the queue, merge-hold fails; where T is valid but
+  the diff from it is indeterminate, the plan is full:
+
+  | Condition | Result |
+  |---|---|
+  | main cannot be fetched, no merge base exists, or T is malformed | the job fails before loading any tool |
+  | T is not on main or not an ancestor of `merge_group.base_sha`, or that base is not an ancestor of the queue commit | the job fails before loading any tool; `merge_hold.py` fails before any wait |
+  | `BASE_SHA` is not T, `TESTED_SHA` is not the queue commit, or the plan's recorded merge base is not T (a `select` plan must record one) | merge-hold fails before any wait |
+  | shallow or missing history, an ambiguous merge base, a diff error or more than 5,000 changed paths from a valid T | full plan with that fallback code; every applicable gate is expected |
+  | an `always_full` or unknown path in T..queue commit | full plan (`always-full`, `unknown-path`) |
+  | an unusable fallback (`fetch-failed`, an untrusted selector, an invalid trusted catalogue) | merge-hold fails, as before |
+
+**Amended sentences:**
+
+- ADR-CI-SELECTION-20261124: "`push`, `merge_group`, `schedule` and
+  `workflow_dispatch` always run in full." becomes "`push`, `merge_group`,
+  `schedule` and `workflow_dispatch` still run every job; on `merge_group`
+  merge-hold requires only the gates that the plan from the trusted base
+  selects (ADR-CI-MERGE-GROUP-SELECT-20261126)."
+- ADR-CI-MERGE-GROUP-GATES-20261126, Problem: "also runs on `merge_group`, at
+  full scope." becomes "also runs on `merge_group`, every job of it (which of
+  those gates merge-hold requires is decided by
+  ADR-CI-MERGE-GROUP-SELECT-20261126)."
+- ADR-CI-MERGE-GROUP-GATES-20261126, Decision: "`BASE_SHA` must equal
+  `merge_group.base_sha` … the base must be an ancestor of the queue commit.
+  The base selector recomputes the plan with `--event=merge_group` (mode
+  full)." becomes "`BASE_SHA` must equal the trusted base T and `TESTED_SHA`
+  `merge_group.head_sha`, with the ancestry checks of
+  ADR-CI-MERGE-GROUP-SELECT-20261126. The selector of T recomputes the plan
+  with `--event=merge_group` from the diff T..queue commit (mode `select` or
+  `full`)."
+
+**Consequences:**
+
+- With the catalogue at revision 21, the selector run locally on a scratch
+  clone gives a documentation-only queue commit a `select` plan that leaves
+  19 workflows out, every integrated native suite among them; the group no
+  longer waits for them or depends on them. For a change to `LICENSE`,
+  `.coveragerc`, `.c8rc.json` or a non-Markdown file under `.agents/`, the
+  path filters of `native-hid-input`, `native-xhci` and `resource-pressure`
+  would start them on `pull_request` although no catalogue input matches, so
+  they stay judged and 16 are left out. That mismatch between catalogue
+  inputs and historical path filters is resolved fail-closed here; narrowing
+  such filters is separate work. It still waits for
+  the workflows that have a selected core gate and are therefore judged
+  whole: `ci.yml`, CodeQL and the three workflows with a `select` job
+  (component-leaves, app-management-quality, net-tls-quality), all of whose
+  jobs run on `merge_group` until PR B. A `kernel/**` change selects 23
+  workflows. Until PR B the unselected suites also still start and use
+  runners on the queue commit.
+- A failure in a workflow left out this way no longer ejects the group, as
+  it would not have run on `pull_request` either. The `push` run on `main`,
+  which stays full, remains the post-merge backstop. The two-source rule is a
+  transitional safety mechanism until PR B skips the unselected jobs on
+  `merge_group` and the selection logic is consolidated.
+- **Landing constraint.** merge-hold runs the copy of `tools/merge_hold.py`
+  at T. While this change is itself queued, T still holds the former copy,
+  which requires `BASE_SHA` to equal `merge_group.base_sha`. The change
+  therefore passes only as an unstacked group, and entries stacked behind it
+  fail closed until it has landed.
+- The three `select` jobs still plan `merge_group` from
+  `merge_group.base_sha`; they never narrow on it, so this is harmless here.
+  PR B must plan them from T before any job is skipped on `merge_group`.
+
+**Amendment (PR B, 27 November 2026, CI specialist, #494; implemented,
+hosted-unverified until the first `merge_group` run after PR B lands).** PR B
+(branch `ci/merge-group-skip-20261126`) is the later change named under
+Source; the statements above that describe the state "until PR B" are
+superseded as follows.
+
+- Each of the 19 workflows that merge-hold can leave out of a merge group
+  gains a `merge-group-gate` job (`merge_group` only). It loads
+  `tools/merge_hold.py` from T through `./.github/actions/trusted-base` and
+  asks `merge_group_skip()`. Only an explicit `True` skips the workflow's
+  jobs on the queue commit; a missing function, an error or any other answer
+  runs every job. On every other event the gate is skipped and changes
+  nothing. On the queue commit, an unselected workflow therefore still starts
+  its small gate job, but its gated suites no longer run.
+- `ci.yml`, CodeQL and the three workflows with a `select` job have no gate
+  and still run whole on `merge_group`. Those three `select` jobs now plan
+  `merge_group` from T, not from `merge_group.base_sha`.
+- The two-source rule stays unchanged; consolidating the selection logic is
+  separate work.
+- Accepted risk (D2 finding F1): the gate jobs and merge-hold fetch `main`
+  separately. In a stacked queue an entry ahead can land between those
+  fetches, so a gate can derive a newer T and skip a workflow that merge-hold
+  still expects. merge-hold reports such an expected job as failed, whether
+  GitHub lists it as `skipped` or not at all (a skipped matrix job may be
+  "missing"; `tools/merge_hold.py` accepts only `success`), so merge-hold
+  fails, the queue removes the entry, and its owner must enqueue it again;
+  nothing re-queues it automatically. This costs a queue round but
+  never passes an untested gate (fail-closed), so it is accepted rather than
+  adding a shared T between workflows.
+
+**Revise when:** the first queue trial shows a stacked group's base or run
+payloads that differ from the above; PR B lands; or GitHub documents the
+queue ref and base of stacked groups.
+
+**Primary sources:** none retrieved for this decision; `git merge-base` and
+`git merge-base --is-ancestor` behave as documented in git-merge-base(1). The
+stacked base is a repository observation of 26 November 2026, not GitHub
+documentation.
+
+## ADR-MERGE-QUEUE-AUTONOMY-20261126 — mandated workstreams enqueue their own pull requests
+
+**Status:** decided by the project owner on 26 November 2026 (CI specialist chat)
+and recorded by the CI specialist. It amends ADR-MERGE-DELEGATION-20261123 and
+ADR-SPECIALIST-TEAM-20261125 for the merge queue that is active on `main`
+(ruleset 25967588). ADR-MERGE-HOLD-20261113, ADR-CI-MERGE-GROUP-GATES-20261126
+and D1–D3 stay in force.
+
+**Problem:** with the merge queue active, workstreams still asked for a separate
+approval or lane signal before each queue entry. That approval step slows the
+queue down and conflicts with the delegated merge mandate.
+
+**Decision:**
+
+- Workstreams with a merge mandate under ADR-MERGE-DELEGATION-20261123, as
+  extended by ADR-SPECIALIST-TEAM-20261125 and generalised to every appointed
+  specialist by ADR-SPECIALIST-MANDATE-20261127, add their own merge-ready pull
+  requests to the merge queue themselves. They ask no approval per pull request,
+  push, queue entry or regular merge. The command is
+  `gh pr merge <N> --squash --match-head-commit <sha>`, run only after no
+  workflow run on that head is still open and every merge condition in
+  AGENTS.md holds.
+- The CI specialist enqueues its own regular CI pull requests once the
+  applicable D2 review and the other merge conditions hold.
+- The PR guard (integration coordinator) coordinates dependencies, priorities and
+  exceptions. It is not an approval layer. Its dependency and priority calls are
+  still followed.
+- Explicit owner approval remains necessary only for protected policy changes,
+  changes to binding acceptance contracts, reserved architecture decisions,
+  security exceptions, costs that are not authorised, and ruleset changes outside
+  an earlier mandate. Once the owner has approved such a change in substance, no
+  second approval is needed to enqueue it.
+- Unchanged: the required checks, the applicable acceptance gates and holds,
+  dependency order, protected-file review, the Security Floor, D1–D3,
+  `--match-head-commit`, and the prohibitions on `--admin`, bypasses and
+  auto-merge outside a delegation.
+
+**Consequence:** only real exceptions and substantive owner decisions reach the
+project owner; regular integration within the mandate is autonomous.
+
 ## ADR-KEYRING-LOCK-20261126 — Key erasure before S3 by kernel teardown of the Key Service instance
 
 **Status:** this ADR records decisions at two levels of authority.
@@ -85,7 +528,8 @@ to the round 6 head `763f25d9`. `7671b20d` merges `main` `60b1aac7` (#558)
 and changes none of the merge-hold files.
 
 **Problem:** since D1 step 1, every workflow with an automatic `core` or `rwa`
-job also runs on `merge_group`, at full scope. On `merge_group`, however,
+job also runs on `merge_group`, every job of it (which of those gates
+merge-hold requires is decided by ADR-CI-MERGE-GROUP-SELECT-20261126). On `merge_group`, however,
 merge-hold waited only for `host-quality` and `qemu-smoke`. It judged each
 member's gates on that member's own `pull_request` head and required its queue
 entry to land a tree equal to that head. The tree that actually lands was never
@@ -94,9 +538,10 @@ judged as a whole, and a queue with more than one entry ahead failed closed.
 **Decision:**
 
 - **Inputs, bound before any wait.** On `merge_group`, `BASE_SHA` must equal
-  `merge_group.base_sha` and `TESTED_SHA` must equal `merge_group.head_sha`. Both
-  must be well-formed, and the base must be an ancestor of the queue commit.
-  The base selector recomputes the plan with `--event=merge_group` (mode full).
+  the trusted base T and `TESTED_SHA` `merge_group.head_sha`, with the
+  ancestry checks of ADR-CI-MERGE-GROUP-SELECT-20261126. The selector of T
+  recomputes the plan with `--event=merge_group` from the diff T..queue
+  commit (mode `select` or `full`; amended by ADR-CI-MERGE-GROUP-SELECT-20261126).
   The plan must describe that event, that base, the queue commit and `main`.
   Any doubt fails at once.
 - **Run binding.** A run counts only with:
@@ -394,11 +839,278 @@ recovery; native verification is required in addition to host tests. 5A stays
 in force until the protected slot and the complete 5B integration are
 demonstrably safe.
 
+**Amendment (25 November 2026): the protected slot is an extend chain.** B
+implements the M1 route as a per-domain `TPM_NT_EXTEND` hash chain (contract
+`docs/implementation/COLD-FRESHNESS-ANCHOR.md` on #524, basis `5db011cc`;
+P1–P3 agreed with N). The generation counter, the rewritable slot binding and
+the `Pending` state above are replaced: a store records `prev`, the chain value
+it was committed on top of; the kernel derives `E(S)` from the domain and
+`D(S)`; startup accepts `chain == H(S.prev ‖ E(S))`, rolls forward once on
+`chain == S.prev` (a never-acknowledged store) and otherwise denies the store
+as `Stale`; `Foreign` covers an instance mismatch. `services/net-broker/src/durable.rs`
+follows this contract in a host model whose fake computes the real SHA-256
+chain and reproduces B's golden vectors. The M1 regression tests are kept
+under B's names and now pass against a hostile extend:
+`hostile_extend_cannot_revive_a_stale_store_at_the_same_position` (formerly
+`hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation`),
+`crashed_sibling_cannot_displace_a_rolled_forward_store` (the two
+`reseal_multi_boot_*` cases and the multi-boot protected-slot case),
+`every_crash_prefix_of_a_commit` and
+`replaced_tpm_rejects_the_store_until_authorised_genesis`. A stray extend now
+denies every store until authorised genesis (fail closed). Host evidence only;
+native S5 verification on swtpm, torn-A1 store recovery (C143, #529) and the
+residuals listed in B's contract remain open, and 5A stays in force. One
+residual passes N04's own checks: if both copies of the accepted pair are
+lost (TPM clear plus UEFI NVRAM reset, open U13c item), the old `ENROLL`
+authorises a second genesis under the old instance, so the instance check
+does not reject that instance's revived first store.
+
 **Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
 N04 stays open until its native evidence exists; the score is unchanged.
 
 **Rollback:** reverting this entry restores the 23 November hold; no shipped
 grant format depends on it yet.
+
+## ADR-B03-REL05-TPM-20261125 — Trial boot with TPM 2.0 health confirmation (REL-05 option A)
+
+**Status:** the requirements (option A, items 1–9 on issue #41) were decided
+by the project owner on 25 November 2026. The mechanism below (PCR 13, NV
+layout, kernel confirmation grant, amendment of ADR-049 decision 4) is
+**adopted by the B workstream under the owner's execution mandate of the same
+day, for the TEST profile only**; the specification
+is [B03-REL05-TRIAL-BOOT-TPM.md](implementation/B03-REL05-TRIAL-BOOT-TPM.md).
+Design only: nothing is implemented or tested. It would amend ADR-049
+decisions 2 and 4 for a new loader feature `signed-boot-trial`; `signed-boot`
+keeps ADR-049 semantics, including the REL-05 hazard, until gate migration.
+On 26 November 2026 the project owner approved this ADR in substance for the
+strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH (last
+amendment below).
+
+**Problem:** the signed loader raises `NieuwOsMinVersion` when a slot
+verifies, before the kernel runs, so a signed but broken release makes the
+previous good release a permanent `DOWNGRADE` (REL-05).
+
+**Decision:**
+
+1. The floor is raised only by the loader, before ExitBootServices, on the
+   boot **after** a durable TPM-held health confirmation that binds the exact
+   generation, version, slot and manifest digest of the trial (owner items
+   5–6). It is never raised at selection time and never lowered.
+2. A candidate (verified slot above the effective floor and above every
+   rejected version) runs at most three times; each attempt is made durable in
+   TPM NV before the candidate executes. After three unconfirmed attempts it is
+   recorded as rejected and the known-good release boots; user data is not
+   touched (items 3, 7).
+3. TPM objects (TEST profile, disposable swtpm): loader-only `TRIAL` and
+   `FLOOR` records and a `GEN` counter, writable only while PCR 13 is at its
+   reset value; a `CONFIRM` record writable only while PCR 13 holds the fixed
+   trial-open value. The loader always extends PCR 13 before handover. The
+   effective floor is `max(UEFI copy, TPM FLOOR)`.
+4. The kernel calls no UEFI runtime service (item 2). In profile
+   `native-update-trial` it performs, as narrowly scoped privileged policy
+   recorded by this ADR (`kernel/AGENTS.md`), one confirmation write and one PCR seal per trial boot through a
+   one-shot capability held by a ring-3 health service. The kernel copies the
+   loader-supplied binding; ring-3 supplies only a verdict for the versioned
+   list `HEALTH-LIST-1`. The kernel still contains no cryptography.
+5. While a trial is pending the update service does not write slots (amends
+   ADR-049 decision 4).
+6. *(Superseded in full: C665 takes precedence, and the REL-05 §7.9
+   amendment of 26 November 2026 below removes `DEGRADED`.)* A missing, faulty, cleared, replaced or
+   inconsistent TPM gives a degraded
+   boot (known-good only, no trial, no floor write, explicit markers), except
+   that a reachable TPM whose phase PCR cannot be extended halts the boot
+   (`BOOT:FAIL:TPM_EXTEND`): handing over with PCR 13 at its reset value would
+   grant the kernel loader-phase write rights, so halting is the fail-closed
+   choice. This TEST-profile grant is not a product kernel TPM grant
+   (`docs/contracts/TPM2-CRB.md`). TPM state
+   behind the UEFI copy is treated as rollback. A TPM counter alone is not
+   full rollback protection: clearing the TPM together with the firmware
+   variables, or a boot-path attacker before B04, defeats it (item 9).
+
+**Not authorized:** production keys, signing or activation; physical TPM or
+firmware changes; a production TPM provisioning or owner-authorization
+procedure; CI workflow changes without a separate owner-reviewed request. TPM 2.0 is the
+intended D3 backend of ADR-B03-B04-TARGET for this TEST profile only; its
+production approval remains open. Use of the anchor for N04 is authorized
+separately by ADR-NET-ISSUER-20261125 Decision 5B (owner, 25 November 2026)
+under its conditions 1–9; the contract is
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
+
+**Amendment, 25 November 2026 (owner decision C665, PR #524):** the owner
+authorises a strictly bounded extension of the trust architecture: TPM
+identity binding (U13) through an authorised enrollment record signed under
+the compiled-in update trust anchors (an anchor independent of TPM, UEFI
+variables and disk), with an EK-salted session per boot. Until that binding
+is demonstrably reliable, an unknown, replaced, reset or unverifiable TPM
+blocks the normal boot route (`BOOT:FAIL:TPM_IDENTITY`; an unenrolled TPM halts
+with `BOOT:FAIL:TPM_UNENROLLED`, since a deleted record cannot be told apart from
+no enrollment; an NVRAM reset halts with `BOOT:FAIL:UEFI_FLOOR_MISSING` instead
+of healing automatically) and only an authenticated recovery proceeds. The UEFI floor is
+never raised from an unverified TPM and the anti-rollback floor is never
+lowered silently. Legitimate TPM or motherboard replacement and NVRAM reset
+go through authorised recovery without touching user data. The anchor domains
+B02, B03/B04 and N04 stay separate; N04 re-anchors from genesis after
+recovery (agreed with workstream N). Native tests C23–C30 are required before
+acceptance. Specification section 10.5; TEST profile only.
+
+**Amendment M1-HAUTH, 25 November 2026 (project-owner decision, option 1,
+PR #524):** relayed by the PR guard session at about 11:58Z and confirmed by
+the project owner in the B session. Quoted decision:
+
+> I explicitly approve option 1: changing ownerAuth and lockoutAuth within
+> the isolated TEST/QEMU/swtpm profile to address the M1
+> undefine/redefine/replay vulnerability. This is a strictly bounded
+> extension of the previously approved TPM trust architecture. The following
+> requirements are binding: Preserve the per-domain TPM_NT_EXTEND hash-chain
+> architecture and logical separation between B02, B03/B04 and N04. Protect
+> TPM hierarchy authorization against unauthorized runtime access. Generate
+> appropriate authorization secrets using approved entropy. Never hardcode,
+> log or expose them to ordinary services. Preserve authorized loader-phase
+> recovery, including undefine and re-genesis with a fresh, authenticated
+> anchor instance. Ensure that recovery cannot revive previously revoked
+> grants or silently lower anti-rollback protection. Verify that the
+> PCR13-based loader-phase policy provides the intended protection. Do not
+> treat PCR phase separation alone as proof of trusted boot, TPM identity or
+> protection against a compromised kernel. Preserve the previously approved
+> U13 TPM identity binding. Test unauthorized undefine/redefine/replay, TPM
+> clear, TPM replacement, foreign boot environments, interrupted
+> provisioning and authorized recovery. Retain the existing failing M1
+> regression cases and demonstrate that the revised implementation prevents
+> the targeted revival scenario. Coordinate P1–P3 with N and finalize the
+> shared anchor contract. Keep N04 operating under 5A until the complete 5B
+> integration passes native security acceptance. Explicitly document
+> remaining threat-model limitations. Do not accept the demonstrated revival
+> vulnerability as a residual risk merely to complete the implementation.
+> This authorization applies exclusively to disposable TEST/QEMU/swtpm
+> environments. It does not authorize modification of physical TPMs,
+> production credentials or host security settings.
+
+Mechanism: a loader-generated secret (`EFI_RNG_PROTOCOL`, U25) is stored in
+the policy-read NV index `HAUTH` (`0x0100B304`, readable only under
+`PolicyPCR(13 = 0³²) + CC_NV_Read`) and set as `ownerAuth ‖ lockoutAuth` by
+`HierarchyChangeAuth`; `endorsementAuth` and platformAuth are not changed.
+Evidence so far: swtpm 0.10.1 feasibility probe
+(`docs/verification/b03-rel05-hauth-probe-20261125/`) and host model; the
+native loader path and S5 are open. Limitation, reported to the project
+owner and not accepted as a residual by B: code that runs at PCR 13 = 0³²
+(boot path before B04, foreign OS) can read `HAUTH` and revive an older
+store one reboot later; the revival is refused at run time within a boot,
+not across a hostile boot path. 5A stays in force. Contract:
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
+
+**Amendment, 26 November 2026 (project-owner decision on PR #524: approval
+and C665 precedence):** the project owner approved this ADR in substance for
+the strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH, and
+decided (translated from Dutch) that C665 takes precedence over decision 6: an
+unknown, replaced, reset or unverifiable TPM must not bypass the identity
+binding through `DEGRADED`; the controlled halt and authenticated recovery
+stay. REL-05 §7.9 was decided separately the same day (amendment below). The
+boot-path revival at PCR 13 = 0³² before B04 stays an open security problem,
+not an accepted residual risk. N04 stays under 5A until the full 5B
+integration passes native security acceptance. All open implementation and
+acceptance conditions (C23–C30, native S5, U13c) remain; no production
+credentials, no physical TPM change and no progress score change.
+
+Verbatim decision (project owner, Dutch, 26 November 2026 19:55 UTC, pasted
+into the workstream B chat, session `ea7388`):
+
+> EIGENAARBESLUIT — #524
+>
+> Ik keur ADR-B03-REL05-TPM-20261125 inhoudelijk goed voor het strikt afgebakende TEST/QEMU/swtpm-profiel, inclusief C665 en M1-HAUTH.
+>
+> Verduidelijk vóór de eerstvolgende push dat C665 voorrang heeft op het oorspronkelijke besluit 6: een onbekende, vervangen, geresette of onverifieerbare TPM mag niet via DEGRADED alsnog de identiteitsbinding omzeilen. Behoud gecontroleerde halt en geauthenticeerd herstel. Stem de toepasselijke testverwachtingen daarop af, zonder de nog openstaande §7.9-beslissing stilzwijgend in te vullen.
+>
+> De bekende boot-path-revival vóór B04 blijft een open beveiligingsprobleem en wordt niet geaccepteerd als definitief restrisico. N04 blijft onder 5A totdat volledige 5B-acceptatie is aangetoond.
+>
+> Behoud alle openstaande implementatie- en acceptatievoorwaarden. Geen productiecredentials, fysieke TPM-wijzigingen of verhoging van de voortgangsscore.
+>
+> Verwerk deze verduidelijking in de reeds voorbereide lokale wijzigingen. Stem één gebundelde push af met de PR-bewaker en integreer #524 via de merge queue zodra alle geldende voorwaarden zijn vervuld.
+>
+> Geen nieuwe algemene onderzoeks- of reviewronde. Ga daarna zelfstandig verder met de resterende implementatie.
+
+Application by workstream B (the mapping of TPM classes below is B's reading
+of the owner's precedence decision, recorded for the owner to confirm or
+reverse; it is not itself an owner decision), TEST profile:
+
+- A TPM that is absent, fails before or during the
+  identity proof, or shows PCR 13 dirty at loader start has no verified
+  identity: the loader prints the class marker, halts with
+  `BOOT:FAIL:TPM_IDENTITY`, writes nothing and runs no kernel. A failed TPM
+  write or read-back after a verified identity re-steps as a fault and halts
+  the same way. An absent TPM therefore means no boot in this profile. An unenrolled
+  TPM (`BOOT:FAIL:TPM_UNENROLLED`), another or unproven endorsement key,
+  including a replaced TPM or one reset to new seeds (`BOOT:FAIL:TPM_IDENTITY`),
+  and an NVRAM reset (`BOOT:FAIL:UEFI_FLOOR_MISSING`) halt as before. A failed
+  extend still halts with `BOOT:FAIL:TPM_EXTEND`. Recovery is authenticated
+  only (section 10.5).
+- *(Superseded by the REL-05 §7.9 amendment below.)* Decision 6 kept
+  `DEGRADED` only for a verified TPM whose anchor is lost or behind
+  (`ANCHOR_LOST`, `ANCHOR_BEHIND`), with the cleared-TPM case left open.
+  "Reset" is read as a TPM with new seeds (a new
+  endorsement key); that `TPM2_Clear` keeps the endorsement key and a fresh
+  swtpm state does not is TPM 2.0 Part 1 hierarchy semantics, not probed on
+  swtpm *[unverified]*.
+
+**Amendment, 26 November 2026 (project-owner decision REL-05 §7.9: TPM clear
+and anchor loss):** the project owner chose fail closed (translated from
+Dutch): a TPM that was cleared but keeps its original endorsement key gets a
+controlled halt with authenticated recovery; a matching endorsement key
+proves identity, not continuity of the protected state. Binding conditions:
+no regular or `DEGRADED` boot once a TPM clear or the loss of required anchor
+state is detected; no automatic re-provisioning based only on a matching
+endorsement key; recovery only through an authenticated, demonstrably current
+recovery procedure; keep the highest reliably established anti-rollback
+floor; prevent reactivation of revoked keys, grants and older anchor
+instances; when every reliable freshness record is lost, independently
+authorised recovery is mandatory; preserve user data; give a clear recovery
+message. The permission holds only within the existing TEST/QEMU/swtpm
+mandate. REL-05 stays open until every acceptance condition is met; the
+progress score stays 43/100.
+
+Verbatim decision (project owner, Dutch, 26 November 2026 20:07 UTC, pasted
+into the workstream B chat, session `ea7388`):
+
+> EIGENAARBESLUIT — REL-05 §7.9
+> Kies fail-closed: gecontroleerde halt met geauthenticeerd herstel wanneer een TPM is gewist maar zijn oorspronkelijke EK behoudt.
+> Een overeenkomende EK bewijst identiteit, niet continuïteit van de beveiligde toestand.
+> Bindende voorwaarden:
+>
+> * Geen reguliere of DEGRADED-boot wanneer een TPM-clear of verlies van noodzakelijke anchorstatus is vastgesteld.
+> * Geen automatische herprovisioning op basis van uitsluitend een overeenkomende EK.
+> * Herstel uitsluitend via een geauthenticeerde, aantoonbaar actuele recoveryprocedure.
+> * Behoud de hoogste betrouwbaar vastgestelde anti-rollback-floor.
+> * Voorkom heractivering van ingetrokken sleutels, grants en oudere anchor-instances.
+> * Wanneer alle betrouwbare freshness-records verloren zijn, is onafhankelijk geautoriseerd herstel verplicht.
+> * Behoud gebruikersgegevens.
+> * Geef een duidelijke herstelmelding.
+>
+> Deze toestemming geldt uitsluitend binnen het bestaande TEST/QEMU/swtpm-mandaat.
+> Leg dit besluit vast in §7.9 en de toepasselijke ADR. Implementeer en verifieer gericht, zonder nieuwe algemene onderzoeksronde.
+> Laat REL-05 open totdat alle acceptatievoorwaarden zijn vervuld. De voortgangsscore blijft 43/100.
+
+Consequence for this ADR: decision 6 is replaced in full. `DEGRADED` no
+longer exists. Every `ANCHOR_LOST` and `ANCHOR_BEHIND` class with a verified
+identity halts with `BOOT:FAIL:TPM_ANCHOR`; every halt that only
+authenticated recovery resolves (identity mismatch, `TPM_UNENROLLED`,
+`UEFI_FLOOR_MISSING`, `TPM_ANCHOR`) also prints `BOOT:RECOVERY:REQUIRED`, and
+an absent, faulty or dirty-PCR TPM halts without it. The
+host model and its tests implement this; the loader does not yet (the trial
+path, S6, is not built). Section 7.9 of the specification records each
+condition with its status. Since 27 November 2026 the TEST loader's
+verify-only M1-HAUTH build no longer provisions when `ownerAuth` is unset,
+which is also the state after a clear: it halts with
+`LOADER-HAUTH:FAIL:TPM_UNENROLLED` and `LOADER-HAUTH:RECOVERY:REQUIRED`
+without an NV or hierarchy-auth write, and only a separate TEST enrollment
+build provisions. Open binding conditions include: that stand-in for the
+signed `ENROLL` step (S3b) is chosen by the build and the harness, not by
+the device, and is not authenticated, so the second condition is not met;
+the currency of a recovery record; the recovery authority for the case where
+both copies of the accepted pair are lost; and the user-visible recovery text.
+
+**Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
+extension, kernel profile and health service; the characterization of PR #514
+must fail under the trial profile. Issue #41, B03 and REL-05 remain open;
+scores are unchanged.
 
 ## ADR-SPECIALIST-TEAM-20261125 — Permanent specialists A, P, L and R; handoffs, naming and context rotation
 
@@ -649,7 +1361,9 @@ and, for the leaves, into the matrix. The catalogue becomes the single source
 of the leaves matrix.
 
 The integrated native suites, CodeQL and `ci.yml` stay unselected. `push`,
-`merge_group`, `schedule` and `workflow_dispatch` always run in full. merge-hold
+`merge_group`, `schedule` and `workflow_dispatch` still run every job; on
+`merge_group` merge-hold requires only the gates that the plan from the trusted
+base selects (ADR-CI-MERGE-GROUP-SELECT-20261126). merge-hold
 remains the decision point: it does not trust the `select` jobs and blocks when
 an expected gate did not pass.
 
@@ -1316,7 +2030,8 @@ accepts no criterion.
   QMP socket.
 - Revisit this decision if any of these occur:
   - a feature-off build changes `.text` or `.data`;
-  - any broker or device counter changes during a down window;
+  - any broker or device counter changes during a down window
+    *(narrowed by amendment H04-TXDOWN below)*;
   - an event appears after a latch;
   - a stale RX frame crosses an epoch.
 - Evidence is QEMU 8.2.2/TCG only. There is no physical NIC, and QEMU has no
@@ -1328,6 +2043,121 @@ accepts no criterion.
   samples are undetectable. The edge harvests are covered by host model
   tests and source inspection; no native case drives two or three
   `set_link` changes within one tick.
+
+**Amendment H04-TXDOWN, 27 November 2026: TX completed across a link edge, -27.**
+This is a technical decision of the executing hardware-track lead, of the same
+class as the decision above. The decision values were agreed with the
+network-track lead (N), who answered on 26 November 2026; N reviews this
+amendment, including the code assignment, before it merges. It is **decided,
+not implemented**. Nothing on `main` returns -27, the TXDOWN cases below are
+NOT RUN, and the amendment accepts no criterion. The same scope as the decision
+above applies: kernel features `test-system-net-link*` only, `abi_info` stays
+1.5, and no product API is created. A build without `test-system-net-link`
+must keep its `.text` and `.data` byte-identical.
+
+1. **Trigger, defined on kernel state.** At publication (`0x70` accepted) the
+   kernel records the kernel link-state epoch (`r.link.state`) next to the
+   pending ticket. Without `VIRTIO_NET_F_STATUS` the state is `None`, no epoch
+   is recorded and -27 never occurs. When
+   `broker_tick` later collects the device completion through `poll_tx` and
+   the result is `Ok(length)`, the TX result is -27 `TX_EDGE` if the kernel
+   epoch then differs from the recorded one, and `Ok(length)` otherwise.
+   "Collection" means this `poll_tx` observation, not the caller's `0x71`
+   read: a result fixed before an edge stays as it was. `link::poll` runs
+   before `poll_tx` in the same tick, so a completion first seen in the tick
+   of an edge is classified -27. The synthetic down/up pair produced by a
+   generation-only change (decision 3) is an edge and also gives -27.
+2. **Meaning.** -27 says only that the kernel observed at least one link edge
+   between publication and collection. The device did complete the descriptor,
+   but the frame may or may not have left it: QEMU completes dropped TX with
+   `used.len` 0, the same as a sent frame. Publication requires a usable link,
+   so any later epoch change includes a down edge. The descriptor and bounce
+   page stay device-owned until that completion, as today; no new reclaim or
+   DMA path exists. -27 is the first free value: -23 `LINK_DOWN`,
+   -24 quarantine, -25 the KL2 SUSPEND refusal (H05-T5d-T, PR #597) and -26
+   the post-wake remount proposal (`docs/implementation/VOLUME-POST-WAKE-REMOUNT.md`)
+   are taken or reserved. The check covered `kernel/src`, `sdk/runtime`, `docs`
+   and the diffs of open PRs #590, #593–#596 and #598 at main `bbf4df38`. `sdk/runtime`
+   gets the matching test-profile constant. A -27 result carries no length:
+   it must not be read as a length-0 success.
+   -27 is a completion, not a refusal. `syscall()` exempts it from `denied`
+   as it exempts -8. At collection it increments `tx_completed` and
+   `tx_edge_completed` by one each; the `0x71` read of -27 changes no counter.
+   Without this exemption, N's invariant `denied == 2 + revoke + helper +
+   link_refused` in the `native-net-service` profiles would break at the
+   first -27. A later re-read of the consumed ticket returns -1 and is
+   counted in `denied` as today. End-of-boot assertion:
+   `tx_edge_completed <= tx_completed`.
+3. **Mapping for the network broker** (N's answers of 26 November 2026; the adapter
+   is N's): -23 on `0x70` means NotPublished; -27 on `0x71` means Completed and the
+   adapter increments its "completed across a down edge" counter; `Ok` means
+   Completed. `0x71` never returns -23, and -27 comes only from `0x71`,
+   never from `0x70` or `0x72`. Any other unexpected `0x71` code stays
+   outside this mapping. -27 is never Unknown, because Unknown quarantines and would
+   fire on every link flap. Unknown stays reserved for "no completion
+   within the deadline", which is the stop path in item 4.
+4. **Precedence; deadline unchanged (option A).** -27 applies only to an
+   `Ok(length)` collection. A `poll_tx` error, the TX deadline (-13, then
+   `stop()`), budget exhaustion, a device reset and owner exit keep their
+   existing paths. Each of them terminalizes the pending ticket with the
+   existing stop or offline code, which wins over -27. A deadline that
+   expires while the link is down still stops the broker. No reclaim path
+   while down (option B) is introduced.
+5. **Narrowed revisit trigger.** The bullet above, "any broker or device
+   counter changes during a down window", now excludes exactly one thing.
+   That is the device completion of a TX published before the down edge,
+   which increments `tx_completed` and the new `tx_edge_completed` by one each.
+   The existing RX path also stays allowed. An RX completion polled while the
+   link is down or unknown is dropped as today: `rx_completed` and
+   `rx_dropped` increase by one each, the copy is zeroed, and `post_rx`
+   hands the same pinned page back to the device. That repost advances the RX
+   available index and therefore adds one to `window_delta` at the next up
+   edge. The existing cases expect `window_delta` 0 because QEMU 8.2 delivers
+   no RX while the link is down. An RX completion inside a down window would
+   therefore show as a nonzero `window_delta` rather than be hidden.
+   The existing -23 refusals (decision 2) also stay allowed: each refused
+   `0x70` or `0x72` increases `tx_refused` or `rx_refused` and `denied` by
+   one. Apart from these three paths, a down window allows no TX publication,
+   no RX delivery and no other counter change. Further revisit triggers: a -27 outside
+   `test-system-net-link*`, and a -27 counted in `denied`.
+6. **Epoch leak, recorded residual (G3).** A physical device that holds TX
+   across down and then up could emit an epoch-N frame on the link of epoch N+1,
+   which may be a different network. That frame crosses network N's
+   destination-permission boundary. This amendment does not close the leak
+   and claims no guarantee against it. A broker reset before the up edge is a
+   precondition for accepting physical H04 (OD-HW-*). QEMU cannot show the
+   behaviour. The amendment creates no new grant path: N04 remains the only
+   destination-permission enforcement point.
+7. **Sampling residual, unchanged.** Edges are seen at most once per PIT tick.
+   Exactly 256 configuration-generation changes between two samples are
+   undetectable; such a hidden down/up pair yields `Ok` instead of -27.
+
+**Acceptance (native QEMU, labelled, NOT RUN).** To make the edge precede
+collection, a test-only feature `test-system-net-link-txdown`, which implies
+`test-system-net-link`, holds `poll_tx` for exactly one ticket per boot (the
+first accepted TX). The hold lasts until the kernel epoch has advanced by
+the case's fixed depth (1 or 2) or the TX deadline tick arrives, whichever is
+first. A missed edge therefore ends in the existing -13 stop and fails the
+case; it can never pass by mistake. The TX deadline is `a[3]` = 500 ticks. All values
+are deltas from the snapshot taken just before the `0x70`. In both TXDOWN cases
+the second `0x70` is issued after publication and before the off edge (epoch
+unchanged, link up, `pending` set) and returns -8. After the off edge the
+broker is never both up and still held: the hold ends in the `broker_tick`
+whose `link::poll` applies the final edge, and `poll_tx` collects in that
+same tick. Every case re-reads `t` once after its first result. -8 results
+are not counted in `denied`.
+
+| Case | Profile | Link sequence | Before collection | `0x71(t)` after collection | Then | `tx_submitted` | `tx_completed` | `tx_edge_completed` | `denied` | `tx_refused` | `timeouts` | offline / quarantined / `reset_acks` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| TXDOWN-1 | txdown, depth 1 | up, `0x70`→t, second `0x70`→-8, off | `0x71(t)` → -8 | -27 once, then -1 | `0x70` while down → -23 | +1 | +1 | +1 | +2 | +1 | 0 | 0 / no / 0 |
+| TXDOWN-2 | txdown, depth 2 | up, `0x70`→t, second `0x70`→-8, off, on | `0x71(t)` → -8 | -27 once, then -1 | `0x70` while up → t+1; `0x71(t+1)` → -8 until completed, then 0 | +2 | +2 | +1 | +1 | 0 | 0 | 0 / no / 0 |
+| Control | `test-system-net-link` (no hold) | up, `0x70`→t, completed and collected, then off | `0x71(t)` → -8 until completed | 0 once, then -1 | `0x70` while down → -23 | +1 | +1 | 0 | +2 | +1 | 0 | 0 / no / 0 |
+
+The broker stays online and not quarantined in every row. The pending slot
+is freed only by the device completion: `0x71(t)` returns -8 until then, and
+while the link is up a second `0x70` returns -8. The existing
+`test-system-net-link` and `-storm` cases keep their current expected values,
+because none of them has a TX in flight across an edge.
 
 ## ADR-H03-SND-FIXTURE-20261119 — Kernel-only virtio-snd PCM output fixture for the fixed QEMU 8.2 profile
 
@@ -5188,9 +6018,10 @@ UTF-8 in the existing staging buffer. Labels make abbreviation and location
 clear. Proportional text shares metrics/caret/selection/wrap/hit-test and
 preserves bytes.
 
-The own scalar app-specific RX budget changes from 144→160 KiB after an
-actual 157161-byte linker measurement, following the earlier 128→144 KiB
-change based on 131177 bytes; fixed addresses, five segments, W^X,
+The own scalar app-specific RX budget changes from 160→176 KiB on
+26 November 2026 (project owner's decision) after an actual 164355-byte
+linker measurement of the SUR1 reply-wait version, following 144→160 KiB
+based on 157161 bytes and the earlier 128→144 KiB change based on 131177 bytes; fixed addresses, five segments, W^X,
 R/RW/stack/guard/kernel quotas and capabilities remain the same. See
 `implementation/NATIVE-MATERIAL-LIBRARY.md`.
 The native gate uses complete allocated app images and an independent disk

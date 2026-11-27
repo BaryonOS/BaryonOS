@@ -267,7 +267,8 @@ class WindowRunnerTests(unittest.TestCase):
         activity = re.search(r"let activity = \[(.*?)\];", source, re.DOTALL)
         self.assertIsNotNone(activity)
         offsets = [int(value) for value in re.findall(r"word\(s, COMP, (\d+)\)", activity.group(1))]
-        expected = {424, 432, 440, 448, 456, 496, 504, 512, 520, 528}
+        # 464/480: frames completed on RETAIN must also produce a sample (#545).
+        expected = {424, 432, 440, 448, 456, 464, 480, 496, 504, 512, 520, 528}
         self.assertEqual(set(offsets), expected)
         self.assertEqual(len(offsets), len(expected))
 

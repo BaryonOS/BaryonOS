@@ -1,7 +1,7 @@
 //! Register/protocol host models only. No adapter accesses physical TPM/MMIO;
 //! fabricated protocol test data never counts as a native rollback anchor.
 use nieuw_os_tpm_crb::{
-    codec::{self, NvIndex, Password, Request, Response, Startup},
+    codec::{self, NvIndex, Password, PolicySession, Request, Response, Startup},
     transport::{
         self as crb, Effect, Failure, Fault, Io, IoError, Phase, Poll, Register, Ticket, Transport,
         BASE, BUFFER_SIZE,
@@ -394,6 +394,38 @@ fn exact_completion_and_release_ack_are_required_before_detach() {
         .any(|a| matches!(a, Access::Write(Register::Start, 0))));
 }
 #[test]
+fn secret_read_is_refused_before_any_register_or_buffer_access() {
+    let (mut t, s) = model();
+    ready(&mut t);
+    let before = s.borrow().trace.len();
+    let mut b = [0; 128];
+    let secret = codec::encode(
+        Request::NvReadSecret {
+            index: NvIndex::new(0x0100_B304).unwrap(),
+            session: PolicySession::new(0x0300_0000, 32).unwrap(),
+        },
+        &mut b,
+    )
+    .unwrap();
+    assert_eq!(
+        t.execute(&secret, 3, 20, 5).unwrap_err(),
+        Failure {
+            fault: Fault::Input,
+            effect: Effect::NotStarted
+        }
+    );
+    assert_eq!(
+        s.borrow().trace.len(),
+        before,
+        "no register or buffer access"
+    );
+    assert_eq!(t.phase(), Phase::Ready);
+    s.borrow_mut().auto_response = Some(empty());
+    let mut out = [0; 128];
+    let id = t.execute(&startup(&mut out), 3, 20, 5).unwrap();
+    assert_eq!(t.poll(id, 4), Ok(Poll::Complete(Response::Empty)));
+}
+#[test]
 fn instant_completion_does_not_require_observing_busy() {
     let (mut t, s) = model();
     ready(&mut t);
@@ -464,7 +496,7 @@ fn timeout_cancel_never_replays_or_wipes_while_tpm_owns_buffer() {
     ready(&mut t);
     let mut b = [0; 128];
     let index = NvIndex::new(0x1000042).unwrap();
-    let auth = Password::new(&[0x55; 32]).unwrap();
+    let auth = codec::Auth::Password(Password::new(&[0x55; 32]).unwrap());
     let c = codec::encode(Request::NvIncrement { index, auth }, &mut b).unwrap();
     let id = t.execute(&c, 3, 10, 5).unwrap();
     let writes = s.borrow().buffer_writes();
@@ -841,7 +873,7 @@ fn nv_increment_success_requires_empty_session_parameters() {
         let command = codec::encode(
             Request::NvIncrement {
                 index: NvIndex::new(0x1000042).unwrap(),
-                auth: Password::new(&[0x55; 32]).unwrap(),
+                auth: codec::Auth::Password(Password::new(&[0x55; 32]).unwrap()),
             },
             &mut b,
         )

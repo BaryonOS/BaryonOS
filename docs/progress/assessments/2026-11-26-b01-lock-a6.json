@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "8de733668076d2b3f2c3f61a80d323c8e0d9d132",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b01-lock-l1-20261126",
+  "task": "B01-LOCK owner decisions on #573: F1 only after the stack and buffer erasure, an app KEY1 call refused after LOCK, erased() for the SUSPEND gate",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. LOCKED now latches only after the exit-path scrub of the whole service stack read back zero, and the pure erased() predicate adds the scrub counters and a quiet entropy broker; the noscrub control shows no LOCKED marker. In the TEST lock profile the system app sends an UNSEAL_RECORD after LOCK and gets send -10 (revoked) and receive -8 (no reply). Evidence is local native QEMU/TCG on 174e78c1 (docs/verification/b01-lock-a6-20261126); hosted CI does not run the LOCK cases. B01 stays open: SUSPEND does not yet call erased(), UNLOCK is blocked on O2, O5 and O8, no ring-3 program issues 0x92, no physical S3 and no human audit."
+}

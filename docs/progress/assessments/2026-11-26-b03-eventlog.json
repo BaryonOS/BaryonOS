@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "477674bf5013e9da968d0dcfd930f09041a27a4d",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1-HAUTH: check the PCR 13 CLOSED entry in the firmware TCG2 event log (tpm-crb event_log parser, loader closed_event, run_tpm closed_events) (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. At source 42e48d3c the TEST loader reads the crypto-agile firmware event log on the pass path and a bounded safe parser requires that its last entry is exactly the loader's PCR 13 EV_IPL CLOSED event with one H(CLOSED) digest per active bank and that no earlier entry names PCR 13; on OVMF 2025.11 with four banks all seventeen run_tpm cases pass, only the loader-hauth pass boots gain the five event log lines and every other output is unchanged (docs/verification/b03-rel05-hauth-eventlog-20261126). TEST-only on swtpm 0.10.1: no halt-path log, SHA-1-format log or final events table, no hosted OVMF or swtpm 0.7.3, no fault injection, S3b, genesis, ACCEPTED, UEFI copy, hosted CI, hardware or human audit; no criterion accepted."
+}

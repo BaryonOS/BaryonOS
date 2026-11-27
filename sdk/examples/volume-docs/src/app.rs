@@ -105,6 +105,11 @@ const ARCHIVE_LATCH: u64 = 31;
 /// kernel adds three handles (words 576, 584, 592). No injected fault.
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_LATCH_0X44: u64 = 32;
+/// S09 K5 per-disk admission (F1, F2): kernel holds on disk 0 and disk 1,
+/// ordered by kernel gates 3 (disk 0 held), 4 (disk 1 held) and 5 (disk-1
+/// timeout). The portal only reads disk 1; slot 2 drives disk 0.
+#[cfg(feature = "archive-portal")]
+const K5: u64 = 33;
 // S09 phase 3 L2 cases (docs/implementation/S09-L2-NATIVE-EXPORT.md section
 // 4): slot 1 is the backup portal on the device-1 archive disk.
 #[cfg(feature = "l2-portal")]
@@ -1166,10 +1171,9 @@ fn portal(app: &mut App, case: u64) {
     // reference, held for the rest of the portal run on one thread.
     let scratch = unsafe { &mut *(HEAP as *mut [u8; MAX_LENGTH]) };
     let mut disk = NativeDisk { device };
-    // The broker serves one block request at a time across both disks (others
-    // get Busy), so
-    // archive I/O must not overlap service I/O: slot 2 waits for phase 2,
-    // and every case reaches a READY service before its first archive read.
+    // Since K5 the broker serves one block request at a time per disk. These
+    // flows keep their earlier order (slot 2 waits for phase 2, and a READY
+    // service precedes the first archive read); the K5 case overlaps disks.
     app.phase(1);
     match case {
         ARCHIVE_EXPORT => {
@@ -1462,6 +1466,43 @@ fn portal(app: &mut App, case: u64) {
                 949,
             );
             check(disk.write(12, &last).is_ok(), 950);
+        }
+        K5 => {
+            use nieuw_os_sdk_runtime::Error::Kernel;
+            check(app.list(0, 960).1 == 0, 961);
+            // F1: slot 2's next document WRITE on disk 0 is held published;
+            // this disk-1 READ is admitted and completes meanwhile.
+            app.phase(2);
+            app.wait_gate(3);
+            let mut first = [0; 128];
+            let ticket = native::block_read(device, 1, 0, 128).unwrap_or_else(|_| fail(962));
+            check(
+                native::block_wait(device, ticket, &mut first, disk::POLL_LIMIT).is_ok(),
+                963,
+            );
+            check(first != [0; 128], 964);
+            // F2: this READ is held until its deadline, which ends it (-13).
+            let ticket = native::block_read(device, 1, 0, 128).unwrap_or_else(|_| fail(965));
+            app.wait_gate(5);
+            let mut ended = [0; 128];
+            check(
+                native::block_wait(device, ticket, &mut ended, disk::POLL_LIMIT)
+                    == Err(Kernel(-13)),
+                966,
+            );
+            // Until the reset is acknowledged no disk-1 request is admitted.
+            check(
+                native::block_read(device, 1, 0, 128) == Err(Kernel(-8)),
+                967,
+            );
+            let ticket =
+                submit(|| native::block_read(device, 1, 0, 128)).unwrap_or_else(|_| fail(968));
+            let mut again = [0; 128];
+            check(
+                native::block_wait(device, ticket, &mut again, disk::POLL_LIMIT).is_ok(),
+                969,
+            );
+            check(again == first, 970);
         }
         _ => fail(769),
     }
@@ -1778,9 +1819,17 @@ fn run() {
         #[cfg(feature = "archive-portal")]
         ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
         | ARCHIVE_USTAR | ARCHIVE_ABSENT | ARCHIVE_CUT | ARCHIVE_LATCH | ARCHIVE_LATCH_0X44
-            if domain == 0 =>
-        {
-            portal(&mut app, case)
+        | K5 if domain == 0 => portal(&mut app, case),
+        // K5: slot 2 drives disk 0 while the portal's disk-1 READs are held
+        // (F1: this first WRITE is held itself; F2: progress during the hold).
+        #[cfg(feature = "archive-portal")]
+        K5 => {
+            app.phase(1);
+            app.wait_gate(2);
+            app.write(0, 0, b"K5a", 1, 975);
+            app.wait_gate(4);
+            app.write(1, 0, b"K5b", 1, 980);
+            app.report(760)
         }
         // The ordinary app holds no archive authority; it reports its domain
         // only after the portal finished its archive I/O (kernel gate 2).

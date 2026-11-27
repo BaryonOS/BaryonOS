@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "299e5928e2dbf2ebf73fe781dd4fdf871f9519a1",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1-HAUTH: owner-approved hierarchy-auth protection of the anchor (codecs, constants, swtpm probe, host model, ADR amendment) (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Codecs with golden bytes, S2 constants, a swtpm 0.10.1 feasibility probe and host-model tests only; no loader TPM path and no native S5 evidence, the boot-path revival remains open until B04, 5A stays in force, no criterion accepted."
+}

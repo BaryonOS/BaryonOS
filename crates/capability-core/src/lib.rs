@@ -2163,6 +2163,22 @@ impl Engine {
         s
     }
 
+    /// B01-LOCK precondition (ADR-KEYRING-LOCK-20261126): messages `pid` sent
+    /// that are still queued in any live endpoint, wherever the SEND came from
+    /// (manifest grant or transferred capability). Read-only.
+    pub fn queued_from(&self, pid: u64) -> usize {
+        self.endpoints
+            .iter()
+            .filter(|endpoint| endpoint.live)
+            .flat_map(|endpoint| {
+                (0..usize::from(endpoint.len)).map(move |i| {
+                    &endpoint.queue[(usize::from(endpoint.head) + i) % QUEUE_CAPACITY]
+                })
+            })
+            .filter(|queued| queued.message.sender_pid == pid)
+            .count()
+    }
+
     /// Return a non-mutating per-process usage snapshot for resources owned by
     /// or held in that process. Queued IPC is charged to its receiving
     /// endpoint owner; capability nodes are attributed to their issuer.
@@ -3791,5 +3807,68 @@ mod digest_differential {
                 );
             }
         });
+    }
+}
+
+/// B01-LOCK: `queued_from` counts only live queued messages of that sender,
+/// across endpoints and the ring wrap, and drops to zero once they are received.
+#[cfg(test)]
+mod queued_from_tests {
+    extern crate std;
+    use super::*;
+
+    #[test]
+    fn counts_sender_messages_until_received() {
+        std::thread::Builder::new()
+            .stack_size(16 * 1024 * 1024)
+            .spawn(|| {
+                let mut e = Engine::new();
+                for pid in [1, 2, 3] {
+                    e.register(pid).unwrap();
+                }
+                let channel = |e: &mut Engine, owner: u64, sender: u64| {
+                    let root = e.create_endpoint(owner).unwrap();
+                    let receive = e.derive(owner, root, RECV).unwrap();
+                    let send = e.bootstrap_delegate(owner, root, sender, SEND).unwrap();
+                    e.close(owner, root).unwrap();
+                    (receive, send)
+                };
+                // 1 receives from 2 and from 3; 3 receives from 2.
+                let (one_from_two, two_to_one) = channel(&mut e, 1, 2);
+                let (one_from_three, three_to_one) = channel(&mut e, 1, 3);
+                let (three_from_two, two_to_three) = channel(&mut e, 3, 2);
+                let message = Message::new();
+                assert_eq!(e.queued_from(2), 0);
+                // Wrap the ring: fill, drain one, refill one.
+                for _ in 0..QUEUE_CAPACITY {
+                    e.send(2, two_to_one, &message).unwrap();
+                }
+                e.receive(1, one_from_two).unwrap();
+                e.send(2, two_to_one, &message).unwrap();
+                e.send(2, two_to_three, &message).unwrap();
+                e.send(3, three_to_one, &message).unwrap();
+                assert_eq!(e.queued_from(2), QUEUE_CAPACITY + 1);
+                assert_eq!(e.queued_from(3), 1);
+                assert_eq!(e.queued_from(1), 0);
+                // A sender field set by the caller is refused; the engine stamps it.
+                let mut forged = Message::new();
+                forged.sender_pid = 2;
+                assert_eq!(e.send(3, three_to_one, &forged), Err(Error::Invalid));
+                assert_eq!(
+                    (e.queued_from(2), e.queued_from(3)),
+                    (QUEUE_CAPACITY + 1, 1)
+                );
+                for _ in 0..QUEUE_CAPACITY {
+                    e.receive(1, one_from_two).unwrap();
+                }
+                e.receive(3, three_from_two).unwrap();
+                assert_eq!(e.queued_from(2), 0);
+                e.receive(1, one_from_three).unwrap();
+                assert_eq!(e.queued_from(3), 0);
+                assert!(e.check_invariants());
+            })
+            .unwrap()
+            .join()
+            .unwrap();
     }
 }

@@ -58,7 +58,7 @@ FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
                "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify",
                "install", "install-recover", "install-cut",
                "l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut",
-               "o13-latch", "o13-latch-0x44")}}
+               "o13-latch", "o13-latch-0x44", "k5")}}
 CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN",
               "archive-disk-cut": "VOLUME:CUT:ARCHIVE", "install-cut": "VOLUME:CUT:INSTALL",
               "l2-restore-cut": "VOLUME:CUT:L2_RESTORE"}
@@ -72,12 +72,12 @@ CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER
                "archive-disk-verify": "ARCHIVE_DISK_VERIFY", "install": "INSTALL",
                "install-recover": "INSTALL_RECOVER", "l2-export": "L2_EXPORT", "l2-restore": "L2_RESTORE",
                "l2-corrupt": "L2_CORRUPT", "l2-used": "L2_USED", "recover-l2-cut": "RECOVER_L2_CUT",
-               "o13-latch": "O13_LATCH", "o13-latch-0x44": "O13_LATCH_0X44"}
+               "o13-latch": "O13_LATCH", "o13-latch-0x44": "O13_LATCH_0X44", "k5": "K5"}
 READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign", "install-recover", "l2-used", "recover-l2-cut")
 # Cases that always start from a fresh image; every other case needs the image
 # its allowed parent left.
 FRESH = ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign", "install", "install-cut",
-         "o13-latch", "o13-latch-0x44")
+         "o13-latch", "o13-latch-0x44", "k5")
 ALLOWED_PARENTS = frozenset({
     ("recover", "normal"), ("recover-cut", "cut-data"),
     ("recover-cut", "cut-table"), ("recover-cut", "cut-txn"),
@@ -130,7 +130,7 @@ L2_SOURCE_LOSS = ("l2-restore", "l2-corrupt", "l2-restore-cut")
 DISK_CASES = ("archive-disk-export", "archive-disk-restore", "archive-disk-absent", "archive-disk-small",
               "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify", *L2_CASES)
 DISK1_READ_ONLY = ("archive-disk-restore", "archive-disk-wrong", "archive-disk-verify",
-                   "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")
+                   "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut", "k5")
 DISK1_SECTORS, SMALL_DISK_SECTORS = 2048, FULL_SECTORS + 8
 assert ARCHIVE_SECTORS < DISK1_SECTORS and 8 <= FULL_SECTORS < SMALL_DISK_SECTORS
 DISK1_SPAN = slice(0, ARCHIVE_SECTORS * SECTOR)
@@ -198,7 +198,7 @@ L2_WORDS = ("RESTORED", "COLLECTIONS", "COMMITTED", "SKIPPED", "PROVENANCE_MISMA
 L2_CUT_COMMITS = 6
 # Sectors of that torn copy the kernel lets land before it stops the guest.
 L2_CUT_TORN = 4
-# S09 O13 N38 slice 1 (cases a, b, c, e; not a PLAN stage yet): a fresh disk 0
+# S09 O13 N38 slice 1 (cases a, b, c, e; M6e PLAN stage o13-latch): a fresh disk 0
 # and a fresh canary disk 1 whose whole portal scope is one kernel latch entry.
 # Sector bytes of the portal flow (ARCHIVE_LATCH in sdk/examples/volume-docs/src/app.rs):
 # sector 1 WRITE Ok (a); sector 2 WRITE with the injected device error (b); the
@@ -219,13 +219,34 @@ LATCH_EVIDENCE = {
     "VOLUME:BROKER:ARCHIVE_DISK_READS:": 1, "VOLUME:BROKER:ARCHIVE_DISK_FLUSHES:": 1,
     "VOLUME:ARCHIVE:DEVICE:": 1, "VOLUME:ARCHIVE:DISK_FOUND:": 1, "VOLUME:ARCHIVE:DISK_OFFLINE:": 0,
 }
-# S09 O13 N38 slice 2, case (f) (not a PLAN stage): syscall 0x44 on the
+# S09 O13 N38 slice 2, case (f) (M6e PLAN stage o13-latch-0x44): syscall 0x44 on the
 # test-scripted disk-1 entries [0, 10) and [10, 20), no injected fault. The
 # portal's archive handle is [0, 15); the kernel adds READ|WRITE handles on
 # [15, 25) and [25, 35) and a READ-only node of [0, 15) (ARCHIVE_LATCH_0X44).
 # The kernel prints one line per 0x44 call (scope and WRITE right as the
 # engine sees them, raw return, latch mask after it; bit i = entry i) and per
 # disk-1 WRITE; the whole sequence must match exactly, in this order.
+# S09 K5 per-disk admission (M6e PLAN stage k5): a fresh disk 0 and a fresh,
+# read-only canary disk 1 that the portal only reads (K5 in
+# sdk/examples/volume-docs/src/app.rs). F1: a disk-1 READ is admitted and
+# completes while the kernel holds slot 2's disk-0 WRITE published. F2: the
+# next disk-1 READ is held until its TIMEOUT; disk 0 completes requests during
+# that hold, and the kernel postpones reading the reset acknowledgement until
+# one disk-1 submission was refused (-8) with the -13 delivered and the reset
+# running. Exact values; the "at least one" labels follow K5_AT_LEAST.
+K5_EVIDENCE = {
+    "VOLUME:ADMISSION:ARCHIVE_COMPLETED_DURING_VOLUME_IO:": 1,
+    "VOLUME:ADMISSION:REFUSED_IN_RESET:": 1, "VOLUME:ADMISSION:ADMITTED_IN_RESET:": 0,
+    "VOLUME:ADMISSION:TIMEOUTS:": 1, "VOLUME:ADMISSION:QUARANTINED:": 0,
+    # F1, the held F2 READ and the READ after the acknowledged reset.
+    "VOLUME:BROKER:ARCHIVE_DISK_READS:": 3, "VOLUME:BROKER:ARCHIVE_DISK_WRITES:": 0,
+    "VOLUME:BROKER:ARCHIVE_DISK_FLUSHES:": 0, "VOLUME:ARCHIVE:READS:": 3, "VOLUME:ARCHIVE:WRITES:": 0,
+    "VOLUME:ARCHIVE:DEVICE:": 1, "VOLUME:ARCHIVE:DISK_FOUND:": 1, "VOLUME:ARCHIVE:DISK_OFFLINE:": 0,
+}
+# Ticks from a reset's start to its deadline (RESET_TIMEOUT in kernel/src/m2/m3/volume.rs).
+RESET_TIMEOUT = 10
+K5_AT_LEAST = ("VOLUME:ADMISSION:ARCHIVE_ADMITTED_DURING_VOLUME_IO:",
+               "VOLUME:ADMISSION:VOLUME_COMPLETED_DURING_ARCHIVE_HOLD:", "VOLUME:ADMISSION:RESET_MARGIN:")
 LATCH_LAST = b"\x3c" * SECTOR
 LATCH44_EVENTS = (
     ("f3 no entry", "VOLUME:LATCH_CALL:DEVICE=1:FIRST=25:COUNT=10:WRITE=1:RET=-5:MASK=0"),
@@ -392,7 +413,7 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         (volume_dir / "volume.img").write_bytes(fresh)
         info = dict(info, variant=case, sha256=hashlib.sha256(fresh).hexdigest())
         (volume_dir / "volume.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
-    elif case in ("o13-latch", "o13-latch-0x44"):
+    elif case in ("o13-latch", "o13-latch-0x44", "k5"):
         # Disk 0 is the fresh image above; disk 1 a fresh disk of canaries.
         disk1 = disk1_image(DISK1_SECTORS)
         (volume_dir / "archive.img").write_bytes(disk1)
@@ -500,6 +521,9 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         elif case == "o13-latch-0x44":
             oracle = check_latch_0x44(out, evidence, disk1, archive_image.read_bytes())
             oracle["volume"] = volume_disk.analyse(image.read_bytes())
+        elif case == "k5":
+            oracle = check_k5(evidence, disk1, archive_image.read_bytes())
+            oracle["volume"] = volume_disk.analyse(image.read_bytes())
         elif case.startswith("archive-"):
             oracle = check_archive(case, before_bytes, image.read_bytes(), evidence, archive_reference)
         else:
@@ -586,6 +610,23 @@ def check_latch_0x44(stdout: str, evidence: dict[str, int], disk1_before: bytes,
     if changed != [3, 12] or LATCH_REFUSED in disk1_after:
         raise ValueError(f"device 1 changed outside the admitted WRITEs: sectors {changed[:8]}")
     return {"events": expected, "latch": {label: evidence[label] for label in LATCH44_EVIDENCE}}
+
+
+def check_k5(evidence: dict[str, int], disk1_before: bytes, disk1_after: bytes) -> dict:
+    """K5 oracle (S09 per-disk admission, F1 and F2): every K5_EVIDENCE value
+    exactly, every K5_AT_LEAST value at least 1, the reset margin inside the
+    reset deadline, and device 1 byte-identical to its canaries."""
+    for label, value in K5_EVIDENCE.items():
+        if evidence.get(label) != value:
+            raise ValueError(f"{label} is {evidence.get(label)}, expected {value}")
+    for label in K5_AT_LEAST:
+        if evidence.get(label, 0) < 1:
+            raise ValueError(f"{label} is {evidence.get(label)}, expected at least 1")
+    if evidence["VOLUME:ADMISSION:RESET_MARGIN:"] > RESET_TIMEOUT:
+        raise ValueError("the reset margin exceeds the reset deadline")
+    if disk1_after != disk1_before:
+        raise ValueError("device 1 changed although the portal only reads it")
+    return {"k5": {label: evidence[label] for label in (*K5_EVIDENCE, *K5_AT_LEAST)}}
 
 
 def outside_archive(image: bytes) -> bytes:

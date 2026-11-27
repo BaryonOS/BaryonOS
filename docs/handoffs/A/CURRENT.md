@@ -1,98 +1,200 @@
 # Workstream A handoff (Applications, SDK, Installation and Ecosystem)
 
-Owner session: BaryonOS - Specialist A (`local_163a86f0-2d5c-421d-a9dc-10cda1c5a245`).
-Coordination: BaryonOS - PR Bewaker. Merge mandate: recorded on main in
-ADR-SPECIALIST-TEAM-20261125 clause 2 (#527, 9cc1b86f), which extends
-ADR-MERGE-DELEGATION-20261123 to A; squash with --match-head-commit after the
-required checks and merge-hold pass. Report the kernel write set to
-the PR Bewaker before committing under `kernel/` (S and H write `volume.rs`).
-Last updated: 2026-11-25 (Europe/Amsterdam).
+Durable, tool-neutral handoff for criteria A01–A04. Any agent can resume from
+this file plus the live HANDOFF comment it links to. It does not depend on chat
+history, private memory or a specific MCP; Graphify is optional context. Local
+paths are optional convenience only.
 
-## Criteria status (from docs/PROGRESS.md at origin/main 5846e1fb)
+- **Live state:** the newest comment beginning with `HANDOFF A` on issue #536.
+  The current one is https://github.com/BaryonOS/BaryonOS/issues/536#issuecomment-7217812075.
+- **Last updated:** 2026-11-27 (UTC), main 9efd5739 (A03-T2c-3 branch).
 
-| Criterion | Status | Ledger tasks |
+## Resume procedure
+
+1. Verify `git fetch`, the branch, HEAD, `git status --short`, any open A PRs
+   and the merge queue. Search widely, because a PR may say `Part of`, `Refs`
+   or only name a criterion: `gh pr list --state open --search "536 in:body"`
+   plus `gh pr list --state open --search "A03 OR A02 OR A04 in:title"`.
+2. Compare them with the live HANDOFF comment. Never redo work that has a
+   landed SHA.
+3. Read the root `AGENTS.md`, the `AGENTS.md` files of the directories you
+   change, `docs/handoffs/A/T2C-SPEC.md` and `docs/FULL-TEST-RELEASE.md`.
+
+## Ownership and write set
+
+- **Owner role:** Specialist A. Coordination goes through the PR guard role;
+  `.github` changes go to the CI owner (#494).
+- **A writes:**
+  - `sdk/examples/task-grant-broker/**`;
+  - the A03 kernel profiles `kernel/src/m2/m3/task_grant.rs` and
+    `kernel/src/m2/m3/task_grant_volume.rs`;
+  - in `kernel/Cargo.toml`, only the task-grant feature lines;
+  - in `kernel/src/m2/m3.rs`, only the task-grant `cfg` lines;
+  - `tools/run_task_grant.py` and `tools/build_task_grant_volume.py`;
+  - the A lines in `tools/build.py` and `tools/run.py`;
+  - `docs/handoffs/A/**`;
+  - A assessment files under `docs/progress/assessments/`.
+- Report the kernel write set on #536 before committing under `kernel/`. S and H
+  own `volume.rs`.
+- **A also writes** its own A01–A04 `delivery_review` rows in
+  `docs/progress.json` and the views `progress.py --write` regenerates (owner
+  decision 27 Nov ~12:50Z, below).
+- **Never edit:** `.github/**`, any `AGENTS.md` or `CLAUDE.md`, other
+  criteria's rows, the `delivery_review` header date and source_commit, scores,
+  `docs/PROJECT-STATE.md` or `docs/DECISIONS.md`.
+
+## Mandates and decisions (with source)
+
+- **Merge delegation:** A squash-merges its own PRs. Sources:
+  ADR-MERGE-DELEGATION-20261123, extended to A by ADR-SPECIALIST-TEAM-20261125
+  clause 2 (#527, 9cc1b86f).
+- **Autonomous merge queue** (project owner, 26 Nov; ADR in #576): A enqueues its
+  own merge-ready PR through GraphQL `enqueuePullRequest` with
+  `expectedHeadOid`, and only when all of the following hold:
+  - mergeStateStatus is CLEAN;
+  - autoMergeRequest is null;
+  - there are 0 unresolved review threads;
+  - no run is in progress or queued on the head.
+- **Merge prohibitions:** never `gh pr merge` on BLOCKED (it silently enables
+  auto-merge); never `--admin`; never auto-merge.
+- **Review scope stop:** a non-blocking review point is answered, resolved and
+  recorded on #536 without a push. Real blockers get one bundled push.
+  Infrastructure failures get one rerun only.
+- **T2c-3 exit notification:** the project owner chose option A
+  (reply-endpoint closure) on 25 Nov 2026 and confirmed it on 27 Nov as final
+  (never re-ask). It is recorded in `docs/handoffs/A/T2C-SPEC.md`. The
+  capability-core pin landed as #579 (95553a22). The product path is built with
+  K on the existing capability lifecycle; no general kernel event channel.
+- **Own progress rows** (owner, 27 Nov ~12:50Z, via the PR guard; #536
+  issuecomment-7218586123): A keeps its own `delivery_review` implementation
+  and verification rows current without per-update permission. Conditions:
+  current source-bound evidence, rubric and weights unchanged, header date and
+  source_commit unchanged (date and sha go in the row text), `progress.py
+  --write` then `--check`, a D3 assessment. Evidence paths render at the header
+  commit, so link files that are newer as blob URLs pinned to a commit.
+- **Criterion acceptance** (owner, clarified 27 Nov 13:14Z, guard log): A
+  delivers the evidence. When all acceptance conditions and the required
+  independent verification are met, A reports the criterion ID and evidence
+  links to the PR guard. The guard does the formal acceptance and the score
+  change. A never changes a score.
+- **A02–A04 decisions** (owner, 27 Nov ~13:30Z; #536
+  issuecomment-7219526385). These are binding; do not re-ask.
+  - A02-T2: durable authenticated source registry.
+    - Uses a B-managed freshness-anchor domain on TPM, separate from release,
+      TLS and user keys.
+    - A bounded add, rotate and revoke capability.
+    - Transactional, fail closed.
+    - Revoking a source blocks only new installs and updates.
+  - A02-T3: GO with K and B. Uses a one-shot `AuthorizedImage` capability.
+  - A03: build with K; coordinate the trusted dialog with U.
+  - A04-T2: BR0 comparison of Chromium and Gecko. Chromium by default; the
+    final choice is A's, in consultation with B, N and G.
+
+## Per-PR progress duties (owner, 27 Nov)
+
+Every A PR carries its own:
+- labels, milestone and Project #5 fields (Status, Subsystem, Work Type), plus
+  the final status;
+- `Part of #N` or `Refs #N`;
+- a D3 assessment in `docs/progress/assessments/<date>-<slug>.json`, also for
+  docs and handoff PRs;
+- source-bound evidence;
+- an update of this file.
+
+The PR body names the functionality and acceptance criteria it touches, and the
+evidence that carries any progress claim. The score rises only for a fully
+accepted criterion; a merge is not acceptance. A missing assessment is repaired
+in the next own PR.
+
+## Criteria status
+
+| Criterion | Status | Ledger |
 |---|---|---|
 | A01 SDK and API | accepted | — |
-| A02 install/update | open | A02-T1 verified (host); A02-T2 blocked (owner: source backend/anchor/actor, APP-SOURCE-RECOVERY.md §6/§8); A02-T3 blocked (kernel dynamic launch ADR, B02 store) |
-| A03 permissions | open | A03-T1 verified (host task-grant-core); A03-T2 blocked on trusted dialog (U) — native broker half is A-executable |
-| A04 everyday apps | open | A04-T2 blocked (owner engine decision; N02–N04); A04-T3 blocked (H03 audio, S09, P01) |
+| A02 install/update | open | A02-T1 verified (host); A02-T2 unblocked (owner 27 Nov; needs B freshness-anchor interface); A02-T3 GO with K and B (owner 27 Nov) |
+| A03 permissions | open | T1 host core verified; T2a #531 aa6d1c70; T2b #535 a004e3dc; T2c-1 #583 28e7ee1a; T2c-3 pin #579 95553a22; T2c-2 #593 7ee91d92; T2c-3 exit/fault retirement (this branch); trusted dialog (U) still missing |
+| A04 everyday apps | open | A04-T2 BR0 Chromium/Gecko comparison GO (owner 27 Nov); A04-T3 blocked (H03 audio, S09, P01) |
 
-## Active subtask: A03-T2a native task-grant broker gate
+Score: 43/100, unchanged by A since 25 Nov. Assessments
+`2026-11-25-a03-volume-read-broker-host.json`,
+`2026-11-26-a03-volume-native.json` and
+`2026-11-27-a03-t2c3-exit-closure.json`.
 
-Goal: first native QEMU evidence that helpers cannot bypass task grants.
-A ring-3 broker authorises each request by the kernel-supplied IPC sender PID
-through `sdk/task-grant-core`; app-supplied identity, object numbers and handles
-never authenticate. The trusted permission decision is a labelled kernel
-bootstrap fixture standing in for the U-owned trusted dialog.
+## A03-T2c-2 summary (landed as #593, 7ee91d92)
 
-Acceptance: `python3 -B tools/build.py --kernel-feature native-task-grant` and
-`python3 -B tools/run_task_grant.py --case normal` (and `test-task-grant-denied` /
-`--case denied`) reach the TASKGRANT markers with raw QEMU exit 33; the
-`native-sdk-app` gate still passes; SDK/kernel test, Clippy and fmt pass.
+The native broker is the sole client of a read-only volume domain 0
+(`native-task-grant-volume`, `test-task-grant-volume-denied`). Both modes take
+the boot epoch from startup word 32. The hosted gate is
+`nas-core.yml#task-grant-volume`, added by CI as 2529d6bc.
 
-Write set: `sdk/examples/task-grant-broker/**`, `kernel/src/m2/m3/task_grant.rs`
-plus the feature/dispatch lines, `tools/build.py` (one branch),
-`tools/run_task_grant.py`, `.github/workflows/ci.yml` (one job; coordinate with
-the CI session), CI pin tests if required.
+Acceptance commands (sequential, one checkout, raw QEMU exit 33 each):
 
-Evidence limit: no trusted dialog, no Materiaal volume enforcement, no full A03
-acceptance.
+```
+python3 -B tools/build.py --kernel-feature native-task-grant-volume && python3 -B tools/run_task_grant.py --case volume
+python3 -B tools/build.py --kernel-feature test-task-grant-volume-denied && python3 -B tools/run_task_grant.py --case volume-denied
+python3 -B tools/build.py --kernel-feature native-task-grant && python3 -B tools/run_task_grant.py --case normal
+python3 -B tools/build.py --kernel-feature test-task-grant-denied && python3 -B tools/run_task_grant.py --case denied
+python3 -B tools/build.py --kernel-feature native-sdk-app && python3 -B tools/run_sdk_app.py --case normal
+python3 -B -u tools/test_nas.py
+```
 
-## Branch and PR
+Evidence (recorded on #593):
 
-- Worktree: `~/projects/BaryonOS-worktrees/a-track`
-- Branch: `claude/a-track-20261125`
-- PR: #531 (draft), tracking issue #536; stacked #535 (A03-T2b). The A merge
-  mandate is recorded on main in ADR-SPECIALIST-TEAM-20261125 clause 2 (#527,
-  9cc1b86f): squash with --match-head-commit after the checks and merge-hold pass.
-- L #538 (native-ai-job) has hunks adjacent to #531 in kernel/Cargo.toml and
-  tools/build.py; whichever PR merges second keeps both sets of lines.
-- Verified on head rebased onto 3b9a94c5: native-task-grant normal and
-  test-task-grant-denied QEMU raw 33 accepted; native-sdk-app normal still
-  accepted; broker host tests 7/7; progress.py --check exit 0.
-- Toolchain is 1.100.0 per rust-toolchain.toml (root AGENTS.md text still says 1.90.0).
+- At head 5b2c7e3a: every case raw 33; disk reads 544 → 548 (volume) and
+  544 → 544 (volume-denied); NAS gate 6/6; the seeded image is byte-identical
+  before and after.
+- Hosted: 75 checks pass.
+- Mutations (skip authorise, skip retire, touch volume then deny, uncounted
+  calls) failed with raw 35 on 1af1a516.
 
-## Coordination notes
+Evidence limits:
 
-- PR guard 25 Nov: m3.rs dispatch lines (~93/~1025/~1384/~1874/~1977) do not
-  overlap S N38 (fn event ~2320–2340); no need to wait for N38. Rebase on main
-  before opening the PR (shared Cargo.toml/build.py blocks with #515, S N38,
-  H05-T5c) and report final line ranges in the PR.
-- #519 merged as 3b9a94c5: rebase a-track onto it before committing. D3 policy:
-  an unchanged score gets a new `docs/progress/assessments/<YYYY-MM-DD>-<slug>.json`
-  instead of editing the docs/progress.json header; a register change still
-  needs `progress.py --write` plus the views.
+- Kernel epoch 1 equals the host constant `EPOCH`, so the word-32 change cannot
+  be told apart natively.
+- UNKNOWN_OBJECT_DENIED covers an absent object only.
+- The Stale path is tested on the host only.
+- The dialog and the exit notice are labelled fixtures.
+- Only QEMU x86_64 was tested; there is no hardware evidence or human audit.
 
-- CI D2 review of #531 ci.yml at 3075c1b3: no blocking findings; CI confirmed
-  it still holds for later heads with no `.github` delta. Conditions:
-  hosted qemu-smoke, host-quality and merge-hold pass on the head; any new head
-  needs a ci.yml-only delta check by CI before merge.
-- A03-T2b (grant retirement on process exit) is implemented in
-  `~/projects/BaryonOS-worktrees/a-track-t2b`, branch
-  `claude/a03-t2b-retire-20261125`, as a stacked draft PR on #531. The exit notice is a
-  kernel-written word in the broker's private page (labelled fixture, as nas.rs).
-  Native normal/denied pass; a mutation that skips retirement fails the gate. Retarget it to main after
-  #531 merges.
+## A03-T2c-3 summary (owner option A, reply-endpoint closure)
 
-## Merge-lane status (25 Nov ~17:05Z)
+- **Exit detection.** The broker no longer reads a kernel-written exit notice.
+  - It probes each client-owned reply endpoint with `ipc_wait`: a SEND
+    condition at deadline 0, which delivers and reserves nothing.
+  - It retires all of a client's grants on Revoked (-10) or Closed (-9)
+    (`client_gone`).
+  - A reply SEND failing with those codes retires the same way.
+  - Any other error is a broker fault.
+- **Fault case.** `test-task-grant-fault` ends the owner with a ring-3 #UD.
+- **Gate checks.**
+  - The broker retired nothing before the owner's end (word 152 is 0 at that
+    point).
+  - The probe saw -10 for the owner PID (words 448 and 456).
+  - At least one probe saw the still-live helper (word 464), so the live
+    branch runs natively; the broker sleeps one PIT tick between rounds (K).
+  - No reply-send retirement occurred (word 440 is 0).
+- **Profiles.** `native-task-grant` gains `ipc-wait`. Both task-grant profiles
+  are `milestone-m4` without `native-smp-m3-ipc`, so `retire_authority` always
+  runs `m4::process_exit`.
+- **Evidence limits.**
+  - Detection is polled.
+  - Kill, orphan kill and invalid-RSP share the cleanup path by code reading
+    only.
+  - On SMP kill, grants end at the actual exit, not at the KILL request.
+- **CI.** The hosted gate step for `--case fault` is requested from CI.
 
-- Merge-lane protocol (owner P0, 16:00Z) and temporary CI priority (owner,
-  ~17:00Z) apply: CI optimization PRs (#542) get the lane first; no catch-up
-  pushes outside the lane; infrastructure failures get `gh run rerun --failed`
-  only.
-- #531 at 4a6f8ca2 is fully green on main a571d87c (rollup SUCCESS 16:36Z,
-  after infra reruns of the #421 flake, coverage uploads and merge-hold). CI D2
-  carries over to exactly this head. Lane order: CI PRs (#542, then CI's next)
-  first, then #531. Wait for the PR guard's explicit lane hand-over, do one
-  catch-up merge of main (a new head needs CI's delta confirmation and green
-  checks), then squash with `--match-head-commit` at that head.
-- #535 (draft) stays stacked; it catches up and retargets to main in one push
-  after #531 lands.
+## Open follow-ups (non-blocking)
 
-## Next action
+- The broker's `volume-core` dependency is not gated behind the `native`
+  feature (Graphify note on #583).
 
-Keep #531 and the T2b PR green. Merge #531 with --match-head-commit set to its current head once CI's conditions
-hold, then retarget T2b to main. Next A slice: bind the broker to real
-Materiaal volume objects (per-object READ via the volume service; coordinate the
-volume.rs boundary with S) and replace the exit fixture with a product
-exit-notification path (kernel owner decision).
+## Next safe action
+
+1. Land A03-T2c-3. Then deliver the A03 evidence to the PR guard only after U's
+   trusted dialog replaces the fixture and independent verification is done.
+2. A02-T2 with B: agree the freshness-anchor and rollback-floor interfaces, then
+   specify the source registry against `APP-SOURCE-RECOVERY.md`.
+3. A02-T3 with K and B: draft the `AuthorizedImage` launch ADR.
+4. A04-T2: run the scoped BR0 Chromium/Gecko comparison with B, N and G.
+
+Report any kernel write set on #536 before committing under `kernel/`.

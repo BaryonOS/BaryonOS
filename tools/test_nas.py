@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local NAS normal/cold and interrupt/repair acceptance using real guest IPC and an independent disk oracle."""
+"""Local NAS normal/cold, interrupt/repair and offline/resume acceptance using real guest IPC and an independent disk oracle."""
 from __future__ import annotations
 
 import hashlib
@@ -22,18 +22,22 @@ import volume_disk
 
 sys.path.insert(0, str(ROOT / "services/nas/native-probe"))
 sys.path.insert(0, str(ROOT / "services/nas/native-probe/tests"))
-from disk_oracle import check_image as check_nas_disk, check_interrupted_image
+from disk_oracle import check_image as check_nas_disk, check_interrupted_image, check_resume_image
 import replay_handoff
 
 FEATURES = {"normal": "native-system-nas-probe", "recover": "test-system-nas-recover",
-            "interrupt": "test-system-nas-interrupt", "repair": "test-system-nas-repair"}
+            "interrupt": "test-system-nas-interrupt", "repair": "test-system-nas-repair",
+            "offline": "test-system-nas-offline", "resume": "test-system-nas-resume"}
 # Each non-root stage boots on its passing same-source parent's exact disk.
-PARENTS = {"recover": "normal", "repair": "interrupt"}
+# P04-T1 interrupt/repair and P02-T3 offline/resume use no token handoff.
+NO_HANDOFF = ("interrupt", "repair", "offline", "resume")
+PARENTS = {"recover": "normal", "repair": "interrupt", "resume": "offline"}
 # Expected (ok, error) RPC replies for administrator, NAS and guest. Cold: the
 # exact-token COMMIT replay adds one Stale reply at NAS and guest. Interrupt
 # (P04-T1, LP-25): the NAS dies before answering evict. Repair: no replay.
 COUNTS = {"normal": [(16, 1), (27, 7), (11, 6)], "recover": [(4, 0), (4, 5), (0, 5)],
-          "interrupt": [(2, 0), (6, 2), (4, 2)], "repair": [(4, 0), (4, 3), (0, 3)]}
+          "interrupt": [(2, 0), (6, 2), (4, 2)], "repair": [(4, 0), (4, 3), (0, 3)],
+          "offline": [(3, 0), (8, 2), (5, 2)], "resume": [(3, 0), (15, 2), (12, 2)]}
 # #110 private handoff. Token bytes only ever exist in files inside a private
 # 0700 directory outside the checkout; reports, serial and CI artifacts carry
 # at most their SHA-256 (provenance binding, not a credential).
@@ -168,13 +172,15 @@ def safe_serial_evidence(serial: str) -> str:
         "M1:PASS", "NAS:MANIFEST:PASS", "NAS:REPLAY_EXPORT:PASS",
         "NAS:REPLAY_INPUT:PASS", "NAS:GUEST_OFFLINE:PASS", "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
         "NAS:CASE:NORMAL:PASS", "NAS:CASE:RECOVER:PASS", "NAS:PURGE_INTERRUPTED:PASS",
-        "NAS:CASE:INTERRUPT:PASS", "NAS:CASE:REPAIR:PASS",
+        "NAS:CASE:INTERRUPT:PASS", "NAS:CASE:REPAIR:PASS", "NAS:NAS_OFFLINE:PASS",
+        "NAS:CASE:OFFLINE:PASS", "NAS:CASE:RESUME:PASS",
     }
     failures = {
         "REPLAY_INPUT_ZERO", "REPLAY_INPUT", "REPLAY_INPUT_IN_NORMAL",
         "MANIFEST_ENGINE", "UNEXPECTED_EXIT", "ROLE_RESULT", "DUPLICATE_EXIT",
         "PROCESS_FAULT", "UNEXPECTED_EVENT", "TIMEOUT", "NAS_READY", "OFFLINE_FLAG",
         "INTERRUPT_RESULT", "ADMIN_EXITED", "ADMIN_NOT_WAITING", "REPAIR_STATE",
+        "NAS_EXIT_FLAG",
     }
     number = re.compile(
         r"NAS:(?:ADMIN_PID|GUEST_PID|ROLE_SLOT|RPC_OK|RPC_ERRORS|RIGHTS_DENIED|"
@@ -232,13 +238,16 @@ def evaluate(case, serial, raw_exit, timed_out):
     middle = {"normal": ("NAS:MANIFEST:PASS", "NAS:REPLAY_EXPORT:PASS", "NAS:GUEST_OFFLINE:PASS"),
               "recover": ("NAS:REPLAY_INPUT:PASS", "NAS:MANIFEST:PASS"),
               "interrupt": ("NAS:MANIFEST:PASS", "NAS:PURGE_INTERRUPTED:PASS"),
-              "repair": ("NAS:MANIFEST:PASS",)}[case]
+              "repair": ("NAS:MANIFEST:PASS",),
+              "offline": ("NAS:MANIFEST:PASS", "NAS:NAS_OFFLINE:PASS"),
+              "resume": ("NAS:MANIFEST:PASS",)}[case]
     expected = (*BOOT, *middle, "NAS:BROKERS:PASS", "NAS:CLEANUP:PASS",
                 f"NAS:CASE:{case.upper()}:PASS", "M1:PASS")
     controlled = [line for line in serial.splitlines()
                   if line in BOOT or line == "M1:PASS"
                   or line.startswith(("NAS:MANIFEST:", "NAS:BROKERS:", "NAS:CLEANUP:", "NAS:CASE:",
-                                      "NAS:REPLAY_", "NAS:GUEST_OFFLINE:", "NAS:PURGE_"))]
+                                      "NAS:REPLAY_", "NAS:GUEST_OFFLINE:", "NAS:PURGE_",
+                                      "NAS:NAS_OFFLINE:"))]
     if controlled != list(expected):
         raise ValueError("NAS marker sequence differs")
     numbers = []
@@ -348,7 +357,7 @@ def run_case(case, parent=None, handoff=None):
         "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
     ]
     capture = cold_input = cold_digest = payload = None
-    if case in ("interrupt", "repair"):
+    if case in NO_HANDOFF:
         pass  # No token handoff: neither channel is attached to these VMs.
     elif case == "normal":
         # A new normal run starts a new handoff; nothing from an earlier
@@ -404,12 +413,15 @@ def run_case(case, parent=None, handoff=None):
         if case in ("interrupt", "repair"):
             report["oracle"] = check_interrupted_image(
                 image.read_bytes(), evidence["admin_pid"], evidence["guest_pid"], case)
+        elif case in ("offline", "resume"):
+            report["oracle"] = check_resume_image(
+                image.read_bytes(), evidence["admin_pid"], evidence["guest_pid"], case)
         else:
             report["oracle"] = check_nas_disk(
                 image.read_bytes(), evidence["admin_pid"], evidence["guest_pid"],
                 parent["after_sha256"] if parent else None)
         report["evidence"] = evidence
-        if case in ("interrupt", "repair"):
+        if case in NO_HANDOFF:
             pass
         elif case == "normal":
             report["replay_handoff"] = export_handoff(handoff, capture, captured, report)

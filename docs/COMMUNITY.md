@@ -9,6 +9,7 @@ Use [Discussions](https://github.com/BaryonOS/BaryonOS/discussions) for question
 | Ask a question or get help | [Questions and help](https://github.com/BaryonOS/BaryonOS/discussions/categories/questions-and-help) | Goal, context, and what has already been tried; a useful reply can be marked as the answer |
 | Evaluate a technical choice | [Architecture and design](https://github.com/BaryonOS/BaryonOS/discussions/categories/architecture-and-design) | Current contract, proposal, alternatives, interfaces, and testable consequences |
 | Improve a user task or accessibility | [Product and user experience](https://github.com/BaryonOS/BaryonOS/discussions/categories/product-and-user-experience) | Intended task, observed friction, and recognisable examples |
+| Report a reproducible accessibility barrier | [Issue forms](https://github.com/BaryonOS/BaryonOS/issues/new/choose) | Affected component and revision, environment, steps, expected and observed behaviour, and sanitised evidence; see [ACCESSIBILITY.md](../ACCESSIBILITY.md) |
 | Share an experiment, demo, or test | [Test results and demos](https://github.com/BaryonOS/BaryonOS/discussions/categories/test-results-and-demos) | Exact source revision, setup, observation, evidence, and remaining boundaries |
 | Collect preferences between concrete options | [Polls](https://github.com/BaryonOS/BaryonOS/discussions/categories/polls) | A clear question and comparable options; voting does not replace a technical decision or acceptance evidence |
 | Share project news or an accepted decision | [Announcements](https://github.com/BaryonOS/BaryonOS/discussions/categories/announcements) | Maintainer post with links to the authoritative source |
@@ -41,6 +42,16 @@ Host tests, bare-metal builds, native QEMU tests, physical-hardware tests, and h
 | Provenance and licensing | [LICENSING.md](../LICENSING.md), [THIRD-PARTY.md](../THIRD-PARTY.md), and [DEPENDENCIES.md](DEPENDENCIES.md) |
 
 The repository remains authoritative. Discussions and the wiki should point to these sources rather than duplicate version-bound contracts or evidence reports.
+
+## Conduct and accessibility
+
+Participation is governed by the [Code of Conduct](../CODE_OF_CONDUCT.md).
+Eligible prior contributors and collaborators can report specific disruptive
+GitHub content privately with GitHub's **Report content** action. The Code of
+Conduct provides an email route for everyone else and describes escalation.
+
+The accessibility commitment, current evidence boundaries, known barriers, and
+feedback routes are documented in [ACCESSIBILITY.md](../ACCESSIBILITY.md).
 
 ## Vulnerabilities and sensitive data
 

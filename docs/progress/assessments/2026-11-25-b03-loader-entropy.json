@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "a592e3191ee615c8d8e5e484c28853480e8a91c1",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 S6 step 4: U25 entropy experiment, opt-in virtio-rng for the TPM loader fixture and run_tpm.py loader-rng case with RNG pinned per case (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. One local native run per case (loader-probe, loader-rng, normal, absent; raw exit 33) shows EFI_RNG_PROTOCOL absent without and present with a TEST virtio-rng device on OVMF 2025.11, kernel serial lines unchanged. Hosted OVMF 2024.02 not run; no HAUTH provisioning, no loader record (U26), no S3 (U27); 5A stays in force, no criterion accepted."
+}

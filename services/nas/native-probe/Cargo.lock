@@ -7,6 +7,13 @@ name = "catalog-core"
 version = "0.1.0"
 
 [[package]]
+name = "nieuw-os-nas-client"
+version = "0.1.0"
+dependencies = [
+ "nieuw-os-nas-core",
+]
+
+[[package]]
 name = "nieuw-os-nas-core"
 version = "0.1.0"
 
@@ -14,6 +21,7 @@ version = "0.1.0"
 name = "nieuw-os-nas-probe"
 version = "0.1.0"
 dependencies = [
+ "nieuw-os-nas-client",
  "nieuw-os-nas-core",
  "nieuw-os-nas-volume",
  "nieuw-os-sdk-runtime",

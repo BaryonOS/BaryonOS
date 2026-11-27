@@ -47,19 +47,19 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Current cycle
 
-- cycle_id: `N-20261125-n03-n04-adr`
-- task: record the N03 and N04 owner decisions (ADRs), the N03-T2 host
-  handshake against an OpenSSL peer, and the host-only N04 durable-store
-  freshness model (`services/net-broker/src/durable.rs`)
-- branch: `claude/n03-n04-adr-20261125`; tracking issue #529
-- pull request, tested source SHA, hosted runs: recorded in the pull request
-  description, not in this file
-- evidence: host tests only. `durable.rs` binds a store to the anchor
-  instance (`Foreign` on a mismatch) and models the protected slot with a
-  fake; the three M1 residual cases stay as ignored red tests until the port
-  to B's extend-chain contract. No native evidence; N03 and N04 stay open.
-- previous cycle `N-20261125-open-deadline-tick` (N01 OpenTcp tick fix)
-  merged as `a571d87c` (#518).
+- No N cycle is in flight; there is no open N pull request.
+- Last cycle `N-20261126-n04-extend-chain` (tracking issue #529) landed in
+  two parts: the extend-chain port of the N04 durable-store freshness model
+  (#575, `4ad35157`) and the two-slot crash-consistent store replacement for
+  a torn A1 write (C143, #584, `20d9089f`).
+- Evidence: host tests only. `durable.rs` computes the real SHA-256 extend
+  chain in a fake anchor, reproduces B's golden vectors, passes the M1
+  regression tests against a hostile extend and recovers from a torn slot
+  write. No kernel anchor service or swtpm run exists; N04 stays open and
+  5A remains the product behaviour.
+- Deferred finding from the #584 review: the store assumes a single writer;
+  concurrent commits are out of scope until a native caller exists. The
+  requirement is recorded on #529.
 
 ## Blockers
 
@@ -92,7 +92,9 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Next executable task
 
-After this merge (order: N ADR pull request, then B's #524): port
-`durable.rs` to B's extend-chain contract. Implement `chain_after` locally
-(`sha2 =0.10.9`, force-soft), check B's golden vectors, and turn the three
-ignored M1 tests green against a hostile `extend`, using B's test names.
+1. N04 S5 native verification on swtpm: blocked on B's kernel anchor
+   service. Confirm its status with B before starting.
+2. H04 in-flight TX: review H's amendment to ADR-H04-LINK-20261119 when H
+   opens it. N's recorded answers: Q1 a distinct completion code that maps to
+   `Completed` plus a counter (never -23, never `Unknown`); Q2 option A; Q3 H
+   writes the amendment and N reviews.

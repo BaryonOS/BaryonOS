@@ -453,3 +453,105 @@ fn reset_monotonic_ticks_never_authorize_an_old_offer_in_recovery_probe() {
         &mut entropy,
     );
 }
+
+#[test]
+fn head_requires_exact_fields_and_allows_a_zero_revision_reply() {
+    let mut head = Frame::new(Op::Head, 1);
+    head.session = [7; 40];
+    head.value = 3;
+    let encoded = head.encode(false).unwrap();
+    let decoded = Frame::decode(&encoded, false).unwrap();
+    assert_eq!((decoded.op, decoded.value), (Op::Head, 3));
+    for offset in [24, 96, 136, 152, 255] {
+        let mut invalid = encoded;
+        invalid[offset] = 1;
+        assert!(matches!(
+            Frame::decode(&invalid, false),
+            Err(Error::Invalid)
+        ));
+    }
+    let mut invalid = encoded;
+    invalid[56..96].fill(0);
+    assert!(matches!(
+        Frame::decode(&invalid, false),
+        Err(Error::Invalid)
+    ));
+    let mut unknown = encoded;
+    unknown[6..8].copy_from_slice(&16u16.to_le_bytes());
+    assert!(matches!(
+        Frame::decode(&unknown, false),
+        Err(Error::Invalid)
+    ));
+    let never = Frame::new(Op::Head, 1).encode(true).unwrap();
+    assert_eq!(Frame::decode(&never, true).unwrap().revision, 0);
+    let mut published = Frame::new(Op::Head, 1);
+    published.revision = 9;
+    let reply = published.encode(true).unwrap();
+    assert_eq!(Frame::decode(&reply, true).unwrap().revision, 9);
+    for offset in [24, 56, 96, 144, 152] {
+        let mut invalid = reply;
+        invalid[offset] = 1;
+        assert!(matches!(Frame::decode(&invalid, true), Err(Error::Invalid)));
+    }
+}
+
+#[test]
+fn head_reports_only_committed_revisions_to_the_session_owner() {
+    let mut work = Box::new(Workspace::new());
+    let binding = LocalBinding::new(11, 12).unwrap();
+    let admin = context(&binding, true);
+    let guest = context(&binding, false);
+    let mut entropy = Random(10);
+    let mut service = Service::initialize(
+        Memory::default(),
+        LocalBinding::principal(11),
+        &mut entropy,
+        &mut work,
+    )
+    .unwrap();
+    let mut request = Frame::new(Op::Invite, 1);
+    request.value = 128;
+    let invitation = call(&mut service, &admin, request, None, &mut entropy);
+    let namespace = invitation.namespace;
+    let mut accept = named(Op::Accept, namespace);
+    accept.value = invitation.value;
+    accept.length = 32;
+    accept.data[..32].copy_from_slice(&invitation.data[..32]);
+    call(&mut service, &guest, accept, None, &mut entropy);
+    let session = call(
+        &mut service,
+        &guest,
+        named(Op::Open, namespace),
+        None,
+        &mut entropy,
+    )
+    .session;
+    let head = |object: u64| {
+        let mut head = Frame::new(Op::Head, 1);
+        head.session = session;
+        head.value = object;
+        head
+    };
+    let service_head =
+        |service: &mut Service<'_, Memory>, ctx: &RequestContext<'_>, object, status| {
+            call(service, ctx, head(object), status, &mut Random(0)).revision
+        };
+    assert_eq!(service_head(&mut service, &guest, 0, None), 0);
+    let mut stage = Frame::new(Op::Stage, 1);
+    stage.session = session;
+    stage.length = 8;
+    stage.data[..8].fill(0xa5);
+    let upload = call(&mut service, &guest, stage, None, &mut entropy).upload;
+    assert_eq!(service_head(&mut service, &guest, 0, None), 0);
+    let mut commit = Frame::new(Op::Commit, 1);
+    commit.session = session;
+    commit.upload = upload;
+    assert_eq!(
+        call(&mut service, &guest, commit, None, &mut entropy).revision,
+        1
+    );
+    assert_eq!(service_head(&mut service, &guest, 0, None), 1);
+    assert_eq!(service_head(&mut service, &guest, 1, None), 0);
+    service_head(&mut service, &admin, 0, Some(Error::Stale));
+    service_head(&mut service, &guest, u64::MAX, Some(Error::Invalid));
+}

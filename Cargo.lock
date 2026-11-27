@@ -518,6 +518,7 @@ version = "0.1.0"
 dependencies = [
  "boot-protocol",
  "elf-loader-core",
+ "nieuw-os-tpm-crb",
  "r-efi",
  "update-core",
 ]

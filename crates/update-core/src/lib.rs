@@ -14,6 +14,7 @@ use ml_dsa::{
 };
 use sha2::{Digest, Sha256};
 
+pub mod anchor;
 pub mod policy;
 #[cfg(feature = "experimental-policy-test")]
 pub mod policy_anchor;
@@ -21,6 +22,8 @@ pub mod policy_anchor;
 pub mod policy_envelope;
 #[cfg(feature = "test-signing-anchors")]
 pub mod test_policy;
+pub mod trial;
+pub mod trial_tpm;
 
 pub const SECTOR: usize = 512;
 pub const MANIFEST_MAGIC: [u8; 8] = *b"NOSMAN01";

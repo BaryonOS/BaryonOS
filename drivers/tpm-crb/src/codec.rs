@@ -6,6 +6,27 @@ pub const MAX_PROPERTIES: usize = 16;
 pub const NO_SESSIONS: u16 = 0x8001;
 pub const SESSIONS: u16 = 0x8002;
 pub const COUNTER_ATTRIBUTES: u32 = 0x0004_0014;
+/// Largest NV payload any REL-05 index carries (section 6.1: 64-byte records).
+pub const MAX_NV_DATA: usize = 64;
+/// SHA-256 digest size; the only hash this codec speaks, except that
+/// `PcrReadBank` reads (never extends) the SHA-1, SHA-384 and SHA-512 banks.
+pub const DIGEST: usize = 32;
+/// Largest bank digest `PcrReadBank` returns (SHA-512).
+pub const MAX_DIGEST: usize = 64;
+/// Highest PCR index addressable by the 3-byte selection (PC client: 24 PCRs).
+pub const MAX_PCR: u8 = 23;
+pub const ALG_SHA1: u16 = 0x0004;
+pub const ALG_SHA256: u16 = 0x000b;
+pub const ALG_SHA384: u16 = 0x000c;
+pub const ALG_SHA512: u16 = 0x000d;
+const ALG_NULL: u16 = 0x0010;
+const RH_NULL: u32 = 0x4000_0007;
+const RH_OWNER: u32 = 0x4000_0001;
+const RH_LOCKOUT: u32 = 0x4000_000a;
+const SE_POLICY: u8 = 0x01;
+const NT_ORDINARY: u32 = 0;
+const NT_COUNTER: u32 = 1;
+const NT_EXTEND: u32 = 4;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     Input,
@@ -40,6 +61,66 @@ impl<'a> Password<'a> {
         }
     }
 }
+/// Handle of a policy session returned by `StartAuthSession` (Part 2:
+/// HR_POLICY_SESSION) plus its nonce size, which the TPM fixes at the caller's
+/// initial nonce size (Part 1, 16.6.3.2) and echoes in every response trailer.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PolicySession(u32, u8);
+impl PolicySession {
+    pub fn new(value: u32, nonce_len: u8) -> Result<Self, Error> {
+        if value >> 24 == 0x03 && (16..=DIGEST as u8).contains(&nonce_len) {
+            Ok(Self(value, nonce_len))
+        } else {
+            Err(Error::Input)
+        }
+    }
+    pub const fn raw(self) -> u32 {
+        self.0
+    }
+    pub const fn nonce_len(self) -> u8 {
+        self.1
+    }
+}
+/// Authorization for one command. A policy session is sent with an empty
+/// nonce, empty HMAC and `continueSession` clear, so the TPM flushes it after
+/// this single use; REL-05 policies contain no PolicyAuthValue/PolicyPassword.
+#[derive(Clone, Copy)]
+pub enum Auth<'a> {
+    Password(Password<'a>),
+    Policy(PolicySession),
+}
+impl Auth<'_> {
+    const fn len(&self) -> usize {
+        match self {
+            Self::Password(p) => 13 + p.0.len(),
+            Self::Policy(_) => 13,
+        }
+    }
+    const fn tail(&self) -> Tail {
+        match self {
+            Self::Password(_) => Tail::Password,
+            Self::Policy(s) => Tail::Policy(s.1),
+        }
+    }
+}
+/// `TPMS_NV_PUBLIC` input for `NV_DefineSpace` (nameAlg SHA-256, empty index
+/// authValue). Type comes from the TPM_NT field of `attributes`: ordinary
+/// (1..=64 bytes), counter (exactly 8) or extend (exactly the SHA-256 digest);
+/// anything else is refused.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct NvDefinition<'a> {
+    pub index: NvIndex,
+    pub attributes: u32,
+    pub auth_policy: Option<&'a [u8; DIGEST]>,
+    pub size: u16,
+}
+/// Hierarchies whose authValue `HierarchyChangeAuth` may set. Endorsement and
+/// platform are deliberately absent (REL-05 M1-HAUTH: owner and lockout only).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Hierarchy {
+    Owner,
+    Lockout,
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u16)]
 pub enum Startup {
@@ -67,10 +148,120 @@ pub enum Request<'a> {
         index: NvIndex,
         auth: Password<'a>,
     },
+    /// `NV_Increment` with `authHandle` = the index: AUTHWRITE password, or a
+    /// policy session for POLICYWRITE counters such as REL-05 `GEN`.
     NvIncrement {
         index: NvIndex,
-        auth: Password<'a>,
+        auth: Auth<'a>,
     },
+    /// Policy session, unsalted (`tpmKey` = NULL) and unbound (`bind` = NULL),
+    /// no parameter encryption, SHA-256. `nonce_caller` is 16..=32 caller bytes;
+    /// their entropy is the caller's responsibility.
+    StartPolicySession {
+        nonce_caller: &'a [u8],
+    },
+    /// `PolicyPCR` with an empty `pcrDigest`: the TPM uses the current value of
+    /// the one selected SHA-256 PCR.
+    PolicyPcr {
+        session: PolicySession,
+        pcr: u8,
+    },
+    PolicyCommandCode {
+        session: PolicySession,
+        code: u32,
+    },
+    /// Owner-authorized `NV_DefineSpace` with an explicit public area.
+    NvDefineSpace {
+        owner_auth: Password<'a>,
+        public: NvDefinition<'a>,
+    },
+    /// `NV_Write` with `authHandle` = the index (policy or AUTHWRITE password).
+    NvWrite {
+        index: NvIndex,
+        auth: Auth<'a>,
+        data: &'a [u8],
+        offset: u16,
+    },
+    /// Owner-authorized `NV_Write` (`authHandle` = `TPM_RH_OWNER`) at offset 0
+    /// for OWNERWRITE indices such as `HAUTH` (WRITEALL: one full write). The
+    /// password and `data` are written into the command buffer in clear; the
+    /// caller wipes that buffer after submission.
+    NvWriteOwner {
+        index: NvIndex,
+        owner_auth: Password<'a>,
+        data: &'a [u8],
+    },
+    /// `NV_Read` of 1..=64 bytes with `authHandle` = the index (AUTHREAD
+    /// password). Policy reads exist only as [`Request::NvReadSecret`].
+    NvRead {
+        index: NvIndex,
+        auth: Password<'a>,
+        size: u16,
+        offset: u16,
+    },
+    /// Policy-session `NV_Read` of a 64-byte POLICYREAD secret (REL-05
+    /// `HAUTH`) at offset 0. Its response decodes only through
+    /// [`Command::decode_secret`]; [`Command::decode`] and the CRB transport
+    /// refuse it, so the secret never reaches a `Copy`/`Debug` [`Response`].
+    NvReadSecret {
+        index: NvIndex,
+        session: PolicySession,
+    },
+    PcrRead {
+        pcr: u8,
+    },
+    /// `PCR_Read` of one PCR in one bank: `ALG_SHA1`, `ALG_SHA256`,
+    /// `ALG_SHA384` or `ALG_SHA512`; an unallocated bank is refused.
+    PcrReadBank {
+        pcr: u8,
+        alg: u16,
+    },
+    /// `PCR_Extend` with exactly one SHA-256 digest.
+    PcrExtend {
+        pcr: u8,
+        auth: Password<'a>,
+        digest: &'a [u8; DIGEST],
+    },
+    /// `NV_Extend` of one SHA-256 digest with `authHandle` = the index
+    /// (AUTHWRITE password): the anchor chain step `H(old ‖ data)`.
+    NvExtend {
+        index: NvIndex,
+        auth: Password<'a>,
+        data: &'a [u8; DIGEST],
+    },
+    /// Owner-authorized `NV_UndefineSpace` (authorised anchor recovery).
+    NvUndefineSpace {
+        index: NvIndex,
+        owner_auth: Password<'a>,
+    },
+    /// `HierarchyChangeAuth`: `auth` is the hierarchy's current authValue,
+    /// `new_auth` its replacement. Both are written into the command buffer in
+    /// clear; the caller wipes that buffer after submission.
+    HierarchyChangeAuth {
+        hierarchy: Hierarchy,
+        auth: Password<'a>,
+        new_auth: Password<'a>,
+    },
+    /// `NV_ReadPublic` decoded into type, attributes, size and `authPolicy`.
+    NvReadPublicArea {
+        index: NvIndex,
+    },
+    /// `FlushContext` of a policy session that a failed command left loaded
+    /// (`continueSession` clear flushes it only on success).
+    FlushContext {
+        session: PolicySession,
+    },
+}
+/// Response authorization trailer the decoder demands.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Tail {
+    None,
+    /// TPM_RS_PW: empty nonce, continueSession=1, empty HMAC.
+    Password,
+    /// Policy session sent with continueSession=0: nonceTPM of the session's
+    /// nonce size, attributes 0, empty HMAC (swtpm transcript
+    /// `docs/verification/b03-rel05-probe-20261125/transcript-u1u7.txt`).
+    Policy(u8),
 }
 #[derive(Clone, Copy)]
 pub(crate) enum Expectation {
@@ -79,22 +270,49 @@ pub(crate) enum Expectation {
     Public { index: NvIndex },
     SessionEmpty,
     Counter,
+    Session { nonce_len: u8 },
+    Data { size: u16 },
+    Secret,
+    Pcr { pcr: u8 },
+    PcrBank { pcr: u8, alg: u16 },
+    PublicArea { index: NvIndex },
 }
 pub struct Command<'a> {
     bytes: &'a [u8],
     pub(crate) expect: Expectation,
-    pub(crate) sessions: bool,
+    pub(crate) sessions: Tail,
     mutating: bool,
 }
 impl Command<'_> {
     pub fn bytes(&self) -> &[u8] {
         self.bytes
     }
-    /// True only for DefineCounter/Increment; false does not mean a command
-    /// has no other TPM state or authorization side effects. Never replay
+    /// True for NV define/undefine/write/increment/extend and hierarchy-auth
+    /// changes; false does not mean a command has no other TPM state or
+    /// authorization side effects. Never replay
     /// automatically after an Unknown result.
     pub const fn is_nv_mutation(&self) -> bool {
         self.mutating
+    }
+    /// Decode a complete response to this command (for transports other than
+    /// [`crate::transport`], e.g. a firmware TCG2 SubmitCommand). Same checks
+    /// as the CRB path; nothing is returned on error.
+    pub fn decode(&self, response: &[u8]) -> Result<Response, Error> {
+        validate(self.expect, self.sessions, response)
+    }
+    /// Decode the response to [`Request::NvReadSecret`] straight into `out`,
+    /// which is written only after every check passed (any other command:
+    /// `Error::Input`). The caller wipes `out` and `response` after use.
+    pub fn decode_secret(&self, response: &[u8], out: &mut [u8; MAX_NV_DATA]) -> Result<(), Error> {
+        if !matches!(self.expect, Expectation::Secret) {
+            return Err(Error::Input);
+        }
+        let body = envelope(self.sessions, response)?;
+        if body.len() != 2 + MAX_NV_DATA || usize::from(u16at(body, 0)) != MAX_NV_DATA {
+            return Err(Error::Length);
+        }
+        out.copy_from_slice(&body[2..]);
+        Ok(())
     }
 }
 struct Writer<'a> {
@@ -120,6 +338,25 @@ impl Writer<'_> {
         self.u16(p.0.len() as u16);
         self.put(p.0);
     }
+    fn authorize(&mut self, a: Auth<'_>) {
+        match a {
+            Auth::Password(p) => self.auth(p),
+            Auth::Policy(s) => {
+                self.u32(9);
+                self.u32(s.0);
+                self.u16(0);
+                self.put(&[0]);
+                self.u16(0);
+            }
+        }
+    }
+    fn tpm2b(&mut self, data: &[u8]) {
+        self.u16(data.len() as u16);
+        self.put(data);
+    }
+    fn selection(&mut self, pcr: u8) {
+        self.put(&selection(pcr, ALG_SHA256));
+    }
     fn public(&mut self, index: NvIndex) {
         self.u16(14);
         self.u32(index.0);
@@ -133,8 +370,8 @@ impl Writer<'_> {
 /// The returned command borrows only the exact initialized request prefix.
 pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>, Error> {
     let (len, cc, sessions, expect, mutating) = match &request {
-        Request::Startup(_) => (12, 0x144, false, Expectation::Empty, false),
-        Request::SelfTest { .. } => (11, 0x143, false, Expectation::Empty, false),
+        Request::Startup(_) => (12, 0x144, Tail::None, Expectation::Empty, false),
+        Request::SelfTest { .. } => (11, 0x143, Tail::None, Expectation::Empty, false),
         Request::Properties { first, count } => {
             if *count == 0
                 || usize::from(*count) > MAX_PROPERTIES
@@ -145,7 +382,7 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
             (
                 22,
                 0x17a,
-                false,
+                Tail::None,
                 Expectation::Properties {
                     first: *first,
                     count: *count,
@@ -156,7 +393,7 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
         Request::NvReadPublic { index } => (
             14,
             0x169,
-            false,
+            Tail::None,
             Expectation::Public { index: *index },
             false,
         ),
@@ -167,20 +404,158 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
         } => (
             45 + owner_auth.0.len() + index_auth.0.len(),
             0x12a,
-            true,
+            Tail::Password,
             Expectation::SessionEmpty,
             true,
         ),
-        Request::NvReadCounter { auth, .. } => {
-            (35 + auth.0.len(), 0x14e, true, Expectation::Counter, false)
-        }
+        Request::NvReadCounter { auth, .. } => (
+            35 + auth.0.len(),
+            0x14e,
+            Tail::Password,
+            Expectation::Counter,
+            false,
+        ),
         Request::NvIncrement { auth, .. } => (
-            31 + auth.0.len(),
+            18 + auth.len(),
             0x134,
-            true,
+            auth.tail(),
             Expectation::SessionEmpty,
             true,
         ),
+        Request::StartPolicySession { nonce_caller } => {
+            if !(16..=DIGEST).contains(&nonce_caller.len()) {
+                return Err(Error::Input);
+            }
+            (
+                27 + nonce_caller.len(),
+                0x176,
+                Tail::None,
+                Expectation::Session {
+                    nonce_len: nonce_caller.len() as u8,
+                },
+                false,
+            )
+        }
+        Request::PolicyPcr { pcr, .. } => {
+            check_pcr(*pcr)?;
+            (26, 0x17f, Tail::None, Expectation::Empty, false)
+        }
+        Request::PolicyCommandCode { .. } => (18, 0x16c, Tail::None, Expectation::Empty, false),
+        Request::NvDefineSpace { owner_auth, public } => {
+            let size_ok = match (public.attributes >> 4) & 0xf {
+                NT_ORDINARY => (1..=MAX_NV_DATA as u16).contains(&public.size),
+                NT_COUNTER => public.size == 8,
+                NT_EXTEND => public.size == DIGEST as u16,
+                _ => false,
+            };
+            if !size_ok {
+                return Err(Error::Input);
+            }
+            (
+                45 + owner_auth.0.len() + public.auth_policy.map_or(0, |_| DIGEST),
+                0x12a,
+                Tail::Password,
+                Expectation::SessionEmpty,
+                true,
+            )
+        }
+        Request::NvWrite { auth, data, .. } => {
+            if data.is_empty() || data.len() > MAX_NV_DATA {
+                return Err(Error::Input);
+            }
+            (
+                22 + auth.len() + data.len(),
+                0x137,
+                auth.tail(),
+                Expectation::SessionEmpty,
+                true,
+            )
+        }
+        Request::NvWriteOwner {
+            owner_auth, data, ..
+        } => {
+            if data.is_empty() || data.len() > MAX_NV_DATA {
+                return Err(Error::Input);
+            }
+            (
+                35 + owner_auth.0.len() + data.len(),
+                0x137,
+                Tail::Password,
+                Expectation::SessionEmpty,
+                true,
+            )
+        }
+        Request::NvRead { auth, size, .. } => {
+            if !(1..=MAX_NV_DATA as u16).contains(size) {
+                return Err(Error::Input);
+            }
+            (
+                35 + auth.0.len(),
+                0x14e,
+                Tail::Password,
+                Expectation::Data { size: *size },
+                false,
+            )
+        }
+        Request::NvReadSecret { session, .. } => (
+            35,
+            0x14e,
+            Tail::Policy(session.1),
+            Expectation::Secret,
+            false,
+        ),
+        Request::NvExtend { auth, .. } => (
+            65 + auth.0.len(),
+            0x136,
+            Tail::Password,
+            Expectation::SessionEmpty,
+            true,
+        ),
+        Request::NvUndefineSpace { owner_auth, .. } => (
+            31 + owner_auth.0.len(),
+            0x122,
+            Tail::Password,
+            Expectation::SessionEmpty,
+            true,
+        ),
+        Request::HierarchyChangeAuth { auth, new_auth, .. } => (
+            29 + auth.0.len() + new_auth.0.len(),
+            0x129,
+            Tail::Password,
+            Expectation::SessionEmpty,
+            true,
+        ),
+        Request::PcrRead { pcr } => {
+            check_pcr(*pcr)?;
+            (20, 0x17e, Tail::None, Expectation::Pcr { pcr: *pcr }, false)
+        }
+        Request::PcrReadBank { pcr, alg } => {
+            check_pcr(*pcr)?;
+            digest_size(*alg)?;
+            let expect = Expectation::PcrBank {
+                pcr: *pcr,
+                alg: *alg,
+            };
+            (20, 0x17e, Tail::None, expect, false)
+        }
+        Request::PcrExtend { pcr, auth, .. } => {
+            check_pcr(*pcr)?;
+            (
+                65 + auth.0.len(),
+                0x182,
+                Tail::Password,
+                Expectation::SessionEmpty,
+                false,
+            )
+        }
+        Request::NvReadPublicArea { index } => (
+            14,
+            0x169,
+            Tail::None,
+            Expectation::PublicArea { index: *index },
+            false,
+        ),
+        Request::FlushContext { .. } => (14, 0x165, Tail::None, Expectation::Empty, false),
     };
     if len > MAX_COMMAND || out.len() < len {
         return Err(Error::Length);
@@ -189,7 +564,11 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
         bytes: &mut out[..len],
         at: 0,
     };
-    w.u16(if sessions { SESSIONS } else { NO_SESSIONS });
+    w.u16(if sessions == Tail::None {
+        NO_SESSIONS
+    } else {
+        SESSIONS
+    });
     w.u32(len as u32);
     w.u32(cc);
     match request {
@@ -222,8 +601,114 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
         Request::NvIncrement { index, auth } => {
             w.u32(index.0);
             w.u32(index.0);
-            w.auth(auth);
+            w.authorize(auth);
         }
+        Request::StartPolicySession { nonce_caller } => {
+            w.u32(RH_NULL);
+            w.u32(RH_NULL);
+            w.tpm2b(nonce_caller);
+            w.u16(0);
+            w.put(&[SE_POLICY]);
+            w.u16(ALG_NULL);
+            w.u16(ALG_SHA256);
+        }
+        Request::PolicyPcr { session, pcr } => {
+            w.u32(session.0);
+            w.u16(0);
+            w.selection(pcr);
+        }
+        Request::PolicyCommandCode { session, code } => {
+            w.u32(session.0);
+            w.u32(code);
+        }
+        Request::NvDefineSpace { owner_auth, public } => {
+            w.u32(RH_OWNER);
+            w.auth(owner_auth);
+            w.u16(0);
+            let policy = public.auth_policy.map_or(&[][..], |p| &p[..]);
+            w.u16(14 + policy.len() as u16);
+            w.u32(public.index.0);
+            w.u16(ALG_SHA256);
+            w.u32(public.attributes);
+            w.tpm2b(policy);
+            w.u16(public.size);
+        }
+        Request::NvWrite {
+            index,
+            auth,
+            data,
+            offset,
+        } => {
+            w.u32(index.0);
+            w.u32(index.0);
+            w.authorize(auth);
+            w.tpm2b(data);
+            w.u16(offset);
+        }
+        Request::NvWriteOwner {
+            index,
+            owner_auth,
+            data,
+        } => {
+            w.u32(RH_OWNER);
+            w.u32(index.0);
+            w.auth(owner_auth);
+            w.tpm2b(data);
+            w.u16(0);
+        }
+        Request::NvRead {
+            index,
+            auth,
+            size,
+            offset,
+        } => {
+            w.u32(index.0);
+            w.u32(index.0);
+            w.auth(auth);
+            w.u16(size);
+            w.u16(offset);
+        }
+        Request::NvReadSecret { index, session } => {
+            w.u32(index.0);
+            w.u32(index.0);
+            w.authorize(Auth::Policy(session));
+            w.u16(MAX_NV_DATA as u16);
+            w.u16(0);
+        }
+        Request::NvExtend { index, auth, data } => {
+            w.u32(index.0);
+            w.u32(index.0);
+            w.auth(auth);
+            w.tpm2b(data);
+        }
+        Request::NvUndefineSpace { index, owner_auth } => {
+            w.u32(RH_OWNER);
+            w.u32(index.0);
+            w.auth(owner_auth);
+        }
+        Request::HierarchyChangeAuth {
+            hierarchy,
+            auth,
+            new_auth,
+        } => {
+            w.u32(match hierarchy {
+                Hierarchy::Owner => RH_OWNER,
+                Hierarchy::Lockout => RH_LOCKOUT,
+            });
+            w.auth(auth);
+            w.tpm2b(new_auth.0);
+        }
+        Request::PcrRead { pcr } => w.selection(pcr),
+        Request::PcrReadBank { pcr, alg } => w.put(&selection(pcr, alg)),
+        Request::PcrExtend { pcr, auth, digest } => {
+            w.u32(pcr.into());
+            w.auth(auth);
+            w.u32(1);
+            w.u16(ALG_SHA256);
+            w.put(digest);
+        }
+        Request::NvReadPublicArea { index } => w.u32(index.0),
+        Request::FlushContext { session } => w.u32(session.0),
     }
     debug_assert_eq!(w.at, len);
     Ok(Command {
@@ -232,6 +717,30 @@ pub fn encode<'a>(request: Request<'_>, out: &'a mut [u8]) -> Result<Command<'a>
         sessions,
         mutating,
     })
+}
+fn check_pcr(pcr: u8) -> Result<(), Error> {
+    if pcr <= MAX_PCR {
+        Ok(())
+    } else {
+        Err(Error::Input)
+    }
+}
+/// `TPML_PCR_SELECTION` {count 1, `alg`, sizeofSelect 3, one bit}.
+fn selection(pcr: u8, alg: u16) -> [u8; 10] {
+    let [high, low] = alg.to_be_bytes();
+    let mut s = [0, 0, 0, 1, high, low, 3, 0, 0, 0];
+    s[7 + usize::from(pcr / 8)] = 1 << (pcr % 8);
+    s
+}
+/// Digest size of a bank `PcrReadBank` may read.
+fn digest_size(alg: u16) -> Result<usize, Error> {
+    match alg {
+        ALG_SHA1 => Ok(20),
+        ALG_SHA256 => Ok(32),
+        ALG_SHA384 => Ok(48),
+        ALG_SHA512 => Ok(MAX_DIGEST),
+        _ => Err(Error::Input),
+    }
 }
 fn u16at(b: &[u8], at: usize) -> u16 {
     u16::from_be_bytes(b[at..at + 2].try_into().unwrap())
@@ -258,6 +767,47 @@ pub enum Response {
         name: [u8; 34],
     },
     Counter(u64),
+    /// `nonce_tpm[..handle.nonce_len()]` is the nonce; the rest is zero.
+    Session {
+        handle: PolicySession,
+        nonce_tpm: [u8; DIGEST],
+    },
+    Data {
+        len: u8,
+        bytes: [u8; MAX_NV_DATA],
+    },
+    Pcr {
+        update_counter: u32,
+        digest: [u8; DIGEST],
+    },
+    PcrBank {
+        update_counter: u32,
+        len: u8,
+        digest: [u8; MAX_DIGEST],
+    },
+    NvPublicArea(NvPublicArea),
+}
+/// Decoded `NV_ReadPublic`. nameAlg is SHA-256 by construction; the name is
+/// returned unverified (this codec has no hash), so a caller that relies on
+/// it must recompute `nameAlg ‖ H(nvPublic)` itself.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct NvPublicArea {
+    pub index: NvIndex,
+    pub attributes: u32,
+    pub size: u16,
+    auth_policy: [u8; DIGEST],
+    auth_policy_len: u8,
+    pub name: [u8; 34],
+}
+impl NvPublicArea {
+    /// TPM_NT field of the attributes (0 ordinary, 1 counter, ...).
+    pub const fn nv_type(&self) -> u32 {
+        (self.attributes >> 4) & 0xf
+    }
+    /// Empty or exactly 32 bytes.
+    pub fn auth_policy(&self) -> &[u8] {
+        &self.auth_policy[..usize::from(self.auth_policy_len)]
+    }
 }
 /// The wire size is trusted only after bounding it against both the device
 /// buffer and our private response arena. No output is exposed on error.
@@ -273,37 +823,13 @@ pub(crate) fn response_size(header: &[u8], device_size: usize) -> Result<usize, 
 }
 pub(crate) fn validate(
     expect: Expectation,
-    sessions: bool,
+    sessions: Tail,
     bytes: &[u8],
 ) -> Result<Response, Error> {
-    if bytes.len() < 10 || bytes.len() > MAX_RESPONSE || u32at(bytes, 2) as usize != bytes.len() {
-        return Err(Error::Length);
+    if matches!(expect, Expectation::Secret) {
+        return Err(Error::Input);
     }
-    let tag = u16at(bytes, 0);
-    let rc = u32at(bytes, 6);
-    if rc != 0 {
-        if tag != NO_SESSIONS || bytes.len() != 10 {
-            return Err(Error::Protocol);
-        }
-        return Err(Error::Tpm(rc));
-    }
-    if tag != if sessions { SESSIONS } else { NO_SESSIONS } {
-        return Err(Error::Protocol);
-    }
-    let body = if sessions {
-        if bytes.len() < 19 {
-            return Err(Error::Length);
-        }
-        let parameters = u32at(bytes, 10) as usize;
-        let end = 14usize.checked_add(parameters).ok_or(Error::Length)?;
-        // TPM_RS_PW responses have empty nonce/HMAC and continueSession=1.
-        if end.checked_add(5) != Some(bytes.len()) || bytes[end..] != [0, 0, 1, 0, 0] {
-            return Err(Error::Protocol);
-        }
-        &bytes[14..end]
-    } else {
-        &bytes[10..]
-    };
+    let body = envelope(sessions, bytes)?;
     match expect {
         Expectation::Empty | Expectation::SessionEmpty => {
             if !body.is_empty() {
@@ -311,6 +837,7 @@ pub(crate) fn validate(
             }
             Ok(Response::Empty)
         }
+        Expectation::Secret => Err(Error::Input),
         Expectation::Counter => {
             if body.len() != 10 || u16at(body, 0) != 8 {
                 return Err(Error::Length);
@@ -371,5 +898,149 @@ pub(crate) fn validate(
                 name,
             })
         }
+        Expectation::Session { nonce_len } => {
+            let n = usize::from(nonce_len);
+            if body.len() != 6 + n || u16at(body, 4) != u16::from(nonce_len) {
+                return Err(Error::Length);
+            }
+            let handle =
+                PolicySession::new(u32at(body, 0), nonce_len).map_err(|_| Error::Protocol)?;
+            let mut nonce_tpm = [0; DIGEST];
+            nonce_tpm[..n].copy_from_slice(&body[6..]);
+            Ok(Response::Session { handle, nonce_tpm })
+        }
+        Expectation::Data { size } => {
+            if body.len() != 2 + usize::from(size) || u16at(body, 0) != size {
+                return Err(Error::Length);
+            }
+            let mut bytes = [0; MAX_NV_DATA];
+            bytes[..usize::from(size)].copy_from_slice(&body[2..]);
+            Ok(Response::Data {
+                len: size as u8,
+                bytes,
+            })
+        }
+        Expectation::Pcr { pcr } => {
+            if body.len() != 20 + DIGEST {
+                return Err(Error::Length);
+            }
+            // An unallocated bank comes back as an empty selection: refuse it.
+            if body[4..14] != selection(pcr, ALG_SHA256)
+                || u32at(body, 14) != 1
+                || u16at(body, 18) != DIGEST as u16
+            {
+                return Err(Error::Protocol);
+            }
+            let mut digest = [0; DIGEST];
+            digest.copy_from_slice(&body[20..]);
+            Ok(Response::Pcr {
+                update_counter: u32at(body, 0),
+                digest,
+            })
+        }
+        Expectation::PcrBank { pcr, alg } => {
+            let size = digest_size(alg)?;
+            if body.len() != 20 + size {
+                return Err(Error::Length);
+            }
+            if body[4..14] != selection(pcr, alg)
+                || u32at(body, 14) != 1
+                || usize::from(u16at(body, 18)) != size
+            {
+                return Err(Error::Protocol);
+            }
+            let mut digest = [0; MAX_DIGEST];
+            digest[..size].copy_from_slice(&body[20..]);
+            Ok(Response::PcrBank {
+                update_counter: u32at(body, 0),
+                len: size as u8,
+                digest,
+            })
+        }
+        Expectation::PublicArea { index } => {
+            if body.len() < 16 {
+                return Err(Error::Length);
+            }
+            let public = usize::from(u16at(body, 0));
+            let policy = usize::from(u16at(body, 12));
+            if (policy != 0 && policy != DIGEST)
+                || public != 14 + policy
+                || body.len() != 2 + public + 2 + 34
+            {
+                return Err(Error::Length);
+            }
+            let name = &body[2 + public..];
+            if u32at(body, 2) != index.0
+                || u16at(body, 6) != ALG_SHA256
+                || u16at(name, 0) != 34
+                || u16at(name, 2) != ALG_SHA256
+            {
+                return Err(Error::Protocol);
+            }
+            let mut auth_policy = [0; DIGEST];
+            auth_policy[..policy].copy_from_slice(&body[14..14 + policy]);
+            let mut out = [0; 34];
+            out.copy_from_slice(&name[2..]);
+            Ok(Response::NvPublicArea(NvPublicArea {
+                index,
+                attributes: u32at(body, 8),
+                size: u16at(body, 14 + policy),
+                auth_policy,
+                auth_policy_len: policy as u8,
+                name: out,
+            }))
+        }
     }
+}
+/// Header, response code and authorization trailer; returns the parameters.
+fn envelope(sessions: Tail, bytes: &[u8]) -> Result<&[u8], Error> {
+    if bytes.len() < 10 || bytes.len() > MAX_RESPONSE || u32at(bytes, 2) as usize != bytes.len() {
+        return Err(Error::Length);
+    }
+    let tag = u16at(bytes, 0);
+    let rc = u32at(bytes, 6);
+    if rc != 0 {
+        if tag != NO_SESSIONS || bytes.len() != 10 {
+            return Err(Error::Protocol);
+        }
+        return Err(Error::Tpm(rc));
+    }
+    if tag
+        != if sessions == Tail::None {
+            NO_SESSIONS
+        } else {
+            SESSIONS
+        }
+    {
+        return Err(Error::Protocol);
+    }
+    let trailer = match sessions {
+        Tail::None => 0,
+        Tail::Password => 5,
+        Tail::Policy(n) => 5 + usize::from(n),
+    };
+    let body = if trailer == 0 {
+        &bytes[10..]
+    } else {
+        if bytes.len() < 14 + trailer {
+            return Err(Error::Length);
+        }
+        let parameters = u32at(bytes, 10) as usize;
+        let end = 14usize.checked_add(parameters).ok_or(Error::Length)?;
+        if end.checked_add(trailer) != Some(bytes.len()) {
+            return Err(Error::Protocol);
+        }
+        let t = &bytes[end..];
+        let ok = match sessions {
+            // TPM_RS_PW responses have empty nonce/HMAC and continueSession=1.
+            Tail::Password => t == [0, 0, 1, 0, 0],
+            Tail::Policy(n) => u16at(t, 0) == u16::from(n) && t[2 + usize::from(n)..] == [0, 0, 0],
+            Tail::None => false,
+        };
+        if !ok {
+            return Err(Error::Protocol);
+        }
+        &bytes[14..end]
+    };
+    Ok(body)
 }

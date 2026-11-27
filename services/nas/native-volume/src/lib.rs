@@ -147,7 +147,7 @@ fn read_error(status: Status) -> Error {
         Status::Quota => Error::Quota,
         Status::Invalid | Status::Range | Status::NoSys => Error::Invalid,
         Status::Corrupt | Status::Protocol | Status::Ok => Error::Corrupt,
-        Status::Io | Status::Timeout | Status::NoDevice => Error::Io,
+        Status::Io | Status::Timeout | Status::NoDevice | Status::Quarantined => Error::Io,
         Status::Unknown => Error::Unknown,
         Status::Busy => Error::ReopenRequired,
     }

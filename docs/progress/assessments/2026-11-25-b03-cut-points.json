@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "fa2d7f582af8872b14e9bb5e950af8216d2fe012",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1-HAUTH: seeded power cut after every provisioning step (tpm_seed hauth-defined, hauth-written, lrec-written; run_tpm check_state) (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. At source 2816266d host-seeded cuts after the HAUTH define, the HAUTH write and the LREC write each make the TEST loader re-provision with output identical to loader-hauth, and every re-provisioning seed now has to end with a fresh LREC (the stale BOUND record of the LREC-write cut was replaced); with the earlier LREC-define and lockout cuts every step of the provisioning sequence is covered; all seventeen run_tpm cases pass with unchanged binaries (docs/verification/b03-rel05-hauth-cut-points-20261125). TEST-only on swtpm 0.10.1: no fault injection or torn NV write, no ownerAuth/HAUTH equality check, no S3b, genesis, ACCEPTED, UEFI copy, hosted CI, hardware or human audit; no criterion accepted."
+}

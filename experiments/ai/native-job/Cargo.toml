@@ -1,0 +1,36 @@
+[package]
+name = "baryon-ai-native-job"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+native = []
+
+[dependencies]
+baryon-ai-reference-forward = { path = "../reference-forward" }
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "ai-job-native"
+path = "src/main.rs"
+required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "ai-job-expected"
+path = "src/expected.rs"
+test = false
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = false
+
+[profile.dev]
+panic = "abort"
+
+[workspace]

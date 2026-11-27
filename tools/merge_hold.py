@@ -61,15 +61,28 @@ re-runs this job once every gate run of the head has finished; a manual re-run
 remains the fallback.
 `policy.mode = "shadow"` in the base catalogue reports gates without blocking on
 them.
+A head that does not contain the base tip fails, because its gate runs did not
+test the tree that would merge, unless the head is positively not a descendant
+(git exits 1), the policy enforces and GitHub lists an active `merge_queue` rule
+for the target branch (rules/branches, read live and only in this case); then a
+notice reports it and the merge_group run judges the merged tree. Any read error
+or malformed answer keeps the failure.
 
 On `merge_group` (D1 option B step 2, ADR-CI-GATE-ENFORCEMENT-20261124) every
 applicable gate is judged on the queue commit itself. BASE_SHA (the commit the
-two base files came from) must equal `merge_group.base_sha` and TESTED_SHA (the
-checkout) `merge_group.head_sha`, both well-formed, and the base must be an
-ancestor of the queue commit. The plan is recomputed with `--event=merge_group`
-(mode full) and bound to that event, base, queue commit and `main` before any
-wait, so a plan error fails at once. After the wait one full gate report on the
-queue commit decides with the `pull_request` rules (newest run and latest
+two base files came from) must be the trusted base T, the merge base of the
+queue commit and protected main (MAIN_REF), TESTED_SHA (the checkout)
+`merge_group.head_sha`, all well-formed; T must be an ancestor of
+`merge_group.base_sha`, which can be the unlanded queue commit of the entry
+ahead, and that base an ancestor of the queue commit. The plan is recomputed
+from T with `--event=merge_group` and bound to that event, T, the queue commit
+and `main` before any wait, so a plan error fails at once. Under the catalogue's
+`merge_group = "select"` it narrows from the diff T..queue commit, which covers
+every entry ahead (ADR-CI-MERGE-GROUP-SELECT-20261126); a workflow whose core
+or rwa gates are excluded as no-input-match, none selected, and whose own
+pull_request path filter would not have started it is then neither awaited nor
+judged (one without any core or rwa gate, or with any doubt, still is). After the wait
+one full gate report on the queue commit decides with the `pull_request` rules (newest run and latest
 attempt, blocking conclusions, unexpected failed gates, hidden inputs, shadow
 policy); any pending or failed line fails the group and the queue removes it.
 A run counts only with event `merge_group`, head SHA the queue commit, head
@@ -103,7 +116,7 @@ import sys
 import tempfile
 import time
 import tomllib
-from urllib import request
+from urllib import parse, request
 
 LABEL = "acceptance-pending"
 RELEASE_PREFIX = "acceptance-released: "
@@ -151,6 +164,8 @@ QUEUE_QUERY = """query($owner: String!, $name: String!) {
 
 GATE_WORKFLOW = ".github/workflows/merge-hold.yml"
 CATALOGUE = ".github/ci-impact.toml"
+# Protected main as merge-hold.yml fetched it just before this script; never fetched again here.
+MAIN_REF = "refs/remotes/origin/main"
 SELECTABLE = ("core", "rwa")
 # Fallbacks whose listing can be incomplete or that do not describe this pull request.
 UNUSABLE_FALLBACKS = ("unknown-event", "invalid-sha", "fetch-failed", "merge-ref-mismatch",
@@ -223,6 +238,23 @@ def pull_request_hold(token, repo, number, head_sha):
     comments = fetch_all(token, base + "/comments") if LABEL in labels else []
     passed, message = decide(labels, comments, head_sha)
     return passed, message, labels
+
+
+def merge_queue_required(token, repo, ref):
+    """True only when GitHub lists an active merge_queue rule for branch ref; any doubt is False.
+
+    GET rules/branches returns only rules of active rulesets (not "evaluate" or "disabled") and
+    needs only the Metadata read permission that the merge-hold job token carries.
+    """
+    try:
+        rules = fetch_all(token, f"{API}/repos/{repo}/rules/branches/{parse.quote(ref, safe='')}")
+    except Exception as error:  # noqa: BLE001 - any failure keeps containment binding
+        print(f"::warning::merge-hold could not read the branch rules of {ref} ({error}); "
+              "base-tip containment stays binding", file=sys.stderr)
+        return False
+    if not all(isinstance(rule, dict) and isinstance(rule.get("type"), str) for rule in rules):
+        return False
+    return any(rule["type"] == "merge_queue" for rule in rules)
 
 
 def commit_oid(node):
@@ -623,10 +655,34 @@ def job_matches(row, job):
     return job.get("name") == row["check_name"]
 
 
+def unselected_workflows(plan):
+    """Workflows a merge_group select plan neither awaits nor judges: a core or rwa gate of theirs is
+    excluded as no-input-match and none is selected.
+
+    They still start on the queue commit until their jobs are skipped there, but the plan found
+    none of their inputs in the diff from the trusted base, and their own pull_request path filter
+    would not have started them (`pull_request_filter_blocked`, evaluated by the selector of T), so
+    they are not applicable, exactly as on pull_request, where a workflow its path filter starts is
+    awaited and judged even without a selected gate (ADR-CI-MERGE-GROUP-SELECT-20261126). A
+    workflow with a selected gate is judged whole (its siblings and unregistered jobs as before),
+    and so is one without any core or rwa gate (advisory or trigger-only). Every other plan
+    (pull_request, full) judges every counted workflow.
+    """
+    if plan.get("event") != "merge_group" or plan.get("mode") != "select":
+        return set()
+    selected = {row["workflow"] for row in plan["selected"] if row.get("class") in SELECTABLE}
+    # Established twice: no catalogue input matched, and its own pull_request path filter would not
+    # have started it. A plan without that list (or a workflow missing from it) is judged.
+    blocked = set(plan.get("pull_request_filter_blocked") or [])
+    return ({row["workflow"] for row in plan["excluded"]
+             if row.get("class") in SELECTABLE and row.get("reason") == "no-input-match"} - selected) & blocked
+
+
 def counted_workflows(plan):
     """The workflows whose runs on the head gate_report reads (merge-hold itself never counts)."""
     rows = plan["selected"] + plan["excluded"]
-    return sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW})
+    return sorted({row["workflow"] for row in rows if row.get("workflow")} - {GATE_WORKFLOW}
+                  - unselected_workflows(plan))
 
 
 def gated_workflows(plan):
@@ -634,7 +690,7 @@ def gated_workflows(plan):
     waiting on `needs` or a runtime matrix may not be listed yet."""
     return {row["workflow"] for row in plan["selected"] + plan["excluded"]
             if row.get("class") in SELECTABLE
-            and row.get("reason") not in ("event-not-applicable", "condition-false")}
+            and row.get("reason") not in ("event-not-applicable", "condition-false")} - unselected_workflows(plan)
 
 
 def runs_open(token, repo, pull, head_sha, plan, queue_branch=None):
@@ -874,10 +930,18 @@ def pull_request_gates(token, repo, number, head_sha):
     lines = [f"Plan {plan['plan_id']}: mode {plan['mode']}"
              + (f", fallback {plan['fallback']['code']}" if plan.get("fallback") else "")
              + f", base {base}, head {head_sha}, merge commit {tested}, target {ref}."]
-    if git("merge-base", "--is-ancestor", base, head_sha)[0] != 0:
-        return False, lines + [
-            f"::error::The head {head_sha} does not contain the base tip {base}, so the gate runs did not "
-            "test the tree that would merge. Update the branch; the new head is checked again."]
+    contained = git("merge-base", "--is-ancestor", base, head_sha)[0]
+    if contained != 0:
+        # Advisory only when the head is positively not a descendant (exit 1, not a git error), the
+        # policy enforces and the target lands through a merge queue: its merge_group run judges the
+        # merged tree and refuses a queue commit without its base (merge_group_plan).
+        if contained != 1 or not enforce or not merge_queue_required(token, repo, ref):
+            return False, lines + [
+                f"::error::The head {head_sha} does not contain the base tip {base}, so the gate runs did not "
+                "test the tree that would merge. Update the branch; the new head is checked again."]
+        lines.append(f"::notice::The head {head_sha} does not contain the base tip {base}, so the gate runs "
+                     f"did not test the tree that would merge. {ref} lands only through its merge queue, whose "
+                     "merge_group run re-tests the merged tree, so this is advisory here.")
     budget = min(int((plan.get("budgets") or {}).get("pull_request_wait_minutes", 0)) * 60, MAX_WAIT_SECONDS)
     deadline = time.monotonic() + budget
     fresh = False  # the last report was made after the runs were seen closed
@@ -1003,33 +1067,75 @@ def entry_hold_passed(token, repo, entry_commit, number):
 
 
 def merge_group_plan(base_sha, head_sha):
-    """The checked plan of the queue commit, made before any wait; raise on any doubt."""
-    base, tested = os.environ["BASE_SHA"], os.environ["TESTED_SHA"]
-    for label, sha in (("base", base), ("tested", tested)):
+    """The checked plan of the queue commit, made before any wait; raise on any doubt.
+
+    BASE_SHA is the trusted base T, the commit merge-hold.yml took this file and the selector
+    from: the merge base of the queue commit and protected main. merge_group.base_sha can be the
+    unlanded queue commit of the entry ahead, so it is never a source of tools or catalogue; the
+    diff T..queue commit covers every entry ahead as well (ADR-CI-MERGE-GROUP-SELECT-20261126).
+    """
+    trusted, tested = os.environ["BASE_SHA"], os.environ["TESTED_SHA"]
+    for label, sha in (("trusted base", trusted), ("tested", tested), ("merge group base", base_sha)):
         if not SHA.fullmatch(sha):
             raise ValueError(f"{label} SHA is missing or malformed")
-    # The base files ran from BASE_SHA and the checkout is TESTED_SHA: both must be this group's.
-    if (base, tested) != (base_sha, head_sha):
-        raise ValueError(f"BASE_SHA {base} and TESTED_SHA {tested} are not the merge group base "
-                         f"{base_sha} and queue commit {head_sha}")
-    if git("merge-base", "--is-ancestor", base, head_sha)[0] != 0:
-        raise ValueError(f"the queue commit {head_sha} does not contain the base {base}")
-    plan = recompute_plan(base, head_sha, head_sha, "main", event="merge_group")
-    check_plan(plan, base, head_sha, head_sha, "main", event="merge_group")
+    # The checkout is TESTED_SHA: it must be this group's queue commit.
+    if tested != head_sha:
+        raise ValueError(f"TESTED_SHA {tested} is not the queue commit {head_sha}")
+    code, merge_base = git("merge-base", head_sha, MAIN_REF)
+    if code != 0 or merge_base != trusted:
+        raise ValueError(f"BASE_SHA {trusted} is not the merge base ({merge_base or 'none'}) of the queue "
+                         f"commit {head_sha} and {MAIN_REF}, so the base files are not protected main's")
+    if trusted != base_sha and git("merge-base", "--is-ancestor", trusted, base_sha)[0] != 0:
+        raise ValueError(f"the trusted base {trusted} is not an ancestor of the merge group base {base_sha}")
+    if git("merge-base", "--is-ancestor", base_sha, head_sha)[0] != 0:
+        raise ValueError(f"the queue commit {head_sha} does not contain the base {base_sha}")
+    plan = recompute_plan(trusted, head_sha, head_sha, "main", event="merge_group")
+    check_plan(plan, trusted, head_sha, head_sha, "main", event="merge_group")
+    # Only the diff T..queue commit covers the entries ahead (T is an ancestor of the queue commit).
+    planned = (plan.get("shas") or {}).get("merge_base")
+    if planned != trusted and (planned is not None or plan["mode"] == "select"):
+        raise ValueError(f"the plan diffs from {planned}, not from the trusted base {trusted}")
     return plan
+
+
+def queue_ref():
+    """(queue commit, queue ref, its QUEUE_REF match) of this merge_group run; raise unless it targets main."""
+    head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
+    if os.environ["MERGE_GROUP_BASE_REF"] != "refs/heads/main":
+        raise ValueError("merge group does not target main")
+    head_ref = os.environ["MERGE_GROUP_HEAD_REF"]
+    match = QUEUE_REF.fullmatch(head_ref)
+    if not match or not SHA.fullmatch(head_sha):
+        raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
+    return head_sha, head_ref, match
+
+
+def merge_group_skip(workflow):
+    """The merge-group gate (PR B of ADR-CI-MERGE-GROUP-SELECT-20261126): may `workflow` skip its jobs?
+
+    True only when the checked plan that merge_group_hold makes for this queue commit, from the
+    trusted base T and with the same inputs (queue_ref, merge_group_plan), leaves the workflow out
+    (unselected_workflows): merge-hold then neither awaits nor judges it, so skipping its jobs
+    hides no gate merge-hold expects. Any doubt raises; .github/actions/merge-group-gate then runs
+    every job. merge-hold judges independently either way: a skipped gate it expects blocks.
+    """
+    head_sha, _, _ = queue_ref()
+    plan = merge_group_plan(os.environ["MERGE_GROUP_BASE_SHA"], head_sha)
+    return workflow != GATE_WORKFLOW and workflow in unselected_workflows(plan)
 
 
 def merge_group_hold(token, repo):
     """Return (passed, lines) for the gates of the queue commit and every pull request in the group.
 
-    Time budget. The clock starts here, before the plan. B is the base catalogue's
+    Time budget. The clock starts here, before the plan. B is the trusted base catalogue's
     merge_group budget (0 to MAX_WAIT_SECONDS, 80 min), P the time up to the wait
-    (the plan and the catalogue read: at most SELECTOR_TIMEOUT plus two git calls of
-    at most 120 s each, about 14 min), R = DECISION_RESERVE_SECONDS (3 min). The wait
+    (the plan, up to three git checks of the trusted base and the catalogue read: at most
+    SELECTOR_TIMEOUT plus four git calls of at most 120 s each, 18 min), R =
+    DECISION_RESERVE_SECONDS (3 min). The wait
     gets B - P - R. It checks its deadline after each poll, so it ends at most one
     POLL_SECONDS sleep plus one poll past it, and makes one poll even when
     B - P - R <= 0. Up to that last poll this script, not the job, therefore takes at
-    most max(B - R + POLL_SECONDS, P) <= max(78, 14) = 78 min, for every catalogue budget;
+    most max(B - R + POLL_SECONDS, P) <= max(78, 18) = 78 min, for every catalogue budget;
     the workflow steps before the script are outside this clock.
 
     Assumption, not a proof: the last poll, the decision after the wait and the
@@ -1060,16 +1166,10 @@ def merge_group_hold(token, repo):
     max(B, P) + R, 83 min.
     """
     start = time.monotonic()
-    head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
-    if os.environ["MERGE_GROUP_BASE_REF"] != "refs/heads/main":
-        raise ValueError("merge group does not target main")
-    head_ref = os.environ["MERGE_GROUP_HEAD_REF"]
-    match = QUEUE_REF.fullmatch(head_ref)
-    if not match or not SHA.fullmatch(head_sha):
-        raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
-    base_sha = os.environ["MERGE_GROUP_BASE_SHA"]
+    head_sha, head_ref, match = queue_ref()
+    base_sha, trusted = os.environ["MERGE_GROUP_BASE_SHA"], os.environ["BASE_SHA"]
     plan = merge_group_plan(base_sha, head_sha)
-    budget = base_wait_seconds(base_sha)
+    budget = base_wait_seconds(trusted)
     branch = head_ref.removeprefix("refs/heads/")
     # Decide last: the gates, labels and comments are read only after this group's
     # checks and gate runs and every entry ahead (which merge first) have finished.
@@ -1120,7 +1220,11 @@ def merge_group_hold(token, repo):
         lines.append(f"#{number}: " + (message if passed else "::error::" + message))
     lines.append(f"Plan {plan['plan_id']}: mode {plan['mode']}"
                  + (f", fallback {plan['fallback']['code']}" if plan.get("fallback") else "")
-                 + f", base {base_sha}, queue commit {head_sha} ({branch}), target main.")
+                 + f", trusted base {trusted} (merge base with main), merge group base {base_sha}"
+                 + f", queue commit {head_sha} ({branch}), target main.")
+    unselected = sorted(unselected_workflows(plan) - {GATE_WORKFLOW})
+    if unselected:
+        lines.append(f"Not applicable, neither awaited nor judged (no selected gate): {', '.join(unselected)}.")
     return ok, lines + report + tail
 
 

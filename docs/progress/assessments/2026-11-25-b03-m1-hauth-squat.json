@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "c8b22a3069d0f467c945404dff9e2efcdebf5cf2",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1-HAUTH host-model slice: HAUTH and loader-record squatting, U13c accepted-pair store, permanent-flag-only loader view, swtpm squatting probe (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Host-model tests and a swtpm 0.10.1 squatting probe only; no loader TPM path and no native S5 evidence, the boot-path revival and the both-copies-lost U13c residual remain open, 5A stays in force, no criterion accepted."
+}

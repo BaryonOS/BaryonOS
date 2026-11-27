@@ -13,17 +13,28 @@ const RECOVER: bool = cfg!(feature = "test-system-nas-recover");
 const INTERRUPT: bool = cfg!(feature = "test-system-nas-interrupt");
 /// P04-T1: writable boot on the interrupted image; explicit history repair.
 const REPAIR: bool = cfg!(feature = "test-system-nas-repair");
-const NORMAL: bool = !(RECOVER || INTERRUPT || REPAIR);
-/// Role startup word 112: 0 normal, 1 cold, 2 interrupt, 3 repair.
+/// P02-T3: boot 1 stops the NAS after the guest's first commit and tells the
+/// guest only after the exit; boot 2 recovers that disk writable.
+const OFFLINE: bool = cfg!(feature = "test-system-nas-offline");
+const RESUME: bool = cfg!(feature = "test-system-nas-resume");
+const NORMAL: bool = !(RECOVER || INTERRUPT || REPAIR || OFFLINE || RESUME);
+/// Role startup word 112: 0 normal, 1 cold, 2 interrupt, 3 repair,
+/// 4 offline, 5 resume.
 const STAGE: u64 = if RECOVER {
     1
 } else if INTERRUPT {
     2
 } else if REPAIR {
     3
+} else if OFFLINE {
+    4
+} else if RESUME {
+    5
 } else {
     0
 };
+/// Guest startup word 216: 1 only after the kernel observed the NAS exit.
+const NAS_EXITED: u64 = 216;
 /// NAS startup word 208: 1 only after its explicit repair.
 const REPAIRED: u64 = 208;
 /// Probe exit code and word 40 for the fixture interruption, never success.
@@ -369,6 +380,16 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
     }
     evidence().roles[slot] = Some(words);
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
+    if OFFLINE && slot == NAS {
+        // Fixture-only: the NAS endpoints are revoked before the guest learns
+        // of the exit, so its next request cannot be delivered.
+        require(
+            evidence().roles[GUEST].is_none() && word(s, GUEST, NAS_EXITED) == 0,
+            b"NAS_EXIT_FLAG",
+        );
+        put(s, GUEST, NAS_EXITED, 1);
+        serial::write(b"NAS:NAS_OFFLINE:PASS\n");
+    }
     if slot == GUEST && NORMAL {
         // Fixture-only observation; a userland readiness message is not exit.
         require(word(s, ADMIN, 200) == 0, b"OFFLINE_FLAG");
@@ -422,6 +443,12 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         [(2, 0), (6, 2), (4, 2)]
     } else if REPAIR {
         [(4, 0), (4, 3), (0, 3)]
+    } else if OFFLINE {
+        // Guest: Accept, Open, Stage, Commit, Close; its offline edit is
+        // never delivered. Resume: two head reconciles, then one commit.
+        [(3, 0), (8, 2), (5, 2)]
+    } else if RESUME {
+        [(3, 0), (15, 2), (12, 2)]
     } else {
         [(16, 1), (27, 7), (11, 6)]
     };
@@ -505,6 +532,10 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         b"NAS:CASE:INTERRUPT:PASS\n"
     } else if REPAIR {
         b"NAS:CASE:REPAIR:PASS\n"
+    } else if OFFLINE {
+        b"NAS:CASE:OFFLINE:PASS\n"
+    } else if RESUME {
+        b"NAS:CASE:RESUME:PASS\n"
     } else {
         b"NAS:CASE:NORMAL:PASS\n"
     });

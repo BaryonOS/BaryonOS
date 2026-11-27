@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "20d9089fe78a400143272aa34aa73cfb19f2e992",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/ui-u-537-inputlost-20261127",
+  "task": "UI-U-C10-20261127 U03 / #537: the InputLost banner appears when input fails on an idle Materiaal view",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. When the input service failed on an idle Materiaal view, Controller::cancel_pointer() did not invalidate, so paint_step() never started a frame and the InputLost banner stayed hidden. The controller gains input_lost(), which clears pointer state and always starts a new frame; the three Materiaal input-failure paths call it. Test evidence: the retained-digest host test now idles the editor, fails input and asserts a new generation, the exact banner frame, exactly the changed tiles sent and unchanged focus/caret/anchor/contents; with the call sites reverted it fails (exit 101). Probe evidence at 88530df5, both raw exit 33 and passed=true: native materiaal normal and recover (recover with the normal run as parent). Hosted gates run the normal case only. U03 stays open: #541 (FocusLost banner), #589 (lost surface replies), deny copy, encrypted durable storage and human trials are missing."
+}

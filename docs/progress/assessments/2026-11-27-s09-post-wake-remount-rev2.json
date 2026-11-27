@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "20d9089fe78a400143272aa34aa73cfb19f2e992",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "claude/s09-post-wake-rev2-20261127",
+  "task": "Revision 2 of the post-wake remount design: the six #564 review follow-ups (H 1-3, CodeRabbit 4-6) on VOLUME-POST-WAKE-REMOUNT.md",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: VOLUME-POST-WAKE-REMOUNT.md revision 2 marks the T5f-1 grant as H's proposal (binding after the ADR amendment), adds the positive same-instance native case PW12, separates implementation order from runtime order, describes the global and per-lane scopes of the closed-storage gate, limits the cache invalidation to pre-sleep bytes and states that a chunk changed with a recomputed sum is refused by the reference comparison unless the reference is reproduced (unkeyed FNV-64). Documentation only: RemountRefused, the remount code, a native wake case and physical S3 do not exist; S09 and H05 stay open."
+}

@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "89d006794ea3e62ae1cd18d6db8f9bec5a72e132",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1-HAUTH: native halt-path observation (loader-hauth-no-rng: CLOSED extend, then RNG_ABSENT halt, raw exit 35, no kernel) and the DA lockout counter (0x20E) around the refused owner command on QEMU/swtpm (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. run_tpm.py loader-hauth (two boots, DA counter unchanged at 0, raw 33) and the new loader-hauth-no-rng halt case (raw 35, PCR 13 CLOSED, kernel not entered) pass at source 1438acd9; the four existing cases keep their stdout hashes (docs/verification/b03-rel05-hauth-halt-20261125). TEST-only: no pre-seeded negative cases (squat, unbound LREC, foreign ownerAuth, power cut), no DA sensitivity check, no S3b, genesis, ACCEPTED, UEFI copy, hosted CI, hardware or human audit; no criterion accepted."
+}

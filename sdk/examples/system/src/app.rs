@@ -25,7 +25,8 @@ use nieuw_os_keyring_client::{
     Reply as KeyReply, Session as KeySession, State as KeyState,
 };
 use nieuw_os_sdk_runtime::{
-    native, BlockDevice, EntropySource, Error, Handle, LaunchImage, ReceiveEndpoint, SendEndpoint,
+    native, BlockDevice, EntropySource, Error, Handle, LaunchImage, Outgoing, ReceiveEndpoint,
+    SendEndpoint,
 };
 use protocol::*;
 use volume_core::{checksum_update, client::Client, wire as vw, Status, FNV_OFFSET, PER_DOMAIN};
@@ -98,6 +99,12 @@ const RECORD_OBJECT_REVISION: u64 = 568;
 const RELAY_FIRST: u64 = 736;
 const RELAY_SECOND: u64 = 744;
 const RELAY_CASE: u64 = 752;
+// B01-LOCK A6 (ADR-KEYRING-LOCK-20261126; kernel system_lock.rs APP_*): the
+// kernel's probe and go flags, then this app's send and receive codes.
+const LOCK_PROBE: u64 = 824;
+const LOCK_GO: u64 = 832;
+const LOCK_SEND: u64 = 840;
+const LOCK_RECEIVE: u64 = 848;
 
 /// Context of the persisted record: bound to this volume identity, the exact
 /// domain-0 object and the revision that the commit below creates.
@@ -818,7 +825,11 @@ fn main() -> ! {
         support::put(240, 23);
         restored_record(&mut keys, &mut probe, &sealed);
     }
-    check(keys.close().is_ok() && keys.is_closed(), 21);
+    // B01-LOCK A6: in the lock profile the KEY1 session stays open across LOCK.
+    let lock_probe = support::word(LOCK_PROBE) == 1;
+    if !lock_probe {
+        check(keys.close().is_ok() && keys.is_closed(), 21);
+    }
     for (at, value) in [
         (400, 1),
         (416, 1),
@@ -841,7 +852,26 @@ fn main() -> ! {
         );
     }
     send(registry, DONE);
+    if lock_probe {
+        after_lock(&mut probe, &sealed);
+        check(keys.close().is_ok() && keys.is_closed(), 21);
+    }
     native::exit(0)
+}
+/// B01-LOCK A6 (test profile only): after DONE, wait until the kernel reports
+/// LOCKED, then ask the dead Key Service to unseal the record sealed before
+/// LOCK. The kernel checks both codes: the send is refused and no reply waits.
+fn after_lock(probe: &mut RawKeyProbe, sealed: &[u8; MAX_SEALED]) {
+    while support::word(LOCK_GO) == 0 {
+        let _ = native::yield_now();
+    }
+    let id = probe.next;
+    probe.next += 1;
+    let request = kw::record_request(kw::UNSEAL_RECORD, 1, id, sealed_context(), sealed)
+        .unwrap_or_else(|_| fail(62));
+    let message = Outgoing::new(kw::TAG, &request).unwrap_or_else(|_| fail(62));
+    support::put(LOCK_SEND, code(native::send(probe.send, &message)) as u64);
+    support::put(LOCK_RECEIVE, code(native::receive(probe.receive)) as u64);
 }
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo<'_>) -> ! {

@@ -19,25 +19,119 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
   before any numeric budget becomes binding; budgets are never relaxed after a
   failed measurement.
 
-## Current cycle
+## Current state (27 November 2026, 11:41Z UTC)
 
-- **cycle_id:** R-20261125-1. Session "BaryonOS - Specialist R" [162009],
-  session id `local_42f1c599-7345-4b4f-9270-7850f491fca1`, registered with
-  "BaryonOS - PR Bewaker" (confirmed). Merge hold applies until #519 lands and
-  the CI governance PR records the A/P/L/R delegation after owner review.
-  Before committing in `sdk/examples/compositor` agree the writer with U
-  (`local_f190cfa9`, open PR #523); report any `kernel/` write set to the PR
-  guard in advance (S and H currently write `volume.rs`).
-- **Branch/worktree:** `claude/r-track-20261125` at
-  `~/projects/BaryonOS-worktrees/r-track`, base `origin/main` `5846e1fb`.
-- **Subtask:** reproducible local KVM baseline of the native window session
-  (build `native-window-session-probe`, `tools/run_window_session.py
-  --clipboard`, five runs), to locate the dominant interactive-latency cost.
-- **Driver:** `~/projects/BaryonOS-scratch/r/baseline.sh`; raw output in
-  `~/projects/BaryonOS-scratch/r/baseline2/` (meta.txt with load average per
-  run, build.log, run<N>.log, report<N>.json). Build dirs must stay inside the
-  checkout (`build/r`, `build/r-target`): `run_fpu.private_path` rejects a
-  `NOS_BUILD_DIR` outside it.
+Live state is the newest comment titled "HANDOFF — Specialist R" on
+[#530](https://github.com/BaryonOS/BaryonOS/issues/530); this section is the
+durable baseline. Every fact below can be checked in the repository or on
+GitHub. Local scratch paths are optional additions and are not needed to
+resume.
+
+- **Task and outcome:** R02 performance work on the native window session.
+  Candidate (1), the SUR1 reply wait with `ipc_wait`
+  ([#603](https://github.com/BaryonOS/BaryonOS/pull/603), `ae0fbd5a`), and
+  candidate (2), the compositor clock once per pass
+  ([#578](https://github.com/BaryonOS/BaryonOS/pull/578), `8033e2dd`), have
+  landed. Candidate (3) belongs to Specialist K
+  ([#602](https://github.com/BaryonOS/BaryonOS/pull/602)). R02 stays open on
+  #530; no criterion is accepted (43/100 unchanged).
+- **Invariants and boundaries:** R writes no `kernel/` path. Compositor,
+  `ui/native/` and `docs/handoffs/UI-U/*` belong to U. Budgets are candidate
+  values until R02-L1 has a project-owner decision and are never relaxed after
+  a failed measurement. A native pass is `raw_qemu_exit` 33 plus `passed` true
+  in the report; local KVM or TCG runs are not hosted acceptance. No
+  force-push, admin bypass, direct `main` push or weakened test.
+- **Owner and write set:** Specialist R. `ui/surface-protocol/`,
+  `sdk/runtime/` (transport and reply wait), the performance paths of
+  `sdk/examples/{materiaal,window-session,calculator}` with U as reviewer,
+  new `docs/verification/r02-*-<date>/` directories,
+  `docs/progress/assessments/<date>-r02-*.json`, R02 notes in
+  `docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md` and this file.
+  Lead-owned files (`docs/DECISIONS.md`, `docs/PROJECT-STATE.md`,
+  `docs/progress.json`, generated views) change only with the owner-decision
+  source in the pull-request body.
+- **Repository state:** `BaryonOS/BaryonOS`, `main` at `4c83f304` (#615).
+  This file changes on branch `claude/r02-progress-rows-20261127`; no other R
+  branch carries unmerged or uncommitted work.
+- **Project rules (project owner, 27 November 2026):** every R pull request,
+  documentation and handoff pull requests included, carries its labels,
+  milestone, Project #5 fields, a `Refs #530` link, a D3 assessment in
+  `docs/progress/assessments/<date>-<slug>.json` and, in its body, the
+  criteria it touches and the evidence behind any progress claim; a merge is
+  not acceptance. As criterion owner, R keeps the `delivery_review` rows of
+  R01–R03 in `docs/progress.json` current without separate permission: own
+  rows only, rubric, weights and acceptance unchanged, date and commit in the
+  row text, the global snapshot `date` and `source_commit` untouched, then
+  `python3 tools/progress.py --write` and `--check`. Evidence files that are
+  absent at that `source_commit` are cited as GitHub blob URLs pinned to a
+  `main` commit that contains them; relative paths would render as broken
+  links. Formal criterion acceptance and every score increase belong to the
+  PR guard (project owner, 27 November 2026, 13:14:07Z). Once all acceptance
+  conditions of an R criterion are met and the required independent
+  verification is complete, R reports the criterion ID and evidence links to
+  the guard; R never changes the score itself.
+- **Decisions and sources:**
+  - Materiaal RX code budget 176 KiB (`0x2C000`): project owner, 26 November
+    2026, recorded in #530 issuecomment-7204938267 and reconfirmed in #603
+    issuecomment-7216389420. Whether ADR-MATERIAL-LIBRARY-20261102 keeps the
+    in-place edit or receives a dated amendment is the lead's decision.
+  - SUR1 reply deadline of 150 PIT ticks with three clock relations (client
+    waits until `wait_start + 150`; compositor expires a staged tile at
+    `now >= begin + 200` and an undeliverable reply at `now - start > 200`):
+    U, #589 issuecomment-7213649852.
+  - Condition (c) is "no new frozen end state compared with `main`";
+    live-compositor recovery is U's follow-up #589.
+  - Merges: R enqueues its own merge-ready pull requests in the merge queue
+    (`ADR-MERGE-DELEGATION-20261123`, `ADR-SPECIALIST-TEAM-20261125`) after
+    the pre-merge check: merge state CLEAN or BEHIND, no auto-merge request,
+    no unresolved thread, no queued or running workflow on the head. Never
+    `gh pr merge` on BLOCKED. Non-blocking review comments are answered and
+    resolved without a push and logged as follow-ups on #530.
+- **Last actions and evidence:** #603 landed on 27 November 2026, 11:39:25Z;
+  the tree of `ae0fbd5a` equals `git merge-tree --write-tree 8d079547
+  259de38b` (`9c63aff4`), so the landed content is the reviewed head
+  `259de38b`. Hosted CI on that head: 59 passed, 0 failed; U's GO is #603
+  issuecomment-7216249763. Local evidence with commands, exit status and
+  report hashes: `docs/verification/r02-sur1-ipc-wait-20261127/`. A Graphify
+  note on the clock relations and the recover build-directory pitfall was
+  submitted on 27 November 2026 and awaits review (no record id yet);
+  Graphify is optional context.
+- **Not run:** hosted runs beyond the pull-request CI, WHPX, SMP profiles,
+  physical hardware, guest-side or scanout timestamps; no R02-L1 budget
+  evaluation.
+- **Risks and questions:** the 50-tick deadline margin assumes that the
+  Begin-to-wait gap and the compositor pass skew stay below 50 ticks; the
+  hosted worst reply latency is an estimate (about 20 ticks). #545 (U): probe
+  observation gap behind rare `calculator-restored` timeouts. Owner question:
+  R02-L1 budget values. Lead question: ADR in-place edit or amendment.
+- **Next safe action:** #602 is on hold (#602 issuecomment-7218963989), so
+  the re-baseline waits. When #602 lands or is withdrawn and K has released
+  the shared QEMU slot (K posts on #530 or #602), announce R's slot on #530,
+  re-baseline five KVM window sessions on the new `main` in a new
+  `docs/verification/r02-*-<date>/` directory and rank the next bottleneck.
+- **Acceptance commands and evidence limits:** the `host-checks` and
+  `native-window-session` jobs in `.github/workflows/native-window-session.yml`;
+  `python3 -B tools/run_window_session.py --clipboard --workspace --timeout
+  1800` (scale 1 and 2; `NOS_QEMU_ACCEL=kvm` only for local A/B);
+  `python3 -B tools/run_materiaal_probe.py --case normal|keyboard|recover`
+  (always TCG; recover only in the same `NOS_BUILD_DIR` as its passing normal
+  parent, and build directories inside the checkout). Host phase times sit on
+  the runner's 0.2 s screendump grid; local runs on a shared host are not
+  hosted or physical evidence.
+- **Resume check:** verify branch, HEAD, `git status --short`, open R pull
+  requests and the newest #530 HANDOFF comment before writing; never redo
+  work whose evidence is bound to a landed head. Before any A/B, no other
+  QEMU process may run and K must be informed.
+- **Optional local additions:** raw reports, logs and scripts of the last
+  cycle (`ab7.sh`, the `native-20261127/` runs) stay in R's local scratch
+  directory; their SHA-256 values are in the evidence directory.
+
+## History (closed cycles)
+
+The sections below record completed cycles. Local paths in them point to
+optional raw data on R's host; their conclusions are repeated in the linked
+evidence directories and pull requests.
+
 
 ## Verified findings (source inspection, 25 Nov 2026, `5846e1fb`)
 
@@ -182,9 +276,11 @@ directory. Request U review (UI/a11y); U does not merge. R updates
 
 ## Update 26 Nov 2026
 
-- Session "BaryonOS - Specialist R" [41c0ee] resumed the R workstream after a
+- Session "BaryonOS - Specialist R" resumed the R workstream after a
   context clear and is registered with the PR guard.
 - #526 merged 25 Nov 14:36:38Z as `af0c6f72` (squash of `c02dbded`).
+- #540 merged 26 Nov 19:49:56Z as `ffea3883` through the merge queue (squash of
+  `588a4ba3`; all 13 PR files identical).
 - #540: one `main` merge (`55eeccc7`, includes #523) at `e55e71ac`.
   materiaal-app `.text` 0x27eb3 (< 0x28000). Materiaal host suite green
   (3 unit, 41 chain, 4 retained_digest, 2 semantic_actions); clippy (host
@@ -202,11 +298,87 @@ directory. Request U review (UI/a11y); U does not merge. R updates
   commit is not reported. The log is consistent with this but does not exclude
   a guest stall after the final commit. Pre-existing on `main`.
 
-## Next action
+## Re-baseline after #540 (26 Nov 2026, `ffea3883`)
 
-1. #540: hosted `native-window-session` green at the pushed merge head, then
-   ready, Project #5 In Review, and `gh pr merge --squash --match-head-commit
-   <head>` (merge queue) after the PR guard confirms the order.
-2. After #540 lands: retire worktrees `r-track`, `r-dirty`, `r-base`; next R02
-   bottleneck (unconditional `yield_now`, one ack per tile) from
-   `docs/verification/r02-window-baseline-20261125/`.
+- Five local KVM window sessions: 5/5 raw 33, median 19.50 s (26.93 s before
+  #540); slowest phases are whole-screen changes (`reopened` 0.70 s, `editor`
+  0.68 s, `list` 0.65 s). Evidence: `docs/verification/r02-window-baseline-20261126/`.
+- The window-session profile runs `window-compositor`
+  (`sdk/examples/window-session`), not `sdk/examples/compositor`; earlier
+  notes in this file about the latter's 8-message batch and per-turn
+  `yield_now` do not describe this profile.
+- Verified in source: the SUR1 client keeps one tile in flight and spins
+  receive/`yield_now` for each reply (`ui/surface-protocol/src/client.rs`
+  `receive_reply`); on the single-CPU path every kernel entry ends in a
+  round-robin `select()` that never continues the caller
+  (`kernel/src/m2/m3.rs`). Estimate only: about 40–50 kernel entries per full
+  tile, about 0.35–0.39 ms per tile host-side.
+- Candidate changes and owners: (1) client blocks with `ipc_wait` for the reply
+  (`ui/surface-protocol`, runtime transport; U); (2) window compositor reads
+  the clock once per turn (`sdk/examples/window-session`; U); (3) single-CPU
+  scheduler continues the caller after ordinary system calls
+  (`kernel/src/m2/m3.rs`; kernel owner, needs an explicit decision).
+
+## Candidate (2) in draft PR #578 (26 Nov 2026)
+
+- `5aedee77` makes the window compositor read the clock once per pass instead
+  of once per message and per reply flush (`sdk/examples/window-session`
+  only; activity/commit counting and reporter words 464/480, which belong to
+  U's #545, are unchanged). U reviewed it without blockers; the comment-only
+  review fix leaves the kernel ELF byte-identical.
+- Local KVM A/B against `ffea3883` (5+5 runs, not hosted): all runs raw 33 and
+  passed; `reopened` 0.72 → 0.43 s, `list` 0.67 → 0.42 s, `editor`
+  0.65 → 0.40 s (medians); run duration 19.25 → 17.21 s. High-contrast frames
+  are identical; the frames that differ are focus-switch captures that also
+  vary on `main`. Materiaal normal, keyboard and recover pass on B. Evidence:
+  `docs/verification/r02-compositor-turn-ab-20261126/`.
+
+- #578 landed as `8033e2dd` through the merge queue (26 Nov 2026, 21:54Z);
+  all 17 files are identical to the reviewed head `60dcad68`.
+
+## Candidate (1) record (26–27 November 2026, landed in #603)
+
+1. Candidate (1) as a separate PR (branch `claude/r02-sur1-ipc-wait-20261126`,
+   cut from `8033e2dd`): the SUR1 client waits with `ipc_wait` for the reply
+   (`ui/surface-protocol/src/client.rs` plus a default method on the runtime
+   `Transport` trait). Materiaal uses a poll budget of 100 000, so one 1-tick
+   wait per budget step would raise the worst case to about 1000 s. U agreed
+   (26 Nov 2026, 21:57Z) to one absolute reply deadline per `receive_reply`
+   of 100 ticks (1 s, half the 200-tick stage deadline, so the client error
+   comes first), the iteration budget as the second bound and the existing
+   `yield_now` path below ABI 1.10. U's review conditions: (a) record today's
+   worst reply latency in ticks in the native `calculator-restored`,
+   `recovered` and `workspace-selected` runs; if it exceeds 10 ticks, use
+   200 ticks and justify it; (b) a negative test where a never-answering
+   reply endpoint gives Delivery within the deadline plus one pass, without a
+   hang; (c) after a Delivery error the window does not freeze and the app
+   follows the existing recovery or InputLost path (serial marker until the
+   banner in #541).
+   Status (26 Nov 2026, 22:27Z): implemented locally with host tests for (b).
+   The candidate links Materiaal `.text` at 164355 bytes, above the 160 KiB
+   linker budget (main: 163507 bytes). That budget is Materiaal's own
+   (ADR-MATERIAL-LIBRARY-20261102), not a kernel quota (kernel `user::parse`
+   allows 2016 image pages; Materiaal uses 164). On the project owner's
+   decision the budget is 176 KiB (`0x2C000`); the native
+   `native-window-session-probe` build and the ELF policy test pass locally.
+   Calculator (84118 of 131072 bytes) and window-session stay within budget.
+   Open: (a), (c), native runs and A/B with K; U is informed of the budget change.
+   U decisions (27 Nov 2026, 08:24Z and 08:30Z): (c) is relaxed to "no new
+   frozen end state compared with `main`"; live-compositor recovery moves to
+   U follow-up #589. (a): measured worst replies were KVM 3, local TCG 8
+   (scale 1) and 7 (scale 2) ticks; hosted is estimated at ~20 and ~12. The
+   deadline is therefore 150 ticks, not 100, and not 200: the compositor
+   expires a staged tile at `begin + 200` and an undeliverable reply after
+   `start + 200` on its pass clock, so 150 keeps the client's Delivery error
+   50 ticks ahead, assuming the Begin-to-wait gap and pass skew stay below 50
+   ticks. A Materiaal host test covers a blocking surface that never replies.
+   Status (27 Nov 2026, 10:33Z): on `16071bdc` the local native runs (TCG
+   scale 1 and 2, Materiaal normal, keyboard and recover) are raw 33 and
+   passed, and a local KVM A/B against `main` `20d9089f` (5+5, CI flags)
+   gave a run median of 36.86 s against 37.60 s with an unchanged recovery
+   path (`docs/verification/r02-sur1-ipc-wait-20261127/`). Next: the project
+   owner's approval for the first push, then a draft PR (Limits: #589).
+   Landed on 27 November 2026, 11:39:25Z, as `ae0fbd5a` (#603).
+2. Candidate (3) (single-CPU scheduler continuation) belongs to Specialist K
+   (project-owner decision, 26 Nov 2026, 21:25Z). R does not write `kernel/`
+   and supplies window-session A/B measurements on request.

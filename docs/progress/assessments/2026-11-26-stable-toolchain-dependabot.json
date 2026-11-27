@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "fb4a40fa234deeb0b9ca49c877cbad2ea7d00efd",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/latest-stable-devtools-20261126",
+  "task": "Add bounded weekly Dependabot proposals for the exact Rust toolchain pin and a contract that rejects drift among tracked operational Rust pins while bounding retained evidence and synthetic fixture exceptions",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Development-tool update automation and CI configuration only; no OS product criterion, native acceptance evidence or human audit changes. Updates remain pull-request based and auto-merge remains disabled."
+}

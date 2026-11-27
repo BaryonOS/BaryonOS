@@ -1,0 +1,18 @@
+<h2>Does local-first mean offline?</h2>
+<p>No. Core tasks are intended to work locally, while internet access remains a product requirement. Network permission is separate from permission to read a document or reach a NAS. A remote service cannot become a silent fallback for personal storage.</p>
+
+<h2>Who controls shared storage?</h2>
+<p>The design allows explicitly paired personal or family NAS storage and an explicitly chosen external provider for client-side encrypted objects. The NAS administrator may manage space and remove hosted copies, but receives no content key or right to erase local copies. Encryption does not guarantee availability or hide all size, timing and connection metadata. Native pairing, synchronisation and provider integration remain open work.</p>
+
+<h2>What can an app or assistant access?</h2>
+<p>Installing an app must not grant general file, device or network access. Rights should be limited to the resource, operation and duration needed for the task. System AI inference is required to stay on the user's device without network permission or cloud fallback; a useful native AI assistant has not yet met acceptance. See <a href="/docs/research/">research tracks</a> for the evidence boundary.</p>
+
+<h2>Can a privacy preference turn off core protection?</h2>
+<p>No. The Security Floor requires process isolation, capability enforcement, key isolation, memory protection and authentic packages and updates regardless of privacy preferences. This is a binding design requirement, not a claim that the whole OS has been proven secure. The <a href="/docs/progress/">progress chapter</a> links to accepted evidence and remaining work.</p>
+
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/LOCAL-PRIVACY-CONTRACT.md">Binding privacy contract <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/implementation/NAS-SHARING-AND-INTERNET.md">NAS and internet design <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROGRESS.md">Acceptance and evidence <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/wiki/Privacy-and-Local-first.md">Local-first reading guide <span aria-hidden="true">↗</span></a>
+</div>

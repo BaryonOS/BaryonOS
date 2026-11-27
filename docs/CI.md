@@ -68,7 +68,7 @@ No component test or native test case was removed for this change.
 | Python | 3.12.12 | `.github/actions/setup-python/action.yml` |
 | PyYAML for host tests | 6.0.3, hashed CPython 3.12/Linux x64 wheel | `setup-python/requirements.txt` |
 | Rust | 1.90.0; existing 1.91.1 checks retained | Toolchain files and workflow steps |
-| Node | 24.22.1 for prototype/NAS tests and Copilot | CI and Copilot setup |
+| Node | 24.22.1 for prototype/NAS tests, the net-tls H2 OpenSSL peer and Copilot | CI and Copilot setup |
 | QEMU x86/common/data | `1:8.2.2+ds-0ubuntu1.18` | `.github/actions/setup-qemu/action.yml` |
 | OVMF | `2024.02-2ubuntu0.10` | Same QEMU setup |
 | SeaBIOS | `1.16.3-2` | Same QEMU setup |

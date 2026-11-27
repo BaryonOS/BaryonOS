@@ -186,6 +186,13 @@ def validate_build(build: Path, frozen: str) -> dict:
 def validate_guest(report: dict, bound: dict, frozen: str, machine: str, qemu: str, build: Path) -> dict:
     wait = bound.get("manifest", {}).get("kernel_feature") == "test-fpu-wait"
     required = BOOT + CASES + (("FPU:WAIT:PASS",) if wait else ()) + END
+    check_guest_run(report, bound, frozen, machine, qemu, build, required)
+    return validate_sequence(report["stdout"], wait=wait)
+
+
+def check_guest_run(report: dict, bound: dict, frozen: str, machine: str, qemu: str, build: Path,
+                    required: tuple[str, ...]) -> None:
+    """Exit, command, snapshot and serial-artifact binding shared with run_ai_job."""
     if (type(report.get("raw_qemu_exit")) is not int or report["raw_qemu_exit"] != 33
             or report.get("timed_out") is not False or report.get("passed") is not True
             or report.get("expected_exit") != 33 or report.get("artifact_binding_passed") is not True
@@ -218,7 +225,6 @@ def validate_guest(report: dict, bound: dict, frozen: str, machine: str, qemu: s
         raise ValueError("Guest kernel or loader differs from selected build")
     if private_path(directory / "serial.txt", regular=True).read_bytes().decode("utf-8", "replace") != report.get("stdout"):
         raise ValueError("Reported stdout differs from raw serial artifact")
-    return validate_sequence(report["stdout"], wait=wait)
 
 
 def run_fpu() -> dict:

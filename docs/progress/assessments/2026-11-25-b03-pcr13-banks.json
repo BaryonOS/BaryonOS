@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "2c9fdec93bd2936d38c5689ff1e774dfd4968859",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1-HAUTH: PCR 13 read-back of every active bank after the CLOSED extend (tpm-crb PcrReadBank, loader bank lines, run_tpm check) (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. At source 16ff8409 every provisioned boot reads PCR 13 in the SHA-1, SHA-256, SHA-384 and SHA-512 banks that OVMF 2025.11 activates (mask 0xf), and each equals the bank hash of its zero digest followed by the bank hash of BARYON-TRIAL-CLOSED-V1; halt, probe and kernel-only cases keep their stdout hashes; all thirteen run_tpm cases pass (docs/verification/b03-rel05-pcr13-banks-20261125). TEST-only on swtpm 0.10.1: the INACTIVE branch and the TCG event log are not exercised natively, no provisioning-path halt after NV writes, no ownerAuth/HAUTH equality check, no S3b, genesis, ACCEPTED, UEFI copy, hosted CI, hardware or human audit; no criterion accepted."
+}

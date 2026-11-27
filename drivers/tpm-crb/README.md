@@ -3,7 +3,8 @@
 Safe/no_std and dependency-free, solely for the separately documented
 QEMU10.0.13 locality0 CRB profile. Codecs and register transport are separate.
 There is no MMIO adapter, physical TPM write, kernel integration or native
-anchor claim.
+anchor claim. `event_log` is a bounded parser for the firmware TCG2
+crypto-agile event log, used by the REL-05 TEST loader; it hashes nothing.
 
 Contract, limits, sources and open acceptance:
 [TPM2-CRB.md](../../docs/contracts/TPM2-CRB.md).

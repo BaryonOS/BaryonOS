@@ -3,6 +3,18 @@
 This file is the compact resume pointer for the UI-U workstream. It is not a
 backlog: tasks live in GitHub issues, `docs/progress.json` and the roadmap
 ledger. Newer ADRs and live repository evidence take precedence over this file.
+The canonical live state is the latest `HANDOFF UI-U` comment on the open UI-U
+pull request (as of 27 November 2026:
+[#612 issuecomment-7218112339](https://github.com/BaryonOS/BaryonOS/pull/612#issuecomment-7218112339))
+or, after it lands, on the landed pull request. This file and GitHub are
+sufficient to resume; local paths below are optional additions.
+
+## Resuming
+
+A resuming agent, whatever its client, first verifies the branch, exact HEAD,
+`git status --short`, ownership and the freshness of the latest `HANDOFF UI-U`
+comment against GitHub, and never redoes landed work. Graphify is optional
+context; client-specific start prompts are adapters and hold no state.
 
 ## Scope and mandate (recorded once)
 
@@ -25,22 +37,25 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
 
 ## Current cycle
 
-- **cycle_id:** `UI-U-C8-20261125`
-- **owner session:** local session "BaryonOS - Specialist U (UI/UX)"; a
-  second UI-U session started by the PR watcher withdrew as writer.
-- **task:** U03 read-only refusal — Ctrl+S on a read-only document shows the
-  SDK's `ReadOnly` refusal again. Since #210 the `can_save` gate in
-  `ui/native/src/controller.rs` made it a silent no-op, so the native
-  materiaal `recover` probe timed out in its `readonly` phase (C7).
-- **branch:** `claude/ui-u-readonly-ctrl-s-20261125` (based on `main`),
-  worktree `~/projects/BaryonOS-worktrees/ui-u-cycle8`.
-- **PR:** recorded in the PR itself and in its HANDOFF comment after merge.
-- **Evidence scope:** host tests (`chain.rs`
-  `readonly_reopened_ctrl_s_refuses_visibly`, with a mutation control) and
-  local native `normal` and `recover` probe runs; results are in the PR.
-  Hosted gates never run the `recover` case.
+| Field | Value |
+|---|---|
+| cycle_id | `UI-U-C11-20261127` |
+| Owner | UI-U specialist |
+| Task | #541 (U03 visible status, ADR-058): `Cancel(FocusLost)` and `Cancel(Resync)` cancel press, drag, cursor and the document menu without the Materiaal `Status::InputLost` banner; `SourceLost`, `QueueFull`, `SourceDead` and `CompositorDead` keep it |
+| Branch | `claude/ui-u-541-focuslost-20261127` |
+| PR | #612; tested heads, hosted runs and native evidence are recorded in the PR |
+| Evidence scope | ui-native and materiaal host suites with mutation controls; local native Materiaal `normal` and `recover` and window-session at scale 1 and 2 (raw exit 33). Not hardware evidence or a human audit |
+| Optional local worktree | `~/projects/BaryonOS-worktrees/ui-u-541` |
+| Next | land #612 through the merge queue, confirm #541 closed and Project #5 Done, then #589 (window recovery after lost surface replies with a live compositor) |
 
 ## Previous cycles
+
+- `UI-U-C10-20261127`: #537 idle InputLost banner, merged as #596
+  (`2d0d2d51`); HANDOFF comment on #596.
+- `UI-U-C9-20261126`: #545 window-session reporter sampling and settled
+  taskbar wait, merged as #586 (`627437ff`); HANDOFF comment on #586.
+- `UI-U-C8-20261125`: U03 read-only Ctrl+S refusal, merged as #523
+  (`55eeccc7`) through the merge queue; HANDOFF comment on #523.
 
 - `UI-U-C7-20261125`: #449 native materiaal probe run (no code change);
   `normal` and `keyboard` passed with raw exit 33, `recover` timed out (fixed
@@ -86,7 +101,9 @@ closure = Closed. No schema or permission changes and no artificial issues.
 - Deny copy (`Service(Access)`) stays generic until U03-T3 part 2 proves a real
   deny path; its test stays ignored.
 - #449 is closed (C7 native run). The `recover` readonly-phase timeout found
-  there is fixed by C8.
+  there is fixed by C8 (#523).
+- #559 (Orbitaal `progress.svg`, closes #568) touches protected lead files and
+  waits for the project owner's content review.
 - #448 (Editor 700–783 px compact overlap/collapse): changes frozen frames and
   needs the frame-change list and design approval.
 - U04-K1: no keyboard-only defect remains pinned by an ignored test; held-key
@@ -118,8 +135,19 @@ closure = Closed. No schema or permission changes and no artificial issues.
 7. A `can_save` gate on a shortcut must still surface a read-only refusal;
    the probe's kernel watchdog (20 000 ticks) is the only symptom otherwise.
 8. Host Rust gates use toolchain `1.100.0` (CI), not the `1.90.0` in AGENTS.md.
+9. With the merge queue active, `gh pr merge N --squash --match-head-commit
+   <sha>` enqueues; on a BLOCKED PR it silently enables auto-merge instead, so
+   check `mergeStateStatus` CLEAN and `autoMergeRequest` null first.
+10. `tools/test_window_session.py` pins the exact compositor activity offsets;
+    change it together with `snapshots` in `kernel/src/m2/m3/window_session.rs`.
+11. The window-session compositor sends `Cancel(Resync)` on a shell overlay,
+    window move or mode change and on a source `Sync`; status logic that
+    treats `Resync` as a failure changes the native status-bar rows.
+12. A merge-queue squash does not always close `Closes #N`; verify the issue
+    and Project #5 status after landing and close it with the landing SHA.
 
 ## Next executable task
 
-After C8 merges: the next independent U item from the open list above (for
-example the unbounded `history_count` decode with the storage owner S).
+The single next safe action is stated in the latest `HANDOFF UI-U` comment.
+After #612 lands: #589, then the next independent item from the open list
+above.

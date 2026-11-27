@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "ffea3883870d0aa0f26170d8676015ae31067f53",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "claude/p02-t3-nasp-head-20261125",
+  "task": "P02-T3 NASP Head opcode, NASP client adapter and native offline/resume stages across a NAS cold restart",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. NASP gains read-only opcode 15 Head; native-client gains a Remote trait with a NASP adapter that maps a sent Commit without a valid reply to Unknown. The native NAS gate adds an offline stage (the guest commits revision 1 over NASP, the NAS exits, the next edit cannot deliver Open and stays NeedsReconcile) and a resume stage on the same disk (recovery, a base-0 edit reconciles to Conflict, the offline edit reconciles via Head to Ready and commits revision 2). Both pass with raw QEMU exit 33 and the disk oracle. P02 stays open: no client persistence, in-boot NAS restart, late-reply drop, real transport, identity or power loss."
+}

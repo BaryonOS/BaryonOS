@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "a98e64f9f53ad373e5b0f634b5a3f8b1629f04d7",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/l01-codeql52-20261127",
+  "task": "L01: fix CodeQL alert #52 (py/overly-permissive-file) in the native-job gate test by letting the open umask create the world-readable earlier output instead of an explicit chmod 0o644",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Test-only change to the existing publish() owner-only regression test; no new L01 capability, native evidence or acceptance."
+}

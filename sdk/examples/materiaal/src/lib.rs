@@ -337,9 +337,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             Err(clipboard::Error::Input(error)) => {
                 self.input_failed = true;
                 self.evidence.ready = false;
-                self.controller
-                    .cancel_pointer()
-                    .map_err(Error::Controller)?;
+                self.controller.input_lost().map_err(Error::Controller)?;
                 increment(&mut self.evidence.errors)?;
                 Err(Error::Input(error))
             }
@@ -376,9 +374,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 Err(error) => {
                     self.input_failed = true;
                     self.evidence.ready = false;
-                    self.controller
-                        .cancel_pointer()
-                        .map_err(Error::Controller)?;
+                    self.controller.input_lost().map_err(Error::Controller)?;
                     increment(&mut self.evidence.errors)?;
                     return Err(Error::Input(error));
                 }
@@ -459,9 +455,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 Err(error) => {
                     self.input_failed = true;
                     self.evidence.ready = false;
-                    self.controller
-                        .cancel_pointer()
-                        .map_err(Error::Controller)?;
+                    self.controller.input_lost().map_err(Error::Controller)?;
                     increment(&mut self.evidence.errors)?;
                     return Err(Error::Input(error));
                 }

@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "c218baeaf9a7bd2bf0243432efcb4cd8b0bb0df1",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05: project-owner decision REL-05 section 7.9 (fail closed on TPM clear and anchor loss) in the S1 host model, specification and ADR (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. At source c218baea the S1 host model has no DEGRADED mode: a verified TPM whose anchor is lost or behind, including a clear that keeps the EK, halts with BOOT:FAIL:TPM_ANCHOR and no write, and every halt that only authenticated recovery resolves prints BOOT:RECOVERY:REQUIRED. update-core host tests, rustfmt and clippy pass. Specification sections 7.8 and 7.9, a second ADR amendment and the anchor contract record the decision and each binding condition. Host model only: the loader, native QEMU/swtpm cases (C18a, C19, C21), C23-C30, native S5, U13c, hosted CI, hardware and human audit are missing; the TEST loader's M1-HAUTH re-provisioning after a clear, recovery currency, the recovery authority for both lost copies and the user-visible recovery text are open binding conditions; REL-05 stays open; no criterion accepted."
+}

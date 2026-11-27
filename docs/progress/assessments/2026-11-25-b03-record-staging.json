@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "dd6d093e71f52b3b28a8a6a79c70a441b6592181",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 U13c record staging: proposed rule (staged second ESP path, loader reads both and never writes the ESP, deliverer promotes after both copies advanced) with host-model test staged_record_replacement_converges; awaiting the project owner (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. A proposal and one host-model test (update-core anchor_chain_model 23/23); the normative REL-05 section 10.5 rules are unchanged until the project owner decides. No loader or deliverer code, no native run; C28 stays open, no criterion accepted."
+}

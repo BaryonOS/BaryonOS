@@ -5,18 +5,29 @@
 //!
 //! FIXTURE: the bootstrap grant words in the broker's DATA page stand in for
 //! the trusted permission dialog (U-owned, not built). `test-task-grant-denied`
-//! omits them. This module replaces `sdk_app` via a path attribute in m3.rs.
+//! omits them. Exit detection (A03-T2c-3, owner option A): each client owns
+//! its reply endpoint, so `Engine::exit` revokes it no later than the client's
+//! exit; the broker probes the reply handles and retires on Revoked or Closed.
+//! The kernel writes no lifecycle notice. `test-task-grant-fault` ends the
+//! owner with a ring-3 #UD instead of `exit`, covering the fault cleanup path.
+//! This module replaces `sdk_app` via a path attribute in m3.rs.
 use super::*;
 use capability_core::{RECV, SEND};
 
 const PROCESS_COUNT: usize = 3;
 const TIMEOUT_TICKS: u64 = 2400;
 const DENIED: bool = cfg!(feature = "test-task-grant-denied");
+const FAULT: bool = cfg!(feature = "test-task-grant-fault");
+/// Evidence code of a client that ended by #UD (0x100 | vector 6).
+const UD_END: u64 = 0x106;
+/// Capability-core `Error::Revoked` as the broker stores it (two's complement).
+const REVOKED: u64 = -10i64 as u64;
 
 // Wire values shared with sdk/examples/task-grant-broker/src/lib.rs.
 const OP_READ: u64 = 1;
 const OP_WRITE: u64 = 2;
 const OP_CLOSE: u64 = 3;
+const OP_RETIRE: u64 = 4;
 const OK: u64 = 1;
 const NO: u64 = 2;
 const GO: u64 = 4;
@@ -30,7 +41,7 @@ struct ClientEvidence {
     pid: u64,
     code: u64,
     counter: u64,
-    statuses: [u64; 7],
+    statuses: [u64; 10],
     content: [u64; 2],
 }
 const NONE: ClientEvidence = ClientEvidence {
@@ -38,7 +49,7 @@ const NONE: ClientEvidence = ClientEvidence {
     pid: 0,
     code: 0,
     counter: 0,
-    statuses: [0; 7],
+    statuses: [0; 10],
     content: [0; 2],
 };
 static mut EVIDENCE: [ClientEvidence; 2] = [NONE; 2];
@@ -192,7 +203,7 @@ pub fn manifest(state: &mut State) {
     for slot in 0..PROCESS_COUNT {
         put(state, slot, 32, 1);
         put(state, slot, 40, 0);
-        for offset in (96..400).step_by(8) {
+        for offset in (96..512).step_by(8) {
             put(state, slot, offset, 0);
         }
     }
@@ -211,6 +222,11 @@ pub fn manifest(state: &mut State) {
         put(state, 0, 120, 1);
         put(state, 0, 128, 1);
         put(state, 0, 136, 1);
+        // FIXTURE: the same decision again, applied by the broker after the
+        // owner's close so that the owner holds a fresh grant when it exits.
+        for (index, value) in [1, owner, 1, 1, 1, 1].into_iter().enumerate() {
+            put(state, 0, 360 + index as u64 * 8, value);
+        }
     }
     for (index, slot) in [1usize, 2].into_iter().enumerate() {
         put(state, slot, 0, slot as u64);
@@ -219,6 +235,9 @@ pub fn manifest(state: &mut State) {
         put(state, slot, 176, broker);
         // The value both clients put in the claimed actor field.
         put(state, slot, 184, owner);
+    }
+    if FAULT {
+        put(state, 1, 16, 1);
     }
 
     state.free_baseline = state
@@ -230,26 +249,44 @@ pub fn manifest(state: &mut State) {
 }
 
 pub fn observe_exit(state: &mut State, slot: usize, counter: u64) {
+    if FAULT && slot == 1 {
+        fail(b"OWNER_EXIT_NOT_FAULT");
+    }
+    let code = state.last_event.code;
+    record_end(state, slot, counter, code);
+}
+
+pub fn observe_fault(state: &mut State, slot: usize, _context: &[u64; 22], counter: u64) {
+    if !FAULT || slot != 1 || state.last_event.vector != 6 {
+        print_number(b"TASKGRANT:FAULT_SLOT:", slot as u64);
+        fail(b"UNEXPECTED_FAULT");
+    }
+    record_end(state, slot, counter, UD_END);
+}
+
+/// Capture a client's end before cleanup (which clears its PID and pages).
+fn record_end(state: &mut State, slot: usize, counter: u64, code: u64) {
     if !(1..=2).contains(&slot) || evidence()[slot - 1].exited {
         fail(b"UNEXPECTED_EXIT");
     }
-    let mut statuses = [0u64; 7];
+    // The broker may only learn of the owner's end from the kernel's own
+    // revocation, which runs after this hook; an earlier retirement is not
+    // causal. (The helper ends after the broker has retired the owner.)
+    if slot == 1 && word(state, 0, 152) != 0 {
+        fail(b"RETIRED_BEFORE_END");
+    }
+    let mut statuses = [0u64; 10];
     for (index, status) in statuses.iter_mut().enumerate() {
         *status = word(state, slot, 192 + index as u64 * 8);
     }
     evidence()[slot - 1] = ClientEvidence {
         exited: true,
-        // Captured here: the slot's PID is cleared once exit cleanup runs.
         pid: state.processes[slot].pid,
-        code: state.last_event.code,
+        code,
         counter,
         statuses,
         content: [word(state, slot, 320), word(state, slot, 328)],
     };
-}
-
-pub fn observe_fault(_state: &mut State, _slot: usize, _context: &[u64; 22], _counter: u64) {
-    fail(b"UNEXPECTED_FAULT");
 }
 
 fn entry(pid: u64, op: u64, object: u64, status: u64) -> u64 {
@@ -257,7 +294,9 @@ fn entry(pid: u64, op: u64, object: u64, status: u64) -> u64 {
 }
 
 pub fn poll(state: &mut State) -> Option<*const u64> {
-    if state.ticks >= TIMEOUT_TICKS || state.fault || state.unexpected {
+    // Only the fault case may fault, and only as the recorded owner #UD.
+    let expected_fault = FAULT && evidence()[0].code == UD_END;
+    if state.ticks >= TIMEOUT_TICKS || state.fault && !expected_fault || state.unexpected {
         fail(b"TIMEOUT_OR_FAULT");
     }
     let [owner_evidence, helper_evidence] = *evidence();
@@ -275,15 +314,19 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
     {
         fail(b"LIFECYCLE");
     }
-    if owner_evidence.code != 0 || helper_evidence.code != 0 {
+    let owner_end = if FAULT { UD_END } else { 0 };
+    if owner_evidence.code != owner_end || helper_evidence.code != 0 {
         fail(b"CLIENT_EXIT_CODE");
     }
 
     let owner = owner_evidence.pid;
     let helper = helper_evidence.pid;
     let (first, after_helper, after_close) = if DENIED { (NO, NO, NO) } else { (OK, OK, OK) };
+    let (fresh, after_forged) = if DENIED { (NO, NO) } else { (OK, OK) };
     // The broker's own decision log, in serving order. Helper entries sit
-    // between the owner's phases, so the helper's CLOSE precedes the re-read.
+    // between the owner's phases, so the helper's CLOSE precedes the re-read,
+    // its forged RETIRE precedes the owner's last read, and its final READ
+    // follows the owner's exit and the broker's retirement.
     let expected = [
         entry(owner, OP_READ, 1, first),
         entry(owner, OP_WRITE, 1, NO),
@@ -293,6 +336,10 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         entry(owner, OP_READ, 1, after_helper),
         entry(owner, OP_CLOSE, 1, after_close),
         entry(owner, OP_READ, 1, NO),
+        entry(owner, OP_READ, 1, fresh),
+        entry(helper, OP_RETIRE, 1, NO),
+        entry(owner, OP_READ, 1, after_forged),
+        entry(helper, OP_READ, 1, NO),
     ];
     for (index, value) in expected.into_iter().enumerate() {
         let actual = word(state, 0, 256 + index as u64 * 8);
@@ -303,19 +350,53 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
             fail(b"BROKER_LOG");
         }
     }
-    let (read_ok, denied, close_ok, fixture) = if DENIED { (0, 8, 0, 0) } else { (2, 5, 1, 1) };
+    let (read_ok, denied, close_ok, fixtures, held) = if DENIED {
+        (0, 12, 0, 0, 0)
+    } else {
+        (4, 7, 1, 2, 1)
+    };
     if word(state, 0, 192) != read_ok
         || word(state, 0, 200) != denied
         || word(state, 0, 208) != close_ok
-        // Both helper requests claimed the owner's PID; the owner's were truthful.
-        || word(state, 0, 216) != 2
+        // All four helper requests claimed the owner's PID; the owner's were truthful.
+        || word(state, 0, 216) != 4
         || word(state, 0, 224) != 0
-        || word(state, 0, 144) != fixture
+        || word(state, 0, 144) != fixtures
     {
         fail(b"BROKER_COUNTERS");
     }
-    if owner_evidence.statuses != [first, NO, NO, RESUME, after_helper, after_close, NO]
-        || helper_evidence.statuses != [GO, NO, NO, 0, 0, 0, 0]
+    // Owner grants after the forged RETIRE; then before retirement, retired
+    // and after, all derived from the broker's grant table, not from requests.
+    if word(state, 0, 160) != held {
+        fail(b"FORGED_RETIRE");
+    }
+    if word(state, 0, 152) != 1
+        || word(state, 0, 232) != held
+        || word(state, 0, 240) != held
+        || word(state, 0, 248) != 0
+        // The owner's reply endpoint reported Revoked after its end.
+        || word(state, 0, 448) != REVOKED
+        || word(state, 0, 456) != owner
+        || word(state, 0, 440) != 0
+        // At least one probe saw the live helper, so the live branch ran.
+        || word(state, 0, 464) == 0
+    {
+        fail(b"EXIT_RETIREMENT");
+    }
+    if owner_evidence.statuses
+        != [
+            first,
+            NO,
+            NO,
+            RESUME,
+            after_helper,
+            after_close,
+            NO,
+            fresh,
+            RESUME,
+            after_forged,
+        ]
+        || helper_evidence.statuses != [GO, NO, NO, GO, NO, GO, NO, 0, 0, 0]
     {
         fail(b"CLIENT_STATUSES");
     }
@@ -329,8 +410,12 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
     } else {
         serial::write(
             b"TASKGRANT:OWNER_READ:PASS\nTASKGRANT:OWNER_LIMITS:PASS\n\
-TASKGRANT:HELPER_DENIED:PASS\nTASKGRANT:CLOSE_REVOKES:PASS\n",
+TASKGRANT:HELPER_DENIED:PASS\nTASKGRANT:CLOSE_REVOKES:PASS\n\
+TASKGRANT:FORGED_RETIRE_DENIED:PASS\nTASKGRANT:EXIT_RETIRES:PASS\n",
         );
+    }
+    if FAULT {
+        serial::write(b"TASKGRANT:FAULT_RETIRES:PASS\n");
     }
 
     // Both clients completed exit cleanup. Keep the established address-space

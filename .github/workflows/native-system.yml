@@ -26,7 +26,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  merge-group-gate:
+    # PR B of ADR-CI-MERGE-GROUP-SELECT-20261126: on merge_group only, merge-hold's own plan from
+    # the trusted base T says whether this workflow is left out; only then do the jobs below skip.
+    name: native-system merge-group gate
+    if: ${{ github.event_name == 'merge_group' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history: T is the merge base of the queue commit and main.
+          fetch-depth: 0
+      - name: Decide from merge-hold's plan
+        id: gate
+        uses: ./.github/actions/merge-group-gate
+        with:
+          workflow: .github/workflows/native-system.yml
+
   native-system:
+    needs: merge-group-gate
+    if: ${{ !cancelled() && (needs.merge-group-gate.result != 'success' || needs.merge-group-gate.outputs.run != 'false') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     env:
@@ -62,6 +88,7 @@ jobs:
           cargo +1.100.0 fetch --locked --manifest-path services/net-stack/Cargo.toml
           cargo +1.100.0 fetch --locked --manifest-path sdk/examples/memory/Cargo.toml
           cargo +1.100.0 fetch --locked --manifest-path sdk/examples/ipc-wait-probe/Cargo.toml
+          cargo +1.100.0 fetch --locked --manifest-path experiments/ai/native-job/Cargo.toml
       - name: Native IPC queue waits, revocation and resumable PIT idle
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/ipc-wait-ci
@@ -147,6 +174,14 @@ jobs:
           NOS_TARGET_DIR: ${{ github.workspace }}/target/memory-ci
           CARGO_TARGET_DIR: ${{ github.workspace }}/target/memory-ci-host
         run: python3 -B -u tools/test_memory_system.py
+      - name: Actual native SSE2 AI job under preemption, slot reuse and host-oracle equality
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/ci-ai-job
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/ci-ai-job
+          CARGO_TARGET_DIR: ${{ github.workspace }}/target/ci-ai-job
+        run: |
+          python3 -B tools/build.py --kernel-feature native-ai-job
+          python3 -B tools/run_ai_job.py
       - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
@@ -214,6 +249,14 @@ jobs:
             build/fpu-ci/run/native-fpu-*/
             build/fpu-ci/esp/
             build/fpu-ci/wait/
+            build/ci-ai-job/manifest.json
+            build/ci-ai-job/native-ai-job-result.json
+            build/ci-ai-job/users/ai-job/build-report.json
+            build/ci-ai-job/users/ai-job/disassembly.stdout.txt
+            build/ci-ai-job/users/ai-job/ai-job-native.elf
+            build/ci-ai-job/run/native-ai-job-*/
+            build/ci-ai-job/esp/
+            build/ci-ai-job/logs/
             build/tcp-ci/tcp-system-gate.json
             build/tcp-ci/manifest.json
             build/tcp-ci/logs/

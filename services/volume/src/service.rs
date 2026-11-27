@@ -214,6 +214,16 @@ fn reply(
 
 type Outcome = Result<[u8; SIZE], (Status, u64)>;
 
+/// A certain device abort is Io, except a quarantined lane (-24), which the
+/// caller must see as terminal. Paths with an unknowable outcome stay Unknown.
+fn device(status: Status) -> Status {
+    if status == Status::Quarantined {
+        status
+    } else {
+        Status::Io
+    }
+}
+
 impl Service {
     pub fn new(epoch: u64, table: Table, read_only: bool) -> Self {
         let format_initialized = table.generation != 0;
@@ -626,12 +636,12 @@ impl Service {
             session.received += 1;
             if session.received % SECTOR == 0 {
                 let sector = Self::data_sector(&session, offset / SECTOR);
-                if disk.write(sector, &session.sector).is_err() {
+                if let Err(status) = disk.write(sector, &session.sector) {
                     // Only unreferenced chunks were touched: durable state is
                     // unchanged, so this is a certain abort, not Unknown.
                     self.sessions[domain] = None;
                     self.counters.aborted_sessions += 1;
-                    return Err((Status::Io, 0));
+                    return Err((device(status), 0));
                 }
                 self.counters.data_sectors += 1;
                 session.sector = [0; SECTOR];
@@ -702,9 +712,9 @@ impl Service {
             self.counters.flushes += 1;
             Ok::<(), Status>(())
         })();
-        if staged.is_err() {
+        if let Err(status) = staged {
             self.counters.aborted_sessions += 1;
-            return Err((Status::Io, 0));
+            return Err((device(status), 0));
         }
         let clock = self.next_clock(domain)?;
         let mut entry = current;
@@ -1226,7 +1236,7 @@ impl Service {
         let mut buffer = [0; SECTOR];
         for index in 0..sectors {
             disk.read(base + index as u64, &mut buffer)
-                .map_err(|_| (Status::Io, 0))?;
+                .map_err(|status| (device(status), 0))?;
             self.counters.read_sectors += 1;
             self.cache.bytes[index * SECTOR..(index + 1) * SECTOR].copy_from_slice(&buffer);
         }
@@ -1450,11 +1460,11 @@ impl Service {
             // completes the version (zero padded), so one buffer suffices.
             if received % SECTOR == 0 || complete {
                 let sector = sector_of(&session, offset);
-                if disk.write(sector, &session.sector).is_err() {
+                if let Err(status) = disk.write(sector, &session.sector) {
                     // Only unreferenced reserved chunks: a certain abort.
                     self.sessions[domain] = None;
                     self.counters.aborted_sessions += 1;
-                    return Err((Status::Io, 0));
+                    return Err((device(status), 0));
                 }
                 self.counters.data_sectors += 1;
                 session.sector = [0; SECTOR];
@@ -1484,9 +1494,9 @@ impl Service {
             self.counters.aborted_sessions += 1;
             return Err((Status::Range, 0));
         }
-        if disk.flush().is_err() {
+        if let Err(status) = disk.flush() {
             self.counters.aborted_sessions += 1;
-            return Err((Status::Io, 0));
+            return Err((device(status), 0));
         }
         self.counters.flushes += 1;
         let clock = self.next_clock(domain)?;

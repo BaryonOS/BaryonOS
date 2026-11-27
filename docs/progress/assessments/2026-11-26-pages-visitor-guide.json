@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "d635aad0220649ebafd47133b5fb2573af217349",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/pages-site-20261126",
+  "task": "Add an on-site Baryon OS visitor guide and local topic navigation",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The public guide explains the project and existing evidence and adds no OS implementation or acceptance evidence."
+}

@@ -181,11 +181,19 @@ native-fpu = ["fpu-context", "monotonic-clock"]
 test-fpu-wait = ["native-fpu", "ipc-wait"]
 native-qsim = ["milestone-m3"]
 native-qsim-job = ["milestone-m4"]
+# L01: one ring-3 SSE2 AI job plus the fpu-b canary; single CPU, no sleep/wake.
+native-ai-job = ["fpu-context", "monotonic-clock"]
 native-sdk-app = ["milestone-m4"]
 test-sdk-app-denied = ["native-sdk-app"]
 # A03 grant broker; reuses the sdk-app dispatch with a three-process manifest.
-native-task-grant = ["native-sdk-app"]
+# ipc-wait: the broker probes client reply endpoints (A03-T2c-3, owner option A).
+native-task-grant = ["native-sdk-app", "ipc-wait"]
 test-task-grant-denied = ["native-task-grant"]
+# A03-T2c-3: the owner ends by a ring-3 #UD; its grants must still be retired.
+test-task-grant-fault = ["native-task-grant"]
+# A03-T2c-2: the task-grant broker as sole client of a read-only volume domain 0.
+native-task-grant-volume = ["native-system", "monotonic-clock", "ipc-wait"]
+test-task-grant-volume-denied = ["native-task-grant-volume"]
 # K05 process management: supervisor/worker/client ELFs, spawn/kill/status.
 native-supervisor = ["milestone-m4"]
 test-supervisor-crash = ["native-supervisor"]
@@ -215,8 +223,13 @@ native-system-power = ["native-system", "dep:nieuw-os-acpi-power"]
 test-system-power-flush-error = ["native-system-power"]
 test-system-power-flush-timeout = ["native-system-power"]
 # H05-T4 (ADR-H05-S3-SYSTEM-20261123): test-only SUSPEND 0x91 behind POWER and the storage gate.
-test-system-s3 = ["native-system-power", "acpi-s3-core"]
+# H05-T5d (ADR-KEYRING-LOCK-20261126, KL2): every S3 profile carries LOCK, so no
+# S3 build can skip the LOCKED-and-erased check in SUSPEND.
+test-system-s3 = ["native-system-power", "acpi-s3-core", "native-system-lock"]
 test-system-s3-reinit = ["test-system-s3"]
+# H05-T5d A7 (labelled): a kernel entropy request keeps LOCK at -8, so SUSPEND
+# refuses (-25) and init falls back to S5. Built on the re-init kernel target.
+test-system-s3-lock-busy = ["test-system-s3-reinit", "native-system-lock"]
 # H05 review R1: the volume broker keeps init's SHUTDOWN flush unconsumed;
 # SUSPEND must refuse it (-8), then one labelled gate-defect injection sleeps
 # anyway so that only the post-wake latch keeps the teardown reset off the device.
@@ -229,10 +242,23 @@ test-system-s3-blk-reinit-busy = ["test-system-s3-blk-reinit"]
 test-system-s3-blk-reinit-identity = ["test-system-s3-blk-reinit"]
 test-system-s3-blk-reinit-capacity = ["test-system-s3-blk-reinit"]
 test-system-s3-blk-reinit-no-reset-ack = ["test-system-s3-blk-reinit"]
+# B01-LOCK (ADR-KEYRING-LOCK-20261126, #564): syscall 0x92 ends the Key Service
+# instance through process teardown and scrubs the unused service stack.
+native-system-lock = ["native-system-power"]
+# Labelled acceptance fixture (A2-A6, A9, A10), TEST profile only.
+test-system-lock = ["native-system-lock"]
+# Red controls: no stack scrub; the Key Service exits on its own before LOCK.
+test-system-lock-noscrub = ["test-system-lock"]
+test-system-lock-exit = ["test-system-lock"]
+# H05-T5d red control on the S3 flow: LOCK without the stack scrub request
+# (not test-system-lock, whose fixture runs on the S5 flow only).
+test-system-s3-lock-noscrub = ["test-system-s3", "native-system-lock"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 test-system-nas-interrupt = ["native-system-nas-probe"]
 test-system-nas-repair = ["native-system-nas-probe"]
+test-system-nas-offline = ["native-system-nas-probe"]
+test-system-nas-resume = ["native-system-nas-probe"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.
 native-system-net = ["native-system", "dep:virtio-net-driver"]
 test-system-net-recover = ["native-system-net", "test-system-recover"]
@@ -415,6 +441,9 @@ test-volume-o13-latch = ["test-volume-archive-device"]
 # S09 O13 N38 slice 2 (f): syscall 0x44 on test-scripted disk-1 latch entries
 # and handle scopes; no injected fault; never with test-volume-o13-latch.
 test-volume-o13-latch-0x44 = ["test-volume-archive-device"]
+# S09 K5 per-disk admission fixtures (F1, F2) on the device-1 disk: the kernel
+# postpones observing a held lane only; never with the N38 or power profiles.
+test-volume-k5 = ["test-volume-archive-device"]
 # S09 phase 3 L2 export/restore on the device-1 archive disk (cases 25-28).
 test-volume-l2-export = ["test-volume-archive-device"]
 test-volume-l2-restore = ["test-volume-archive-device"]

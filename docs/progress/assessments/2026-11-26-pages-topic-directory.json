@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "45f58d3f1c4a13e9de4e8c977ef92798346a32d6",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/pages-site-20261126",
+  "task": "Split the public visitor guide into a topic directory and separate chapters",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The website adds topic navigation and wiki-derived explanations; it adds no OS implementation or acceptance evidence."
+}

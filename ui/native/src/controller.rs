@@ -19,7 +19,7 @@ use nieuw_os_document_session::{
     },
     EditMode, SaveOutcome,
 };
-use nieuw_os_input_core::Event;
+use nieuw_os_input_core::{CancelReason, Event};
 use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 use volume_core::PER_DOMAIN;
 
@@ -505,21 +505,33 @@ impl<'a, T: Transport> Controller<'a, T> {
     /// the adapter passes only actual source changed/down bits, never clamped
     /// outside coordinates or a synthetic press.
     pub fn cancel_pointer(&mut self) -> Result<(), Error> {
+        if self.clear_pointer() {
+            self.invalidate()
+        } else {
+            Ok(())
+        }
+    }
+    /// The input service stopped. Clears pointer state like `cancel_pointer`,
+    /// but always starts a new frame so the caller's InputLost banner also
+    /// appears on an idle view (#537). Focus, selection and draft are unchanged.
+    pub fn input_lost(&mut self) -> Result<(), Error> {
+        self.clear_pointer();
+        self.invalidate()
+    }
+    /// Drops press, drag, cursor and menu press; true when any was active.
+    fn clear_pointer(&mut self) -> bool {
         if let Some(desktop) = &mut self.desktop {
             desktop.cancel_pointer();
         }
-        if !self.dragging
-            && self.pressed.is_none()
-            && self.cursor.is_none()
-            && self.menu_pressed.is_none()
-        {
-            return Ok(());
-        }
+        let active = self.dragging
+            || self.pressed.is_some()
+            || self.cursor.is_some()
+            || self.menu_pressed.is_some();
         self.menu_pressed = None;
         self.dragging = false;
         self.pressed = None;
         self.cursor = None;
-        self.invalidate()
+        active
     }
     pub fn refresh(&mut self) -> Result<(), Error> {
         let mut objects = [ListEntry::EMPTY; PER_DOMAIN];
@@ -2110,7 +2122,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(Error::StaleInput);
         }
         self.last_input = envelope.sequence;
-        if let Event::Cancel(_) = envelope.event {
+        if let Event::Cancel(reason) = envelope.event {
             self.cancelled_through = self.cancelled_through.max(envelope.generation);
             if envelope.generation >= self.focus_generation {
                 if let Some(desktop) = &mut self.desktop {
@@ -2120,7 +2132,11 @@ impl<'a, T: Transport> Controller<'a, T> {
                 self.pressed = None;
                 self.cursor = None;
                 self.dismiss_document_menu();
-                if !self.document.is_uncertain()
+                // A window switch (FocusLost) or a compositor resync (shell overlay,
+                // window move, source Sync) is normal desktop behaviour, not an input
+                // failure (#541); like Calculator, only lost input shows the banner.
+                if !matches!(reason, CancelReason::FocusLost | CancelReason::Resync)
+                    && !self.document.is_uncertain()
                     && !self.document.is_conflicted()
                     && !self.document.is_closed()
                 {

@@ -80,7 +80,7 @@ pub(super) fn image_qword(slot: usize, offset: usize) -> u64 {
 }
 
 /// Totals of the assembly counters (diagnostic, `lock inc` on SMP).
-#[cfg(feature = "native-smp-m3")]
+#[cfg(any(feature = "native-smp-m3", feature = "native-ai-job"))]
 pub(super) fn counts() -> (u64, u64) {
     // SAFETY: plain reads of two permanent counters, KERNEL held.
     unsafe {
@@ -89,6 +89,21 @@ pub(super) fn counts() -> (u64, u64) {
             ptr::addr_of!(m3_fpu_restores).read_volatile(),
         )
     }
+}
+
+/// True when every byte of all slot images is zero (observer-only read).
+#[cfg(feature = "native-ai-job")]
+pub(super) fn images_wiped() -> bool {
+    // SAFETY: KERNEL held, IF=0 and no process is live, so no FXSAVE64 can
+    // write these permanent images during this read-only shared view.
+    unsafe {
+        core::slice::from_raw_parts(
+            ptr::addr_of!(IMAGES).cast::<u8>(),
+            core::mem::size_of::<[Image; MAX]>(),
+        )
+    }
+    .iter()
+    .all(|x| *x == 0)
 }
 
 /// Separate observer fixture; never enables rights or supplies process results.

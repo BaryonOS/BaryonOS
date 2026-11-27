@@ -14,6 +14,82 @@ use nieuw_os_nas_core::{
 
 pub const PENDING: usize = 4;
 
+/// One trusted caller's view of a NAS: the in-process core or a local IPC
+/// adapter. The implementation binds the caller; it is never chosen per call.
+pub trait Remote {
+    /// Identity bound by trusted ingress. Used only to route the client's
+    /// own tickets; an adapter must never send it as authority.
+    fn caller(&self) -> Principal;
+    fn open(&mut self, namespace: &[u8; 32]) -> Result<Session, Error>;
+    fn stage(
+        &mut self,
+        session: Session,
+        object: usize,
+        expected: u64,
+        ciphertext: &[u8],
+    ) -> Result<Upload, Error>;
+    /// An adapter that sent the request but got no valid reply returns
+    /// `Unknown`: the commit may have happened.
+    fn commit(&mut self, session: Session, upload: Upload) -> Result<u64, Error>;
+    fn cancel(&mut self, session: Session, upload: Upload) -> Result<(), Error>;
+    fn close(&mut self, session: Session) -> Result<(), Error>;
+    fn head(&mut self, session: Session, object: usize) -> Result<u64, Error>;
+    fn read(
+        &mut self,
+        session: Session,
+        object: usize,
+        revision: u64,
+        out: &mut [u8],
+    ) -> Result<usize, Error>;
+}
+
+/// The in-process core bound to the caller supplied by trusted ingress.
+pub struct Local<'a, 'w, S: Storage> {
+    pub service: &'a mut Service<'w, S>,
+    pub caller: Principal,
+}
+
+impl<S: Storage> Remote for Local<'_, '_, S> {
+    fn caller(&self) -> Principal {
+        self.caller
+    }
+    fn open(&mut self, namespace: &[u8; 32]) -> Result<Session, Error> {
+        self.service.open(self.caller, namespace)
+    }
+    fn stage(
+        &mut self,
+        session: Session,
+        object: usize,
+        expected: u64,
+        ciphertext: &[u8],
+    ) -> Result<Upload, Error> {
+        self.service
+            .stage(self.caller, session, object, expected, ciphertext)
+    }
+    fn commit(&mut self, session: Session, upload: Upload) -> Result<u64, Error> {
+        self.service.commit(self.caller, session, upload)
+    }
+    fn cancel(&mut self, session: Session, upload: Upload) -> Result<(), Error> {
+        self.service.cancel(self.caller, session, upload)
+    }
+    fn close(&mut self, session: Session) -> Result<(), Error> {
+        self.service.close(self.caller, session)
+    }
+    fn head(&mut self, session: Session, object: usize) -> Result<u64, Error> {
+        self.service.head(self.caller, session, object)
+    }
+    fn read(
+        &mut self,
+        session: Session,
+        object: usize,
+        revision: u64,
+        out: &mut [u8],
+    ) -> Result<usize, Error> {
+        self.service
+            .read(self.caller, session, object, revision, out)
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
     Ready,
@@ -218,24 +294,23 @@ impl Client {
         service: &mut Service<'_, S>,
         caller: Principal,
     ) -> Result<(), Failure> {
+        self.prepare_via(slot, &mut Local { service, caller })
+    }
+
+    pub fn prepare_via(&mut self, slot: usize, remote: &mut impl Remote) -> Result<(), Failure> {
+        let caller = remote.caller();
         let edit = self.edit_mut(slot)?;
         if edit.state != State::Ready {
             return Err(Error::ReopenRequired.into());
         }
-        let session = match service.open(caller, &edit.namespace) {
+        let session = match remote.open(&edit.namespace) {
             Ok(session) => session,
             Err(error) => {
                 edit.state = failed(error);
                 return Err(error.into());
             }
         };
-        match service.stage(
-            caller,
-            session,
-            edit.object,
-            edit.base,
-            edit.local_ciphertext(),
-        ) {
+        match remote.stage(session, edit.object, edit.base, edit.local_ciphertext()) {
             Ok(upload) => {
                 edit.state = State::Staged;
                 self.tickets[slot] = Some(Attempt {
@@ -249,7 +324,7 @@ impl Client {
                 edit.state = failed(operation);
                 Err(Failure {
                     operation,
-                    cleanup: service.close(caller, session).err(),
+                    cleanup: remote.close(session).err(),
                 })
             }
         }
@@ -261,11 +336,15 @@ impl Client {
         service: &mut Service<'_, S>,
         caller: Principal,
     ) -> Result<u64, Failure> {
-        let (session, upload) = self.take_ticket(slot, caller)?;
+        self.commit_via(slot, &mut Local { service, caller })
+    }
+
+    pub fn commit_via(&mut self, slot: usize, remote: &mut impl Remote) -> Result<u64, Failure> {
+        let (session, upload) = self.take_ticket(slot, remote.caller())?;
         let edit = self.edit_mut(slot)?;
         edit.state = State::NeedsReconcile;
-        let result = service.commit(caller, session, upload);
-        let cleanup = service.close(caller, session).err();
+        let result = remote.commit(session, upload);
+        let cleanup = remote.close(session).err();
         match result {
             Ok(revision) => {
                 edit.state = State::Published(revision);
@@ -290,10 +369,14 @@ impl Client {
         service: &mut Service<'_, S>,
         caller: Principal,
     ) -> Result<(), Failure> {
-        let (session, upload) = self.take_ticket(slot, caller)?;
+        self.cancel_via(slot, &mut Local { service, caller })
+    }
+
+    pub fn cancel_via(&mut self, slot: usize, remote: &mut impl Remote) -> Result<(), Failure> {
+        let (session, upload) = self.take_ticket(slot, remote.caller())?;
         let edit = self.edit_mut(slot)?;
-        let result = service.cancel(caller, session, upload);
-        let cleanup = service.close(caller, session).err();
+        let result = remote.cancel(session, upload);
+        let cleanup = remote.close(session).err();
         match result {
             Ok(()) => match cleanup {
                 None => {
@@ -341,7 +424,16 @@ impl Client {
         caller: Principal,
         revision: u64,
     ) -> Result<State, Failure> {
-        self.reconcile_at(slot, service, caller, Some(revision))
+        self.reconcile_at(slot, &mut Local { service, caller }, Some(revision))
+    }
+
+    pub fn reconcile_via(
+        &mut self,
+        slot: usize,
+        remote: &mut impl Remote,
+        revision: u64,
+    ) -> Result<State, Failure> {
+        self.reconcile_at(slot, remote, Some(revision))
     }
 
     /// Discover the committed head and observe it without replaying a write.
@@ -351,14 +443,21 @@ impl Client {
         service: &mut Service<'_, S>,
         caller: Principal,
     ) -> Result<State, Failure> {
-        self.reconcile_at(slot, service, caller, None)
+        self.reconcile_at(slot, &mut Local { service, caller }, None)
     }
 
-    fn reconcile_at<S: Storage>(
+    pub fn reconcile_latest_via(
         &mut self,
         slot: usize,
-        service: &mut Service<'_, S>,
-        caller: Principal,
+        remote: &mut impl Remote,
+    ) -> Result<State, Failure> {
+        self.reconcile_at(slot, remote, None)
+    }
+
+    fn reconcile_at(
+        &mut self,
+        slot: usize,
+        remote: &mut impl Remote,
         revision: Option<u64>,
     ) -> Result<State, Failure> {
         let edit = self.edit_mut(slot)?;
@@ -368,7 +467,7 @@ impl Client {
         if edit.state == State::Staged {
             return Err(Error::ReopenRequired.into());
         }
-        let session = match service.open(caller, &edit.namespace) {
+        let session = match remote.open(&edit.namespace) {
             Ok(session) => session,
             Err(error) => {
                 edit.state = failed(error);
@@ -379,16 +478,16 @@ impl Client {
         let read = (|| {
             let revision = match revision {
                 Some(revision) => revision,
-                None => service.head(caller, session, edit.object)?,
+                None => remote.head(session, edit.object)?,
             };
-            let length = match service.read(caller, session, edit.object, revision, &mut bytes) {
+            let length = match remote.read(session, edit.object, revision, &mut bytes) {
                 Ok(length) => length,
                 Err(Error::NotFound) if revision == 0 => 0,
                 Err(error) => return Err(error),
             };
             Ok((revision, length))
         })();
-        let cleanup = service.close(caller, session).err();
+        let cleanup = remote.close(session).err();
         let (revision, length) = match read {
             Ok(observed) => observed,
             Err(operation) => {

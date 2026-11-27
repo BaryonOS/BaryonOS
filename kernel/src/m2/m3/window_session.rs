@@ -72,7 +72,7 @@ struct Runtime {
         feature = "native-window-session-probe",
         feature = "native-session-route"
     ))]
-    compositor_activity: [u64; 10],
+    compositor_activity: [u64; 12],
     #[cfg(any(
         feature = "native-window-session-probe",
         feature = "native-session-route"
@@ -119,7 +119,7 @@ static mut RUNTIME: Runtime = Runtime {
         feature = "native-window-session-probe",
         feature = "native-session-route"
     ))]
-    compositor_activity: [u64::MAX; 10],
+    compositor_activity: [u64::MAX; 12],
     #[cfg(any(
         feature = "native-window-session-probe",
         feature = "native-session-route"
@@ -628,7 +628,7 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
         runtime().app_generations = [u64::MAX; 2];
         runtime().compositor_commits = u64::MAX;
         runtime().compositor_sample_tick = u64::MAX;
-        runtime().compositor_activity = [u64::MAX; 10];
+        runtime().compositor_activity = [u64::MAX; 12];
     }
     runtime().restarts = r
         .restarts
@@ -806,6 +806,10 @@ fn snapshots(s: &State) {
             word(s, COMP, 440),
             word(s, COMP, 448),
             word(s, COMP, 456),
+            // Completed Material/Calculator frames can finish on a RETAIN
+            // without a commit, so they must trigger a sample themselves.
+            word(s, COMP, 464),
+            word(s, COMP, 480),
             word(s, COMP, 496),
             word(s, COMP, 504),
             word(s, COMP, 512),

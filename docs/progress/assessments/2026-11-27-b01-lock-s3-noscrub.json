@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "7238207ce52961872fa68ffe35850c752cb3572f",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b01-lock-s3-noscrub-20261127",
+  "task": "B01-LOCK follow-up for H05-T5d: S3 LOCK noscrub red-control profile (feature, build entry, scrub-request cfg)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Build plumbing only: kernel feature test-system-s3-lock-noscrub (test-system-s3 + native-system-lock), its tools/build.py entry, and the scrub-request cfg widened so both noscrub red controls omit only the m3_scrub_pending write. Local native QEMU/TCG on 7238207c: the new profile builds; power-lock, power-lock-noscrub and power-lock-exit pass unchanged; native-system-lock build, system harness, default build and smoke pass. No runner case exercises the new profile yet (H adds the S3 case in T5d-T), so no S3 LOCK behaviour is accepted here. B01 stays open: no ring-3 program issues 0x92, SUSPEND does not yet gate on erased(), UNLOCK is blocked on O2, O5 and O8, no physical S3 and no human audit."
+}

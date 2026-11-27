@@ -6,6 +6,50 @@ use capability_core::{
     BlockScope, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, PROCESS_EXITED, PROCESS_FAULTED, RECV, SEND,
 };
 
+#[cfg(feature = "native-system-lock")]
+#[path = "system_lock.rs"]
+mod keylock;
+#[cfg(all(
+    feature = "native-system-lock",
+    not(feature = "test-system-s3-lock-busy")
+))]
+pub(super) use keylock::lock;
+// KL2 (ADR-KEYRING-LOCK-20261126): SUSPEND requires LOCKED; kernel/Cargo.toml
+// makes every S3 profile carry LOCK, this pins it.
+#[cfg(all(feature = "test-system-s3", not(feature = "native-system-lock")))]
+compile_error!("every S3 profile requires native-system-lock (KL2)");
+/// H05-T5d A7 (labelled injection, TEST only): init's LOCK attempts while
+/// exactly this many kernel entropy requests keep the broker busy.
+#[cfg(feature = "test-system-s3-lock-busy")]
+const LOCK_BUSY_ATTEMPTS: u64 = 8;
+/// H05-T5d A7: before the real 0x92 handler runs, one kernel entropy request is
+/// in flight (submitted now if the broker is quiet), so LOCK refuses (-8);
+/// anything else stops the VM. SUSPEND then refuses (-25) and init falls back
+/// to S5 once `lock_busy_poll` delivered every such request.
+#[cfg(feature = "test-system-s3-lock-busy")]
+pub(super) fn lock(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
+    // Other callers meet the real handler unchanged (POWER authority, -6).
+    if slot != INIT {
+        return keylock::lock(s, slot, a);
+    }
+    require(
+        suspend_state().busy_locks < LOCK_BUSY_ATTEMPTS,
+        b"S3_LOCK_BUSY_ATTEMPTS",
+    );
+    if keyring::broker_quiet() {
+        let ticket = keyring::kernel_request(s).unwrap_or_else(|_| fail(b"S3_LOCK_BUSY_REQUEST"));
+        let p = suspend_state();
+        require(p.busy_ticket.is_none(), b"S3_LOCK_BUSY_REQUEST");
+        p.busy_ticket = Some(ticket);
+        p.busy_requests += 1;
+    }
+    require(!keyring::broker_quiet(), b"S3_LOCK_BUSY_QUIET");
+    let code = keylock::lock(s, slot, a);
+    require(code == -8 && !keylock::gone(), b"S3_LOCK_BUSY_GRANTED");
+    suspend_state().busy_locks += 1;
+    code
+}
+
 const INIT: usize = 0;
 const KEY: usize = 1;
 const VOLUME: usize = 2;
@@ -111,6 +155,11 @@ pub(super) fn power(s: &State, slot: usize, a: [u64; 6]) -> i64 {
     } else {
         0
     };
+    // B01-LOCK fixture: init's grant waits (-8, not logged) until it is done.
+    #[cfg(feature = "test-system-lock")]
+    if keylock::hold(code) {
+        return -8;
+    }
     let p = power_state();
     if code == 0 {
         p.granted = true;
@@ -153,10 +202,18 @@ struct Suspend {
     /// Init's entropy/block syscalls after the wake: (number, result).
     lost: [(u64, i64); 4],
     lost_count: usize,
-    /// Kernel copy of the Key Service's Entropy handle, taken at manifest
-    /// time; ring 3 can rewrite its startup page, never this.
-    #[cfg(feature = "test-system-s3-reinit")]
-    key_entropy: u64,
+    /// A7: LOCK refusals, kernel requests submitted and delivered, the one
+    /// outstanding ticket, and the drained signal (word 640) given to init.
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_locks: u64,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_requests: u64,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_delivered: u64,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_ticket: Option<u64>,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_drained: bool,
     /// Broker (delivered bytes, denied) at the wake, before any post-wake
     /// request, so post-wake activity cannot pad the pre-sleep evidence.
     #[cfg(feature = "test-system-s3-reinit")]
@@ -179,8 +236,16 @@ static mut SUSPEND: Suspend = Suspend {
     ticked: false,
     lost: [(0, 0); 4],
     lost_count: 0,
-    #[cfg(feature = "test-system-s3-reinit")]
-    key_entropy: 0,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_locks: 0,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_requests: 0,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_delivered: 0,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_ticket: None,
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    busy_drained: false,
     #[cfg(feature = "test-system-s3-reinit")]
     broker_at_wake: (0, 0),
     io_at_wake: (0, 0, 0),
@@ -243,6 +308,7 @@ fn held_check_skipped() -> bool {
 /// e.g. a completed one its owner never consumed, whose teardown would reset
 /// the device after the wake; review R1). One grant per boot (-14
 /// afterwards). 0 = validated wake. Every refusal precedes any I/O.
+/// KL2 (H05-T5d): -25 unless LOCKED and erased (F1), before the storage gate.
 #[cfg(feature = "test-system-s3")]
 pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
     let code = if a[1..].iter().any(|value| *value != 0) {
@@ -251,6 +317,13 @@ pub(super) fn suspend(s: &mut State, slot: usize, a: [u64; 6]) -> i64 {
         error.code()
     } else if !crate::m2::sleep::ready() {
         -14
+    } else if {
+        // A 0x92 in this boot reaches here only in a later kernel entry, so
+        // the exit-path scrub has run (m3_restore, before the CPL3 iretq).
+        keylock::latch();
+        !(keylock::locked() && keylock::erased())
+    } {
+        -25
     } else if let Err(code) = storage_closed() {
         code
     } else if !m5::sleep_quiescent() && !held_check_skipped() {
@@ -333,6 +406,29 @@ pub(super) fn tick_after_wake(s: &State) {
         put(s, INIT, 616, 1);
     }
 }
+/// H05-T5d A7: deliver the kernel's own requests as they complete; once init's
+/// post-LOCK SUSPEND was refused (-25) and none is left, word 640 lets init
+/// continue to S5, so its POWER_OFF meets a closed storage gate at once.
+#[cfg(feature = "test-system-s3-lock-busy")]
+fn lock_busy_poll(s: &State) {
+    if let Some(ticket) = suspend_state().busy_ticket {
+        match keyring::kernel_deliver(s, ticket) {
+            Ok(32) => {
+                let p = suspend_state();
+                p.busy_ticket = None;
+                p.busy_delivered += 1;
+            }
+            // Still pending: the broker's own deadline (-13) bounds the wait.
+            Err(-8) => return,
+            _ => fail(b"S3_LOCK_BUSY_DELIVERY"),
+        }
+    }
+    let p = suspend_state();
+    if !p.busy_drained && p.count == 5 && p.log[4] == -25 && keyring::broker_quiet() {
+        p.busy_drained = true;
+        put(s, INIT, 640, 1);
+    }
+}
 struct Evidence {
     app: Option<[u64; 13]>,
     persist: Option<[u64; 6]>,
@@ -394,6 +490,10 @@ fn put(s: &State, slot: usize, offset: u64, value: u64) {
     write_word(s.processes[slot].physical(DATA + offset), value);
 }
 fn word(s: &State, slot: usize, offset: u64) -> u64 {
+    #[cfg(feature = "native-system-lock")]
+    if slot == KEY && keylock::gone() {
+        return keylock::key_word(offset);
+    }
     read_word(s.processes[slot].physical(DATA + offset))
 }
 #[cfg(not(feature = "native-system-materiaal"))]
@@ -556,7 +656,8 @@ pub(super) fn manifest(s: &mut State) {
         );
         // The app learns init's raw handle value only: a number, not authority.
         put(s, INIT, 48, power);
-        // 1 = SUSPEND sequence; 2 = it also expects one quiescence -8 first.
+        // 1 = SUSPEND sequence; 2 = it also expects one quiescence -8 first;
+        // 3 = A7: LOCK stays -8, SUSPEND -25, then S5 after word 640.
         #[cfg(feature = "test-system-s3")]
         put(
             s,
@@ -564,6 +665,8 @@ pub(super) fn manifest(s: &mut State) {
             592,
             if cfg!(feature = "test-system-s3-held-completion") {
                 2
+            } else if cfg!(feature = "test-system-s3-lock-busy") {
+                3
             } else {
                 1
             },
@@ -621,10 +724,6 @@ pub(super) fn manifest(s: &mut State) {
         (receive, send, reply_receive, reply_send, leaked)
     };
     let entropy = e.create_entropy(key).unwrap();
-    #[cfg(feature = "test-system-s3-reinit")]
-    {
-        suspend_state().key_entropy = entropy;
-    }
     let (volume_reply, volume_send_reply) = channel(e, app, volume);
     let (volume_ingress, app_volume) = channel(e, volume, app);
     // The second volume domain belongs to init (key-state snapshot), never the app.
@@ -723,6 +822,9 @@ pub(super) fn manifest(s: &mut State) {
     ] {
         put(s, APP, offset, value);
     }
+    // B01-LOCK A6: the app keeps its KEY1 session open until after LOCK.
+    #[cfg(feature = "test-system-lock")]
+    put(s, APP, keylock::APP_PROBE, 1);
     // The app's complete handle table at manifest time. Every app check below
     // iterates this one list; APP_HANDLE_COUNT proves that nothing is outside it.
     #[cfg(not(feature = "test-system-keystate-relay-leak"))]
@@ -977,6 +1079,8 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
         }
     } else if slot == APP {
         evidence().app = Some(words);
+        #[cfg(feature = "test-system-lock")]
+        keylock::app_exit(s);
         let mut persist = [0; 6];
         for (i, at) in PERSIST_WORDS.iter().enumerate() {
             persist[i] = word(s, slot, *at);
@@ -1052,9 +1156,10 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     random_fixture::poll(s);
     #[cfg(feature = "test-system-s3-reinit")]
     if resumed() {
-        let handle = suspend_state().key_entropy;
-        keyring::reinit_poll(s, KEY, handle);
+        keyring::reinit_poll(s);
     }
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    lock_busy_poll(s);
     // H05-T5c: lane 0 after the virtio-rng re-init, until settled.
     #[cfg(feature = "test-system-s3-blk-reinit")]
     if resumed() && keyring::reinit_done() && !m5::blk_reinit_settled() {
@@ -1062,6 +1167,10 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     }
     keyring::broker_tick(s);
     m5::broker_tick(s);
+    #[cfg(feature = "native-system-lock")]
+    keylock::latch();
+    #[cfg(feature = "test-system-lock")]
+    keylock::fixture(s);
     #[cfg(feature = "native-system-net")]
     network::broker_tick(s);
     supervisor::reap_orphans(s);
@@ -1157,10 +1266,12 @@ fn finish(s: &mut State) -> ! {
             && admin_bad_caller == 0
             && word(s, KEY, 256) == 0
     } else {
-        admin_seen == if RECOVER { 4 } else { 5 }
+        // B01-LOCK fixture: one more refused request carries the canary.
+        let lock_fixture = u64::from(cfg!(feature = "test-system-lock"));
+        admin_seen == if RECOVER { 4 } else { 5 } + lock_fixture
             && admin_exports == u64::from(!RECOVER)
             && admin_restores == 1
-            && admin_denied == 3
+            && admin_denied == 3 + lock_fixture
             && admin_bad_caller == 0
             && word(s, KEY, 256) == 1
     };
@@ -1178,7 +1289,10 @@ fn finish(s: &mut State) -> ! {
     let (entropy, denied, entropy_idle) = keyring::broker_summary();
     // H05-T5b: judge the pre-sleep values against the bounds below, and the
     // post-wake increments exactly: the kernel's 32-byte delivery, init's -6.
-    #[cfg(feature = "test-system-s3-reinit")]
+    #[cfg(all(
+        feature = "test-system-s3-reinit",
+        not(feature = "test-system-s3-lock-busy")
+    ))]
     let (entropy_before, denied_before) = {
         let (delivered_before, denied_before) = suspend_state().broker_at_wake;
         require(
@@ -1188,7 +1302,10 @@ fn finish(s: &mut State) -> ! {
         );
         (delivered_before, denied_before)
     };
-    #[cfg(not(feature = "test-system-s3-reinit"))]
+    #[cfg(any(
+        not(feature = "test-system-s3-reinit"),
+        feature = "test-system-s3-lock-busy"
+    ))]
     let (entropy_before, denied_before) = (entropy, denied);
     let (published, completed, block_idle) = m5::broker_summary();
     // Power fault fixtures: exactly the injected SHUTDOWN flush never completed.
@@ -1270,7 +1387,39 @@ fn finish(s: &mut State) -> ! {
         print_number(b"SYSTEM:POWER_APP_REFUSALS:", p.count[APP] as u64);
         print_number(b"SYSTEM:POWER_NOT_DURABLE:", u64::from(refused));
     }
-    #[cfg(feature = "test-system-s3")]
+    // H05-T5d A7: no sleep. LOCK refused every attempt (-8, the instance is
+    // still there), SUSPEND refused before and after it (-25), and every
+    // kernel request was delivered before init's S5.
+    #[cfg(feature = "test-system-s3-lock-busy")]
+    {
+        let p = suspend_state();
+        let ok = !p.granted
+            && !p.resumed
+            && !p.ticked
+            && p.log[..p.count] == [-25, -6, -4, -1, -25]
+            && p.lost_count == 0
+            && p.other == 0
+            && p.held_refusals == 0
+            && p.busy_locks == LOCK_BUSY_ATTEMPTS
+            && p.busy_requests >= 1
+            && p.busy_delivered == p.busy_requests
+            && p.busy_ticket.is_none()
+            && p.busy_drained
+            && !keylock::gone()
+            && !keylock::locked();
+        if !ok {
+            for code in &p.log[..p.count] {
+                print_number(b"SYSTEM:SUSPEND:LOG_RESULT:", code.unsigned_abs());
+            }
+            fail(b"S3_LOCK_BUSY_EVIDENCE");
+        }
+        print_number(b"SYSTEM:SUSPEND_REFUSALS:", p.count as u64);
+        print_number(b"SYSTEM:SUSPEND_GRANTED:", 0);
+        print_number(b"SYSTEM:SUSPEND_LOCK_BUSY_REFUSALS:", p.busy_locks);
+        print_number(b"SYSTEM:SUSPEND_LOCK_BUSY_REQUESTS:", p.busy_requests);
+        print_number(b"SYSTEM:SUSPEND_LOCK_BUSY_DELIVERED:", p.busy_delivered);
+    }
+    #[cfg(all(feature = "test-system-s3", not(feature = "test-system-s3-lock-busy")))]
     {
         let p = suspend_state();
         // H05-T5b: after re-init init's entropy request reaches the authority
@@ -1295,9 +1444,9 @@ fn finish(s: &mut State) -> ! {
             && p.ticked
             && s.timer_interrupts > p.irqs_at_wake
             && if cfg!(feature = "test-system-s3-held-completion") {
-                p.log[..p.count] == [-8, -6, -4, -1, -8, 0, -14] && p.held_refusals == 1
+                p.log[..p.count] == [-25, -6, -4, -1, -8, 0, -14] && p.held_refusals == 1
             } else {
-                p.log[..p.count] == [-8, -6, -4, -1, 0, -14] && p.held_refusals == 0
+                p.log[..p.count] == [-25, -6, -4, -1, 0, -14] && p.held_refusals == 0
             }
             && p.lost[..p.lost_count] == [(0x60, entropy), (0x40, block)]
             && p.other == 0;
@@ -1486,7 +1635,14 @@ fn finish(s: &mut State) -> ! {
     #[cfg(feature = "test-system-keystate-relay")]
     relay_check_and_print(s);
     serial::write(b"SYSTEM:BROKERS:PASS\n");
+    #[cfg(feature = "native-system-lock")]
+    keylock::check_and_print();
     for slot in [KEY, VOLUME] {
+        // LOCK already ran the teardown of the Key Service instance.
+        #[cfg(feature = "native-system-lock")]
+        if slot == KEY && keylock::locked() {
+            continue;
+        }
         s.processes[slot].status = Status::Dying;
         s.cleanup(slot);
     }
@@ -1522,7 +1678,7 @@ fn finish(s: &mut State) -> ! {
     // after the wake outside the accounted re-init path, and the latch
     // suppressed exactly the one teardown reset the held-completion fixture
     // provokes (none otherwise).
-    #[cfg(feature = "test-system-s3")]
+    #[cfg(all(feature = "test-system-s3", not(feature = "test-system-s3-lock-busy")))]
     {
         let p = suspend_state();
         let (keyring, volume, accounted) = device_io();
@@ -1575,6 +1731,23 @@ fn finish(s: &mut State) -> ! {
             print_number(b"SYSTEM:POWER:GATE_LOST:", code as u64);
             fail(b"POWER_GATE");
         }
+        // H05-T5d labels: the sleep ran only after this instance was erased;
+        // its unwrap secret is the public TEST constant, and nothing here
+        // claims that key state survives (O5 open).
+        #[cfg(all(feature = "test-system-s3", not(feature = "test-system-s3-lock-busy")))]
+        {
+            require(
+                keylock::locked() && keylock::erased(),
+                b"S3_LABEL_NOT_ERASED",
+            );
+            serial::write(
+                b"SYSTEM:S3:LABEL:instance erased; unwrap secret is a public TEST constant\n",
+            );
+        }
+        #[cfg(feature = "test-system-s3-lock-busy")]
+        serial::write(b"SYSTEM:S3:LOCK_BUSY:LOCK=-8:SUSPEND=-25:S5\n");
+        #[cfg(feature = "test-system-s3")]
+        serial::write(b"SYSTEM:S3:LABEL:no key-state durability claimed (O5 open)\n");
         serial::write(if cfg!(feature = "test-system-s3-held-completion") {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_HELD_COMPLETION:PASS\nM1:PASS\n"[..]
         } else if cfg!(feature = "test-system-s3-blk-reinit-busy") {
@@ -1587,10 +1760,14 @@ fn finish(s: &mut State) -> ! {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT_NO_ACK:PASS\nM1:PASS\n"
         } else if cfg!(feature = "test-system-s3-blk-reinit") {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_BLK_REINIT:PASS\nM1:PASS\n"
+        } else if cfg!(feature = "test-system-s3-lock-busy") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_LOCK_BUSY:PASS\nM1:PASS\n"
         } else if cfg!(feature = "test-system-s3-reinit") {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3_REINIT:PASS\nM1:PASS\n"[..]
         } else if cfg!(feature = "test-system-s3") {
             &b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_S3:PASS\nM1:PASS\n"[..]
+        } else if cfg!(feature = "test-system-lock") {
+            b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER_LOCK:PASS\nM1:PASS\n"
         } else {
             b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n"
         });
