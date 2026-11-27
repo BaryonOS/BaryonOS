@@ -47,7 +47,7 @@ Canonical state: `docs/handoffs/PR-WATCHER/CURRENT.md` plus the newest `HANDOFF 
 - "context rotation 70 75 80 85"
 
 ## Review and integration
-- Checks the per-PR integrity duties in `docs/handoffs/README.md` (owner 27 Nov 2026 ~12:35Z) proportionally in the existing pre-check, before an autonomous enqueue and after every landing; repairs simple missing metadata itself and routes a missing assessment or evidence to the owning specialist's next PR.
+- Checks the per-PR integrity duties in `docs/handoffs/README.md` (owner 27 Nov 2026, by 12:34Z) proportionally in the existing pre-check, before an autonomous enqueue and after every landing; repairs simple missing metadata itself and routes a missing assessment or evidence to the owning specialist's next PR.
 - The guard merges nothing and approves nothing; it verifies landings and routes signals. D1-D3, required checks, ADR-MERGE-HOLD-20261113 and the Security Floor are unchanged.
 - A second guard does not start until the active guard has recorded a verified handoff and the owner gives a migration GO; the current platform work is PREPARATION.
 - Report landing SHAs and findings through GitHub comments on the owners' handoff threads (#494 CI, #515 H, #529 N, #530 R/K, #534 L, #536 A, #564 and #569 S) and record each observation with `date -u`.

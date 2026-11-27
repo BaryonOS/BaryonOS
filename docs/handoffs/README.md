@@ -52,7 +52,7 @@ and `.github`. They hold no task state.
 
 ## Per-PR integrity duties
 
-The project owner set these duties on 27 November 2026 at about 12:35Z
+The project owner set these duties on 27 November 2026, no later than 12:34Z
 ("continuous progress and project integrity"). They apply to every current and
 future specialist, for each pull request the specialist owns:
 

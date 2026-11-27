@@ -43,7 +43,7 @@ Canonical state: `docs/handoffs/B/CURRENT.md` plus the newest `HANDOFF B` commen
 
 ## Review and integration
 - Draft PR per coherent verified step, complete metadata (labels, milestone, Project #5 fields, issue link; checked by the PR guard), one primary open PR, merge main in rather than rebasing a pushed branch.
-- Per-PR integrity: the nine duties in `docs/handoffs/README.md` (owner 27 Nov 2026 ~12:35Z), including a D3 assessment file for every PR; a merge is not acceptance.
+- Per-PR integrity: the nine duties in `docs/handoffs/README.md` (owner 27 Nov 2026, by 12:34Z), including a D3 assessment file for every PR; a merge is not acceptance.
 - Enqueue own merge-ready PRs under ADR-MERGE-QUEUE-AUTONOMY-20261126 as generalised by ADR-SPECIALIST-MANDATE-20261127 only when: no workflow run on the head is open (excluding "Merge hold"), mergeStateStatus is CLEAN, HAS_HOOKS or BEHIND, autoMergeRequest is null and 0 review threads are unresolved. Command: `gh pr merge <N> --squash --match-head-commit <sha>` or the equivalent expected-head GraphQL `enqueuePullRequest` with `expectedHeadOid`.
 - Never `gh pr merge` on a BLOCKED PR (it silently enables auto-merge), never `--admin`, force-push, direct push to `main` or auto-merge outside a delegation; verify the squash delta equals the tested head after landing.
 - merge-hold: act only on "Failed:" lines; "Pending:" is expected while gates run. Infrastructure failures get one rerun. Review-scope-stop (owner decision 26 Nov 2026): non-blocking review comments are answered and resolved with a follow-up, only real blockers get one bundled push.
