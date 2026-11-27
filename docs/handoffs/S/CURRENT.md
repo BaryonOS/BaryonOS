@@ -36,7 +36,8 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   --json databaseId,workflowName,status --jq '[.[] | select(.status !=
   "completed" and .workflowName != "Merge hold")]'` must print exactly `[]`;
   any other output, including empty output on an API error, means wait.
-- **Open PRs:** none besides this handoff refresh. Copilot review quota is
+- **Open PRs:** the K5 native fixtures (branch
+  `claude/s09-k5-fixtures-20261127`; its number is in the live handoff). Copilot review quota is
   exhausted until 3 December 2026; Codex review quota is exhausted; use an
   independent subagent review.
 - **Live handoff:** the newest comment starting with `HANDOFF S` on the
@@ -52,7 +53,7 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ### Local work
 
-None.
+None outside the K5 branch.
 
 ### Owner questions
 
@@ -98,8 +99,8 @@ the H track uses -25 (KL2 SUSPEND, #597) and -27 (H04-TXDOWN, #601).
    per disk; requests on different disks progress independently. Before K5
    one request was served across both disks, and a portal had to reach a
    READY service before its first archive read or the service's recovery
-   read could fail with `Protocol`; keep that order in existing flows until
-   a native fixture shows the per-disk admission.
+   read could fail with `Protocol`. The M6e stage `k5` shows the per-disk
+   admission natively (F1, F2); the earlier flows keep their order.
 5. A native gate failure in one stage can be reproduced alone: copy the
    parent's `volume-image-*` directory and run `tools/run_volume.py --case
    <stage> --volume <copy>`. The parent check binds the source fingerprint,
@@ -133,7 +134,9 @@ the H track uses -25 (KL2 SUSPEND, #597) and -27 (H04-TXDOWN, #601).
 
 ## Next executable task
 
-1. Native K5 fixtures (new stage; S moves its own pins).
+1. Land the K5 native fixtures (M6e stage `k5`, 35 stages): CI's D2
+   review of the two workflow pins and an independent security review of
+   the kernel diff.
 2. `RemountRefused` and the post-wake remount code after the ADR amendment;
    the native PW cases after H's T5d-T, T5e and UNLOCK.
 3. O12 owner-binding design with B and the user/session owner; O1
@@ -149,5 +152,16 @@ unresolved thread, open-run check exactly `[]`, then the GraphQL
 `BLOCKED` PR silently enables auto-merge); the PR guard
 coordinates order and dependencies. Non-blocking review comments on a pushed
 PR are answered, resolved and recorded on the tracking issue, not pushed.
+
+Primary sources for this procedure, checked on 27 November 2026:
+`gh pr merge --help` of GitHub CLI 2.106.0 (GitHub, 25 November 2026; also
+https://cli.github.com/manual/gh_pr_merge) states that on a branch with a
+merge queue the command enables auto-merge when required checks have not yet
+passed and enqueues otherwise; the `enqueuePullRequest` mutation and its
+`expectedHeadOid` input are in the GitHub GraphQL API reference (GitHub,
+https://docs.github.com/en/graphql/reference/mutations#enqueuepullrequest)
+and were confirmed on that date by schema introspection of
+`EnqueuePullRequestInput`. The authority is `ADR-MERGE-QUEUE-AUTONOMY-20261126`
+in `docs/DECISIONS.md`.
 
 Owner decisions D1–D5 and a human audit remain outside S's authority.
