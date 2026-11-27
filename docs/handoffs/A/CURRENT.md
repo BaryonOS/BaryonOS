@@ -259,3 +259,5 @@ question is issuecomment-7227046940; do not assume its answer.
   lifecycle hooks and object scope remain open. No native TPM, hardware or
   independent human audit is claimed. Local resume record:
   `~/projects/BaryonOS-scratch/BaryonOS-Codex-Handoff/01-SPECIALIST-A.md`.
+
+**Handoff update 2026-11-27T22:16:11Z:** owner requested all completed scoped work be pushed before transfer. The nonce repair and this handoff were pushed as PR #650 head `2f7637f9`; the earlier statement that they remain unpushed is superseded. Hosted checks and CodeQL on that head are pending. CI PR #657 is queued; after it lands, integrate current main and rerun exact-head gates. The actual final head is the commit containing this update.
