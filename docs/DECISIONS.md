@@ -159,9 +159,9 @@ recent `main`.
 
 ### Rollback
 
-Revert the `feat(kernel)` commit together with the `test-m3-syscall-spin`
-fixture commits; the fixture fails by design on a kernel without
-continuation.
+Revert the `fix(kernel)` again commit and the `feat(kernel)` commit together
+with the `test-m3-syscall-spin` fixture commits; the fixture fails by design
+on a kernel without continuation or without the again rule.
 
 ## ADR-SPECIALIST-MANDATE-20261127 — every appointed specialist enqueues and integrates its own pull requests
 
