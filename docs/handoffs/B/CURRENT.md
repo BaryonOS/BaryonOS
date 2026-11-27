@@ -28,6 +28,14 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
+- Active B PR: [#649](https://github.com/BaryonOS/BaryonOS/pull/649),
+  `codex/b03-s7-anchor-20261127` in
+  `~/projects/BaryonOS-worktrees/b03-s7-anchor`. It is the REL-05 S7 TEST
+  anchor authority and private completion slice. The latest HANDOFF comment
+  on #649 and its newer comments carry the live head, checks and next step.
+  The native CRB hook, authenticated ENROLL/BootInfo handoff and joint N04
+  evidence remain open; keep the PR draft and N04 option 5A. #608 and #631
+  have landed. Score remains 43/100.
 - Session: local "BaryonOS - Specialist B" (27 Nov, resumed from the #590 HANDOFF comment 7213772692). Merge queue
   autonomy (ADR-MERGE-QUEUE-AUTONOMY-20261126): B enqueues its own merge-ready PRs; the PR guard coordinates and
   does not approve.

@@ -5,6 +5,8 @@
 use crate::{Error, MAX_ANCHOR_DOMAINS};
 
 pub const LIFETIME_TICKS: u64 = 1_000;
+/// N04's three S5 commits plus one spare; charged when NV_Extend is attempted.
+pub const EXTEND_BUDGET_PER_DOMAIN: u8 = 4;
 type Digest = [u8; 32];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -92,13 +94,15 @@ pub struct Work {
 enum Entry {
     Empty,
     Pending(Delivery, Request),
-    Running(Delivery),
+    Running(Delivery, Request),
+    Writing(Delivery),
     Draining(u64),
     Ready(Delivery, Completion),
 }
 
 pub struct Mailboxes {
     entries: [Entry; MAX_ANCHOR_DOMAINS],
+    extends_started: [u8; MAX_ANCHOR_DOMAINS],
     last_ticket: u64,
 }
 
@@ -112,6 +116,7 @@ impl Mailboxes {
     pub const fn new() -> Self {
         Self {
             entries: [Entry::Empty; MAX_ANCHOR_DOMAINS],
+            extends_started: [0; MAX_ANCHOR_DOMAINS],
             last_ticket: 0,
         }
     }
@@ -150,7 +155,9 @@ impl Mailboxes {
         for entry in &mut self.entries {
             let (delivery, expired) = match *entry {
                 Entry::Pending(delivery, _) | Entry::Ready(delivery, _) => (delivery, Entry::Empty),
-                Entry::Running(delivery) => (delivery, Entry::Draining(delivery.ticket)),
+                Entry::Running(delivery, _) | Entry::Writing(delivery) => {
+                    (delivery, Entry::Draining(delivery.ticket))
+                }
                 Entry::Empty | Entry::Draining(_) => continue,
             };
             if now >= delivery.expires_at || !is_live(delivery.authority) {
@@ -173,12 +180,49 @@ impl Mailboxes {
             *entry = Entry::Empty;
             return None;
         }
-        *entry = Entry::Running(delivery);
+        *entry = Entry::Running(delivery, request);
         Some(Work {
             authority: delivery.authority,
             ticket: delivery.ticket,
             request,
         })
+    }
+
+    /// Check under the kernel lock at the transition from a settled compare
+    /// read to the irreversible TPM write. The caller must submit NV_Extend
+    /// before releasing that lock.
+    pub fn may_submit_extend(
+        &mut self,
+        work: Work,
+        now: u64,
+        is_live: impl FnOnce(Authority) -> bool,
+    ) -> Result<(), Failure> {
+        let domain = usize::from(work.authority.domain);
+        let Some(entry) = self.entries.get_mut(domain) else {
+            return Err(Failure::Corrupt);
+        };
+        let Entry::Running(delivery, request) = *entry else {
+            return Err(Failure::Corrupt);
+        };
+        if delivery.authority != work.authority
+            || delivery.ticket != work.ticket
+            || delivery.operation != Operation::Extend
+            || request != work.request
+            || !matches!(request, Request::Extend { .. })
+        {
+            return Err(Failure::Corrupt);
+        }
+        if now >= delivery.expires_at || !is_live(delivery.authority) {
+            *entry = Entry::Draining(delivery.ticket);
+            return Err(Failure::Unavailable);
+        }
+        let started = &mut self.extends_started[domain];
+        if *started >= EXTEND_BUDGET_PER_DOMAIN {
+            return Err(Failure::RateLimited);
+        }
+        *started += 1;
+        *entry = Entry::Writing(delivery);
+        Ok(())
     }
 
     /// Called once the CRB owner has settled the operation, including a
@@ -195,7 +239,7 @@ impl Mailboxes {
             .get_mut(usize::from(domain))
             .ok_or(Error::Invalid)?;
         *entry = match *entry {
-            Entry::Running(delivery) if delivery.ticket == ticket => {
+            Entry::Running(delivery, _) | Entry::Writing(delivery) if delivery.ticket == ticket => {
                 if now < delivery.expires_at {
                     Entry::Ready(delivery, completion.checked_for(delivery.operation))
                 } else {
@@ -223,7 +267,9 @@ impl Mailboxes {
             .get_mut(usize::from(authority.domain))
             .ok_or(Error::Invalid)?;
         let (delivery, completion) = match *entry {
-            Entry::Pending(delivery, _) | Entry::Running(delivery) => (delivery, None),
+            Entry::Pending(delivery, _)
+            | Entry::Running(delivery, _)
+            | Entry::Writing(delivery) => (delivery, None),
             Entry::Ready(delivery, completion) => (delivery, Some(completion)),
             Entry::Draining(_) | Entry::Empty => return Err(Error::BadHandle),
         };
@@ -374,6 +420,129 @@ mod tests {
                 .unwrap(),
             ticket
         );
+    }
+
+    #[test]
+    fn mutation_transition_rechecks_authority_after_compare_read() {
+        for withdrawn in [false, true] {
+            let mut mailboxes = Mailboxes::new();
+            let request = Request::Extend {
+                expected: [1; 32],
+                store: [2; 32],
+            };
+            let ticket = mailboxes.submit(NETWORK, request, 0).unwrap();
+            let work = mailboxes.begin(0, 0, |_| true).unwrap();
+            let now = if withdrawn { 1 } else { LIFETIME_TICKS };
+            assert_eq!(
+                mailboxes.may_submit_extend(work, now, |_| !withdrawn),
+                Err(Failure::Unavailable)
+            );
+            assert_eq!(
+                mailboxes.submit(NETWORK, Request::Read, now),
+                Err(Error::Again)
+            );
+            mailboxes
+                .complete(0, ticket, now, Completion::Failed(Failure::Unavailable))
+                .unwrap();
+            assert_eq!(
+                mailboxes.collect(NETWORK, Operation::Extend, ticket, now, |_| panic!()),
+                Err(Error::BadHandle)
+            );
+            assert!(mailboxes.submit(NETWORK, Request::Read, now).is_ok());
+        }
+        let mut mailboxes = Mailboxes::new();
+        let request = Request::Extend {
+            expected: [1; 32],
+            store: [2; 32],
+        };
+        let ticket = mailboxes.submit(NETWORK, request, 0).unwrap();
+        let work = mailboxes.begin(0, 0, |_| true).unwrap();
+        assert_eq!(
+            mailboxes.may_submit_extend(
+                Work {
+                    request: Request::Extend {
+                        expected: [9; 32],
+                        store: [2; 32],
+                    },
+                    ..work
+                },
+                1,
+                |_| true
+            ),
+            Err(Failure::Corrupt)
+        );
+        assert_eq!(mailboxes.may_submit_extend(work, 1, |_| true), Ok(()));
+        assert_eq!(
+            mailboxes.may_submit_extend(work, 1, |_| true),
+            Err(Failure::Corrupt)
+        );
+        mailboxes.reap(2, |_| false);
+        assert_eq!(
+            mailboxes.submit(NETWORK, Request::Read, 2),
+            Err(Error::Again)
+        );
+        mailboxes
+            .complete(0, ticket, 2, Completion::Extended)
+            .unwrap();
+        assert!(mailboxes.submit(NETWORK, Request::Read, 2).is_ok());
+    }
+
+    #[test]
+    fn extend_budget_is_charged_per_domain_only_when_write_is_attempted() {
+        let mut mailboxes = Mailboxes::new();
+        let request = Request::Extend {
+            expected: [1; 32],
+            store: [2; 32],
+        };
+        for attempt in 0..=EXTEND_BUDGET_PER_DOMAIN {
+            let ticket = mailboxes
+                .submit(NETWORK, request, u64::from(attempt))
+                .unwrap();
+            let work = mailboxes.begin(0, u64::from(attempt), |_| true).unwrap();
+            let result = mailboxes.may_submit_extend(work, u64::from(attempt), |_| true);
+            if attempt < EXTEND_BUDGET_PER_DOMAIN {
+                assert_eq!(result, Ok(()));
+                mailboxes
+                    .complete(0, ticket, u64::from(attempt), Completion::Extended)
+                    .unwrap();
+                assert_eq!(
+                    mailboxes.collect(
+                        NETWORK,
+                        Operation::Extend,
+                        ticket,
+                        u64::from(attempt),
+                        |_| panic!()
+                    ),
+                    Ok(0)
+                );
+            } else {
+                assert_eq!(result, Err(Failure::RateLimited));
+                mailboxes
+                    .complete(
+                        0,
+                        ticket,
+                        u64::from(attempt),
+                        Completion::Failed(Failure::RateLimited),
+                    )
+                    .unwrap();
+                assert_eq!(
+                    mailboxes.collect(
+                        NETWORK,
+                        Operation::Extend,
+                        ticket,
+                        u64::from(attempt),
+                        |_| panic!()
+                    ),
+                    Ok(Failure::RateLimited as u64)
+                );
+            }
+        }
+        let ticket = mailboxes.submit(STORAGE, request, 10).unwrap();
+        let work = mailboxes.begin(1, 10, |_| true).unwrap();
+        assert_eq!(mailboxes.may_submit_extend(work, 10, |_| true), Ok(()));
+        mailboxes
+            .complete(1, ticket, 10, Completion::Extended)
+            .unwrap();
     }
 
     #[test]

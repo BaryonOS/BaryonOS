@@ -134,6 +134,11 @@ the domain from the caller's live manifest-bound `ANCHOR` object. The
 digest, each 32 bytes. Submission validates and copies input in the syscall.
 It returns a nonzero, non-wrapping boot-local ticket in RDX and queues at most
 one request per domain. Submission establishes no commit outcome.
+The TEST profile permits at most four attempted `NV_Extend` commands per
+domain per boot (N04's three S5 commits plus one spare). The budget is
+checked and charged at the deferred mutation boundary, after the compare
+read and live-authority check. A fifth attempt returns `RateLimited` without
+writing; it is never retried automatically.
 
 Collection rechecks the caller, object generation, operation and ticket.
 A pending operation returns `-8 EAGAIN`. After successful collection, RDX
