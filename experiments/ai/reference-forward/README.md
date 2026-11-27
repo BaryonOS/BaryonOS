@@ -136,8 +136,9 @@ the model. `tests/tokenizer_oracle.rs` reads the SHA-256-pinned `tokenizer.json`
 through the verified artifact path and compares pieces and ids with the pinned
 `tokenizers` 0.23.2 reference (the `candle-oracle --bin tokenize` tool): the 819
 committed cases in `tests/fixtures/qwen-tokenizer.json`, the five oracle prompts
-and, with `NOS_TOKENIZER_SWEEP`, an uncommitted CJK sweep of 983 further cases
-(1,802 corpus cases in total) all match. Run it with
+and, with `NOS_TOKENIZER_SWEEP`, an uncommitted `--cjk` sweep all match. The sweep file
+holds 983 cases: the 819 committed ones again plus 164 additional CJK cases, so the
+reported 1,802 comparisons cover 983 distinct texts. Run it with
 `NOS_QWEN_DIR=<model dir> cargo +1.100.0 test --release --locked --test tokenizer_oracle`;
 without the variable it is skipped and proves nothing. Comparing ids alone missed
 character-class mutants, so the test compares pieces as well. Native use of the
