@@ -18,6 +18,8 @@
 #[cfg(feature = "volume-verifier")]
 pub mod archive_verifier;
 pub mod catalog;
+#[cfg(test)]
+mod catalog_transitions_v2;
 pub mod device;
 pub mod service;
 pub mod wire;
