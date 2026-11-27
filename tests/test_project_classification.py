@@ -375,11 +375,77 @@ class TokenHandlingTests(unittest.TestCase):
     def test_rejected_token_returns_failure(self):
         def denied(token, query, variables):
             raise RuntimeError("GitHub GraphQL HTTP 401")
+        out = io.StringIO()
         with mock.patch.dict(os.environ, {"BARYON_PROJECTS_TOKEN": "x"}), \
                 mock.patch.object(pc, "graphql", denied), \
                 mock.patch.object(sys, "argv", ["project_classification.py"]), \
-                contextlib.redirect_stderr(io.StringIO()):
+                contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(pc.main(), 1)
+        # The hygiene report still runs, and its own failure is one warning without PR text.
+        self.assertIn("::warning::PR hygiene report skipped (RuntimeError).", out.getvalue())
+
+
+def pull(number=7, title="docs(handoffs): refresh", body="Refs #494", labels=("documentation",),
+         milestone=True, paths=("docs/progress/assessments/2026-11-27-x.json",), total=None,
+         bot=False, draft=False):
+    return {"number": number, "title": title, "isDraft": draft, "body": body,
+            "author": {"__typename": "Bot" if bot else "User"},
+            "milestone": {"number": 1} if milestone else None,
+            "labels": {"totalCount": len(labels), "nodes": [{"name": n} for n in labels]},
+            "files": {"totalCount": len(paths) if total is None else total,
+                      "nodes": [{"path": p} for p in paths]}}
+
+
+class HygieneTests(unittest.TestCase):
+    def test_complete_pull_request_passes(self):
+        self.assertEqual(pc.pr_hygiene(pull()), ([], []))
+
+    def test_each_missing_duty_is_named(self):
+        node = pull(body="See the plan.", labels=(), milestone=False, paths=("tools/x.py",))
+        self.assertEqual(pc.pr_hygiene(node),
+                         (["labels", "milestone", "link", "assessment"], []))
+
+    def test_bot_pull_requests_are_exempt(self):
+        self.assertEqual(pc.pr_hygiene(pull(body="", labels=(), milestone=False, bot=True)),
+                         ([], []))
+
+    def test_ci_pull_requests_need_no_milestone(self):
+        for title, labels in (("ci(merge-group): skip", ()), ("fix(ci): pin", ()),
+                              ("chore: tidy", ("area:ci",))):
+            node = pull(title=title, labels=labels or ("maintenance",), milestone=False)
+            self.assertEqual(pc.pr_hygiene(node), ([], []), title)
+        self.assertEqual(pc.pr_hygiene(pull(milestone=False)), (["milestone"], []))
+
+    def test_issue_link_forms(self):
+        for body in ("Refs #494", "Part of #12.", "Closes BaryonOS/BaryonOS#3", "fixes #9"):
+            self.assertNotIn("link", pc.pr_hygiene(pull(body=body))[0], body)
+        for body in ("#494", "Refs 494", "", None):
+            self.assertIn("link", pc.pr_hygiene(pull(body=body))[0], body)
+
+    def test_cut_off_file_list_leaves_the_assessment_unknown(self):
+        self.assertEqual(pc.pr_hygiene(pull(paths=("a.py",), total=101)), ([], ["assessment"]))
+        node = pull()
+        node["files"] = None
+        self.assertEqual(pc.pr_hygiene(node), ([], ["assessment"]))
+        nested = pull(paths=("docs/progress/assessments/old/x.json",))
+        self.assertEqual(pc.pr_hygiene(nested), (["assessment"], []))
+
+    def test_report_prints_numbers_and_rule_names_only(self):
+        hostile = "::error::injected %0A title"
+        fake = FakeGitHub([], [], [pull(number=9, title=hostile, body=hostile, labels=(),
+                                        draft=True),
+                                   pull(number=3, paths=("a.py",), total=500),
+                                   pull(number=4)])
+        out = io.StringIO()
+        with mock.patch.object(pc, "graphql", fake), contextlib.redirect_stdout(out):
+            pc.report_hygiene("token", "BaryonOS/BaryonOS")
+        self.assertEqual(out.getvalue().splitlines(), [
+            "PR hygiene #3: unknown assessment",
+            "PR hygiene #9 (draft): missing labels, link",
+            "::warning::PR hygiene: 1 of 3 open pull requests miss a per-PR duty "
+            "(report only; docs/handoffs/README.md).",
+        ])
+        self.assertEqual(fake.mutations, [])
 
 
 if __name__ == "__main__":
