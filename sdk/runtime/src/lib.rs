@@ -277,7 +277,11 @@ impl Rights {
     pub const INPUT: Self = Self(8192);
     /// Manifest-only system power request for init; never delegable.
     pub const POWER: Self = Self(16384);
-    pub const KNOWN_MASK: u64 = 32767;
+    /// L01: map one sealed, verified, read-only artifact; manifest-only.
+    pub const ARTIFACT_MAP: Self = Self(32768);
+    /// L01: read sealed artifact bytes and report a digest; manifest-only.
+    pub const ARTIFACT_VERIFY: Self = Self(65536);
+    pub const KNOWN_MASK: u64 = 131071;
 
     pub const fn from_bits(bits: u64) -> Result<Self, Error> {
         if bits & !Self::KNOWN_MASK != 0 {

@@ -1,0 +1,17 @@
+<h2>Which environment is the development baseline?</h2>
+<p>The first target is x86_64 with UEFI firmware in QEMU. A fixed virtual configuration makes native behavior reproducible while the kernel, services and product are integrated. It does not establish support for an arbitrary laptop, desktop, GPU, Wi-Fi adapter or power controller.</p>
+
+<h2>Why is physical installation not recommended?</h2>
+<p>The release requirements still include a supported hardware matrix, safe installation and recovery, graphics and audio usability, network hardware, sleep/wake, thermal and battery behavior, DMA/IOMMU boundaries and repeated combined workloads. Those functions can fail in ways a virtual machine does not model.</p>
+
+<h2>What would a supported device need?</h2>
+<p>A named reference configuration needs its exact firmware and components recorded, its normal and failure paths tested, and its limitations published. Evidence for one device does not imply support for every PC. Real-disk installation or firmware operations require separate explicit authorization and recoverable procedures.</p>
+
+<h2>What is the release boundary?</h2>
+<p>A release is more than a bootable image. It requires reproducible artifacts, licenses and provenance, accessible recovery, patch and maintenance arrangements, responsible reporting, sustained workload evidence and completed product tasks on the final integrated source.</p>
+
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/FULL-TEST-RELEASE.md">Full release requirements <span aria-hidden="true">↗</span></a>
+  <a href="/docs/try/">Safe QEMU route <span aria-hidden="true">→</span></a>
+  <a href="/status/">Current readiness <span aria-hidden="true">→</span></a>
+</div>

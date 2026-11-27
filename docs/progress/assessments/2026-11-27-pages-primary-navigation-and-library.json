@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "f49bbb46df36d9c1662e4ba375dfb382753ac0da",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/pages-progress-orbitaal-20261127",
+  "task": "Separate Status and Contribute from Docs and expand the public visitor documentation library",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The public website improves navigation and adds visitor-oriented explanations based on existing project sources; it adds no OS implementation or acceptance evidence."
+}

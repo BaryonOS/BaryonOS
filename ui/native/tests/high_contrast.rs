@@ -634,6 +634,7 @@ fn disabled_hover_status_and_tile_bounds_are_role_based() {
         );
         for status in [
             Status::Failed(Error::InvalidInput),
+            Status::CollectionSavedAssignmentFailed,
             Status::Saved { revision: 3 },
             Status::Saving {
                 completed: 1,
@@ -651,7 +652,10 @@ fn disabled_hover_status_and_tile_bounds_are_role_based() {
                     width: layout.status.width,
                     height: 24,
                 },
-                if matches!(status, Status::Failed(_)) {
+                if matches!(
+                    status,
+                    Status::Failed(_) | Status::CollectionSavedAssignmentFailed
+                ) {
                     DANGER
                 } else {
                     MUTED
@@ -680,6 +684,62 @@ fn disabled_hover_status_and_tile_bounds_are_role_based() {
                 .is_err());
             assert_eq!(guarded, before);
             assert!(frame.render_tile(0, 0, &mut []).is_err());
+        }
+    }
+}
+
+#[test]
+fn assignment_failure_uses_danger_in_both_status_regions_and_palettes() {
+    let viewport = Viewport::new(800, 600, Scale::Percent100, 1).unwrap();
+    for screen in [Screen::Material, Screen::Organize] {
+        for high_contrast in [false, true] {
+            let mut state = view(viewport, &[]);
+            state.screen = screen;
+            state.high_contrast = high_contrast;
+            state.status = Status::CollectionSavedAssignmentFailed;
+            let frame = Frame::new(state);
+            let bounds = if screen == Screen::Material {
+                frame.layout().status
+            } else {
+                Rect {
+                    x: 24,
+                    y: viewport.logical_height() - 40,
+                    width: viewport.logical_width() - 48,
+                    height: 24,
+                }
+            };
+            let expected = if high_contrast {
+                DANGER
+            } else {
+                nieuw_os_materiaal::design::DANGER
+            };
+            let image = pixels(state);
+            let nearest = (bounds.y..(bounds.y + bounds.height).min(viewport.height()))
+                .flat_map(|y| {
+                    (bounds.x..(bounds.x + bounds.width).min(viewport.width())).map(move |x| (x, y))
+                })
+                .map(|(x, y)| image[(y * viewport.width() + x) as usize])
+                .map(|color| {
+                    [0, 8, 16]
+                        .into_iter()
+                        .map(|shift| {
+                            ((color >> shift) & 255)
+                                .abs_diff((expected >> shift) & 255)
+                                .pow(2)
+                        })
+                        .sum::<u32>()
+                })
+                .min()
+                .unwrap();
+            assert!(
+                nearest <= 3 * 32 * 32,
+                "missing danger glyph in {screen:?}, high contrast={high_contrast}"
+            );
+            let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+            let count = frame.semantics(&mut nodes).unwrap();
+            assert!(nodes[..count]
+                .iter()
+                .any(|node| node.id == SemanticId::Status && !node.label.is_empty()));
         }
     }
 }

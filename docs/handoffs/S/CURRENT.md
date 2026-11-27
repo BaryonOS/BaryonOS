@@ -28,7 +28,8 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   tracking #564) and `Status::Quarantined` -24 with design
   revision 1 (PR #587, `43101e46`). On 27 November 2026 the post-wake
   remount design revision 2 (#564 follow-ups 1–6, documentation only) landed
-  (PR #594, `095c0d24`). None of them accepts S09.
+  (PR #594, `095c0d24`), followed by the K5 native fixtures with the
+  35-stage M6e gate (PR #623, `09238416`). None of them accepts S09.
 - **Owner:** the S session ("BaryonOS - Specialist S"). Merge order is
   coordinated by the PR guard; S enqueues its own merge-ready PRs.
   Immediately before enqueueing (PR guard, 26 November 2026):
@@ -36,13 +37,16 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   --json databaseId,workflowName,status --jq '[.[] | select(.status !=
   "completed" and .workflowName != "Merge hold")]'` must print exactly `[]`;
   any other output, including empty output on an API error, means wait.
-- **Open PRs:** the K5 native fixtures (branch
-  `claude/s09-k5-fixtures-20261127`; its number is in the live handoff). Copilot review quota is
+- **Open PRs:** the ADR amendments for catalog v2 V1–V9, DUALDISK O4 (b)
+  and the post-wake remount (branch
+  `claude/s09-adr-catalog-v2-remount-20261127`; its number is in the live
+  handoff). `docs/DECISIONS.md` is lead-owned, so G reviews it before it is
+  enqueued. Copilot review quota is
   exhausted until 3 December 2026; Codex review quota is exhausted; use an
   independent subagent review.
 - **Live handoff:** the newest comment starting with `HANDOFF S` on the
   coordination issue #610; currently
-  https://github.com/BaryonOS/BaryonOS/issues/610#issuecomment-7217110093
+  https://github.com/BaryonOS/BaryonOS/issues/610#issuecomment-7219609815
   (task, invariants, write set, branch and HEAD, decisions, commands with
   exit codes, not run, risks, next safe action). This file plus that comment
   are the canonical S state; no chat history, memory or specific tool is
@@ -60,22 +64,34 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   weights and acceptance unchanged, the global snapshot date and
   `source_commit` untouched, then `tools/progress.py --write` and `--check`;
   the score rises only on full acceptance after independent verification.
+  Formal acceptance and every score change are done by the PR guard (owner,
+  27 November 2026, 13:14Z): S delivers the criterion ID and the evidence
+  links and never changes the score itself.
 - **Communication:** #610 (handoff), #564 (post-wake remount, with the H
   track), #569 (catalog v2) and the open S PR.
 
 ### Local work
 
-None outside the K5 branch.
+None outside the ADR branch.
 
-### Owner questions
+### Owner decisions of 27 November 2026
 
-V1–V9 in `docs/implementation/S09-CATALOG-V2.md` section 9 (catalog v2 for
-O3 controlled deletion and O5 backup time), tracked in #569 with the
-zero-time RTC follow-up. No catalog v2 code before the answers.
-
-The `RemountRefused` status value is fixed by an ADR amendment reserved for
-the project owner; S does not prepare that amendment. Revision 2 proposes -26;
-the H track uses -25 (KL2 SUSPEND, #597) and -27 (H04-TXDOWN, #601).
+- Catalog v2 V1–V9 (#569, issuecomment-7219366565): every proposal of
+  `S09-CATALOG-V2.md` section 9 was accepted, recorded in the amendment of
+  `ADR-S09-DESTINATION-20261119`. V1 puts the O12 owner binding into the one
+  v2 migration, so the v2 codec waits for the owner-field meaning agreed with
+  B and U (proposal on #564, issuecomment-7219584216); allocation and the
+  transitions may proceed with a zero owner field.
+- Post-wake remount (#564, issuecomment-7219366917): `RemountRefused` -26
+  (if still unused at integration), terminal until a cold reboot; R1 and R2
+  binding. Recorded in the amendment "H05-T5c Q2, S side" of
+  `ADR-H05-S3-SYSTEM-20261123`. S drafts the ADR amendments under this
+  mandate.
+- B01-LOCK (#564, issuecomment-7219397369, recorded by B in #631): O8 fixes
+  authentication → T5f-1 → UNLOCK → T5f-2; O7 starts a joint B+S design of
+  authenticated volume metadata (S's format facts and constraints:
+  issuecomment-7219627534). -28 NOT_AUTHENTICATED is H's kernel value for
+  "authentication absent" (proposed by S, recorded in #631).
 
 ### Agreements and debts
 
@@ -85,12 +101,14 @@ the H track uses -25 (KL2 SUSPEND, #597) and -27 (H04-TXDOWN, #601).
   later S task with its own design; it is not planned.
 - With H: the -24 mapping landed with #587, in `services/volume` and
   its clients only (no kernel, SUSPEND or T5d file). The post-wake remount
-  check is specified in `VOLUME-POST-WAKE-REMOUNT.md` revision 2 (one
-  read-only grant to the same instance, R1; `RemountRefused` as its own
-  service status, R2; both H's proposals on #564, binding only after the
-  ADR amendment). `RemountRefused` is not built before that amendment; the
-  native PW cases need H's T5d-T, T5e and UNLOCK first and H's agreement
-  for `tools/run_system.py`, `tests/test_system_harness.py` and `init.rs`.
+  check is specified in `VOLUME-POST-WAKE-REMOUNT.md` revision 3 (one
+  read-only grant to the same instance, R1; `RemountRefused` -26 as its own
+  service status, R2; binding by the owner decision of 27 November 2026;
+  the check runs after authentication under O8). `RemountRefused` is built
+  service-side once the amendment has landed; the native PW cases need H's
+  T5d-T, T5e and UNLOCK, a kernel-checkable authentication signal, and H's
+  agreement for `tools/run_system.py`, `tests/test_system_harness.py` and
+  `init.rs`.
 - Landing order with H05-T5c (agreed with H, 26 November 2026; both change
   `kernel/Cargo.toml`, `tools/build.py` and `kernel/src/m2/m3/volume.rs`):
   the first branch with a green local gate and the lane lands first; the

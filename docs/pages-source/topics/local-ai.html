@@ -1,0 +1,17 @@
+<h2>What is local AI meant to do?</h2>
+<p>The product direction treats AI as an optional tool for explicitly selected work, such as clarifying, summarizing, comparing or translating material. Normal editing must remain useful without AI. A model output does not create a permission or authorize a system action.</p>
+
+<h2>Can inference use the cloud?</h2>
+<p>No. System AI inference is required to run on the user's device without inference network permission, NAS fallback or silent provider request. Model download is a separate, explicitly authorized process that must not receive document context, history, indexes or content keys.</p>
+
+<h2>What is the first experiment?</h2>
+<p>The current proposal evaluates a pinned small model and a Rust engine candidate under bounded memory, context, cancellation and numeric requirements. The first native tasks are deliberately narrow. Model provenance, tokenizer/configuration binding, answer quality, latency and resource behavior still require measurement.</p>
+
+<h2>What has not been established?</h2>
+<p>A parser or host model experiment is not a useful native assistant. The roadmap still requires real local inference, bounded selected context, denial of upload routes, graceful insufficient-resource behavior and an OS that remains responsive. No general quality, language or hardware-acceleration claim follows from the proposal.</p>
+
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/implementation/LOCAL-AI-L01-PROPOSAL.md">First local AI experiment <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/LOCAL-PRIVACY-CONTRACT.md#3-ai-exclusively-on-the-device">AI privacy contract <span aria-hidden="true">↗</span></a>
+  <a href="/docs/research/">Research tracks <span aria-hidden="true">→</span></a>
+</div>

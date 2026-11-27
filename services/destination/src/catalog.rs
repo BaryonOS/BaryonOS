@@ -314,3 +314,98 @@ pub fn mount_rule(area: &[[u8; SECTOR]; AREA_SECTORS], scope_sectors: u64) -> Mo
         }
     }
 }
+
+// Host-only prototype of S09-CATALOG-V2 §5.5 rule 1. CREATE continues to
+// use the v1 allocator until the catalog v2 integration is ready.
+#[cfg(test)]
+mod allocation_v2 {
+    use super::{sectors_for, Catalog, Record, DATA_START, ID, MAX_ARCHIVE, MAX_ENTRIES, SECTOR};
+    use core::ops::Range;
+
+    fn first_reusable_range(committed: &Catalog, other: Option<&Catalog>) -> Option<Range<u64>> {
+        let formatted = committed.formatted;
+        let mut occupied = [(0, 0); 2 * MAX_ENTRIES];
+        let mut count = 0;
+        for catalog in core::iter::once(committed).chain(other) {
+            if catalog.id != committed.id || catalog.formatted != formatted {
+                return None;
+            }
+            for record in catalog.records.get(..catalog.count)? {
+                let last = record.first.checked_add(sectors_for(record.length))?;
+                if record.first < DATA_START || last <= record.first || last > formatted {
+                    return None;
+                }
+                occupied[count] = (record.first, last);
+                count += 1;
+            }
+        }
+        occupied[..count].sort_unstable();
+        let mut first = DATA_START;
+        let minimum = sectors_for(MAX_ARCHIVE);
+        // The sentinel checks the final free region by the same size rule.
+        for (start, end) in occupied[..count]
+            .iter()
+            .copied()
+            .chain([(formatted, formatted)])
+        {
+            if start.saturating_sub(first) >= minimum {
+                return Some(first..start);
+            }
+            first = first.max(end);
+        }
+        None
+    }
+
+    fn catalog(formatted: u64, ranges: &[(u64, u64)]) -> Catalog {
+        let mut catalog = Catalog::formatted([1; ID], formatted);
+        catalog.count = ranges.len();
+        for (index, &(first, end)) in ranges.iter().enumerate() {
+            catalog.records[index] = Record {
+                id: index as u64 + 1,
+                first,
+                length: (end - first) * SECTOR as u64,
+                ..Record::EMPTY
+            };
+        }
+        catalog
+    }
+
+    #[test]
+    fn skips_1026_sectors_and_selects_the_lowest_region_of_1027() {
+        // Records are sorted by ID, not by their first sector.
+        let committed = catalog(5000, &[(2199, 2200), (1042, 1172)]);
+        assert_eq!(first_reusable_range(&committed, None), Some(1172..2199));
+    }
+
+    #[test]
+    fn stale_copy_blocks_reuse_until_both_copies_omit_the_extent() {
+        let committed = catalog(3500, &[(1500, 1600)]);
+        let stale = catalog(3500, &[(1020, 1200), (1500, 1600)]);
+        assert_eq!(
+            first_reusable_range(&committed, Some(&stale)),
+            Some(1600..3500)
+        );
+        assert_eq!(
+            first_reusable_range(&committed, Some(&committed)),
+            Some(16..1500)
+        );
+    }
+
+    #[test]
+    fn overlapping_extents_coalesce_and_short_tail_is_outside_rule_one() {
+        let committed = catalog(1500, &[(16, 900)]);
+        let stale = catalog(1500, &[(400, 450)]);
+        assert_eq!(first_reusable_range(&committed, Some(&stale)), None);
+    }
+
+    #[test]
+    fn rejects_extent_overflow_and_mismatched_copy_geometry() {
+        let mut committed = catalog(3500, &[(100, 200)]);
+        assert_eq!(
+            first_reusable_range(&committed, Some(&catalog(3501, &[]))),
+            None
+        );
+        committed.records[0].first = u64::MAX;
+        assert_eq!(first_reusable_range(&committed, None), None);
+    }
+}

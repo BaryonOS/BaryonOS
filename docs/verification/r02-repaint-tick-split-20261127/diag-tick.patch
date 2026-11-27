@@ -1,0 +1,311 @@
+diff --git a/kernel/src/m2/m3/window_session.rs b/kernel/src/m2/m3/window_session.rs
+index d006329e..b21789c9 100644
+--- a/kernel/src/m2/m3/window_session.rs
++++ b/kernel/src/m2/m3/window_session.rs
+@@ -722,6 +722,27 @@ fn snapshots(s: &State) {
+                 (632, b"SCALE"),
+                 (472, b"ERRORS"),
+                 (672, b"PROBES"),
++                (704, b"DIAG_F_COUNT"),
++                (712, b"DIAG_F_WALL"),
++                (720, b"DIAG_F_AWAY"),
++                (728, b"DIAG_F_LOOP"),
++                (736, b"DIAG_F_INPUT"),
++                (744, b"DIAG_F_RENDER"),
++                (752, b"DIAG_F_SEND"),
++                (760, b"DIAG_F_REPLY"),
++                (768, b"DIAG_F_TAIL"),
++                (776, b"DIAG_F_RENDERED"),
++                (784, b"DIAG_F_BLITS"),
++                (792, b"DIAG_F_RETAINS"),
++                (800, b"DIAG_F_REPLIES"),
++                (808, b"DIAG_F_LOOPS"),
++                (816, b"DIAG_T_AWAY"),
++                (824, b"DIAG_T_LOOP"),
++                (832, b"DIAG_T_INPUT"),
++                (840, b"DIAG_T_RENDER"),
++                (848, b"DIAG_T_SEND"),
++                (856, b"DIAG_T_REPLY"),
++                (864, b"DIAG_T_TAIL"),
+             ][..],
+         ),
+         (
+@@ -843,6 +864,18 @@ fn snapshots(s: &State) {
+                 (512, b"WINDOW:COMPOSITOR:BUTTONS:"),
+                 (520, b"WINDOW:COMPOSITOR:SHELL:"),
+                 (528, b"WINDOW:COMPOSITOR:SHELL_READY:"),
++                (704, b"WINDOW:COMPOSITOR:DIAG_CF_COUNT:"),
++                (712, b"WINDOW:COMPOSITOR:DIAG_CF_AWAY:"),
++                (720, b"WINDOW:COMPOSITOR:DIAG_CF_TOP:"),
++                (728, b"WINDOW:COMPOSITOR:DIAG_CF_INGRESS:"),
++                (736, b"WINDOW:COMPOSITOR:DIAG_CF_TAIL:"),
++                (744, b"WINDOW:COMPOSITOR:DIAG_CF_COMMITS:"),
++                (752, b"WINDOW:COMPOSITOR:DIAG_CF_TURNS:"),
++                (760, b"WINDOW:COMPOSITOR:DIAG_CT_AWAY:"),
++                (768, b"WINDOW:COMPOSITOR:DIAG_CT_TOP:"),
++                (776, b"WINDOW:COMPOSITOR:DIAG_CT_INGRESS:"),
++                (784, b"WINDOW:COMPOSITOR:DIAG_CT_TAIL:"),
++                (792, b"WINDOW:COMPOSITOR:DIAG_CT_TURNS:"),
+             ] {
+                 print_number(label, word(s, COMP, at));
+             }
+diff --git a/sdk/examples/materiaal/src/lib.rs b/sdk/examples/materiaal/src/lib.rs
+index 11420a6a..64a1553f 100644
+--- a/sdk/examples/materiaal/src/lib.rs
++++ b/sdk/examples/materiaal/src/lib.rs
+@@ -13,6 +13,7 @@ use nieuw_os_materiaal::{
+     TILE_PIXELS,
+ };
+ use nieuw_os_surface_protocol::{client::Session as Surface, Geometry};
++use nieuw_os_surface_protocol::client::diag;
+ 
+ #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+ pub struct Evidence {
+@@ -503,6 +504,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
+             self.blitted = (0, 0);
+             self.frame = view.generation;
+             self.next_tile = 0;
++            diag::frame_start();
+         }
+         if self.input_failed && !self.controller.document().is_uncertain() {
+             view.status = Status::InputLost;
+@@ -545,6 +547,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
+                     .geometry
+                     .rectangle(self.next_tile)
+                     .map_err(|_| Error::Binding)?;
++                diag::count(diag::RENDERED);
+                 let mut pixels = [0; TILE_PIXELS];
+                 let rendered = frame
+                     .render_tile(rectangle.x, rectangle.y, &mut pixels)
+@@ -586,6 +589,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
+                     break None;
+                 }
+             };
++            diag::mark(diag::RENDER);
+             if self.retained_enabled && scanned != 0 {
+                 // The first changed tile, if any, is rendered again next step.
+                 self.next_tile = start;
+@@ -611,6 +615,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
+             increment(&mut self.evidence.errors)?;
+             return Err(Error::Surface(error));
+         }
++        if retained == 0 { diag::count(diag::BLITS) } else { diag::count(diag::RETAINS) }
+         if retained == 0 {
+             increment(&mut self.evidence.tiles)?;
+             if let (Some(cache), Some(hash)) = (self.damage.as_deref_mut(), accepted_digest) {
+@@ -635,6 +640,7 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
+                 return Err(Error::Binding);
+             }
+             increment(&mut self.evidence.frames)?;
++            diag::frame_end();
+             self.evidence.presented_generation = self.frame;
+             self.evidence.ready = self.input_responded && !self.input_failed;
+         }
+@@ -660,14 +666,17 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
+     /// The diagnostic one-tile `step` contract remains unchanged.
+     pub fn step_interactive(&mut self) -> Result<(), Error> {
+         self.step_succeeded = false;
++        diag::mark(diag::LOOP);
+         let input = self.input_step();
+         self.save_step()?;
++        diag::mark(diag::INPUT);
+         let mut paint = Ok(());
+         for _ in 0..4 {
+             if self.surface_failed || !self.controller.view().dirty {
+                 break;
+             }
+             paint = self.paint_step();
++            diag::mark(diag::TAIL);
+             if paint.is_err() {
+                 break;
+             }
+diff --git a/sdk/examples/materiaal/src/main.rs b/sdk/examples/materiaal/src/main.rs
+index 4176a066..1cd79f86 100644
+--- a/sdk/examples/materiaal/src/main.rs
++++ b/sdk/examples/materiaal/src/main.rs
+@@ -115,6 +115,8 @@ fn publish(e: Evidence, observation: Observation) {
+     ] {
+         support::put(offset, value);
+     }
++    for (i, v) in nieuw_os_surface_protocol::client::diag::FULL.iter().enumerate() { support::put(704 + 8 * i as u64, v.load(core::sync::atomic::Ordering::Relaxed)); }
++    for (i, v) in nieuw_os_surface_protocol::client::diag::BUCKET.iter().enumerate() { support::put(816 + 8 * i as u64, v.load(core::sync::atomic::Ordering::Relaxed)); }
+     support::put(400, u64::from(e.ready));
+ }
+ 
+@@ -243,6 +245,8 @@ pub extern "C" fn materiaal_main() -> ! {
+     let mut paused = false;
+     loop {
+         tick();
++        nieuw_os_surface_protocol::client::diag::mark(nieuw_os_surface_protocol::client::diag::AWAY);
++        nieuw_os_surface_protocol::client::diag::count(nieuw_os_surface_protocol::client::diag::LOOPS);
+         if !paused {
+             let _ = if session_preview || window_session {
+                 app.step_interactive()
+@@ -344,6 +348,7 @@ pub extern "C" fn materiaal_main() -> ! {
+                 Err(_) => fail(13),
+             }
+         }
++        nieuw_os_surface_protocol::client::diag::mark(nieuw_os_surface_protocol::client::diag::LOOP);
+         if idle_mode == idle::Mode::Wait && !paused && control_empty && app.can_idle() {
+             let now = native::monotonic_ticks().unwrap_or_else(|_| fail(96));
+             let poll = idle::Poll::new(now, config.control_receive).unwrap_or_else(|| fail(96));
+diff --git a/sdk/examples/window-session/src/main.rs b/sdk/examples/window-session/src/main.rs
+index 187c16c0..95450577 100644
+--- a/sdk/examples/window-session/src/main.rs
++++ b/sdk/examples/window-session/src/main.rs
+@@ -285,6 +285,8 @@ fn run() -> ! {
+     let mut input_backlog = false;
+     let mut clock_tick = tick();
+     loop {
++        cdiag::mark(cdiag::AWAY);
++        cdiag::turn();
+         // One clock read for this turn's shell clock and input polling; a
+         // second one below covers SUR1 expiry and the ingress batch. Every
+         // monotonic_ticks call is a scheduler switch point on the single-CPU path.
+@@ -684,6 +686,7 @@ fn run() -> ! {
+                 rejected += 1;
+             }
+         }
++        cdiag::mark(cdiag::TOP);
+         for _ in 0..16 {
+             let message = match io.receive(boot.ingress) {
+                 Ok(m) => m,
+@@ -838,6 +841,7 @@ fn run() -> ! {
+                 rejected += 1;
+             }
+         }
++        cdiag::mark(cdiag::INGRESS);
+         if scene.set_clipboard_notice(clipboard.notice()) {
+             damage.mark(scene.clipboard_notice_bounds());
+             if scene.notifications_are_open() {
+@@ -847,6 +851,11 @@ fn run() -> ! {
+         // Timer observers may preempt between volatile stores. Retire the
+         // previous ready flag before publishing a new page/input counter, then
+         // release readiness last, as the two app publishers already do.
++        cdiag::mark(cdiag::TAIL);
++        cdiag::span(surfaces[0].completed_frame().unwrap_or(0), commits);
++        for (i, v) in cdiag::FULL.iter().chain(cdiag::BUCKET.iter()).chain(core::iter::once(&cdiag::TURNS)).enumerate() {
++            support::put(704 + 8 * i as u64, v.load(core::sync::atomic::Ordering::Relaxed));
++        }
+         support::put(528, 0);
+         for (at, v) in [
+             (400, 1),
+@@ -885,3 +894,33 @@ fn run() -> ! {
+ fn panic(_: &core::panic::PanicInfo<'_>) -> ! {
+     fail(99)
+ }
++
++/// DIAG(R02 tick split): local only, never commit.
++mod cdiag {
++    use core::sync::atomic::{AtomicU64, Ordering::Relaxed};
++    pub const AWAY: usize = 0; pub const TOP: usize = 1; pub const INGRESS: usize = 2; pub const TAIL: usize = 3;
++    static LAST: AtomicU64 = AtomicU64::new(u64::MAX);
++    pub static BUCKET: [AtomicU64; 4] = [const { AtomicU64::new(0) }; 4];
++    pub static TURNS: AtomicU64 = AtomicU64::new(0);
++    /// Spans between Material frame completions with >= 1000 commits: count, buckets, commits, turns.
++    pub static FULL: [AtomicU64; 7] = [const { AtomicU64::new(0) }; 7];
++    static START: [AtomicU64; 7] = [const { AtomicU64::new(0) }; 7];
++    pub fn mark(leaving: usize) {
++        let t = nieuw_os_sdk_runtime::native::monotonic_ticks().unwrap_or(0);
++        let l = LAST.swap(t, Relaxed);
++        if l != u64::MAX { BUCKET[leaving].fetch_add(t.saturating_sub(l), Relaxed); }
++    }
++    pub fn turn() { TURNS.fetch_add(1, Relaxed); }
++    pub fn span(frame: u64, commits: u64) {
++        if frame == START[6].load(Relaxed) { return; }
++        let delta = commits.wrapping_sub(START[4].load(Relaxed));
++        if delta >= 1000 && START[6].load(Relaxed) != 0 {
++            FULL[0].fetch_add(1, Relaxed);
++            for i in 0..4 { FULL[1 + i].fetch_add(BUCKET[i].load(Relaxed) - START[i].load(Relaxed), Relaxed); }
++            FULL[5].fetch_add(delta, Relaxed);
++            FULL[6].fetch_add(TURNS.load(Relaxed) - START[5].load(Relaxed), Relaxed);
++        }
++        for i in 0..4 { START[i].store(BUCKET[i].load(Relaxed), Relaxed); }
++        START[4].store(commits, Relaxed); START[5].store(TURNS.load(Relaxed), Relaxed); START[6].store(frame, Relaxed);
++    }
++}
+diff --git a/tools/run_window_session.py b/tools/run_window_session.py
+index c1ac74b4..94a5214e 100644
+--- a/tools/run_window_session.py
++++ b/tools/run_window_session.py
+@@ -226,10 +226,10 @@ def generate_switcher_fixture(directory: Path, image: bytes, scale: int) -> dict
+                               files_sha256={path.name: sha256(path) for path in paths}))
+ SNAPSHOT_FIELDS = {
+     "MATERIAL": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
+-                 "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS", "PROBES"},
++                 "SAVE_ACKS", "REVISION", "SAVED_BYTES", "SAVED_SUM", "SCREEN", "DIRTY", "DRAFT_BYTES", "DRAFT_SUM", "OBJECT", "SCALE", "ERRORS", "PROBES", "DIAG_F_COUNT", "DIAG_F_WALL", "DIAG_F_AWAY", "DIAG_F_LOOP", "DIAG_F_INPUT", "DIAG_F_RENDER", "DIAG_F_SEND", "DIAG_F_REPLY", "DIAG_F_TAIL", "DIAG_F_RENDERED", "DIAG_F_BLITS", "DIAG_F_RETAINS", "DIAG_F_REPLIES", "DIAG_F_LOOPS", "DIAG_T_AWAY", "DIAG_T_LOOP", "DIAG_T_INPUT", "DIAG_T_RENDER", "DIAG_T_SEND", "DIAG_T_REPLY", "DIAG_T_TAIL"},
+     "CALCULATOR": {"PID", "SERVICE_GENERATION", "SURFACE_EPOCH", "INPUT_EPOCH", "READY", "GEN", "FRAMES",
+                    "EVALUATIONS", "FAILURES", "EXPRESSION_BYTES", "EXPRESSION_SUM", "CURRENT", "CARET", "ACTIVE", "SCALE", "ERRORS", "ANSWER_LOW", "ANSWER_HIGH", "HAS_ANSWER", "PROBES"},
+-    "COMPOSITOR": {"GENERATION", "PID", "COMMITS", "INPUT", "REJECTED", "FOCUSED", "MOVES", "SWITCHES", "MATERIAL", "CALCULATOR", "FATAL", "POINTER_X", "POINTER_Y", "BUTTONS", "SHELL", "SHELL_READY"},
++    "COMPOSITOR": {"GENERATION", "PID", "COMMITS", "INPUT", "REJECTED", "FOCUSED", "MOVES", "SWITCHES", "MATERIAL", "CALCULATOR", "FATAL", "POINTER_X", "POINTER_Y", "BUTTONS", "SHELL", "SHELL_READY", "DIAG_CF_COUNT", "DIAG_CF_AWAY", "DIAG_CF_TOP", "DIAG_CF_INGRESS", "DIAG_CF_TAIL", "DIAG_CF_COMMITS", "DIAG_CF_TURNS", "DIAG_CT_AWAY", "DIAG_CT_TOP", "DIAG_CT_INGRESS", "DIAG_CT_TAIL", "DIAG_CT_TURNS"},
+ }
+ 
+ 
+diff --git a/ui/surface-protocol/src/client.rs b/ui/surface-protocol/src/client.rs
+index 9175db54..93d7bb97 100644
+--- a/ui/surface-protocol/src/client.rs
++++ b/ui/surface-protocol/src/client.rs
+@@ -249,6 +249,13 @@ impl<T: Transport> Session<T> {
+         ))
+     }
+     fn receive_reply(&mut self, expected: Header) -> Result<Reply, Error> {
++        diag::mark(diag::SEND);
++        diag::count(diag::REPLIES);
++        let r = self.receive_reply_inner(expected);
++        diag::mark(diag::REPLY);
++        r
++    }
++    fn receive_reply_inner(&mut self, expected: Header) -> Result<Reply, Error> {
+         // One absolute deadline per reply; the poll budget stays the second bound.
+         let deadline = match self.transport.reply_deadline(REPLY_DEADLINE_TICKS) {
+             Ok(deadline) => deadline,
+@@ -706,3 +713,49 @@ mod wait_tests {
+         assert_eq!((t.waits, t.receives, t.yields), (5, 5, 0));
+     }
+ }
++
++/// DIAG(R02 tick split): local only, never commit. Exhaustive guest-tick
++/// buckets: each mark charges the elapsed ticks to the bucket being left.
++pub mod diag {
++    use core::sync::atomic::{AtomicU64, Ordering::Relaxed};
++    pub const AWAY: usize = 0; pub const LOOP: usize = 1; pub const INPUT: usize = 2;
++    pub const RENDER: usize = 3; pub const SEND: usize = 4; pub const REPLY: usize = 5;
++    pub const TAIL: usize = 6; pub const N: usize = 7;
++    pub const RENDERED: usize = 0; pub const BLITS: usize = 1; pub const RETAINS: usize = 2;
++    pub const REPLIES: usize = 3; pub const LOOPS: usize = 4; pub const C: usize = 5;
++    static LAST: AtomicU64 = AtomicU64::new(u64::MAX);
++    pub static BUCKET: [AtomicU64; N] = [const { AtomicU64::new(0) }; N];
++    pub static COUNT: [AtomicU64; C] = [const { AtomicU64::new(0) }; C];
++    /// Full-repaint frames (>= 1000 blits): count, wall, buckets, counts.
++    pub static FULL: [AtomicU64; 2 + N + C] = [const { AtomicU64::new(0) }; 2 + N + C];
++    static START: [AtomicU64; 1 + N + C] = [const { AtomicU64::new(u64::MAX) }; 1 + N + C];
++    fn now() -> u64 {
++        #[cfg(all(target_arch = "x86_64", target_os = "none"))]
++        { nieuw_os_sdk_runtime::clock::now_monotonic().unwrap_or(0) }
++        #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
++        { 0 }
++    }
++    pub fn mark(leaving: usize) {
++        let t = now();
++        let l = LAST.swap(t, Relaxed);
++        if l != u64::MAX { BUCKET[leaving].fetch_add(t.saturating_sub(l), Relaxed); }
++    }
++    pub fn count(i: usize) { COUNT[i].fetch_add(1, Relaxed); }
++    pub fn frame_start() {
++        mark(RENDER);
++        START[0].store(LAST.load(Relaxed), Relaxed);
++        for i in 0..N { START[1 + i].store(BUCKET[i].load(Relaxed), Relaxed); }
++        for j in 0..C { START[1 + N + j].store(COUNT[j].load(Relaxed), Relaxed); }
++    }
++    pub fn frame_end() {
++        mark(TAIL);
++        let s0 = START[0].load(Relaxed);
++        let blits = COUNT[BLITS].load(Relaxed).wrapping_sub(START[1 + N + BLITS].load(Relaxed));
++        if s0 == u64::MAX || blits < 1000 { return; }
++        FULL[0].fetch_add(1, Relaxed);
++        FULL[1].fetch_add(LAST.load(Relaxed).saturating_sub(s0), Relaxed);
++        for i in 0..N { FULL[2 + i].fetch_add(BUCKET[i].load(Relaxed) - START[1 + i].load(Relaxed), Relaxed); }
++        for j in 0..C { FULL[2 + N + j].fetch_add(COUNT[j].load(Relaxed) - START[1 + N + j].load(Relaxed), Relaxed); }
++        START[0].store(u64::MAX, Relaxed);
++    }
++}
