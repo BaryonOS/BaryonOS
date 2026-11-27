@@ -2355,9 +2355,9 @@
               "docs/verification/gui-idle-20261102/windows-ab/README.md",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630768",
-              "docs/verification/r02-window-baseline-20261126/README.md",
-              "docs/verification/r02-compositor-turn-ab-20261126/README.md",
-              "docs/verification/r02-sur1-ipc-wait-20261127/README.md"
+              "https://github.com/BaryonOS/BaryonOS/blob/ae0fbd5a0d06a727db00276927645fc8be631e6b/docs/verification/r02-window-baseline-20261126/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/ae0fbd5a0d06a727db00276927645fc8be631e6b/docs/verification/r02-compositor-turn-ab-20261126/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/ae0fbd5a0d06a727db00276927645fc8be631e6b/docs/verification/r02-sur1-ipc-wait-20261127/README.md"
             ]
           }
         ]

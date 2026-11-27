@@ -62,7 +62,14 @@ resume.
   R01–R03 in `docs/progress.json` current without separate permission: own
   rows only, rubric, weights and acceptance unchanged, date and commit in the
   row text, the global snapshot `date` and `source_commit` untouched, then
-  `python3 tools/progress.py --write` and `--check`.
+  `python3 tools/progress.py --write` and `--check`. Evidence files that are
+  absent at that `source_commit` are cited as GitHub blob URLs pinned to a
+  `main` commit that contains them; relative paths would render as broken
+  links. Formal criterion acceptance and every score increase belong to the
+  PR guard (project owner, 27 November 2026, 13:14:07Z). Once all acceptance
+  conditions of an R criterion are met and the required independent
+  verification is complete, R reports the criterion ID and evidence links to
+  the guard; R never changes the score itself.
 - **Decisions and sources:**
   - Materiaal RX code budget 176 KiB (`0x2C000`): project owner, 26 November
     2026, recorded in #530 issuecomment-7204938267 and reconfirmed in #603
