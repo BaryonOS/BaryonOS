@@ -1824,7 +1824,8 @@ must keep its `.text` and `.data` byte-identical.
    gets the matching test-profile constant. A -27 result carries no length:
    it must not be read as a length-0 success.
    -27 is a completion, not a refusal. `syscall()` exempts it from `denied`
-   as it exempts -8, and the only counter it changes is `tx_edge_completed`.
+   as it exempts -8. At collection it increments `tx_completed` and
+   `tx_edge_completed` by one each; the `0x71` read of -27 changes no counter.
    Without this exemption, N's invariant `denied == 2 + revoke + helper +
    link_refused` in the `native-net-service` profiles would break at the
    first -27. A later re-read of the consumed ticket returns -1 and is
