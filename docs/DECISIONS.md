@@ -73,15 +73,36 @@ stay open are answered in part; the open part goes into that bundle.
 **Consequences.**
 
 - H03-T3b (ring-3 audio broker, AUDIO right, syscall) is no longer blocked
-  on an owner decision. It still needs the syscall choice with K, a Security
-  Floor review by B of the right's issue, check, non-delegation and
-  revocation paths, and its own native evidence.
+  on an owner decision. The syscall block is chosen (B2 above). It still
+  needs a Security Floor review by B of the right's issue, check,
+  non-delegation and revocation paths, and its own native evidence.
 - Every physical protocol stays blocked by `OD-HW-TARGETS` until a real
   target machine is recorded.
 
-**Source:** the owner's message in the H session of 27 November 2026;
-`docs/drivers/hardware-matrix.json`; `drivers/virtio-snd/TRANSPORT.md`
-(decisions B1, B2 and B4).
+**Alternatives.** The owner's answers record no comparison of options. What
+they exclude: B1 excludes any app-held audio device, DMA, MMIO or IRQ right
+and any delegable AUDIO right; B4 excludes treating `00:08.0` as a physical
+hardware address.
+
+**Evidence status.** None. This record runs no native or hardware test. The
+matrix change is checked only by `tools/tests/test_hw_matrix.py`, a host
+consistency test. The broker, the syscalls and every physical protocol are
+NOT RUN.
+
+**Review triggers.** Revisit this record if any of these occur:
+- a dispatch arm, SDK constant or PR outside the AUDIO path uses `0xC0`–`0xCF`;
+- an app path receives device, DMA, MMIO or IRQ access for audio;
+- the AUDIO right becomes delegable;
+- a device other than virtio-snd claims `00:08.0` in a VM-FR profile;
+- physical work starts while `OD-HW-TARGETS` names no target.
+
+**Sources:**
+- Project owner (Simon van Ieperen), message in the H session, 27 November 2026, recorded by H on issue #564:
+  <https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7219592317>.
+- Specialists H and K, AUDIO syscall survey, 27 November 2026, issue #530:
+  <https://github.com/BaryonOS/BaryonOS/issues/530#issuecomment-7219621427>.
+- `docs/drivers/hardware-matrix.json`; `drivers/virtio-snd/TRANSPORT.md`
+  (decisions B1, B2 and B4).
 
 **Rollback:** revert the commit. The five matrix entries return to `open`.
 
