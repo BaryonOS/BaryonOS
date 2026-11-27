@@ -546,7 +546,7 @@ class RunnerTimeoutTests(unittest.TestCase):
         )
         runner = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(runner)
-        cases = ((None, True, 1, 15), (None, False, 1, 1), (0, True, 0, 15), (7, True, 7, 0))
+        cases = ((None, True, 1, 16), (None, False, 1, 1), (0, True, 0, 16), (7, True, 7, 0))
         for host_exit, stage_passed, expected_exit, expected_stages in cases:
             with self.subTest(host_exit=host_exit, stage_passed=stage_passed), tempfile.TemporaryDirectory() as temp, ExitStack() as stack:
                 root = Path(temp)
@@ -569,7 +569,8 @@ class RunnerTimeoutTests(unittest.TestCase):
                 build = stack.enter_context(patch.object(runner, "build"))
                 report = {"passed": stage_passed, "raw_qemu_exit": 33}
                 stack.enter_context(patch.object(runner, "run_guest", return_value=report))
-                stack.enter_context(patch.object(runner, "run_gate_case", return_value=report))
+                gate_runner = stack.enter_context(
+                    patch.object(runner, "run_gate_case", return_value=report))
                 smp_runner = stack.enter_context(patch.object(runner, "run_smp", return_value=report))
                 stack.enter_context(redirect_stdout(io.StringIO()))
                 self.assertEqual(runner.main(), expected_exit)
@@ -583,7 +584,13 @@ class RunnerTimeoutTests(unittest.TestCase):
                     not passed for status, passed in receipt_states
                     if status != "completed"
                 ))
-                if expected_stages == 15:
+                if expected_stages == 16:
+                    # The spin row must use its own group, which requires M3:SYSCALL_SPIN:PASS.
+                    self.assertEqual(
+                        [entry.args for entry in gate_runner.call_args_list],
+                        [("m3", "private-address-spaces-preemption-fairness-cleanup"),
+                         ("m3", "syscall-spin-continues-within-quantum")],
+                    )
                     self.assertEqual(
                         [(entry.args[0], entry.kwargs["profile"]) for entry in smp_runner.call_args_list],
                         [
