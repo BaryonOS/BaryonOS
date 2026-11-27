@@ -210,8 +210,11 @@ fn teardown(s: &mut State) {
     st.words = words;
     st.entropy = (before, after);
     // KL4: `m3_restore` zeroes and verifies the whole service stack before the
-    // next ring-3 instruction. The noscrub red control omits only this request.
-    #[cfg(not(feature = "test-system-lock-noscrub"))]
+    // next ring-3 instruction. The noscrub red controls (S5 and S3) omit only this request.
+    #[cfg(not(any(
+        feature = "test-system-lock-noscrub",
+        feature = "test-system-s3-lock-noscrub"
+    )))]
     // SAFETY: One CPU, IF=0; m3_restore reads it only after this handler.
     unsafe {
         ptr::addr_of_mut!(m3_scrub_pending).write(1)
