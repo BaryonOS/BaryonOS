@@ -30,6 +30,15 @@ path or specific tool is needed to resume.
   evidence that carries any progress claim. A merge is not acceptance.
   #551 and #556 landed without an issue link; add it in a later H PR
   where it fits naturally.
+- **Own criterion rows (owner decision of 27 November 2026, ~12:50Z):** H
+  keeps the implementation and verification snapshot rows of its own
+  criteria in `docs/progress.json` (`delivery_review`) current without
+  asking per update. Only H's own rows; current source-bound evidence;
+  rubric, weights and acceptance conditions unchanged; the score rises only
+  on full acceptance with completed independent verification. Do not
+  change the global snapshot date or `source_commit`; put the date and SHA
+  in the row text. Regenerate with `python3 tools/progress.py --write`, then
+  `--check`, and use D3 assessment files to avoid conflicts.
 - **Working rules:** every cycle starts on a fresh branch from `origin/main`
   with an isolated `NOS_BUILD_DIR` inside the checkout; native evidence is
   bound to the tested head and stored in a new `docs/verification/` child
