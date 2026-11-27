@@ -212,19 +212,13 @@ fn oversize_payloads_and_mismatched_replies_fail_closed() {
         );
     }
     assert_eq!(stages, 0);
-    // A reply for another request id is not this exchange's answer. Id 0 is
-    // older, but without an earlier `Unknown` it is not dropped as late.
-    let mut calls = 0;
-    {
-        let mut confused = NaspRemote::new(guest, |b: Option<&[u8; SIZE]>| {
-            calls += 1;
-            let mut reply = request(&mut service, GUEST, b)?;
-            reply[8] ^= 1;
-            Ok(reply)
-        });
-        assert!(matches!(confused.open(&namespace), Err(Error::Unknown)));
-    }
-    assert_eq!(calls, 1);
+    // A reply for another request id is not this exchange's answer.
+    let mut confused = NaspRemote::new(guest, |b: Option<&[u8; SIZE]>| {
+        let mut reply = request(&mut service, GUEST, b)?;
+        reply[8] ^= 1;
+        Ok(reply)
+    });
+    assert!(matches!(confused.open(&namespace), Err(Error::Unknown)));
 }
 
 #[test]
@@ -272,4 +266,33 @@ fn a_late_reply_after_a_timeout_is_dropped_without_resending() {
         ]
     );
     assert!(queue.is_empty());
+}
+
+#[test]
+fn an_older_valid_reply_without_an_earlier_unknown_is_not_dropped() {
+    let mut work = Box::new(Workspace::new());
+    let mut service = Service::initialize(
+        Memory::default(),
+        LocalBinding::principal(ADMIN),
+        &mut Random(10),
+        &mut work,
+    )
+    .unwrap();
+    let namespace = namespace(&mut service);
+    let guest = LocalBinding::principal(GUEST);
+    let mut calls = 0;
+    let mut first = None;
+    {
+        let mut remote = NaspRemote::new(guest, |b: Option<&[u8; SIZE]>| {
+            calls += 1;
+            let reply = request(&mut service, GUEST, b)?;
+            // Request 2 is answered with request 1's valid, decodable reply.
+            Ok(*first.get_or_insert(reply))
+        });
+        let session = remote.open(&namespace).unwrap();
+        // Correlation 1 is older, but no exchange ended `Unknown`: not late.
+        assert_eq!(remote.head(session, 0), Err(Error::Unknown));
+    }
+    // No receive-only call: the older reply was not drained.
+    assert_eq!(calls, 2);
 }
