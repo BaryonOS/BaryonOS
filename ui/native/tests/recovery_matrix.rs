@@ -27,10 +27,9 @@
 //! (`Painter::wrapped`), not elided, so "fits its elision width" is checked as
 //! "all wrapped lines fit inside `Layout::status`" with the renderer's font.
 //! The matrix uses 800x600 @ 100 % and 1600x900 @ 200 % (both 800-wide logical
-//! layouts with two status lines). Known defects, as ignored tests that fail
-//! today and route to the `render.rs` owner / UX writing: distinct target copy
-//! (UX-SR07) and the compact 640x480 @ 200 % status rect clipping the second
-//! line of the generic failure label.
+//! layouts with two status lines). Known defect, as an ignored test that fails
+//! today: distinct deny copy (UX-SR07, U03-T3 part 2). The compact 640x480 @
+//! 200 % status uses one-line compact copy (ADR-U-OWNER-20261127, SR11).
 mod common;
 use common::*;
 use nieuw_os_document_session::{
@@ -42,7 +41,10 @@ use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
     controller::{Error, InputEnvelope, Status},
     design,
-    render::{status_label, Frame, Layout, Role, SemanticId, SemanticNode, MAX_SEMANTIC_NODES},
+    render::{
+        compact_status_label, status_label, Frame, Layout, Role, SemanticId, SemanticNode,
+        MAX_SEMANTIC_NODES,
+    },
     Scale, Viewport,
 };
 use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey};
@@ -366,17 +368,24 @@ fn sr07_deny_has_specific_copy() {
     assert_ne!(deny, failed(StorageError::Service(VolumeStatus::Io)));
 }
 
+/// ADR-U-OWNER-20261127: where the one-line compact status rect cannot grow
+/// (logical height 240), the matrix failures use compact copy that fits it.
+/// The frame-level sweep over every status and screen is
+/// `render_regressions::sr11_every_status_fits_on_every_compact_screen`.
 #[test]
-#[ignore = "U05 defect, OWNER decision: at logical height 240 the library screen's single list row leaves no room for a second status line, so a two-line failure label is still drawn below the viewport there (hide the row, scroll, or shorter compact copy). Editor and roomier compact layouts grow the status upward: render_regressions sr11_* tests"]
 fn sr11_compact_200_percent_failure_status_is_not_clipped() {
     let viewport = Viewport::new(640, 480, Scale::Percent200, 1).unwrap();
     let status = Layout::new(viewport).status;
     let width = viewport.logical_width() - 2 * design::PAD;
-    for label in [
-        GENERIC,
-        failed(StorageError::Uncertain),
-        failed(StorageError::Conflict),
+    for error in [
+        StorageError::Service(VolumeStatus::Access),
+        StorageError::Uncertain,
+        StorageError::Conflict,
+        StorageError::Service(VolumeStatus::Full),
+        StorageError::Service(VolumeStatus::Quota),
+        StorageError::Closed,
     ] {
+        let label = compact_status_label(Status::Failed(Error::Storage(error)));
         let lines = wrapped_lines(label, width, Scale::Percent200);
         assert!(
             lines * design::LINE_HEIGHT <= status.height,

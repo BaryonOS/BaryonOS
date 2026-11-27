@@ -1189,13 +1189,15 @@
             "verification": [
               "host"
             ],
-            "observation": "#472 contributes five active recovery cases covering uncertain/interrupted saves. Existing native recovery gates continue to pass.",
-            "remaining": "Four deliberately ignored current defects: distinct Full/Quota text, known I/O text, Access/denial text, and compact200% failure-status clipping. The inherited History-order ignore is separate.",
+            "observation": "#472 contributes five active recovery cases covering uncertain/interrupted saves. Existing native recovery gates continue to pass. updated 2026-11-27 @51b8fcdd: Full/Quota and known I/O copy tests are active; SR11 is enabled (ADR-U-OWNER-20261127): where the full label does not fit, status and announcement use one-line compact copy, the compact save-progress bar stays inside the viewport, and host sweeps cover every status on six screens at logical heights 240..359.",
+            "remaining": "Access/denial text stays ignored until U03-T3 part 2 proves a real deny path. Compact copy is a UX-writing judgement awaiting the U06 human trials; the compact workspace panels still elide their own buttons at 320x240 (#630). Native compact evidence beyond the 200% window-session profile and human acceptance are missing. The inherited History-order ignore is separate.",
             "evidence": [
               "ui/native/tests/recovery_matrix.rs",
               "ui/native/tests/accessibility_semantics.rs",
               "ui/native/src/render.rs",
-              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749"
+              "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749",
+              "https://github.com/BaryonOS/BaryonOS/blob/51b8fcddc2e1ae4748c13a519cfcccc821ea8ffc/ui/native/tests/render_regressions.rs",
+              "https://github.com/BaryonOS/BaryonOS/pull/639"
             ]
           }
         ]
@@ -1629,7 +1631,7 @@
       },
       {
         "id": "B04",
-        "remaining": "Release chain/rotation implementation and evidence; Build divergence and complete provenance; Complete independent release-profile review.",
+        "remaining": "Release chain and rotation implementation and evidence. Complete release provenance and independent reproduction. Independent release-profile review.",
         "requirements": [
           {
             "description": "Verified firmware-to-loader and loader-to-image chain",
@@ -1652,10 +1654,10 @@
             "verification": [
               "source"
             ],
-            "observation": "Target architecture D1-D7 adopted; canonical policy/successor validation and TEST probe exist. Secure Boot runner explicitly excludes PK/KEK/db/dbx updates/rotation and rollback.",
+            "observation": "updated 2026-11-27 @ee29246b: The project owner approved D1-D7 for design and bounded synthetic work in #631. Canonical policy and successor validation and the immutable TEST probe exist. The Secure Boot runner excludes PK/KEK/db/dbx updates, rotation and rollback.",
             "remaining": "End-to-end release-profile key rotation/revocation/trust-failure execution and custodians/anchor decisions not complete.",
             "evidence": [
-              "docs/DECISIONS.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/ee29246b3d45472aeac8021eff87da8c5101eedb/docs/DECISIONS.md",
               "crates/update-core/src/policy_envelope.rs",
               "boot/loader/src/signed.rs",
               "docs/verification/b04-secure-boot-20261123/README.md"
@@ -1667,12 +1669,13 @@
             "verification": [
               "host"
             ],
-            "observation": "Pinned manifests/lockfiles/provenance records and repro checker exist. Actual recorded double build finished but loader/image_payload differ; exit1 is correct detection, not reproducibility success.",
-            "remaining": "Resolve recorded build divergence and complete release provenance evidence; no independent-environment reproducibility result.",
+            "observation": "updated 2026-11-27 @ae735e2c: #493 resolved the recorded UEFI loader divergence. Two isolated default builds on the same host and checkout path matched the kernel, loader and canonical ESP payload manifest at tested source 0c590f13 (exit 0).",
+            "remaining": "Complete release provenance and reproduction across independent environments remain open. The comparison covered the default profile and the ESP payload manifest.",
             "evidence": [
               "docs/DEPENDENCIES.md",
               "tools/repro_check.py",
-              "docs/roadmap-pipeline/receipts/B04-T2.json"
+              "https://github.com/BaryonOS/BaryonOS/blob/ae735e2ce66fbf44a9b7535b4b2b10a969b15d04/docs/verification/b04-repro-loader-20261124/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/ae735e2ce66fbf44a9b7535b4b2b10a969b15d04/docs/verification/b04-repro-loader-20261124/repro/4-head-green.json"
             ]
           },
           {
@@ -1879,7 +1882,7 @@
       },
       {
         "id": "A03",
-        "remaining": "Updated 2026-11-27 @9efd5739 (owner decision 27 Nov 12:50Z, A-owned row): a native ring-3 grant broker now enforces per-object grants over volume domain 0 with hostile-helper and exit/fault retirement tests. Still missing: the trusted permission dialog (U, currently a labelled fixture) and an independent verification for acceptance.",
+        "remaining": "Updated 2026-11-27 @2f9df421 (owner decision 27 Nov 12:50Z, A-owned row): a native ring-3 grant broker now enforces per-object grants over volume domain 0 with hostile-helper and exit/fault retirement tests. Still missing: the trusted permission dialog (U, currently a labelled fixture) and an independent verification for acceptance.",
         "requirements": [
           {
             "description": "Native applications use Material objects",
@@ -1903,16 +1906,17 @@
               "host",
               "native"
             ],
-            "observation": "Updated 2026-11-27 @9efd5739: task-grant core binds app/process incarnation/object/revision/rights (host). A native ring-3 broker authorises every request by the kernel-supplied sender PID (T2a #531 aa6d1c70, T2b #535 a004e3dc), is the sole client of a read-only volume domain 0 with STAT/READ only (T2c-1 #583 28e7ee1a, T2c-2 #593 7ee91d92), and retires a client's grants when its reply endpoint reports Revoked after exit or fault (T2c-3, owner option A; capability-core pin #579 95553a22). Each native case gives raw QEMU exit 33.",
+            "observation": "Updated 2026-11-27 @2f9df421: task-grant core binds app/process incarnation/object/revision/rights (host). A native ring-3 broker authorises every request by the kernel-supplied sender PID (T2a #531 aa6d1c70, T2b #535 a004e3dc), is the sole client of a read-only volume domain 0 with STAT/READ only (T2c-1 #583 28e7ee1a, T2c-2 #593 7ee91d92), and retires a client's grants when its reply endpoint reports Revoked after exit or fault (T2c-3 #635 2f9df421, owner option A; capability-core pin #579 95553a22). Each native case gives raw QEMU exit 33.",
             "remaining": "The trusted permission dialog is a labelled kernel-written fixture until U delivers it; exit detection is polled; only QEMU x86_64 is tested; no independent verification or human audit yet.",
             "evidence": [
-              "https://github.com/BaryonOS/BaryonOS/blob/9efd573989749056306c7e9540b0edcf365c549a/sdk/examples/task-grant-broker/README.md",
-              "https://github.com/BaryonOS/BaryonOS/blob/9efd573989749056306c7e9540b0edcf365c549a/docs/handoffs/A/T2C-SPEC.md",
-              "https://github.com/BaryonOS/BaryonOS/blob/9efd573989749056306c7e9540b0edcf365c549a/kernel/src/m2/m3/task_grant.rs",
-              "https://github.com/BaryonOS/BaryonOS/blob/9efd573989749056306c7e9540b0edcf365c549a/kernel/src/m2/m3/task_grant_volume.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/2f9df4214a7c3fefe7a681c75c62911a7326080d/sdk/examples/task-grant-broker/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/2f9df4214a7c3fefe7a681c75c62911a7326080d/docs/handoffs/A/T2C-SPEC.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/2f9df4214a7c3fefe7a681c75c62911a7326080d/kernel/src/m2/m3/task_grant.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/2f9df4214a7c3fefe7a681c75c62911a7326080d/kernel/src/m2/m3/task_grant_volume.rs",
               "https://github.com/BaryonOS/BaryonOS/pull/593",
               "https://github.com/BaryonOS/BaryonOS/pull/583",
-              "https://github.com/BaryonOS/BaryonOS/pull/579"
+              "https://github.com/BaryonOS/BaryonOS/pull/579",
+              "https://github.com/BaryonOS/BaryonOS/pull/635"
             ]
           },
           {

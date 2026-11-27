@@ -1,0 +1,17 @@
+<h2>What is a capability?</h2>
+<p>A capability is bounded authority over a resource and operation. The design uses kernel-validated handles rather than trusting an arbitrary name or pointer. IPC carries bounded requests between isolated processes; the receiving service must still validate inputs and delegated rights.</p>
+
+<h2>What is the Security Floor?</h2>
+<p>Privacy preferences may change explanations or selected sharing, but must not disable process isolation, capability enforcement, key isolation, memory protection, package/update authenticity or protection of unrelated data. Installing an app or selecting remote storage does not create broad implicit authority.</p>
+
+<h2>What threats are in scope?</h2>
+<p>Contracts cover malicious or faulty apps, invalid IPC, resource exhaustion, storage failure, package tampering, network denial and selected key and recovery paths. Other boundaries require their own evidence: a compromised kernel or trusted service, physical attacks, firmware, supply chain, rollback, side channels and unsupported hardware cannot be dismissed by one subsystem test.</p>
+
+<h2>Is the OS proven secure?</h2>
+<p>No. Accepted criteria establish only their recorded configurations and cases. The complete release still requires broader native integration, physical evidence and targeted independent expert review. Security problems should be reported privately rather than disclosed in public project channels.</p>
+
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md">Kernel and security contract <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/SECURITY.md">Security policy <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/security/advisories/new">Private vulnerability report <span aria-hidden="true">↗</span></a>
+</div>

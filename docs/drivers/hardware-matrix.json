@@ -18,7 +18,7 @@
     {
       "id": "OD-HW-BOOT",
       "decision": "Authorization to boot a removable medium through the firmware one-time boot menu, and the Secure Boot policy for the unsigned test image (no key enrolment or setting change is implied).",
-      "status": "open",
+      "status": "decided",
       "blocks": [
         "HW-INV",
         "H05-S5",
@@ -27,12 +27,13 @@
         "H03-AV",
         "H04-NET",
         "R03-INSTALL"
-      ]
+      ],
+      "reference": "ADR-H-AUDIO-HW-OWNER-20261127"
     },
     {
       "id": "OD-HW-DISKS",
       "decision": "Internal-disk handling during sessions: physically disconnected or left untouched in place.",
-      "status": "open",
+      "status": "decided",
       "blocks": [
         "HW-INV",
         "H05-S5",
@@ -41,12 +42,13 @@
         "H03-AV",
         "H04-NET",
         "R03-INSTALL"
-      ]
+      ],
+      "reference": "ADR-H-AUDIO-HW-OWNER-20261127"
     },
     {
       "id": "OD-HW-CAPTURE",
       "decision": "Output capture route: COM1 null-modem cable to a second computer, or an on-screen route that is not yet demonstrated.",
-      "status": "open",
+      "status": "decided",
       "blocks": [
         "HW-INV",
         "H05-S5",
@@ -55,7 +57,8 @@
         "H03-AV",
         "H04-NET",
         "R03-INSTALL"
-      ]
+      ],
+      "reference": "ADR-H-AUDIO-HW-OWNER-20261127"
     },
     {
       "id": "OD-HW-SIGNERS",
@@ -85,7 +88,7 @@
     {
       "id": "OD-HW-PUBLISH",
       "decision": "Whether hardware inventories and serial logs (PCI IDs, MAC addresses, firmware strings) may be published in the repository or must be redacted.",
-      "status": "open",
+      "status": "decided",
       "blocks": [
         "HW-INV",
         "H05-S5",
@@ -94,15 +97,17 @@
         "H03-AV",
         "H04-NET",
         "R03-INSTALL"
-      ]
+      ],
+      "reference": "ADR-H-AUDIO-HW-OWNER-20261127"
     },
     {
       "id": "OD-HW-INV-ROUTE",
       "decision": "Whether the native HW-INV inventory replaces the Linux live-USB lspci -nn step previously requested for HW-FR.",
-      "status": "open",
+      "status": "decided",
       "blocks": [
         "HW-INV"
-      ]
+      ],
+      "reference": "ADR-H-AUDIO-HW-OWNER-20261127"
     },
     {
       "id": "OD-HW-POWER",

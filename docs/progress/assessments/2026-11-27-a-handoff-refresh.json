@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "bbdbea88e6148308c5043b42b5df022dd4252fee",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/a-handoff-refresh-20261127",
+  "task": "Workstream A handoff refresh after the A03-T2c-3 landing (#635, 2f9df421): CURRENT.md live state and next actions, A03 delivery_review row text pinned to the landing commit; A02-T2 anchor-domain request to B recorded (design only)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Documentation and row-text update only: no code, test or evidence change, and no criterion accepted. A03 stays open (trusted dialog still a labelled fixture; U Q1-Q3 and B Q2/Q5 open). A02 stays open (A02-T2 waits for B's anchor-domain answers)."
+}

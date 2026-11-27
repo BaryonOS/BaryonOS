@@ -19,12 +19,12 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
   before any numeric budget becomes binding; budgets are never relaxed after a
   failed measurement.
 
-## Local review checkpoint (27 November 2026, 16:33Z UTC)
+## Review checkpoint (27 November 2026, 19:44Z UTC)
 
 The following corrects the 15:42Z #530 handoff and supersedes conflicting
 measurement interpretations below. The authoritative live handoff remains
 [#530 issuecomment-7222389965](https://github.com/BaryonOS/BaryonOS/issues/530#issuecomment-7222389965);
-this checkpoint is local until the #632 bundled push.
+the bundled #632 update carries this checkpoint.
 
 - R02-L1 was decided by the project owner in #530 issuecomment-7219541052.
   The 13:14:07Z acceptance rule assigns formal acceptance and score increases
@@ -36,10 +36,10 @@ this checkpoint is local until the #632 bundled push.
   processes and is not an exclusive performance comparison. Five phase proxies
   are tabulated in the #632 diagnostic README. Local review changes also make
   absent reports visible and prevent a rerun overwriting original evidence.
-- #632 at `3be6d3ef` awaits #642 and the ADR slot, with local, not-yet-pushed
-  review corrections. Merge main only after #642 lands, move the ADR to its
-  allocated marker, complete this checkpoint, validate and push once. Follow
-  the handoff's pre-merge checks and hosted CI; no enqueue on DIRTY/BLOCKED.
+- #642 landed as `c5867e45`. This branch incorporates main `73fa43d9`, moves
+  the R02 ADR to slot 632 and carries the review corrections. Hosted checks,
+  review-thread resolution and the pre-merge check remain required on the
+  pushed head; no enqueue on DIRTY or BLOCKED.
 - K's #602 remains at `bb1f48df`; K's 16:20:56Z #614 checkpoint reports
   local fix `ef42cb18`, with network and L4 validation in progress. KVM A/C
   for #602 awaits the final pushed K head and the shared QEMU slot. K-10

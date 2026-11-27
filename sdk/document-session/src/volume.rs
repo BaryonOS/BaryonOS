@@ -256,6 +256,7 @@ impl<T: Transport> VolumeSession<T> {
                                 | Status::NoDevice
                                 | Status::Corrupt
                                 | Status::Quarantined
+                                | Status::RemountRefused
                         ) {
                             let _ = self.close();
                         }

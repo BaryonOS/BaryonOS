@@ -5,6 +5,214 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-B02-T3-ANCHOR-20261127 — B02 cold rollback anchor as storage domain 1 of the B anchor service
+
+**Status:** project-owner decision of 27 November 2026, given directly to
+workstream B. B's English rendering is recorded in the B handoff on #608
+(issuecomment-7219408868, 13:22Z, item 1(b)); it is not a verbatim quotation.
+Scope: TEST profiles on QEMU/swtpm only. Nothing is implemented yet.
+Specification: [COLD-FRESHNESS-ANCHOR](implementation/COLD-FRESHNESS-ANCHOR.md),
+[B02-SECURE-RECORDS](implementation/B02-SECURE-RECORDS.md).
+
+**Context.** B02 secure records need rollback protection for state that lives
+on disk across a cold boot. The B-owned anchor architecture already defines one
+TPM 2.0 infrastructure with capability-bound domains. Domain 0
+(`0x0100B310`) serves the N04 network policy process. Domain 1
+(`0x0100B311`) is reserved for storage "until a separate decision". The
+kernel anchor service that exposes the domains (REL-05 step S7) is not built.
+
+**Decision.**
+1. B02 receives its own capability-bound anchor domain: storage domain 1,
+   NV handle `0x0100B311`, with the interface and error set of the anchor
+   contract (`read`, compare-and-extend `extend`, `instance`; Unavailable,
+   Corrupt, Conflict, RateLimited). This ADR allocates domain 1 only.
+2. There is no shared unbounded TPM access and no per-service trust root. The
+   kernel anchor service is the only path to the domain indices. A domain-1
+   capability reaches no other domain's index and no other TPM command, and
+   the reverse holds for domain 0.
+3. The implementation shall prevent, each with a native negative test:
+   - capability escape: a domain-1 capability cannot read or extend domain 0,
+     and the reverse; each direction is its own native negative test;
+   - rollback: an older chain value is never accepted as current;
+   - replay: a recorded earlier read or extend result is not accepted again;
+   - cross-domain substitution: the extend value is domain-separated (the same
+     `D(S)` yields a different `E` per domain), and `instance()` gives a
+     per-domain identity, so a value moved between domains is detected;
+   - lost revocations: a revocation is acknowledged only after its durable
+     commit and the corresponding anchor advance, so a crash cut never loses
+     an acknowledged revocation;
+   - unsafe re-initialisation: a missing, undefined or foreign domain-1 index
+     after enrollment fails closed; redefinition happens only through
+     authenticated recovery, never automatically.
+4. REL-05 §7.9 stays in force: a cleared TPM that keeps its endorsement key
+   proves identity, not continuity. Domain 1 is never re-initialised on the
+   strength of a matching EK.
+5. Each domain has its own per-boot extend budget and its own serialisation.
+   Exhausting one domain's budget never denies an extend in the other; a
+   native test shows this.
+6. Domain allocation stays extensible. Domains 2–7 remain reserved; any further
+   holder (for example a NAS lineage domain) needs its own decision and
+   allocation with separate domain authority.
+7. Order: S7 lands the network domain first, built so that domain 1 follows
+   without a contract change. Domain 1 is then wired in the B02-T3
+   implementation.
+
+**Consequences.**
+- B02 gains rollback detection for cold state in TEST profiles only. There is
+  no product or physical-TPM claim.
+- Domain 0 and domain 1 share the TPM infrastructure and its availability: a
+  TPM fault fails both closed.
+- B02 stays open; the score is unchanged.
+
+**Falsified if:** a domain-1 capability reads or extends domain 0, or the
+reverse; the same `D(S)` yields the same `E` in both domains; a domain-1
+rollback or replay is accepted; exhausting one domain's budget denies an
+extend in the other; an acknowledged revocation is lost after a crash cut; or
+domain 1 is re-initialised without authenticated recovery.
+
+## ADR-B04-POLICY-DIRECTION-20261127 — Production signing-policy direction D1–D7 approved for design and synthetic implementation
+
+**Status:** project-owner decision of 27 November 2026, given directly to
+workstream B. B's English rendering is recorded in the B handoff on #608
+(issuecomment-7219408868, 13:22Z, item 1(b)); it is not a verbatim quotation.
+Specification: [B03-PRODUCTION-POLICY-PROPOSAL](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md).
+
+**Context.** The proposal lists D1–D7 as production prerequisites. Until now
+none of them was approved; ADR-B03K3 covers TEST keys and disposable QEMU only.
+
+**Decision.** The architectural direction of D1–D7 is approved:
+- D1: separate offline root and release-signing authorities;
+- D2: root-authenticated, bounded policy packages;
+- D3: demonstrable persistent rollback protection;
+- D4: explicit revocation and controlled recovery, without lowering security
+  floors;
+- D5: an authenticated firmware-to-loader chain;
+- D6: authenticated version windows, with no implicit trust in RTC time;
+- D7: design, synthetic tests and production activation stay separate.
+
+The approval covers design and bounded synthetic implementation and
+verification only. Real production keys, signing ceremonies, physical TPM
+changes, production release publication and a paid external audit each need
+separate, concrete project-owner permission. Synthetic keys are labelled as
+TEST material, as `tools/update-keys/TEST-*` are.
+
+**Consequences.**
+- B04 work may proceed to specification and synthetic-key tests without
+  further approval of the direction.
+- B coordinates the dependencies with A, H, K, N, P and S. Generic
+  domain-separated primitives that D3 and D6 need (a monotonic floor per
+  named domain, authenticated version windows) are designed so that other
+  workstreams can reuse them; app-source anchors stay separate from the
+  system root.
+- B04 stays open; the score is unchanged.
+
+**Falsified if:** a production key, signing ceremony, physical TPM change,
+release publication or paid audit takes place under this ADR alone, or a
+synthetic key is not labelled as TEST material.
+
+## ADR-PROGRESS-OWN-ROWS-20261127 — criterion owners maintain their own implementation and verification snapshot rows
+
+**Status:** decided by the project owner on 27 November 2026 (given in the PR
+guard session and relayed verbatim by the PR guard; no later than 12:43:34 UTC by the guard's
+`date -u` log), recorded by Specialist G at the owner's request. It amends
+the lead ownership of `docs/progress.json` in AGENTS.md and D2 of
+ADR-PROGRESS-ASSESSMENTS-20261125 for these rows only, and supersedes the
+narrower owner decision relayed shortly before it ("Ja, eigen rijen"), which
+limited a refresh to a pull request that touched progress anyway.
+
+**Owner quotation (Dutch, verbatim as relayed):** "Iedere criteriumeigenaar —
+huidig en toekomstig — heeft toestemming ÉN verantwoordelijkheid om de
+implementatie- en verificatiesnapshotrijen van het eigen criterium in
+docs/progress.json (delivery_review) zelfstandig actueel te houden, zonder per
+update toestemming te vragen."
+
+**English translation:** every criterion owner, current and future, has both
+permission and responsibility to keep the implementation and verification
+snapshot rows of its own criterion in `docs/progress.json` (`delivery_review`)
+current on its own, without asking permission for each update.
+
+**Problem:** the snapshot in docs/PROGRESS.md is generated from
+`delivery_review`, which is lead-owned and dated 24 November 2026. Since then
+many pull requests have landed, and rows such as those of A03 describe a state
+that no longer holds. A single owner cannot keep every row current.
+
+**Decision:**
+- **Scope.** Every owner of a criterion, now and in future, keeps the
+  `delivery_review` rows of its own criterion current, without asking
+  permission for each update and without waiting for a pull request that
+  touches progress for another reason.
+- **Conditions.**
+  - Only the rows of the owner's own criterion change.
+  - Each claim rests on current, source-bound evidence.
+  - A routine snapshot refresh leaves rubric, weights, acceptance conditions,
+    status and score unchanged.
+  - Formal acceptance is separate (owner clarification, 27 November 2026, no
+    later than 13:14:07 UTC by the PR guard's `date -u` log, relayed by the
+    guard; it supersedes the guard's message of 13:12:47 UTC on who performs
+    acceptance). Each specialist is the technical owner of its own criteria:
+    implementation, snapshot refresh, verification and delivering acceptance
+    evidence. The PR guard holds the mandate and responsibility for formal
+    criterion acceptance and for processing it into the official progress
+    score: once every existing acceptance condition is demonstrably met and the
+    required independent verification is complete, the guard processes the
+    acceptance and the score increase without extra owner approval, unless the
+    existing conditions explicitly require human acceptance or an owner
+    decision. The guard does not replace an independent reviewer and does not
+    change acceptance conditions, rubric, weights or safety conditions. The
+    formal score continuously matches the criteria actually achieved and
+    verified. This adds no review round or approval layer.
+  - The shared `date` and `source_commit` of `delivery_review` stay unchanged,
+    because they date every row. The refresh date and commit go into the row
+    text itself (`updated YYYY-MM-DD @<sha>: …`).
+  - A refreshed row cites repository files as commit-pinned links
+    (`https://github.com/BaryonOS/BaryonOS/blob/<40-character sha>/<path>`),
+    because the generator resolves relative paths against the shared
+    `source_commit`, not against the refresh commit. Absolute links to
+    Actions runs or jobs, pull requests and reviews stay as they are.
+  - Derived views are regenerated with `python3 tools/progress.py --write` and
+    checked with `--check`; generated files are never edited by hand.
+  - Conflicts are avoided: one owner per row, and D3 task assessment files
+    record the task itself.
+- **Unchanged.** Lead ownership of everything else in `docs/progress.json` and
+  the generated views, D1–D3, the Security Floor and the merge conditions.
+
+**Alternatives:** the lead refreshes all rows (rejected: does not scale and left
+the snapshot stale); a refresh only in a pull request that already touches
+progress (the superseded narrower decision); per-row dates in the generator
+(would change the protected `tools/progress.py`; not needed for this decision).
+
+**Evidence:** a governance decision with no code change. `python3 -B
+tools/progress.py --check` validates every refresh; it does not authenticate the
+content of a claim. Known limit: the generated README and PROGRESS summary
+still label all requirement counts with the shared `date` and `source_commit`,
+although refreshed rows describe a later revision; each such row carries its
+own date and commit. Changing that label belongs to the lead-owned
+`tools/progress.py` and is left to a separate change.
+
+**Rollback:** the project owner can withdraw or narrow the permission by a newer
+decision; lead ownership of the rows then applies again. Rows already refreshed
+stay as evidence-bound history.
+
+**Review criteria:** a routine refresh changes only the author's own criterion
+rows, leaves the shared header, score, status, rubric and weights unchanged, carries
+the date and commit in the row text, and passes `progress.py --check`.
+
+<!-- ADR slots (interim procedure, Specialist G, 27 November 2026, under the
+     owner directive "remove merge queue bottlenecks" of about 15:40Z).
+     A pull request that adds a new ADR replaces only its own slot line below
+     with the ADR block, and keeps the blank line around the slot unchanged.
+     Slots in different pull requests then merge without conflict, so several
+     ADR pull requests can be in the merge queue at once. A spare slot is
+     claimed by naming it in the pull request body; the PR guard keeps the
+     list. Amendments inside an existing ADR need no slot. This comment and
+     unused slots go away with the move to one file per ADR. -->
+
+<!-- adr-slot: 636 -->
+
+<!-- adr-slot: 631 -->
+
+<!-- adr-slot: 629 -->
+
 ## ADR-R02-L1-BUDGETS-20261127 — R02 performance budgets: product targets and profile-bound acceptance
 
 **Status:** accepted. Project-owner decision of 27 November 2026, 13:27 UTC, recorded
@@ -115,92 +323,117 @@ method and the profile split.
 **Rollback:** only through a new project-owner decision. Tier 1 cannot be relaxed by
 an executing role.
 
-## ADR-PROGRESS-OWN-ROWS-20261127 — criterion owners maintain their own implementation and verification snapshot rows
 
-**Status:** decided by the project owner on 27 November 2026 (given in the PR
-guard session and relayed verbatim by the PR guard; no later than 12:43:34 UTC by the guard's
-`date -u` log), recorded by Specialist G at the owner's request. It amends
-the lead ownership of `docs/progress.json` in AGENTS.md and D2 of
-ADR-PROGRESS-ASSESSMENTS-20261125 for these rows only, and supersedes the
-narrower owner decision relayed shortly before it ("Ja, eigen rijen"), which
-limited a refresh to a pull request that touched progress anyway.
+<!-- adr-slot: 624 -->
 
-**Owner quotation (Dutch, verbatim as relayed):** "Iedere criteriumeigenaar —
-huidig en toekomstig — heeft toestemming ÉN verantwoordelijkheid om de
-implementatie- en verificatiesnapshotrijen van het eigen criterium in
-docs/progress.json (delivery_review) zelfstandig actueel te houden, zonder per
-update toestemming te vragen."
+## ADR-H-AUDIO-HW-OWNER-20261127 — owner decisions on H03 audio (B1, B2, B4) and on physical hardware (OD-HW-*)
 
-**English translation:** every criterion owner, current and future, has both
-permission and responsibility to keep the implementation and verification
-snapshot rows of its own criterion in `docs/progress.json` (`delivery_review`)
-current on its own, without asking permission for each update.
+**Status:** project-owner decisions of 27 November 2026, given directly to
+Specialist H and recorded by H. They amend the open items of
+ADR-H03-SND-FIXTURE-20261119 and the `owner_decisions` of
+`docs/drivers/hardware-matrix.json`. They give a GO for design,
+implementation and preparation. They accept no criterion, change no
+acceptance condition, rubric or weight, and leave D1–D3 and the Security
+Floor unchanged. H coordinates with K, B, N and S.
 
-**Problem:** the snapshot in docs/PROGRESS.md is generated from
-`delivery_review`, which is lead-owned and dated 24 November 2026. Since then
-many pull requests have landed, and rows such as those of A03 describe a state
-that no longer holds. A single owner cannot keep every row current.
+**H03-T3b native audio.**
 
-**Decision:**
-- **Scope.** Every owner of a criterion, now and in future, keeps the
-  `delivery_review` rows of its own criterion current, without asking
-  permission for each update and without waiting for a pull request that
-  touches progress for another reason.
-- **Conditions.**
-  - Only the rows of the owner's own criterion change.
-  - Each claim rests on current, source-bound evidence.
-  - A routine snapshot refresh leaves rubric, weights, acceptance conditions,
-    status and score unchanged.
-  - Formal acceptance is separate (owner clarification, 27 November 2026, no
-    later than 13:14:07 UTC by the PR guard's `date -u` log, relayed by the
-    guard; it supersedes the guard's message of 13:12:47 UTC on who performs
-    acceptance). Each specialist is the technical owner of its own criteria:
-    implementation, snapshot refresh, verification and delivering acceptance
-    evidence. The PR guard holds the mandate and responsibility for formal
-    criterion acceptance and for processing it into the official progress
-    score: once every existing acceptance condition is demonstrably met and the
-    required independent verification is complete, the guard processes the
-    acceptance and the score increase without extra owner approval, unless the
-    existing conditions explicitly require human acceptance or an owner
-    decision. The guard does not replace an independent reviewer and does not
-    change acceptance conditions, rubric, weights or safety conditions. The
-    formal score continuously matches the criteria actually achieved and
-    verified. This adds no review round or approval layer.
-  - The shared `date` and `source_commit` of `delivery_review` stay unchanged,
-    because they date every row. The refresh date and commit go into the row
-    text itself (`updated YYYY-MM-DD @<sha>: …`).
-  - A refreshed row cites repository files as commit-pinned links
-    (`https://github.com/BaryonOS/BaryonOS/blob/<40-character sha>/<path>`),
-    because the generator resolves relative paths against the shared
-    `source_commit`, not against the refresh commit. Absolute links to
-    Actions runs or jobs, pull requests and reviews stay as they are.
-  - Derived views are regenerated with `python3 tools/progress.py --write` and
-    checked with `--check`; generated files are never edited by hand.
-  - Conflicts are avoided: one owner per row, and D3 task assessment files
-    record the task itself.
-- **Unchanged.** Lead ownership of everything else in `docs/progress.json` and
-  the generated views, D1–D3, the Security Floor and the merge conditions.
+- **B1:** a separate, manifest-only, non-delegable AUDIO output capability,
+  held only by the authorised ring-3 audio broker. Applications reach the
+  broker only through controlled IPC and receive no direct DMA, MMIO or
+  device rights.
+- **B2:** K and H choose a demonstrably free syscall number and matching ABI
+  version themselves, record the choice and verify that no existing number
+  conflicts, including `0x73`.
+  - Choice (H and K, 27 November 2026; survey on #530,
+    issuecomment-7219621427): block `0xC0`–`0xCF` is reserved for the AUDIO
+    output path. No dispatch arm, SDK constant or open PR uses `0xC*`.
+    `0xA0`–`0xAF` belongs to L01 and `0xB0`–`0xBF` to B.
+  - The calls are gated by the AUDIO right and the kernel feature profile,
+    and return ENOSYS where absent. The ABI stays 1.0. K makes one
+    coordinated minor bump once a stable set is frozen. The concrete rows
+    go into the §4 table of `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md`
+    in the implementation PR.
+- **B4:** `00:08.0` is reserved for virtio-snd in the controlled VM-FR
+  profile only. It is not a physical hardware assumption.
+  - The QEMU runners on `52e4430a` place devices at `0x5`, `0x6`, `0x7` and
+    `0xc`; only `tools/run_virtio_snd.py` uses `08.0`. The auto-placed
+    `qemu-xhci` runs in profiles that are exclusive with the snd profile.
+  - A future VM-FR profile that combines both must place every device
+    explicitly. No other device may claim `00:08.0`.
+- **Scope of the first implementation:**
+  - output only; microphone access needs a separate, explicit owner
+    authorisation later;
+  - the exact PCM/WAV oracle (`drivers/virtio-snd/TRANSPORT.md` §7) is kept;
+  - bounded audio buffers, controlled scheduling, revocation, cleanup and
+    crash recovery are designed in;
+  - latency is optimised without weakening isolation.
 
-**Alternatives:** the lead refreshes all rows (rejected: does not scale and left
-the snapshot stale); a refresh only in a pull request that already touches
-progress (the superseded narrower decision); per-row dates in the generator
-(would change the protected `tools/progress.py`; not needed for this decision).
+**Physical hardware (`OD-HW-*`).**
 
-**Evidence:** a governance decision with no code change. `python3 -B
-tools/progress.py --check` validates every refresh; it does not authenticate the
-content of a claim. Known limit: the generated README and PROGRESS summary
-still label all requirement counts with the shared `date` and `source_commit`,
-although refreshed rows describe a later revision; each such row carries its
-own date and commit. Changing that label belongs to the lead-owned
-`tools/progress.py` and is left to a separate change.
+| Decision | Owner answer | Matrix status |
+| --- | --- | --- |
+| OD-HW-TARGETS | Work toward at least two distinct x86-64 reference configurations for full hardware acceptance. Start with one actually available, controlled test machine. Invent no hardware identity and buy nothing without permission. | open: no target identity exists yet, and `tools/hw_matrix.py` refuses a decided entry while the HW-FR target is null |
+| OD-HW-BOOT | Use a separate removable test medium through the one-time firmware boot menu. Never change Secure Boot, firmware keys or permanent boot settings automatically. | decided |
+| OD-HW-DISKS | Prefer physically isolated test storage. Protect every internal user disk against reading, writing and formatting. The owner performs any necessary physical action. | decided |
+| OD-HW-CAPTURE | Use reliable serial capture when available, otherwise a validated screen-based route. | decided |
+| OD-HW-SIGNERS | Only explicitly authorised operators and signing identities. Generate or register no production keys without separate permission. | open: the policy is decided, but no operator or signing identity is named yet |
+| OD-HW-FAMILIES | Priority: USB HID, storage, wired Ethernet, basic graphics output, audio and power management. Wi-Fi, Bluetooth and GPU acceleration remain part of later product development; no acceptance condition is removed. | open: the R03-INSTALL install-target transport is not answered yet |
+| OD-HW-PUBLISH | Publish sanitised hardware data only. Remove MAC addresses, serial numbers and other unique device identifiers from public logs. | decided |
+| OD-HW-INV-ROUTE | Native hardware inventory becomes the primary route once it is reliably demonstrated. An independent Linux inventory serves as the completeness reference. | decided |
+| OD-HW-POWER | Prioritise physical S5, S3 where supported, controlled wake, and safe storage and network recovery. Battery and thermal tests stay profile-dependent. | open: the physical wake source is not chosen yet |
 
-**Rollback:** the project owner can withdraw or narrow the permission by a newer
-decision; lead ownership of the rows then applies again. Rows already refreshed
-stay as evidence-bound history.
+OD-HW-SIGNERS and OD-HW-BOOT are consistent with
+ADR-B04-POLICY-DIRECTION-20261127 (B, draft #631): no production keys,
+ceremonies or physical TPM or boot changes without separate permission.
 
-**Review criteria:** a routine refresh changes only the author's own criterion
-rows, leaves the shared header, score, status, rubric and weights unchanged, carries
-the date and commit in the row text, and passes `progress.py --check`.
+Physical boot, firmware, disk and signing actions that need the owner are
+presented to the owner concretely and as one bundle. The four entries that
+stay open are answered in part; the open part goes into that bundle.
+
+**Consequences.**
+
+- H03-T3b (ring-3 audio broker, AUDIO right, syscall) is no longer blocked
+  on an owner decision. The syscall block is chosen (B2 above). It still
+  needs a Security Floor review by B of the right's issue, check,
+  non-delegation and revocation paths, and its own native evidence.
+- Every physical protocol stays blocked by `OD-HW-TARGETS` until a real
+  target machine is recorded.
+
+**Alternatives.** The owner's answers record no comparison of options. What
+they exclude: B1 excludes any app-held audio device, DMA, MMIO or IRQ right
+and any delegable AUDIO right; B4 excludes treating `00:08.0` as a physical
+hardware address.
+
+**Evidence status.** None. This record runs no native or hardware test. The
+matrix change is checked only on the host, by `tools/hw_matrix.py --check`
+and `tools/tests/test_hw_matrix.py` (consistency checks, not hardware
+evidence). The broker, the syscalls and every physical protocol are NOT RUN.
+
+**Review triggers.** Revisit this record if any of these occur:
+- a dispatch arm, SDK constant or PR outside the AUDIO path uses `0xC0`–`0xCF`;
+- an app path receives device, DMA, MMIO or IRQ access for audio;
+- the AUDIO right becomes delegable;
+- a device other than virtio-snd claims `00:08.0` in a VM-FR profile;
+- physical work starts while `OD-HW-TARGETS` names no target.
+
+**Sources:**
+- Project owner (Simon van Ieperen), message in the H session, 27 November 2026, recorded by H on issue #564:
+  <https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7219592317>.
+- Specialists H and K, AUDIO syscall survey, 27 November 2026, issue #530:
+  <https://github.com/BaryonOS/BaryonOS/issues/530#issuecomment-7219621427>.
+- `docs/drivers/hardware-matrix.json`; `drivers/virtio-snd/TRANSPORT.md`
+  (decisions B1, B2 and B4).
+
+**Rollback:** revert the commit. The five matrix entries return to `open`.
+
+<!-- adr-slot: spare-1 -->
+
+<!-- adr-slot: spare-2 -->
+
+<!-- adr-slot: spare-3 -->
+
+<!-- adr-slot: spare-4 -->
 
 ## ADR-SPECIALIST-MANDATE-20261127 — every appointed specialist enqueues and integrates its own pull requests
 
@@ -570,7 +803,10 @@ project owner; regular integration within the mandate is autonomous.
   25 November 2026 (amendment H05-T5c of ADR-H05-S3-SYSTEM-20261123), which
   requires key erasure before S3 through the B keyring architecture.
 
-UNLOCK and questions O2, O5 and O8 remain open. Nothing is implemented yet.
+Questions O2, O5, O7, O8 and OQ1 were decided by the project owner on
+27 November 2026; see the amendment at the end of this ADR. LOCK (#573) and
+the SUSPEND check KL2 (#597) are on main for TEST profiles only; UNLOCK is
+not implemented.
 Specification: [B01-KEYRING-LOCK](implementation/B01-KEYRING-LOCK.md).
 
 **Context.** RAM stays powered during S3. The SUSPEND storage gate proves an
@@ -615,6 +851,69 @@ payloads.
 **Falsified if:** SUSPEND passes while the state is not LOCKED; a frame of the
 ended instance is not zero after LOCK; a Key Service exit or fault yields
 LOCKED; or a TEST-profile S3 pass lacks the label.
+
+**Amendment, 27 November 2026 — project-owner decisions O2, O5, O7, O8 and
+OQ1.** The owner gave these decisions directly to workstream B. B's English
+rendering is recorded on #564 (issuecomment-7219397369, 13:22:23Z); it is not
+a verbatim quotation.
+- **O2, unwrap secret:** TPM-protected and high-entropy, with mandatory user
+  authentication and binding to the trusted boot chain. No key is derived only
+  from a password. Access and lifetime are limited to the necessary authorised
+  components; temporary copies are erased.
+- **O5, mutation freeze:** a fail-closed freeze of key mutations before export,
+  lasting until the durable commit and LOCK are complete. No allocation or
+  revocation is lost. The existing write-ahead infrastructure
+  (ADR-B02-KEY1-RELAY) is reused where needed; no second mechanism is added
+  without need.
+- **O8, order:** authentication → T5f-1 → UNLOCK → T5f-2. Authentication works
+  independently of the locked user data. No user or write rights are restored
+  before the required authentication and verification succeed.
+- **O7, volume metadata:** GO for a joint design with S of cryptographically
+  authenticated volume metadata. The authentication key is not derived only
+  from the data being verified. FNV-64 is not an authenticity guarantee.
+- **OQ1, product S3 lifecycle:** before a product S3, sensitive plaintext,
+  derived keys and recovery secrets are demonstrably removed from the relevant
+  processes and services. B works out a bounded lifecycle with H, K and U.
+  Where removal cannot be guaranteed, S3 refuses in a controlled way.
+- **O1 is unchanged:** F1 without F2 suffices only in explicitly labelled TEST
+  profiles, with no product confidentiality claim.
+
+Effect on this ADR: decision 5 now follows the O8 order and the O2 secret
+source. The consequence "key state that is not durable at LOCK is lost" is
+replaced by the O5 freeze, and the consequence on volume authenticity by the
+O7 design. Independent verification and the acceptance conditions stay in
+force.
+
+Workstream agreements of 27 November 2026 (technical, not owner decisions):
+- Authentication ownership, proposed by U and accepted by B: B owns the
+  authentication step (session-service core, secret and TPM path, the state
+  machine authentication → T5f-1 → UNLOCK → T5f-2, rate limiting, fail
+  closed); U owns its user surface (lock, sign-in, verifying and error
+  states). The interface is a state enumeration plus events, drafted by B and
+  reviewed by U; one writer per file.
+- Refusal value -28 `NOT_AUTHENTICATED` (T5f-1 refused: no valid
+  authentication signal), proposed by H and B and agreed by S, who keeps only
+  -26. H defines the constant in the T5f-1 change after this ADR is on main.
+- OQ1: U accepts the U part (UI and session plaintext; S3 refuses with a
+  visible reason when a component does not report "clean" in time).
+
+Open, not decided by this amendment:
+- the kernel-checkable authentication signal: H requires that the kernel
+  learns the result from a designated principal, never from the grantee; O8
+  excludes material from volume domain 1. The interface is not chosen;
+- the OQ1 split that H proposes (H: the single kernel S3 refusal point; K:
+  process scrub or termination; B: Key Service plaintext and keys; U: UI and
+  session plaintext), pending K's agreement;
+- the O7 key availability: S reports (#564, issuecomment-7219627534) that the
+  post-wake remount runs before UNLOCK, so a metadata key released only by
+  UNLOCK cannot verify the table then; the key must come earlier (for example
+  TPM-bound under O2), or the reads before the tag check must be bounded.
+
+H's T5f constraints (#564, issuecomment-7219429976) are design input, not
+decisions. LOCK and UNLOCK remain B's implementation under this ADR; H05
+depends on them only for its acceptance. Already on main, TEST profiles only:
+KL2 (#597) and the noscrub red control (#613). Open in H05: T5c slices 2–4,
+T5e (with B and S) and T5d-P, whose O5 blocker is now decided.
 
 ## ADR-CI-MERGE-GROUP-GATES-20261126 — merge-hold judges the applicable gates on the merge-queue commit
 
@@ -2041,6 +2340,38 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    or capacity change is provoked by the emulator; no physical S3; the
    ticket floor is checked natively on a Policy copy and by a host test
    (docs/verification/h05-s3-blk-reinit-20261125/).
+   Amendment H05-T5c Q2, S side (27 November 2026; project-owner decision
+   given in the S session at about 13:20Z and recorded by S on #564,
+   issuecomment-7219366917): the owner approved these rules for the
+   post-wake remount check of
+   [VOLUME-POST-WAKE-REMOUNT.md](implementation/VOLUME-POST-WAKE-REMOUNT.md);
+   the rest of that specification remains design:
+   - **R1, grant recipient:** the one T5f-1 read-only block grant goes only to
+     the original volume service instance that ran SHUTDOWN before SUSPEND and
+     survived the sleep (same slot and pid, no exit or restart since). A
+     restarted instance never receives it automatically. No other route is
+     designed, so the volume then stays unavailable until the next cold
+     boot. The kernel keeps no copy of the generation or digest that the
+     service reports.
+   - **R2, outcome:** a kernel lane quarantine reaches clients one-to-one as
+     `Quarantined` -24. A remount that differs from the pre-sleep reference,
+     reports `Corrupt` or meets a read error is the separate volume service
+     status `RemountRefused` -26.
+   - **-26:** approved on the condition that the value is still unused when
+     the status is integrated; it stays distinct from -24, from KL2 -25 and
+     from TX_EDGE -27. `RemountRefused` is terminal until a cold reboot: no
+     automatic repair, write or retry.
+   - **Order:** the runtime order of authentication, T5f-1, the remount,
+     UNLOCK and T5f-2 is not fixed here. It follows the owner's B01-LOCK
+     decision O8 (authentication → T5f-1 → UNLOCK → T5f-2), which B will
+     record in ADR-KEYRING-LOCK-20261126; the final order of authentication
+     and remount is agreed by B and H (owner, #564).
+   This amendment builds nothing. The native post-wake cases still need H's
+   T5d-T, T5e and UNLOCK, and T5f-1 also waits for a kernel-checkable
+   authentication signal that does not exist yet. Per H's T5f constraints
+   (#564, issuecomment-7219429976) and O1, the remount runs only in TEST
+   profiles until a product claim is separately allowed. Integrity, not
+   authenticity: FNV-64 is no MAC (B's O7).
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
    pause across S3. This is recorded, not hidden.
 
@@ -2532,6 +2863,25 @@ ADR decided nothing about D1–D5; those are decided separately by
 (D1 (b), D2 (a), D3, D4 (a), D5 (a)), which keeps this grant a fixture. S09
 stays open.
 
+**Amendment, 24 November 2026 (project-owner decision O4 (b); recorded by S
+on 27 November 2026).** The owner decided O4 (b) of
+[S09-DESTINATION-SERVICE.md](implementation/S09-DESTINATION-SERVICE.md)
+section 8.1 on 24 November 2026; this records it here. For the R5 route only:
+- B3: the destination service may hold the second virtual disk (device 1)
+  exclusively, with READ, WRITE and FLUSH over the whole device; the volume
+  service still receives nothing on device 1.
+- B5: a scripted, test-only dialog driver for the destination control lane is
+  permitted.
+- B4 and B6 are unchanged: isolated, disposable images only, no product
+  activation and no access to real host disks.
+
+S's assessment, not an owner decision: the catalog v2 decisions of
+27 November 2026 (amendment of ADR-S09-DESTINATION-20261119) need no further
+change to B3 or B5 for the R5 test route. Controlled deletion uses only WRITE
+and FLUSH inside the `deleting` entry's extent and the catalog slots on
+device 1. Configured retention rules (V7) and remembered VERIFY consent (V8)
+belong to the product dialog and are not covered by B5's test dialog.
+
 ## Project-owner decision package of 19 November 2026 — scope and limits
 
 The six ADRs below record one decision package issued by the project owner on
@@ -2575,6 +2925,54 @@ review, negative tests and verified enforcement before activation. The
 existing test-fixture grant in [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md)
 remains a fixture. S09 stays open until its full acceptance passes; Claude S09
 ownership of the implementation is unchanged.
+
+**Amendment, 27 November 2026 (project-owner decisions V1–V9 on the
+destination catalog v2; given in the S session at about 13:20Z, recorded by
+S on #569, issuecomment-7219366565).** The owner answered the nine questions
+of section 9 of [S09-CATALOG-V2.md](implementation/S09-CATALOG-V2.md)
+(revision 1). They refine the O3 (retention and deletion), O5 (backup time)
+and O12 (owner binding) directions of 24 November 2026, recorded in section
+8.1 of [S09-DESTINATION-SERVICE.md](implementation/S09-DESTINATION-SERVICE.md).
+Catalog v1 stays append-only.
+- **V1, one migration:** a single catalog migration to v2 covers backup time,
+  controlled deletion and O12 owner binding; there is no separate v3.
+  Independent parts may proceed meanwhile; the v2 codec waits until the
+  meaning of the owner field is agreed with the B and U tracks.
+- **V2, downgrade:** fail-closed. A v1-only build does not interpret, change or
+  repair a v2 catalog. v2 keeps the v1 magic and is told apart by an explicit
+  version check.
+- **V3, time:** the trusted portal supplies the backup time and its source; the
+  destination service reads no clock. Source 0 is unknown time, including an
+  RTC reading of zero. Source 1 is the unauthenticated system clock. Source 2
+  is only demonstrably synchronised time from a trusted source. No stored or
+  reported value claims trusted time when it is absent. Time stays
+  information and never authority.
+- **V4, erase:** controlled deletion overwrites the entry's data range before
+  the final release, crash-consistent and safely resumable. Only what the
+  storage device can verify is claimed; there is no physical erase
+  guarantee, in particular for SSDs.
+- **V5, proof:** a successful, source-bound VERIFY inside the destination
+  service suffices for retention protection. It is not evidence of a
+  completed restore.
+- **V6, guard:** the destination service itself protects the last verified
+  backup of each owner against policy deletion; the portal alone is not
+  sufficient.
+- **V7, retention rules:** explicitly configured retention rules run through
+  the existing trusted dialog component on the control lane. No new privileged
+  service and no new control right are created.
+- **V8, bound entries:** a DELETE of an entry that is actively bound on any
+  lane returns `Busy`; DELETE revokes no binding implicitly. A remembered
+  VERIFY consent for a deleted entry identity is revoked.
+- **V9, reuse:** CREATE initially reuses only free ranges of at least 1027
+  sectors (one largest archive). Needless fragmentation is avoided, and safer
+  allocation optimisations remain possible later.
+
+This amendment changes no code, capability or acceptance condition. It
+authorises the host implementation route of section 10 of S09-CATALOG-V2.md
+after an independent verification of the design, with the v2 codec held for
+the O12 agreement as stated under V1. The Security Floor, the existing
+acceptance conditions of S09 and the CI decisions D1–D3 are unchanged; S09
+stays open.
 
 ## ADR-B03-B04-TARGET-20261119 — Target architecture for update authenticity and recovery
 
