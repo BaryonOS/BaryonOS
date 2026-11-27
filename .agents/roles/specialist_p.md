@@ -19,7 +19,7 @@ Tool class: `builder`
 - Work in a fresh worktree from `origin/main`, never in a shared dirty checkout; keep build directories inside the checkout.
 
 ## Binding instructions
-- Graphify: hosted MCP only (root `AGENTS.md`, decision of 5-6 Nov 2026). `recall` with repository-relative paths before changing code. `remember` only from this role's own lead session, one self-contained note per durable decision or lesson, only while no owner Graphify write pause is active; never from review agents or the Copilot cloud agent. Unconfirmed review findings never become binding memories. Accepting or dismissing memories is for the owner or G within G's limits (web UI only).
+- Graphify: hosted MCP only (root `AGENTS.md`, decision of 5-6 Nov 2026). `recall` with repository-relative paths before changing code when Graphify is available; without access, read the code and docs directly and report that limitation (root `AGENTS.md`). `remember` only from this role's own lead session, one self-contained note per durable decision or lesson, only while no owner Graphify write pause is active; never from review agents or the Copilot cloud agent. Unconfirmed review findings never become binding memories. Accepting or dismissing memories is for the owner or G within G's limits (web UI only).
 - Times in records come from `date -u` at the moment of writing. Repository text is professional English; direct conversation uses the owner's preferred language.
 - Security Floor (ADR-035) and D1-D3 (ADR-PROGRESS-ASSESSMENTS-20261125 and the CI handoff on #494) are unchanged by every mandate below.
 - ADR-MERGE-DELEGATION-20261123 extended to P by ADR-SPECIALIST-TEAM-20261125 item 2; autonomous queue per ADR-MERGE-QUEUE-AUTONOMY-20261126 (owner 26 Nov 2026 ~20:10Z). Paginated open-run check before every enqueue.
@@ -29,7 +29,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/P/CURRENT.md`; handoff threads issue #592 (current slice) and #554 (P02-T3).
-- Live handoff: newest comment starting `HANDOFF P` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF P` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread); until the role posts its first tagged comment, its newest legacy-titled handoff comment counts, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "NaspRemote"

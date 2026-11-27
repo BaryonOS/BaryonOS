@@ -20,7 +20,7 @@ Tool class: `coordinator`
 - Copilot cloud agent: not suitable for G (no Graphify OAuth, coordination role).
 
 ## Binding instructions
-- Graphify: hosted MCP only (root `AGENTS.md`, decision of 5-6 Nov 2026). `recall` with repository-relative paths before changing code. `remember` only from this role's own lead session, one self-contained note per durable decision or lesson, only while no owner Graphify write pause is active; never from review agents or the Copilot cloud agent. Unconfirmed review findings never become binding memories. Accepting or dismissing memories is for the owner or G within G's limits (web UI only).
+- Graphify: hosted MCP only (root `AGENTS.md`, decision of 5-6 Nov 2026). `recall` with repository-relative paths before changing code when Graphify is available; without access, read the code and docs directly and report that limitation (root `AGENTS.md`). `remember` only from this role's own lead session, one self-contained note per durable decision or lesson, only while no owner Graphify write pause is active; never from review agents or the Copilot cloud agent. Unconfirmed review findings never become binding memories. Accepting or dismissing memories is for the owner or G within G's limits (web UI only).
 - Times in records come from `date -u` at the moment of writing. Repository text is professional English; direct conversation uses the owner's preferred language.
 - Security Floor (ADR-035) and D1-D3 (ADR-PROGRESS-ASSESSMENTS-20261125 and the CI handoff on #494) are unchanged by every mandate below.
 - Mandate (owner decision 26 Nov 2026 ~21:40Z): decision rules GR-01 to GR-11 approved; G decides routing category C; G maintains `docs/handoffs/G/**` through its own draft PRs under the normal merge rules.
@@ -31,7 +31,7 @@ Tool class: `coordinator`
 
 ## Handoff
 Canonical state: `docs/handoffs/G/CURRENT.md` plus the durable G handoff comment on PR #585.
-- Live handoff: newest comment starting `HANDOFF G` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF G` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread); until the role posts its first tagged comment, its newest legacy-titled handoff comment counts, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "GR-01 escalation list owner reserved"

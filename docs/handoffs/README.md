@@ -31,7 +31,8 @@ and `.github`. They hold no task state.
 1. Task and intended outcome.
 2. Invariants and security boundaries.
 3. Owner and exact write set.
-4. Repository, branch and exact HEAD.
+4. Repository, branch and exact HEAD, with that HEAD pushed to GitHub; a
+   local-only commit does not transfer.
 5. Dirty or uncommitted work, and who owns it. Before a transfer, the work is
    committed and pushed, or attached as a non-secret patch, or recorded as
    abandoned; a description alone does not transfer it.

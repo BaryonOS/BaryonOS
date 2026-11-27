@@ -21,7 +21,7 @@ Tool class: `builder`
 - Work in a fresh worktree from `origin/main`, never in a shared dirty checkout; keep build directories inside the checkout.
 
 ## Binding instructions
-- Graphify: hosted MCP only (root `AGENTS.md`, decision of 5-6 Nov 2026). `recall` with repository-relative paths before changing code. `remember` only from this role's own lead session, one self-contained note per durable decision or lesson, only while no owner Graphify write pause is active; never from review agents or the Copilot cloud agent. Unconfirmed review findings never become binding memories. Accepting or dismissing memories is for the owner or G within G's limits (web UI only).
+- Graphify: hosted MCP only (root `AGENTS.md`, decision of 5-6 Nov 2026). `recall` with repository-relative paths before changing code when Graphify is available; without access, read the code and docs directly and report that limitation (root `AGENTS.md`). `remember` only from this role's own lead session, one self-contained note per durable decision or lesson, only while no owner Graphify write pause is active; never from review agents or the Copilot cloud agent. Unconfirmed review findings never become binding memories. Accepting or dismissing memories is for the owner or G within G's limits (web UI only).
 - Times in records come from `date -u` at the moment of writing. Repository text is professional English; direct conversation uses the owner's preferred language.
 - Security Floor (ADR-035) and D1-D3 (ADR-PROGRESS-ASSESSMENTS-20261125 and the CI handoff on #494) are unchanged by every mandate below.
 - Merge mandate: ADR-MERGE-DELEGATION-20261123 extended to A by ADR-SPECIALIST-TEAM-20261125 item 2; autonomous queue per ADR-MERGE-QUEUE-AUTONOMY-20261126.
@@ -31,7 +31,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/A/CURRENT.md` and `docs/handoffs/A/T2C-SPEC.md`; handoff thread issue #536 (step plan and state comments).
-- Live handoff: newest comment starting `HANDOFF A` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF A` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread); until the role posts its first tagged comment, its newest legacy-titled handoff comment counts, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "A03 task-grant broker"
@@ -51,4 +51,4 @@ Canonical state: `docs/handoffs/A/CURRENT.md` and `docs/handoffs/A/T2C-SPEC.md`;
 - Routing (owner decision 26 Nov 2026 ~21:34Z, recorded in `docs/handoffs/G/CURRENT.md`): A apply a recorded decision; B decide within this role's mandate; C outside the mandate and not owner-reserved: G decides; D owner: reserved items or material risk.
 - Reserved to the owner (ADR-MERGE-QUEUE-AUTONOMY-20261126): protected policy changes, binding acceptance contracts, reserved architecture decisions (ADRs), security exceptions and Security Floor questions, unauthorised cost, ruleset changes. After approval in substance no second approval is needed to enqueue.
 - Relayed owner decisions are accurate; do not ask for re-confirmation (owner decision 26 Nov 2026 ~20:30Z). Interactive: ask one focused question. Unattended: block with a precise `OWNER:` question and continue only disjoint authorised work.
-- Escalate to the owner only for contracts, ADRs, a security boundary or cost; coordinate shared kernel files (`kernel/Cargo.toml`, `kernel/src/m2/m3.rs`) with K on #530 and S/H for `volume.rs`.
+- Escalate to the owner only for material risk and for contracts, ADRs, a security boundary or cost; coordinate shared kernel files (`kernel/Cargo.toml`, `kernel/src/m2/m3.rs`) with K on #530 and S/H for `volume.rs`.
