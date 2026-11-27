@@ -204,6 +204,55 @@ open. Record the source commit,
 hashes, exact command, wall-clock duration, and completion count. H03 and
 FR-H02/A06 remain open.
 
+### Ring-3 broker boundary (proposal, no implementation)
+
+The VM-SND-1 proposal assigns the manifest-only, non-delegable AUDIO output
+right to one ring-3 broker. Trusted bootstrap binds the specific client
+process identities, reply routes and permitted stream class. The fixture
+allows one ordinary client and one system assistive client, each with a
+private control and data ingress. Their four ingress endpoints fit the
+existing ownership limit. A client receives IPC access only. Kernel-owned
+device state, bounce buffers and the fence remain governed by §§2–5.
+
+The [IPC proposal](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227503916)
+specifies an output-only v1 message within the existing 256-byte payload.
+The broker keeps bounded queues, checks sender and stream generation, and
+reports queue delay, device unavailability and underrun. Before UNLOCK only
+the bound system session identity may submit non-personal assistive speech.
+No stream contents are logged or persisted.
+
+The [cancellation contract](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227535109)
+distinguishes clearing the broker queue from consuming an already-submitted
+period. Flush advances one stream generation, clears its queued samples,
+and refuses older writes. The broker reports whether the target generation
+was submitted, consumed by the device or unobserved. The client may proceed
+with a new announcement or use text or braille without waiting for audible
+confirmation. A ready assistive stream has reserved capacity and is included
+at the next available device period. The proposed one-period submission
+limit and priority order require verification. Audible latency remains a
+physical measurement.
+
+**Implementation blocker.** Ordinary IPC receive reserves slots for
+attached capabilities before dequeue. A full receiver table can leave an
+unusable message at the head, including on a flush queue. The
+[proposed ingress rule](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227589916)
+binds an immutable no-attachments property to the specific endpoints at
+trusted creation. The send path would reject an attached capability after
+message and endpoint authority validation and before reserving transfer or
+queue resources. Ordinary endpoints retain the existing path.
+[B's conditional security design review](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227620602)
+and [K's interface review](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227602220)
+identify the capability engine and kernel manifest adapter as shared
+interfaces. The project owner must scope the change before
+B and K settle the exact implementation write set. H owns the broker
+fixture.
+
+Add negative cases for one and two attachments with a full receiver table,
+unchanged slot and queue counts, later delivery of capless control and data,
+ordinary endpoint transfer, stale generations, broker replacement and
+revocation. These cases supplement the unchanged native WAV/F1/F13/F14/F19
+gate above. The proposal and interface reviews are design evidence.
+
 ## 8. Open decisions (grouped for 14/2/4)
 
 Release response (2ab17599), 30 October 2026, read once at `5223214`;

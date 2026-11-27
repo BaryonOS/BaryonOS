@@ -84,7 +84,8 @@ path or specific tool is needed to resume.
 
 ### Local work
 
-The live handoff records any unpublished H branch and its source commit.
+The live handoff records the TXDOWN branch and its source commit. The
+feature-off baseline waits for K's linker pin on main.
 
 ### Invariants and reserved values
 
@@ -97,10 +98,9 @@ The live handoff records any unpublished H branch and its source commit.
 - TEST profiles only: the unwrap secret is a public TEST constant; no
   key-state durability is claimed; no production LOCK before owner
   decision O5.
-- Error codes: -24 QUARANTINED, -25 KL2 SUSPEND, -26 reserved for the
-  project owner's ADR (S proposes it for `RemountRefused`), -27 TX_EDGE
-  specified in #601), and -28 `NOT_AUTHENTICATED` for T5f-1
-  (recorded by #631, `ee29246b`; H owns its implementation).
+- Error codes: -24 QUARANTINED, -25 KL2 SUSPEND, -26 `RemountRefused`
+  (#637 and #646), -27 TX_EDGE (#601), and -28 `NOT_AUTHENTICATED`
+  for T5f-1 (recorded by #631, `ee29246b`; H owns its implementation).
 
 ### Owner questions and blockers
 
@@ -117,15 +117,17 @@ The live handoff records any unpublished H branch and its source commit.
   #564 (issuecomment-7219429976). B owns authentication and U owns its
   user surface. The order is authentication → T5f-1 → UNLOCK → T5f-2.
   The kernel-checkable authentication signal remains an open interface.
-- -26 value (owner ADR); H05-T5d-P (production LOCK) waits for B's O5
+- H05-T5d-P (production LOCK) waits for B's O5
   freeze implementation.
 - B04 loader reproducibility (PR #493) before an image hash can be
   reproduced from an independent clean checkout.
-- H03-T3b audio broker: owner decisions given; B reviews the AUDIO right
-  against its checklist (kernel-only mint, non-delegation in every transfer
-  path, kind + holder + generation checks, revocation, no app DMA, MMIO or
-  IRQ) once H opens the implementation PR. U's client requirements are on
-  #564 (issuecomment-7219663903).
+- H03-T3b audio broker: U reviewed cancellation and fallback, and K
+  confirmed the reserved range and bounded IPC wait on the reviewed
+  source. B found that attached capabilities can stall a full receiver.
+  The bootstrap-scoped no-attachments proposal (issuecomment-7227589916)
+  has a conditional security design review from B. The shared contract
+  awaits project-owner scope and an exact B/K write set. See the
+  [broker boundary](../../../drivers/virtio-snd/TRANSPORT.md#ring-3-broker-boundary-proposal-no-implementation).
 - K measures whether #602 (C3 scheduler) slows the H04-T3 net-link gates
   (27–52 % on hosted TCG; #602 issuecomment-7218963989); #602 is held until
   the cause is known.
@@ -206,10 +208,11 @@ The live handoff records any unpublished H branch and its source commit.
    Implement #600 according to issue comments 7219928487, 7222111549 and
    7222382170, with N review on #529. T5f follows TXDOWN. K-9 follows
    #602, #634 and TXDOWN.
-2. H03-T3b: ring-3 audio broker with the AUDIO right and syscalls in
-   `0xC0`–`0xCF`. Post the broker IPC interface on #564 for U's review
-   first; output only; keep the TRANSPORT.md §7 oracle; send B the PR link
-   for the Security Floor review.
+2. H03-T3b: resolve the shared IPC ingress scope with the project owner,
+   B and K. After the reviewed ingress path is verified, implement the
+   output-only broker using the AUDIO right and the reserved syscall
+   range. Preserve the transport oracle in §7 and the Security Floor
+   review of mint, use, transfer and revocation.
 3. H05-T5c slices 2–4: slice 2 needs B's LOCK/UNLOCK key erasure
    (`ADR-KEYRING-LOCK-20261126`, UNLOCK still open); slice 3 is S's
    post-wake remount; slice 4 is the ring-3 re-grant. Also T5e with B and S,
