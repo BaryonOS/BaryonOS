@@ -85,7 +85,7 @@ def render_page(template, *, title, heading, description, breadcrumb, body, acti
         breadcrumb=breadcrumb,
         body=body,
         csp_script="'self'" if interactive else "'none'",
-        csp_form="'self'" if interactive else "'none'",
+        csp_form="'self'",
         scripts='<script src="/assets/search.js?v=site-search" defer></script>' if interactive else "",
         **nav_state(active),
     )

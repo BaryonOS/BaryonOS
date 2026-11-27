@@ -44,7 +44,7 @@ class PagesSiteTests(unittest.TestCase):
             SITE / "docs" / "progress" / "index.html": 'href="/docs/" aria-current="page"',
             SITE / "status" / "index.html": 'href="/status/" aria-current="page"',
             SITE / "contribute" / "index.html": 'href="/contribute/" aria-current="page"',
-            SITE / "search" / "index.html": 'href="/search/" aria-current="page"',
+            SITE / "search" / "index.html": 'form class="header-search" role="search" action="/search/" method="get" aria-current="page"',
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -61,8 +61,11 @@ class PagesSiteTests(unittest.TestCase):
             self.assertIn('>Status</a>', header)
             self.assertIn('href="/contribute/"', header)
             self.assertIn('>Contribute</a>', header)
-            self.assertIn('href="/search/"', header)
-            self.assertIn('>Search</a>', header)
+            self.assertIn('form class="header-search" role="search" action="/search/" method="get"', header)
+            self.assertIn('<input id="site-header-search" name="q" type="search"', header)
+            self.assertIn('class="header-search-icon"', header)
+            self.assertIn('<circle cx="10.5" cy="10.5" r="6.5"></circle>', header)
+            self.assertNotIn('>Search</a>', header)
             self.assertNotIn('href="/docs/progress/">Status</a>', header)
             self.assertNotIn('href="/docs/contribute/">Contribute</a>', header)
 
@@ -100,6 +103,7 @@ class PagesSiteTests(unittest.TestCase):
     def test_search_page_uses_a_local_index_and_minimum_csp(self):
         search = self.pages[SITE / "search" / "index.html"]
         status = self.pages[SITE / "status" / "index.html"]
+        overview = (SITE / "index.html").read_text(encoding="utf-8")
         script = self.builder.render_assets()[SITE / "assets" / "search.js"]
 
         self.assertIn('<form class="site-search" role="search"', search)
@@ -111,7 +115,9 @@ class PagesSiteTests(unittest.TestCase):
         self.assertIn("form-action 'self'", search)
         self.assertIn('<script src="/assets/search.js?v=site-search" defer></script>', search)
         self.assertIn("script-src 'none'", status)
-        self.assertIn("form-action 'none'", status)
+        self.assertIn("form-action 'self'", status)
+        self.assertIn("script-src 'none'", overview)
+        self.assertIn("form-action 'self'", overview)
         self.assertNotIn("fetch(", script)
 
         for group in self.builder.GROUPS.values():
