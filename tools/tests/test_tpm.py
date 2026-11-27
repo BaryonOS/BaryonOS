@@ -203,11 +203,32 @@ class NativeTpmTranscriptTests(unittest.TestCase):
             ):
                 with self.subTest(case=case, bad=bad), self.assertRaises(ValueError):
                     probe.evaluate(bad, case, boot)
-            for other in set(probe.HALT) - {(case, boot)}:
+            # REL-05 §7.9: a cleared TPM and a never-provisioned one halt identically.
+            for other in {key for key, value in probe.HALT.items() if value != probe.HALT[case, boot]}:
                 with self.subTest(case=case, other=other), self.assertRaises(ValueError):
                     probe.evaluate(good, *other)
+        self.assertEqual(probe.HALT["loader-hauth-cleared", 1], probe.HALT["loader-hauth-unenrolled", 0])
+        self.assertEqual(probe.markers("loader-hauth-cleared", 1)[-2:], probe.UNENROLLED)
+        self.assertEqual(probe.markers("loader-hauth-cleared", 0), probe.markers("loader-hauth", 0))
         self.assertEqual(probe.markers("loader-hauth-unbound", 1)[-1], "LOADER-HAUTH:FAIL:UNBOUND:0000000000000000")
         self.assertEqual(probe.markers("loader-hauth-unbound", 0), probe.markers("loader-hauth", 0))
+
+    def test_only_provisioning_boots_run_the_enrollment_loader(self):
+        # REL-05 §7.9: the verify-only loader runs on every HAUTH boot that does not pin PROVISION.
+        provision = set()
+        for case in (case for case in probe.FEATURES if probe.LOADER.get(case) == "tpm-hauth-provision-test"):
+            for boot in range(probe.BOOTS.get(case, 1)):
+                steps = probe.markers(case, boot)
+                self.assertEqual(probe.loader(case, boot) == "tpm-hauth-provision-test", probe.PROVISION in steps)
+                if probe.PROVISION not in steps:
+                    self.assertEqual(probe.loader(case, boot), probe.VERIFY)
+                    if probe.UNENROLLED[0] not in steps:
+                        self.assertIn(probe.EXISTING, steps)
+                else:
+                    provision.add((case, boot))
+        self.assertIn(("loader-hauth", 0), provision)
+        self.assertNotIn(("loader-hauth", 1), provision)
+        self.assertEqual([probe.loader(case) for case in ("normal", "loader-probe")], [None, "tpm-loader-probe-test"])
 
     def test_lockout_cut_only_sets_lockout_auth_then_verifies_like_loader_hauth(self):
         case = "loader-hauth-lockout-cut"
@@ -263,7 +284,7 @@ class NativeTpmTranscriptTests(unittest.TestCase):
         import build
         with patch.object(build, "ensure_lockfile"), \
                 patch.object(build, "source_hash", return_value="s"):
-            for loader in ("tpm-loader-probe-test", "tpm-hauth-provision-test"):
+            for loader in ("tpm-loader-probe-test", "tpm-hauth-verify-test", "tpm-hauth-provision-test"):
                 for kernel in (None, "milestone-m2", "test-tpm-crb-absent"):
                     with self.subTest(loader=loader, kernel=kernel), \
                             self.assertRaisesRegex(ValueError, loader):
@@ -403,6 +424,16 @@ class TpmSeedTests(unittest.TestCase):
                     self.assertEqual(state["hauth"], {"rc": 0x18B})
                 else:
                     self.assertNotIn(state["hauth"]["name"], self.names.values())
+
+    def test_clear_leaves_the_public_state_of_a_new_tpm(self):
+        # REL-05 §7.9: after TPM2_Clear nothing the loader reads differs from a never-provisioned TPM.
+        fresh, cleared = self.directory / "fresh", self.directory / "cleared"
+        for directory in (fresh, cleared):
+            (directory / "state").mkdir(parents=True)
+        new = tpm_seed.seed(*self.tool, fresh, "fresh")
+        self.assertEqual((new["permanent"] & 0x5, new["hauth"], new["lrec"]), (0, {"rc": 0x18B}, {"rc": 0x18B}))
+        self.assertNotEqual(tpm_seed.seed(*self.tool, cleared, "lockout-cut"), new)
+        self.assertEqual(tpm_seed.seed(*self.tool, cleared, "clear"), new)
 
     def test_cut_points_leave_the_documented_public_state(self):
         source = (Path(__file__).resolve().parents[2] / "crates/update-core/src/trial.rs").read_text()
