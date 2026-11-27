@@ -118,6 +118,8 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "nat
                    *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input", "native-dispi-probe"]
 # L01 native SSE2 AI job (kept out of the shared list line to avoid merge collisions).
 KERNEL_FEATURES += ["native-ai-job"]
+# L01 S1 sealed artifact window (own line, same reason).
+KERNEL_FEATURES += ["native-ai-artifact"]
 
 
 def inspect_elf(path):
