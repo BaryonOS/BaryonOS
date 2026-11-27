@@ -1196,7 +1196,8 @@
               "ui/native/tests/accessibility_semantics.rs",
               "ui/native/src/render.rs",
               "https://github.com/BaryonOS/BaryonOS/pull/480#issuecomment-7122327749",
-              "ui/native/tests/render_regressions.rs"
+              "https://github.com/BaryonOS/BaryonOS/blob/51b8fcddc2e1ae4748c13a519cfcccc821ea8ffc/ui/native/tests/render_regressions.rs",
+              "https://github.com/BaryonOS/BaryonOS/pull/639"
             ]
           }
         ]
