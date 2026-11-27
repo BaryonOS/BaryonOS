@@ -5,7 +5,7 @@ backlog: tasks live in GitHub issues, `docs/progress.json` and the roadmap
 ledger. Newer ADRs and live repository evidence take precedence over this file.
 The canonical live state is the latest `HANDOFF UI-U` comment on the open UI-U
 pull request or, when none is open, on the most recently landed UI-U pull
-request (as of 27 November 2026: the landing HANDOFF on #612). This file and GitHub are
+request (as of 27 November 2026: the landing HANDOFF on #645). This file and GitHub are
 sufficient to resume; local paths below are optional additions.
 
 ## Resuming
@@ -26,7 +26,8 @@ context; client-specific start prompts are adapters and hold no state.
   ADR-MERGE-DELEGATION-20261123, with strict branch protection, `host-quality`,
   `qemu-smoke`, merge-hold, CodeQL and applicable acceptance holds. No direct
   push to `main`, force-push, admin bypass, auto-merge without a fresh head
-  check, or weakened tests. The roadmap runner and merge queue stay disabled.
+  check, or weakened tests. The merge queue is used under the current owner
+  mandate; the issue controller remains disabled.
 - **Coordination:** storage with S, drivers with H, permissions with N/B.
   U06 requires real users; AI review does not replace them.
 - **Progress duties (owner, 27 November 2026):** per own PR, UI-U keeps labels,
@@ -60,10 +61,14 @@ context; client-specific start prompts are adapters and hold no state.
 | PR | the open UI-U docs PR for this cycle |
 | Evidence scope | documentation only; `tools/progress.py --check`. No criterion evidence |
 | Optional local worktree | `~/projects/BaryonOS-worktrees/ui-u-adr` |
-| Next | land this PR; then the compact failure layout, save-progress bar and SR11 (ADR-U-OWNER-20261127); the U02 budget agreement with R; #589; the accessibility broker design; the U06 study kit |
+| Next | land this PR; coordinate the bounded #589 observation and local fallback with R and K; continue the remaining #630 items |
 
 ## Previous cycles
 
+- `UI-U-C13-20261127`: compact failure layout, save-progress bar and SR11,
+  merged as #639 (`f83a4ef5`).
+- Assignment failure status colour: merged as #645 (`8d97a8de`); its landing
+  HANDOFF records the host evidence and remaining U05 limits.
 - `UI-U-C11-20261127`: #541 no InputLost banner on FocusLost or Resync,
   merged as #612 (`52e4430a`); landing HANDOFF comment on #612.
 - `UI-U-C10-20261127`: #537 idle InputLost banner, merged as #596
@@ -102,19 +107,9 @@ closure = Closed. No schema or permission changes and no artificial issues.
 
 ## Open items (updated 27 November 2026)
 
-- **Decided (ADR-U-OWNER-20261127):** at logical height 240 (320x240 @ 100 %,
-  640x480 @ 200 %) the library screen's single list row leaves no room for a
-  second status line, so a two-line failure label still runs below the
-  viewport. Use shorter, content-equivalent compact copy; where that is not
-  enough, controlled vertical scrolling or an accessible responsive layout;
-  never hide, overlap or clip. Then enable SR11 in
-  `ui/native/tests/recovery_matrix.rs`.
-  The same clipping occurs where a long wrapped list name fills the free space
-  (for example 320x350 with 32-byte names); the status then keeps its one-line
-  rect rather than overlap the name.
-- The compact save-progress bar is drawn at `Layout::status.y + 24`, which is
-  the bottom edge of a 240-high compact viewport; restore it inside the
-  viewport together with the item above.
+- **Compact recovery:** #639 fixed compact status copy and the save-progress
+  bar and enabled SR11. Compact workspace button labels at 320x240 remain an
+  open #630 item. Human usability evidence is still required.
 - Deny copy (`Service(Access)`) stays generic until U03-T3 part 2 proves a real
   deny path; its test stays ignored.
 - #449 is closed (C7 native run). The `recover` readonly-phase timeout found
@@ -129,7 +124,8 @@ closure = Closed. No schema or permission changes and no artificial issues.
   (`services/volume/src/client.rs:483`, `sdk/document-session/src/volume.rs:286`).
 - Open follow-ups named by PROJECT-STATE: Search S3 wiring and native run,
   read-only refusal part 2, Settings accounts/recovery. U02 interaction budgets
-  (agree with R under R02-L1), the native accessibility broker design (GO; TTS
+  are recorded under R02-L1; measurement methods and profile cells remain open.
+  The native accessibility broker design (GO; TTS
   and audio with H, braille from the start) and the U06 study kit (consent,
   privacy procedure, Dutch SUS, KVM reference profile; the owner arranges
   participants) are decided by ADR-U-OWNER-20261127 and now executable.

@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "c7ff8fde0334c9f80fc6824e5a4666126f2c218e",
+  "assessment_basis": "parent_commit",
+  "branch": "fix/ui-u05-assignment-status",
+  "task": "UI-U U05 assignment failure status colour (#630)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CollectionSavedAssignmentFailed uses the existing danger colour in both Materiaal status rendering paths while retaining its status text. Host pixel tests cover Material and Organize at normal and high contrast, with separate negative mutations for both paths. The full ui/native host suite, clippy, format check, and x86_64-unknown-none library build passed; native window-session evidence and human accessibility review remain open. This correction does not complete U05."
+}

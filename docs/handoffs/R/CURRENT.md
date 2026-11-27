@@ -19,7 +19,38 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
   before any numeric budget becomes binding; budgets are never relaxed after a
   failed measurement.
 
-## Current state (27 November 2026, 11:41Z UTC)
+## Review checkpoint (27 November 2026, 19:44Z UTC)
+
+The following corrects the 15:42Z #530 handoff and supersedes conflicting
+measurement interpretations below. The authoritative live handoff remains
+[#530 issuecomment-7222389965](https://github.com/BaryonOS/BaryonOS/issues/530#issuecomment-7222389965);
+the bundled #632 update carries this checkpoint.
+
+- R02-L1 was decided by the project owner in #530 issuecomment-7219541052.
+  The 13:14:07Z acceptance rule assigns formal acceptance and score increases
+  to the PR guard. The 13:37Z standing mandate covers continuous runtime
+  optimisation. Re-baselining solely after #602 is dropped; candidate-specific
+  measurement remains required. Score 43/100 is unchanged.
+- The diagnostic REPLY share is instrumented only; its uninstrumented value
+  and the compositor attribution are unknown. D3 started with two other QEMU
+  processes and is not an exclusive performance comparison. Five phase proxies
+  are tabulated in the #632 diagnostic README. Local review changes also make
+  absent reports visible and prevent a rerun overwriting original evidence.
+- #642 landed as `c5867e45`. This branch incorporates main `73fa43d9`, moves
+  the R02 ADR to slot 632 and carries the review corrections. Hosted checks,
+  review-thread resolution and the pre-merge check remain required on the
+  pushed head; no enqueue on DIRTY or BLOCKED.
+- K's #602 remains at `bb1f48df`; K's 16:20:56Z #614 checkpoint reports
+  local fix `ef42cb18`, with network and L4 validation in progress. KVM A/C
+  for #602 awaits the final pushed K head and the shared QEMU slot. K-10
+  concerns finer guest timestamps; K-11 concerns IPC message/tile transfer.
+- Next diagnostic: after coordination with K and a clear slot, prepare and
+  pre-register a client-only probe using a separate disposable checkout, with
+  no R changes to kernel-owned source, and verify KVM access before A/B.
+  Local KVM, 10 ms guest ticks and host observation proxies are not hosted,
+  physical or tier 1 acceptance evidence.
+
+## Current state (27 November 2026, 11:41Z UTC; historical baseline)
 
 Live state is the newest comment titled "HANDOFF — Specialist R" on
 [#530](https://github.com/BaryonOS/BaryonOS/issues/530); this section is the

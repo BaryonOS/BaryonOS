@@ -974,8 +974,13 @@ fn k05_rights_constants_and_known_mask() {
     assert_eq!(DISPLAY, 4096);
     assert_eq!(INPUT, 8192);
     assert_eq!(POWER, 16384);
-    assert_eq!(KNOWN_RIGHTS, 32767);
+    assert_eq!(ARTIFACT_MAP, 32768);
+    assert_eq!(ARTIFACT_VERIFY, 65536);
+    assert_eq!(KNOWN_RIGHTS, 131071);
     assert_eq!(POWER_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
+    assert_eq!(ARTIFACT_MAP_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
+    assert_eq!(ARTIFACT_VERIFY_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
+    assert_eq!(ARTIFACT_MAP_RIGHTS & ARTIFACT_VERIFY_RIGHTS, 0);
     assert_eq!(NETWORK_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(ENTROPY_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(LAUNCH_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
@@ -1804,5 +1809,122 @@ fn power_generation_exhaustion_retires_sole_object_without_wrap() {
         assert_eq!(e.stats().retired_power_objects, 1);
         assert_atomic(e, Error::Quota, |e| e.create_power(2));
         assert_atomic(e, Error::BadHandle, |e| e.check_power(1, power));
+    });
+}
+
+// L01 S1 (ADR-L01-ARTIFACT-MAP-20261127, design test 6): both artifact rights
+// are manifest-only, non-delegable, PID- and generation-bound, and neither
+// implies the other.
+#[test]
+fn artifact_rights_are_distinct_typed_manifest_authorities() {
+    run(|e| {
+        setup(e, 3);
+        let map = e.create_artifact_map(1).unwrap();
+        let verify = e.create_artifact_verify(2).unwrap();
+        let map_key = e.check_artifact_map(1, map).unwrap();
+        let verify_key = e.check_artifact_verify(2, verify).unwrap();
+        assert_ne!(map_key, verify_key);
+        assert_eq!(e.stats().artifact_map_objects, 1);
+        assert_eq!(e.stats().artifact_verify_objects, 1);
+        assert_eq!(e.process_usage(1).unwrap().artifact_map_objects, 1);
+        assert_eq!(e.process_usage(2).unwrap().artifact_verify_objects, 1);
+        assert_atomic(e, Error::Quota, |e| e.create_artifact_map(3));
+        assert_atomic(e, Error::Quota, |e| e.create_artifact_verify(3));
+        // Neither right implies the other, even for its own holder.
+        assert_atomic(e, Error::Type, |e| e.check_artifact_verify(1, map));
+        assert_atomic(e, Error::Type, |e| e.check_artifact_map(2, verify));
+        // Another PID, or a forged generation, holds nothing.
+        assert_atomic(e, Error::BadHandle, |e| e.check_artifact_map(3, map));
+        assert_atomic(e, Error::BadHandle, |e| e.check_artifact_verify(3, verify));
+        assert_atomic(e, Error::BadHandle, |e| {
+            e.check_artifact_map(1, map ^ 1 << 32)
+        });
+        for handle in [map, verify] {
+            let pid = if handle == map { 1 } else { 2 };
+            assert_atomic(e, Error::Type, |e| e.check_power(pid, handle));
+            assert_atomic(e, Error::Type, |e| e.check_entropy(pid, handle));
+            assert_atomic(e, Error::Type, |e| e.check_endpoint(pid, handle, SEND));
+            assert_atomic(e, Error::Type, |e| e.check_block(pid, handle, BLOCK_READ));
+        }
+        let power = e.create_power(1).unwrap();
+        let endpoint = e.create_endpoint(1).unwrap();
+        for other in [power, endpoint] {
+            assert_atomic(e, Error::Type, |e| e.check_artifact_map(1, other));
+            assert_atomic(e, Error::Type, |e| e.check_artifact_verify(1, other));
+        }
+        assert_eq!(e.check_artifact_map(1, map), Ok(map_key));
+    });
+}
+
+#[test]
+fn artifact_rights_cannot_derive_delegate_transfer_or_revoke() {
+    run(|e| {
+        setup(e, 2);
+        let map = e.create_artifact_map(1).unwrap();
+        let verify = e.create_artifact_verify(1).unwrap();
+        let (_, send) = destination(e);
+        for (handle, right) in [(map, ARTIFACT_MAP), (verify, ARTIFACT_VERIFY)] {
+            for rights in [
+                right,
+                right | DERIVE,
+                right | TRANSFER,
+                ARTIFACT_MAP | ARTIFACT_VERIFY,
+                ALL_RIGHTS,
+            ] {
+                assert_atomic(e, Error::Invalid, |e| e.derive(1, handle, rights));
+                assert_atomic(e, Error::Invalid, |e| {
+                    e.bootstrap_delegate(1, handle, 2, rights)
+                });
+                assert_atomic(e, Error::Invalid, |e| e.check_delegation(1, handle, rights));
+                assert_atomic(e, Error::Invalid, |e| {
+                    e.send(1, send, &cap_message(handle, rights))
+                });
+            }
+            assert_atomic(e, Error::Invalid, |e| e.revoke(1, handle));
+        }
+    });
+}
+
+#[test]
+fn artifact_rights_close_and_exit_reclaim_without_restoring_stale_handle() {
+    run(|e| {
+        setup(e, 2);
+        let map = e.create_artifact_map(1).unwrap();
+        let verify = e.create_artifact_verify(1).unwrap();
+        let map_key = e.check_artifact_map(1, map).unwrap();
+        let verify_key = e.check_artifact_verify(1, verify).unwrap();
+        e.close(1, map).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_artifact_map(1, map));
+        assert_eq!(e.check_artifact_verify(1, verify), Ok(verify_key));
+        e.exit(1).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_artifact_verify(1, verify));
+        assert_eq!(e.stats().artifact_map_objects, 0);
+        assert_eq!(e.stats().artifact_verify_objects, 0);
+        assert_eq!(e.stats().nodes, 0);
+        // Slot reuse yields a new generation; the old keys never come back.
+        let again = e.create_artifact_map(2).unwrap();
+        assert_ne!(map_key, e.check_artifact_map(2, again).unwrap());
+        let again = e.create_artifact_verify(2).unwrap();
+        assert_ne!(verify_key, e.check_artifact_verify(2, again).unwrap());
+        assert!(e.check_invariants());
+    });
+}
+
+#[test]
+fn artifact_generation_exhaustion_retires_objects_without_wrap() {
+    run(|e| {
+        setup(e, 2);
+        e.artifact_map[0].generation = u32::MAX;
+        e.artifact_verify[0].generation = u32::MAX;
+        let map = e.create_artifact_map(1).unwrap();
+        let verify = e.create_artifact_verify(1).unwrap();
+        e.exit(1).unwrap();
+        assert!(e.artifact_map[0].retired && e.artifact_verify[0].retired);
+        assert_eq!(e.stats().retired_artifact_map_objects, 1);
+        assert_eq!(e.stats().retired_artifact_verify_objects, 1);
+        assert_atomic(e, Error::Quota, |e| e.create_artifact_map(2));
+        assert_atomic(e, Error::Quota, |e| e.create_artifact_verify(2));
+        assert_atomic(e, Error::BadHandle, |e| e.check_artifact_map(1, map));
+        assert_atomic(e, Error::BadHandle, |e| e.check_artifact_verify(1, verify));
     });
 }

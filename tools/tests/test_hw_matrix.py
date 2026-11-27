@@ -115,7 +115,7 @@ class HardwareMatrixTests(MatrixCase):
         self.assertEqual((summary["schema"], summary["profiles"], summary["supported"]), (2, 3, 0))
         # The committed VM-FR xhci and acpi rows still bind to their archived passing reports.
         self.assertEqual(summary["native_verified"], 2)
-        self.assertEqual(summary["owner_decisions_open"], len(hw_matrix.OWNER_DECISIONS))
+        self.assertEqual(summary["owner_decisions_open"], 4)  # ADR-H-AUDIO-HW-OWNER-20261127
         self.assertIsNone(self.row("HW-FR", "gop")[0]["target"])
         for mutate in (lambda d: d["profiles"][0]["devices"][0].pop("dma_posture"),
                        lambda d: d["profiles"][0]["devices"][0].pop("evidence_level"),
@@ -376,7 +376,7 @@ class HardwareMatrixTests(MatrixCase):
             next(d for d in changed if d["id"] == "OD-HW-BOOT")["blocks"].remove("H05-S5")
 
         for mutate, reason in ((lambda d: d.pop(), "omitted"),
-                               (lambda d: d[1].update(status="decided"), "reference"),
+                               (lambda d: next(x for x in d if x["id"] == "OD-HW-SIGNERS").update(status="decided"), "reference"),
                                (lambda d: d[0].update(status="decided", reference="ADR-X"), "OD-HW-TARGETS"),
                                (lambda d: d[2].update(blocks=["H09-X"]), "known physical protocols"),
                                (lambda d: d.append(dict(d[0])), "duplicate"),
@@ -393,7 +393,8 @@ class HardwareMatrixTests(MatrixCase):
         fixture = Fixture(self.root)
         self.matrix.update(profiles=fixture.matrix["profiles"], owner_decisions=fixture.matrix["owner_decisions"])
         summary = self.check()
-        self.assertEqual(summary["owner_decisions_open"], 3)
+        # The fixture catalogue leaves two decisions open.
+        self.assertEqual(summary["owner_decisions_open"], 2)
         fixture.decision("OD-HW-CAPTURE").update(status="open")
         fixture.decision("OD-HW-CAPTURE").pop("reference")
         # No record references H05-S5: the catalogue state alone fails the matrix check.

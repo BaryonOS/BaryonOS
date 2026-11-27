@@ -7,10 +7,10 @@
   <meta name="description" content="Why the project exists, what the name means and what makes the OS independent.">
   <meta name="referrer" content="no-referrer">
   <meta name="color-scheme" content="dark">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg; font-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg; font-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'self'">
   <title>About Baryon OS · Baryon OS Docs</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/site.css?v=docs-directory">
+  <link rel="stylesheet" href="/assets/site.css?v=header-search">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -22,9 +22,20 @@
       <nav aria-label="Primary navigation">
         <ul class="nav-list">
           <li><a href="/">Overview</a></li>
-          <li><a href="/docs/" aria-current="location">Docs</a></li>
-          <li><a href="/docs/progress/">Status</a></li>
-          <li><a href="/docs/contribute/">Contribute</a></li>
+          <li><a href="/docs/" aria-current="page">Docs</a></li>
+          <li><a href="/status/">Status</a></li>
+          <li><a href="/contribute/">Contribute</a></li>
+          <li class="nav-search">
+            <form class="header-search" role="search" action="/search/" method="get">
+              <label class="header-search-label" for="site-header-search">Search the Baryon OS site</label>
+              <svg class="header-search-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="10.5" cy="10.5" r="6.5"></circle>
+                <path d="M15.3 15.3 18.6 18.6"></path>
+                <circle class="header-search-particle" cx="19.6" cy="19.6" r="2"></circle>
+              </svg>
+              <input id="site-header-search" name="q" type="search" autocomplete="off" spellcheck="true" placeholder="Search">
+            </form>
+          </li>
         </ul>
       </nav>
     </div>
@@ -66,7 +77,7 @@
         <h2>What makes it independent?</h2>
         <p>The native boot chain and kernel are developed by the project rather than built on Linux, BSD, XNU, Windows or Android. Independence does not mean that every compiler, firmware interface, emulator or reviewed library is made by the project. A development host and the guest OS have different roles.</p>
 
-        <p>Explore the <a href="/docs/architecture/">system architecture</a>, the <a href="/docs/design/">desktop direction</a> or the <a href="/docs/progress/">current evidence</a>.</p>
+        <p>Continue with the <a href="/docs/mission/">mission and vision</a>, explore the <a href="/docs/architecture/">system architecture</a>, the <a href="/docs/design/">desktop direction</a> or the <a href="/docs/progress/">current evidence</a>.</p>
         <div class="guide-links">
           <a href="https://github.com/BaryonOS/BaryonOS/blob/main/README.md#why-baryon">Name and project overview <span aria-hidden="true">↗</span></a>
           <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/DESIGN-AMBITION.md">Design ambition <span aria-hidden="true">↗</span></a>
@@ -79,15 +90,16 @@
       <nav class="guide-topics" aria-label="Documentation topics">
         <p class="guide-topics-title">Docs topics</p>
         <ul>
+          <li class="guide-topic-heading">Decide if it fits</li>
           <li><a href="/docs/project/" aria-current="page">About Baryon OS</a></li>
+          <li><a href="/docs/mission/">Mission and vision</a></li>
+          <li><a href="/docs/fit/">Is Baryon OS for me?</a></li>
+          <li><a href="/docs/capabilities/">Planned capabilities</a></li>
+          <li><a href="/docs/choices/">Why these choices?</a></li>
           <li><a href="/docs/progress/">Roadmap and evidence</a></li>
-          <li><a href="/docs/try/">Try the development build</a></li>
-          <li><a href="/docs/architecture/">System architecture</a></li>
-          <li><a href="/docs/design/">Desktop and Material</a></li>
-          <li><a href="/docs/privacy/">Privacy and security</a></li>
-          <li><a href="/docs/research/">Research tracks</a></li>
-          <li><a href="/docs/contribute/">Contribute</a></li>
-          <li><a href="/docs/glossary/">Glossary</a></li>
+          <li><a href="/docs/faq/">Frequently asked questions</a></li>
+          <li class="guide-topic-heading">Explore</li>
+          <li><a href="/docs/#topics">All Docs topics</a></li>
         </ul>
       </nav>
     </div>
@@ -97,11 +109,15 @@
       <p>Baryon OS <span>·</span> Independent operating system research</p>
       <div>
         <a href="/docs/">Docs</a>
+        <a href="/status/">Status</a>
+        <a href="/contribute/">Contribute</a>
+        <a href="/search/">Search</a>
         <a href="https://github.com/BaryonOS/BaryonOS">Source code</a>
         <a href="https://github.com/BaryonOS/BaryonOS/blob/main/SECURITY.md">Report a vulnerability</a>
         <a href="https://github.com/BaryonOS/BaryonOS/blob/main/LICENSING.md">Licensing</a>
       </div>
     </div>
   </footer>
+
 </body>
 </html>
