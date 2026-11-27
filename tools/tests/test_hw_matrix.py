@@ -393,7 +393,8 @@ class HardwareMatrixTests(MatrixCase):
         fixture = Fixture(self.root)
         self.matrix.update(profiles=fixture.matrix["profiles"], owner_decisions=fixture.matrix["owner_decisions"])
         summary = self.check()
-        self.assertEqual(summary["owner_decisions_open"], 2)  # committed matrix already decides five (ADR-H-AUDIO-HW-OWNER-20261127)
+        # The fixture catalogue leaves two decisions open.
+        self.assertEqual(summary["owner_decisions_open"], 2)
         fixture.decision("OD-HW-CAPTURE").update(status="open")
         fixture.decision("OD-HW-CAPTURE").pop("reference")
         # No record references H05-S5: the catalogue state alone fails the matrix check.

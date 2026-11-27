@@ -70,8 +70,9 @@ path or specific tool is needed to resume.
   and H02-T5 (PR #515, `744f1b75`; ledger `verified`, native evidence bound
   to `f8662109`; evidence
   [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md)).
-- **Open PRs:** this decision record, `ADR-H-AUDIO-HW-OWNER-20261127`
-  (branch `docs/h-owner-audio-hw`).
+- **Decision record:** PR #634 places `ADR-H-AUDIO-HW-OWNER-20261127`
+  in the slot introduced by #642 (`c5867e45`). The live handoff
+  records the current PR head and queue or landing status.
 - **Live handoff:** the newest comment starting with `HANDOFF — Specialist H`
   on issue #564 (task, invariants, write set, branch and HEAD, decisions,
   commands with exit codes, not run, risks, next safe action, acceptance
@@ -83,7 +84,7 @@ path or specific tool is needed to resume.
 
 ### Local work
 
-None outside the open PRs listed above.
+The live handoff records any unpublished H branch and its source commit.
 
 ### Invariants and reserved values
 
@@ -98,8 +99,8 @@ None outside the open PRs listed above.
   decision O5.
 - Error codes: -24 QUARANTINED, -25 KL2 SUSPEND, -26 reserved for the
   project owner's ADR (S proposes it for `RemountRefused`), -27 TX_EDGE
-  (decided in #601, not implemented), -28 proposed by H and B for T5f-1
-  "authentication absent" (pending S and B's ADR #631).
+  specified in #601), and -28 `NOT_AUTHENTICATED` for T5f-1
+  (recorded by #631, `ee29246b`; H owns its implementation).
 
 ### Owner questions and blockers
 
@@ -112,10 +113,10 @@ None outside the open PRs listed above.
   blocked. The open parts, plus input-to-display capture equipment for R's
   R02-L1 cells (#530), go to the owner as one bundle.
 - B01-LOCK owner decisions O2, O5, O7, O8 and OQ1 (#564,
-  issuecomment-7219397369) are drafted by B in #631. H's T5f constraints are
-  on #564 (issuecomment-7219429976). The order is authentication → T5f-1 →
-  UNLOCK → T5f-2. T5f-1 needs a native authentication mechanism and owner,
-  which are not chosen. H implements T5f only after #631 is on `main`.
+  issuecomment-7219397369) landed in #631. H's T5f constraints are on
+  #564 (issuecomment-7219429976). B owns authentication and U owns its
+  user surface. The order is authentication → T5f-1 → UNLOCK → T5f-2.
+  The kernel-checkable authentication signal remains an open interface.
 - -26 value (owner ADR); H05-T5d-P (production LOCK) waits for B's O5
   freeze implementation.
 - B04 loader reproducibility (PR #493) before an image hash can be
@@ -199,9 +200,12 @@ None outside the open PRs listed above.
 
 ## Next executable task
 
-1. H04-TXDOWN implementation PR (#600): -27 `syscall()` exemption, txdown
-   hold, TXDOWN-1/2 and control cases, `NET_TX_EDGE` in
-   `sdk/runtime/src/native.rs`; N review on #529.
+1. Verify #634's landing against the tested head. Then fast-forward the
+   H04-TXDOWN branch to `origin/main` after K's linker pin (#602) lands.
+   Capture the feature-off byte-identity baseline before editing.
+   Implement #600 according to issue comments 7219928487, 7222111549 and
+   7222382170, with N review on #529. T5f follows TXDOWN. K-9 follows
+   #602, #634 and TXDOWN.
 2. H03-T3b: ring-3 audio broker with the AUDIO right and syscalls in
    `0xC0`–`0xCF`. Post the broker IPC interface on #564 for U's review
    first; output only; keep the TRANSPORT.md §7 oracle; send B the PR link

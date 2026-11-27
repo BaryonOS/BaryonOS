@@ -540,3 +540,66 @@ UX-V02/03, SR05/06/08, native 200%, integration CI and human acceptance
 remain outside this review. Score proposal remains **34% → 34%**; central
 assessment stays with the manager. Integration and appropriate combined
 gates remain with the assigned integrator; role 15 changes no runtime files.
+
+## UX-SR11 compact status copy and save progress (ADR-U-OWNER-20261127)
+
+**Status:** host-verified on 27 November 2026 (#630). Native evidence comes
+from the hosted 200 % window-session profile (logical 560×330, a compact
+height). Logical height 240 has no native profile, and no human trial has been
+run. This section does not change the historical rows above.
+
+**Rule.** `Frame::status_text` paints and announces the full `status_label`
+wherever it fits its status area. On Material and Editor screens that area may
+grow upward; the workspace panels instead use one Small line at width − 48.
+Where the full label does not fit, both the painted and the announced text use
+`compact_status_label`: one line of at most 272 logical px, which is the
+narrowest status width (320 logical). Full, Quota, I/O and the generic failure
+stay distinct (UX-SR07).
+
+**Save progress.** The bar takes the status rect's second line where one exists
+(non-compact, unchanged). A compact one-line rect has no second line, so the bar
+takes the 8 px divider band above the status text. It no longer draws at the
+bottom edge of a 240-high viewport.
+
+| Status | Full copy | Compact copy | Dropped in compact |
+|---|---|---|---|
+| Generic failure (incl. deny) | Handeling mislukt. Je tekst blijft open. | Mislukt. Je tekst blijft open. | "Handeling" |
+| InvalidUtf8 | Dit bestand is geen geldige UTF-8-tekst. | Geen geldige UTF-8-tekst. | — |
+| NoFreeObject | Er is geen ruimte voor een nieuw document. | Geen ruimte voor nieuw document. | — |
+| ReadOnly | Alleen lezen: wijzigen is niet toegestaan. | Alleen lezen: wijzigen kan niet. | — |
+| ContentTooLarge | Tekst past niet in de beschikbare ruimte. | Tekst past niet in de ruimte. | "beschikbare" |
+| Conflict | Er is een nieuwe versie. Je tekst blijft open. | Nieuwe versie. Je tekst blijft open. | — |
+| Closed | Opslagverbinding verbroken. Tekst blijft open. | Opslag verbroken. Tekst blijft open. | "verbinding" |
+| Full | Opslagruimte vol. Niet opgeslagen. Je tekst blijft open. | Opslag vol. Tekst niet bewaard. | "Je tekst blijft open" |
+| Quota | Je opslagruimte is opgebruikt. Niet opgeslagen. Je tekst blijft open. | Je ruimte is op. Tekst niet bewaard. | "Je tekst blijft open" |
+| I/O | Lezen of opslaan mislukt. Er is niets bevestigd. | Lees- of opslagfout. Niets bevestigd. | — |
+| Cancelled | Opslaan geannuleerd. Je tekst blijft open. | Opslaan gestopt. Tekst blijft open. | — |
+| InputLost | Invoer onderbroken. Je tekst blijft open. | Invoer onderbroken; tekst open. | — |
+| Restored | Eerdere inhoud als nieuwe revisie bewaard. | Hersteld als nieuwe revisie. | "Eerdere inhoud" |
+| RestoreRefreshFailed | Herstel bewaard; opnieuw lezen mislukt. Bewerk deze oude weergave niet. | Hersteld; heropen voor je bewerkt. | the failed re-read (the route stays: reopen before editing) |
+| Renamed | Naam gewijzigd. Bewaar om de wijziging vast te leggen. | Naam gewijzigd; nog bewaren. | — |
+| NeedsSave | Bewaar eerst je wijzigingen of ga verder met bewerken. | Bewaar eerst, of bewerk verder. | — |
+| CollectionSavedAssignmentFailed | Collectie bewaard; document niet verplaatst. Heropen het document voordat je opnieuw ordent. | Niet verplaatst; heropen en orden. | "Collectie bewaard" (the collection is visible in the list) |
+| PreviewUnavailable | Geen volledige tekstpreview beschikbaar; er is niets hersteld. | Geen preview; niets hersteld. | "volledige" |
+| ClipboardTooLong | Deze selectie past nog niet op het klembord. | Selectie te groot voor klembord. | "nog" |
+| ClipboardUnavailable | Kopiëren of plakken onderbroken. Probeer opnieuw. | Klembordfout. Probeer opnieuw. | copy/paste distinction |
+
+All other statuses already fit one compact line and keep their full copy. The
+compact strings are a UX-writing judgement. They keep each failure and its
+recovery route, but the "Dropped" column is not proven content-equivalent until
+the U06 human trials.
+
+**Tests.** `recovery_matrix::sr11_compact_200_percent_failure_status_is_not_clipped`
+(no longer ignored), and in `render_regressions`:
+- `sr11_every_status_fits_on_every_compact_screen`: every status, six screens,
+  logical heights 240..359 at 320, 640 @ 200 %, 700 and 720 wide;
+- `sr07_compact_copy_stays_distinct_and_fits_one_line`;
+- `sr11_save_progress_bar_stays_inside_the_viewport`;
+- `sr11_painter_draws_the_compact_status_text`.
+
+Mutation controls with the compact fallback removed, the old bar position, or
+the painter reverted to `status_label` each fail.
+
+**Open (#630).** At 320×240 the compact workspace panels still elide their own
+buttons, which is not covered by this rule. CollectionSavedAssignmentFailed
+uses the muted colour, not danger. Human trials have not been run.
