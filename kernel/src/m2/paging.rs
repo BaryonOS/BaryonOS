@@ -64,7 +64,9 @@ pub fn build_artifact_tables(
 #[cfg(feature = "native-ai-artifact")]
 pub fn free_artifact_tables(frames: &mut Frames<FRAME_COUNT>, tables: &[u64], pages: &[u64]) {
     for (i, &pa) in pages.iter().enumerate() {
-        let Some(&pt) = tables.get(1 + i / 512) else { break };
+        let Some(&pt) = tables.get(1 + i / 512) else {
+            break;
+        };
         if read(pt, i % 512) != 0 {
             write(pt, i % 512, 0);
             frames.unmap(pa, false, false).unwrap();
