@@ -31,7 +31,8 @@ pub const OP_READ: u64 = 1;
 pub const OP_WRITE: u64 = 2;
 pub const OP_CLOSE: u64 = 3;
 /// A request claiming to report a process exit. Always denied: retirement is
-/// driven only by the kernel's lifecycle notice, never by an app message.
+/// driven only by the kernel's capability lifecycle (`client_gone`), never by
+/// an app message.
 pub const OP_RETIRE: u64 = 4;
 
 pub const STATUS_OK: u64 = 1;
@@ -41,6 +42,25 @@ pub const STATUS_BAD_REQUEST: u64 = 3;
 pub const STATUS_GO: u64 = 4;
 /// Broker-to-owner ordering signal: the helper's phase is served.
 pub const STATUS_RESUME: u64 = 5;
+
+/// Kernel errors on a client's reply endpoint (owned by that client).
+const REVOKED: i64 = -10;
+const CLOSED: i64 = -9;
+const AGAIN: i64 = -8;
+
+/// A03-T2c-3 (owner option A, reply-endpoint closure): classify a kernel error
+/// from probing or sending to a client's reply endpoint. `Some(true)`: the
+/// client's authority is gone (Revoked after its exit or an ancestor revoke,
+/// Closed after it dropped its last RECV), so retire all its grants (fail
+/// closed). `Some(false)`: the client is alive (queue full). `None`: any other
+/// error is the broker's own fault and must not be read as a client exit.
+pub fn client_gone(code: i64) -> Option<bool> {
+    match code {
+        REVOKED | CLOSED => Some(true),
+        AGAIN => Some(false),
+        _ => None,
+    }
+}
 
 pub const OBJECT_ONE: u64 = 1;
 pub const OBJECT_TWO: u64 = 2;
@@ -343,7 +363,8 @@ impl<T: Transport> Broker<T> {
     }
 
     /// Trusted lifecycle operation: `pid` must come from an authenticated
-    /// kernel exit notice, never from a request. Returns the grants retired.
+    /// capability lifecycle (`client_gone`), never from a request. Returns the
+    /// grants retired.
     pub fn retire_process(&mut self, pid: u64) -> Result<u64, Error> {
         let before = self.live_grants(pid);
         self.grants.retire_process(actor(pid))?;
@@ -446,6 +467,18 @@ mod tests {
 
     use super::*;
     use volume_core::{service::Service, table::Table, Disk, SECTOR, VOLUME_SECTORS};
+
+    #[test]
+    fn only_revoked_or_closed_reply_endpoints_retire() {
+        assert_eq!(client_gone(-10), Some(true));
+        assert_eq!(client_gone(-9), Some(true));
+        // A live client with a full queue is not an exit.
+        assert_eq!(client_gone(-8), Some(false));
+        // BadHandle and every other code are broker faults, never an exit.
+        for code in [-1, -2, -3, -4, -5, -6, -7, -11, 0, 1] {
+            assert_eq!(client_gone(code), None);
+        }
+    }
 
     const OWNER: u64 = 3;
     const HELPER: u64 = 4;

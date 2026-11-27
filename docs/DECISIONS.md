@@ -163,6 +163,93 @@ Revert the `fix(kernel)` again commit and the `feat(kernel)` commit together
 with the `test-m3-syscall-spin` fixture commits; the fixture fails by design
 on a kernel without continuation or without the again rule.
 
+## ADR-PROGRESS-OWN-ROWS-20261127 — criterion owners maintain their own implementation and verification snapshot rows
+
+**Status:** decided by the project owner on 27 November 2026 (given in the PR
+guard session and relayed verbatim by the PR guard; no later than 12:43:34 UTC by the guard's
+`date -u` log), recorded by Specialist G at the owner's request. It amends
+the lead ownership of `docs/progress.json` in AGENTS.md and D2 of
+ADR-PROGRESS-ASSESSMENTS-20261125 for these rows only, and supersedes the
+narrower owner decision relayed shortly before it ("Ja, eigen rijen"), which
+limited a refresh to a pull request that touched progress anyway.
+
+**Owner quotation (Dutch, verbatim as relayed):** "Iedere criteriumeigenaar —
+huidig en toekomstig — heeft toestemming ÉN verantwoordelijkheid om de
+implementatie- en verificatiesnapshotrijen van het eigen criterium in
+docs/progress.json (delivery_review) zelfstandig actueel te houden, zonder per
+update toestemming te vragen."
+
+**English translation:** every criterion owner, current and future, has both
+permission and responsibility to keep the implementation and verification
+snapshot rows of its own criterion in `docs/progress.json` (`delivery_review`)
+current on its own, without asking permission for each update.
+
+**Problem:** the snapshot in docs/PROGRESS.md is generated from
+`delivery_review`, which is lead-owned and dated 24 November 2026. Since then
+many pull requests have landed, and rows such as those of A03 describe a state
+that no longer holds. A single owner cannot keep every row current.
+
+**Decision:**
+- **Scope.** Every owner of a criterion, now and in future, keeps the
+  `delivery_review` rows of its own criterion current, without asking
+  permission for each update and without waiting for a pull request that
+  touches progress for another reason.
+- **Conditions.**
+  - Only the rows of the owner's own criterion change.
+  - Each claim rests on current, source-bound evidence.
+  - A routine snapshot refresh leaves rubric, weights, acceptance conditions,
+    status and score unchanged.
+  - Formal acceptance is separate (owner clarification, 27 November 2026, no
+    later than 13:14:07 UTC by the PR guard's `date -u` log, relayed by the
+    guard; it supersedes the guard's message of 13:12:47 UTC on who performs
+    acceptance). Each specialist is the technical owner of its own criteria:
+    implementation, snapshot refresh, verification and delivering acceptance
+    evidence. The PR guard holds the mandate and responsibility for formal
+    criterion acceptance and for processing it into the official progress
+    score: once every existing acceptance condition is demonstrably met and the
+    required independent verification is complete, the guard processes the
+    acceptance and the score increase without extra owner approval, unless the
+    existing conditions explicitly require human acceptance or an owner
+    decision. The guard does not replace an independent reviewer and does not
+    change acceptance conditions, rubric, weights or safety conditions. The
+    formal score continuously matches the criteria actually achieved and
+    verified. This adds no review round or approval layer.
+  - The shared `date` and `source_commit` of `delivery_review` stay unchanged,
+    because they date every row. The refresh date and commit go into the row
+    text itself (`updated YYYY-MM-DD @<sha>: …`).
+  - A refreshed row cites repository files as commit-pinned links
+    (`https://github.com/BaryonOS/BaryonOS/blob/<40-character sha>/<path>`),
+    because the generator resolves relative paths against the shared
+    `source_commit`, not against the refresh commit. Absolute links to
+    Actions runs or jobs, pull requests and reviews stay as they are.
+  - Derived views are regenerated with `python3 tools/progress.py --write` and
+    checked with `--check`; generated files are never edited by hand.
+  - Conflicts are avoided: one owner per row, and D3 task assessment files
+    record the task itself.
+- **Unchanged.** Lead ownership of everything else in `docs/progress.json` and
+  the generated views, D1–D3, the Security Floor and the merge conditions.
+
+**Alternatives:** the lead refreshes all rows (rejected: does not scale and left
+the snapshot stale); a refresh only in a pull request that already touches
+progress (the superseded narrower decision); per-row dates in the generator
+(would change the protected `tools/progress.py`; not needed for this decision).
+
+**Evidence:** a governance decision with no code change. `python3 -B
+tools/progress.py --check` validates every refresh; it does not authenticate the
+content of a claim. Known limit: the generated README and PROGRESS summary
+still label all requirement counts with the shared `date` and `source_commit`,
+although refreshed rows describe a later revision; each such row carries its
+own date and commit. Changing that label belongs to the lead-owned
+`tools/progress.py` and is left to a separate change.
+
+**Rollback:** the project owner can withdraw or narrow the permission by a newer
+decision; lead ownership of the rows then applies again. Rows already refreshed
+stay as evidence-bound history.
+
+**Review criteria:** a routine refresh changes only the author's own criterion
+rows, leaves the shared header, score, status, rubric and weights unchanged, carries
+the date and commit in the row text, and passes `progress.py --check`.
+
 ## ADR-SPECIALIST-MANDATE-20261127 — every appointed specialist enqueues and integrates its own pull requests
 
 **Status:** decided by the project owner on 27 November 2026 at about 11:49 UTC,

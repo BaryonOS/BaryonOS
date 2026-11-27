@@ -7,12 +7,14 @@ paths are optional convenience only.
 
 - **Live state:** the newest comment beginning with `HANDOFF A` on issue #536.
   The current one is https://github.com/BaryonOS/BaryonOS/issues/536#issuecomment-7217812075.
-- **Last updated:** 2026-11-27 (UTC), main 20c7e18a.
+- **Last updated:** 2026-11-27 (UTC), main 9efd5739 (A03-T2c-3 branch).
 
 ## Resume procedure
 
 1. Verify `git fetch`, the branch, HEAD, `git status --short`, any open A PRs
-   (`gh pr list --search "Part of #536"`) and the merge queue.
+   and the merge queue. Search widely, because a PR may say `Part of`, `Refs`
+   or only name a criterion: `gh pr list --state open --search "536 in:body"`
+   plus `gh pr list --state open --search "A03 OR A02 OR A04 in:title"`.
 2. Compare them with the live HANDOFF comment. Never redo work that has a
    landed SHA.
 3. Read the root `AGENTS.md`, the `AGENTS.md` files of the directories you
@@ -34,9 +36,12 @@ paths are optional convenience only.
   - A assessment files under `docs/progress/assessments/`.
 - Report the kernel write set on #536 before committing under `kernel/`. S and H
   own `volume.rs`.
-- **Never edit:** `.github/**`, any `AGENTS.md` or `CLAUDE.md`,
-  `docs/progress.json`, generated progress views, `docs/PROJECT-STATE.md` or
-  `docs/DECISIONS.md`.
+- **A also writes** its own A01–A04 `delivery_review` rows in
+  `docs/progress.json` and the views `progress.py --write` regenerates (owner
+  decision 27 Nov ~12:50Z, below).
+- **Never edit:** `.github/**`, any `AGENTS.md` or `CLAUDE.md`, other
+  criteria's rows, the `delivery_review` header date and source_commit, scores,
+  `docs/PROJECT-STATE.md` or `docs/DECISIONS.md`.
 
 ## Mandates and decisions (with source)
 
@@ -56,9 +61,34 @@ paths are optional convenience only.
   recorded on #536 without a push. Real blockers get one bundled push.
   Infrastructure failures get one rerun only.
 - **T2c-3 exit notification:** the project owner chose option A
-  (reply-endpoint closure) on 25 Nov 2026. It is recorded in
-  `docs/handoffs/A/T2C-SPEC.md` ("Owner decision for T2c-3"). The capability-core
-  pin landed as #579 (95553a22).
+  (reply-endpoint closure) on 25 Nov 2026 and confirmed it on 27 Nov as final
+  (never re-ask). It is recorded in `docs/handoffs/A/T2C-SPEC.md`. The
+  capability-core pin landed as #579 (95553a22). The product path is built with
+  K on the existing capability lifecycle; no general kernel event channel.
+- **Own progress rows** (owner, 27 Nov ~12:50Z, via the PR guard; #536
+  issuecomment-7218586123): A keeps its own `delivery_review` implementation
+  and verification rows current without per-update permission. Conditions:
+  current source-bound evidence, rubric and weights unchanged, header date and
+  source_commit unchanged (date and sha go in the row text), `progress.py
+  --write` then `--check`, a D3 assessment. Evidence paths render at the header
+  commit, so link files that are newer as blob URLs pinned to a commit.
+- **Criterion acceptance** (owner, clarified 27 Nov 13:14Z, guard log): A
+  delivers the evidence. When all acceptance conditions and the required
+  independent verification are met, A reports the criterion ID and evidence
+  links to the PR guard. The guard does the formal acceptance and the score
+  change. A never changes a score.
+- **A02–A04 decisions** (owner, 27 Nov ~13:30Z; #536
+  issuecomment-7219526385). These are binding; do not re-ask.
+  - A02-T2: durable authenticated source registry.
+    - Uses a B-managed freshness-anchor domain on TPM, separate from release,
+      TLS and user keys.
+    - A bounded add, rotate and revoke capability.
+    - Transactional, fail closed.
+    - Revoking a source blocks only new installs and updates.
+  - A02-T3: GO with K and B. Uses a one-shot `AuthorizedImage` capability.
+  - A03: build with K; coordinate the trusted dialog with U.
+  - A04-T2: BR0 comparison of Chromium and Gecko. Chromium by default; the
+    final choice is A's, in consultation with B, N and G.
 
 ## Per-PR progress duties (owner, 27 Nov)
 
@@ -81,13 +111,14 @@ in the next own PR.
 | Criterion | Status | Ledger |
 |---|---|---|
 | A01 SDK and API | accepted | — |
-| A02 install/update | open | A02-T1 verified (host); A02-T2 blocked (owner: source backend/anchor/actor, APP-SOURCE-RECOVERY.md §6/§8); A02-T3 blocked (kernel dynamic-launch ADR, B02 store) |
-| A03 permissions | open | T1 host core verified; T2a #531 aa6d1c70; T2b #535 a004e3dc; T2c-1 #583 28e7ee1a; T2c-3 pin #579 95553a22; T2c-2 #593 7ee91d92; trusted dialog (U) still missing |
-| A04 everyday apps | open | A04-T2 blocked (owner engine decision; N02–N04); A04-T3 blocked (H03 audio, S09, P01) |
+| A02 install/update | open | A02-T1 verified (host); A02-T2 unblocked (owner 27 Nov; needs B freshness-anchor interface); A02-T3 GO with K and B (owner 27 Nov) |
+| A03 permissions | open | T1 host core verified; T2a #531 aa6d1c70; T2b #535 a004e3dc; T2c-1 #583 28e7ee1a; T2c-3 pin #579 95553a22; T2c-2 #593 7ee91d92; T2c-3 exit/fault retirement (this branch); trusted dialog (U) still missing |
+| A04 everyday apps | open | A04-T2 BR0 Chromium/Gecko comparison GO (owner 27 Nov); A04-T3 blocked (H03 audio, S09, P01) |
 
 Score: 43/100, unchanged by A since 25 Nov. Assessments
-`2026-11-25-a03-volume-read-broker-host.json` and
-`2026-11-26-a03-volume-native.json`.
+`2026-11-25-a03-volume-read-broker-host.json`,
+`2026-11-26-a03-volume-native.json` and
+`2026-11-27-a03-t2c3-exit-closure.json`.
 
 ## A03-T2c-2 summary (landed as #593, 7ee91d92)
 
@@ -125,6 +156,33 @@ Evidence limits:
 - The dialog and the exit notice are labelled fixtures.
 - Only QEMU x86_64 was tested; there is no hardware evidence or human audit.
 
+## A03-T2c-3 summary (owner option A, reply-endpoint closure)
+
+- **Exit detection.** The broker no longer reads a kernel-written exit notice.
+  - It probes each client-owned reply endpoint with `ipc_wait`: a SEND
+    condition at deadline 0, which delivers and reserves nothing.
+  - It retires all of a client's grants on Revoked (-10) or Closed (-9)
+    (`client_gone`).
+  - A reply SEND failing with those codes retires the same way.
+  - Any other error is a broker fault.
+- **Fault case.** `test-task-grant-fault` ends the owner with a ring-3 #UD.
+- **Gate checks.**
+  - The broker retired nothing before the owner's end (word 152 is 0 at that
+    point).
+  - The probe saw -10 for the owner PID (words 448 and 456).
+  - At least one probe saw the still-live helper (word 464), so the live
+    branch runs natively; the broker sleeps one PIT tick between rounds (K).
+  - No reply-send retirement occurred (word 440 is 0).
+- **Profiles.** `native-task-grant` gains `ipc-wait`. Both task-grant profiles
+  are `milestone-m4` without `native-smp-m3-ipc`, so `retire_authority` always
+  runs `m4::process_exit`.
+- **Evidence limits.**
+  - Detection is polled.
+  - Kill, orphan kill and invalid-RSP share the cleanup path by code reading
+    only.
+  - On SMP kill, grants end at the actual exit, not at the KILL request.
+- **CI.** The hosted gate step for `--case fault` is requested from CI.
+
 ## Open follow-ups (non-blocking)
 
 - The broker's `volume-core` dependency is not gated behind the `native`
@@ -132,13 +190,11 @@ Evidence limits:
 
 ## Next safe action
 
-Plan A03-T2c-3 under owner option A, as specified in `T2C-SPEC.md`:
+1. Land A03-T2c-3. Then deliver the A03 evidence to the PR guard only after U's
+   trusted dialog replaces the fixture and independent verification is done.
+2. A02-T2 with B: agree the freshness-anchor and rollback-floor interfaces, then
+   specify the source registry against `APP-SOURCE-RECOVERY.md`.
+3. A02-T3 with K and B: draft the `AuthorizedImage` launch ADR.
+4. A04-T2: run the scoped BR0 Chromium/Gecko comparison with B, N and G.
 
-1. The broker retires a client's grants when its reply SEND fails with Revoked
-   (-10) or Closed (-9), replacing the `observe_exit` fixture.
-2. Add a native fault/kill case.
-3. The profile must be a `milestone-m4` profile without the `native-smp-m3-ipc`
-   slot restriction.
-
-Report the kernel write set on #536 first. If the owner decision is ever
-disputed, confirm it with the project owner before kernel work.
+Report any kernel write set on #536 before committing under `kernel/`.
