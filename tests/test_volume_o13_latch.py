@@ -72,7 +72,7 @@ class LatchOracle(unittest.TestCase):
             check(out)
 
     def test_published_refused_write_or_missing_read_flush_is_refused(self):
-        for label, value in (("VOLUME:LATCH:REFUSALS:", 1), ("VOLUME:LATCH:WRITES_AT_REFUSAL:", 1),
+        for label, value in (("VOLUME:LATCH:REFUSALS:", 2), ("VOLUME:LATCH:WRITES_AT_REFUSAL:", 1),
                              ("VOLUME:BROKER:ARCHIVE_DISK_WRITES:", 3), ("VOLUME:LATCH:ARCHIVE_READS_AFTER:", 0),
                              ("VOLUME:LATCH:ARCHIVE_FLUSHES_AFTER:", 0), ("VOLUME:LATCH:ENTRIES:", 2)):
             with self.subTest(label=label), self.assertRaisesRegex(ValueError, label):
