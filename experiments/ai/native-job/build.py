@@ -175,7 +175,8 @@ def publish(path: Path, data: bytes) -> None:
     if path.is_symlink():
         raise ValueError(f"refusing symlinked output: {path}")
     temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
+    # Owner-only: every consumer (tools/build.py, the kernel build, run_ai_job.py) runs as this user.
+    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, "wb") as handle:
         handle.write(data)
     os.replace(temporary, path)

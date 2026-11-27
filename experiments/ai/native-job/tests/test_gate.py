@@ -1,5 +1,7 @@
 import importlib.util
+import os
 from pathlib import Path
+import stat
 import tempfile
 import unittest
 from unittest import mock
@@ -58,6 +60,19 @@ class Gate(unittest.TestCase):
                            ("rax", slots)):  # register call
             with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, "after call to"):
                 build.inspect_instructions(OK + f"  40020030:\tcall   {bad}\n  40020035:\tint3\n", table)
+
+    def test_publish_is_owner_only_even_with_an_open_umask(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "build-report.json"
+            path.write_bytes(b"old")
+            os.chmod(path, 0o644)
+            previous = os.umask(0)
+            try:
+                build.publish(path, b"new")
+            finally:
+                os.umask(previous)
+            self.assertEqual(path.read_bytes(), b"new")
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
 
     def test_source_tree_rejects_directory_symlink(self):
         with tempfile.TemporaryDirectory() as temp:
