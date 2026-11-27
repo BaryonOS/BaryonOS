@@ -1,32 +1,94 @@
-"""Render the static visitor documentation for the Baryon OS project site."""
+"""Render the static visitor documentation and primary project pages."""
 
 import argparse
+import json
 from html import escape
+from html.parser import HTMLParser
 from pathlib import Path
 from string import Template
 from textwrap import indent
 
 SOURCE = Path(__file__).resolve().parent
-OUTPUT = SOURCE.parent / "pages" / "docs"
+SITE = SOURCE.parent / "pages"
+DOCS_OUTPUT = SITE / "docs"
+
+
+class SearchTextParser(HTMLParser):
+    """Collect visible source-fragment text for the local search index."""
+
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+
+    def handle_data(self, data):
+        text = " ".join(data.split())
+        if text:
+            self.parts.append(text)
+
+    def text(self):
+        return " ".join(self.parts)
 
 # Each tuple is the URL slug, visible title, and short visitor-facing summary.
 GROUPS = {
-    "Start here": [
+    "Decide if it fits": [
         ("project", "About Baryon OS", "Why the project exists, what the name means and what makes the OS independent."),
-        ("progress", "Roadmap and evidence", "How far development has progressed and how to read the test evidence."),
-        ("try", "Try the development build", "How to start a QEMU experiment and what hardware support is available."),
+        ("mission", "Mission and vision", "The European research question, the mission it produced and the future experience being pursued."),
+        ("fit", "Is Baryon OS for me?", "A direct suitability guide for curious visitors, testers, contributors and daily-use seekers."),
+        ("capabilities", "Planned capabilities", "The intended product experience, from everyday apps to storage, networking and recovery."),
+        ("choices", "Why these choices?", "The main product and technology decisions explained in everyday language and linked to their evidence."),
+        ("progress", "Roadmap and evidence", "How development progress is measured and how to interpret the available evidence."),
+        ("faq", "Frequently asked questions", "Short answers about Linux, installation, readiness, privacy, licensing and support."),
     ],
-    "How it works": [
-        ("architecture", "System architecture", "Follow the boot chain from firmware and the Rust kernel through services to apps."),
+    "Experience and personal data": [
         ("design", "Desktop and Material", "How Orbit, familiar desktop interactions and the document model fit together."),
-        ("privacy", "Privacy and security", "Understand app permissions, local storage, optional sync and the security requirements."),
+        ("profiles", "Profiles and accessibility", "The intended first start, local accounts, trusted sign-in and adaptive experience."),
+        ("apps", "Apps and permissions", "How apps, packages, data access and replaceable tools are meant to remain separate."),
+        ("storage", "Storage, sync and NAS", "Local work, encrypted remote copies, personal NAS roles, conflicts and recovery."),
+        ("privacy", "Privacy and data control", "Where data may go, which choices remain explicit and what local-first actually means."),
+        ("local-ai", "Local AI", "The on-device assistant direction, model boundaries and current experiment limits."),
     ],
-    "Go further": [
+    "Inside the system": [
+        ("architecture", "System architecture", "Follow the boot chain from firmware and the Rust kernel through services to apps."),
+        ("security", "Security model", "Capabilities, isolation, the Security Floor, threat boundaries and evidence limits."),
+        ("packages", "Packages and updates", "Provenance, installation, permissions, system updates and remaining integration work."),
         ("research", "Research tracks", "Explore work on local AI, post-quantum protection and quantum execution."),
-        ("contribute", "Contribute", "Find a way to help through feedback, reproducible reports, documentation or code."),
+    ],
+    "Try and verify": [
+        ("try", "Try the development build", "How to start a bounded QEMU experiment without treating it as an installer."),
+        ("hardware", "Hardware and release readiness", "Why virtual-machine progress differs from PC support and a maintained release."),
+        ("testing", "Testing and evidence", "What host, build, QEMU, physical-hardware and human evidence can establish."),
+    ],
+    "Explore the project": [
+        ("workflow", "Development workflow", "How a bounded change moves from current state and contracts to evidence and review."),
+        ("repository", "Repository guide", "A map of the loader, kernel, services, drivers, SDK, UI, tests and research areas."),
+        ("sources", "Sources and documentation", "Which project source answers which question and how the website and wiki relate."),
         ("glossary", "Glossary", "Look up terms such as kernel, capability, NAS and QEMU in plain English."),
     ],
 }
+
+
+def nav_state(active):
+    return {
+        "overview_current": ' aria-current="page"' if active == "overview" else "",
+        "docs_current": ' aria-current="page"' if active == "docs" else "",
+        "status_current": ' aria-current="page"' if active == "status" else "",
+        "contribute_current": ' aria-current="page"' if active == "contribute" else "",
+        "search_current": ' aria-current="page"' if active == "search" else "",
+    }
+
+
+def render_page(template, *, title, heading, description, breadcrumb, body, active, interactive=False):
+    return template.substitute(
+        title=title,
+        heading=heading,
+        description=description,
+        breadcrumb=breadcrumb,
+        body=body,
+        csp_script="'self'" if interactive else "'none'",
+        csp_form="'self'",
+        scripts='<script src="/assets/search.js?v=site-search" defer></script>' if interactive else "",
+        **nav_state(active),
+    )
 
 
 def directory():
@@ -50,12 +112,24 @@ def directory():
     </div>"""
 
 
-def chapter(slug, topics):
-    links = []
-    for route, title, _ in topics:
-        current = ' aria-current="page"' if route == slug else ""
-        links.append(f'          <li><a href="/docs/{route}/"{current}>{escape(title)}</a></li>')
-    navigation = "\n".join(links)
+def topic_navigation(current_slug):
+    items = []
+    for heading, topics in GROUPS.items():
+        if not any(slug == current_slug for slug, _, _ in topics):
+            continue
+        items.append(f'          <li class="guide-topic-heading">{escape(heading)}</li>')
+        for slug, title, _ in topics:
+            current = ' aria-current="page"' if slug == current_slug else ""
+            items.append(f'          <li><a href="/docs/{slug}/"{current}>{escape(title)}</a></li>')
+        break
+    items.extend([
+        '          <li class="guide-topic-heading">Explore</li>',
+        '          <li><a href="/docs/#topics">All Docs topics</a></li>',
+    ])
+    return "\n".join(items)
+
+
+def chapter(slug):
     fragment = (SOURCE / "topics" / f"{slug}.html").read_text(encoding="utf-8")
     content = indent(fragment.strip(), "        ")
     return f"""    <div class="wrap guide-layout">
@@ -68,34 +142,143 @@ def chapter(slug, topics):
       <nav class="guide-topics" aria-label="Documentation topics">
         <p class="guide-topics-title">Docs topics</p>
         <ul>
-{navigation}
+{topic_navigation(slug)}
         </ul>
       </nav>
     </div>"""
+
+
+def standalone(name):
+    fragment = (SOURCE / f"{name}.html").read_text(encoding="utf-8")
+    return indent(fragment.strip(), "    ")
+
+
+def legacy_contribute():
+    return """    <div class="wrap standalone-layout">
+      <article class="guide-topic section-divider" aria-labelledby="guide-title">
+        <h2>Contribute has moved</h2>
+        <p>Contribution routes now have their own primary page, separate from the documentation library.</p>
+        <p><a class="button button-primary" href="/contribute/">Open Contribute <span aria-hidden="true">→</span></a></p>
+      </article>
+    </div>"""
+
+
+def source_text(path):
+    parser = SearchTextParser()
+    parser.feed(path.read_text(encoding="utf-8"))
+    return parser.text()
+
+
+def search_entries():
+    entries = [
+        {
+            "title": "Overview",
+            "route": "/",
+            "group": "Start",
+            "summary": "The independent kernel, familiar desktop, current progress and main visitor routes.",
+            "text": "Baryon OS Rust kernel familiar desktop app permissions roadmap QEMU research software",
+        },
+        {
+            "title": "Baryon OS Docs",
+            "route": "/docs/",
+            "group": "Start",
+            "summary": "Browse every visitor guide by suitability, experience, system internals, evidence or project work.",
+            "text": "documentation topics guide suitability experience architecture evidence development",
+        },
+        {
+            "title": "Status",
+            "route": "/status/",
+            "group": "Start",
+            "summary": "Accepted roadmap progress, current boundaries and release readiness.",
+            "text": source_text(SOURCE / "status.html"),
+        },
+        {
+            "title": "Contribute",
+            "route": "/contribute/",
+            "group": "Start",
+            "summary": "Ways to help through feedback, reports, documentation, testing or code.",
+            "text": source_text(SOURCE / "contribute.html"),
+        },
+    ]
+    for group, topics in GROUPS.items():
+        for slug, title, summary in topics:
+            entries.append({
+                "title": title,
+                "route": f"/docs/{slug}/",
+                "group": group,
+                "summary": summary,
+                "text": source_text(SOURCE / "topics" / f"{slug}.html"),
+            })
+    return entries
+
+
+def render_assets():
+    script = (SOURCE / "search.js.template").read_text(encoding="utf-8")
+    index = json.dumps(search_entries(), ensure_ascii=False, separators=(",", ":"))
+    return {SITE / "assets" / "search.js": script.replace("__SEARCH_INDEX__", index)}
 
 
 def render():
     template = Template((SOURCE / "layout.html").read_text(encoding="utf-8"))
     topics = [topic for group in GROUPS.values() for topic in group]
     pages = {
-        OUTPUT / "index.html": template.substitute(
+        DOCS_OUTPUT / "index.html": render_page(
+            template,
             title="Baryon OS Docs",
             heading="Baryon OS Docs",
-            description="Choose a topic to learn about the project, follow development, try a build or contribute.",
-            docs_current="page",
+            description="Choose the question that matters to you: suitability, experience, architecture, evidence or development.",
+            active="docs",
             breadcrumb='<p class="breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span>Docs</p>',
             body=directory(),
-        )
+        ),
+        SITE / "status" / "index.html": render_page(
+            template,
+            title="Status · Baryon OS",
+            heading="Status",
+            description="A direct view of accepted progress, open product boundaries and release readiness.",
+            active="status",
+            breadcrumb='<p class="breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span>Status</p>',
+            body=standalone("status"),
+        ),
+        SITE / "contribute" / "index.html": render_page(
+            template,
+            title="Contribute · Baryon OS",
+            heading="Contribute",
+            description="Help through questions, product feedback, reproducible reports, documentation, testing or code.",
+            active="contribute",
+            breadcrumb='<p class="breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span>Contribute</p>',
+            body=standalone("contribute"),
+        ),
+        SITE / "search" / "index.html": render_page(
+            template,
+            title="Search · Baryon OS",
+            heading="Search",
+            description="Find a project page by question, capability, evidence level or technical term.",
+            active="search",
+            interactive=True,
+            breadcrumb='<p class="breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span>Search</p>',
+            body=standalone("search"),
+        ),
+        DOCS_OUTPUT / "contribute" / "index.html": render_page(
+            template,
+            title="Contribute has moved · Baryon OS",
+            heading="Contribute has moved",
+            description="Contribution routes now have a primary page outside the Docs library.",
+            active=None,
+            breadcrumb='<p class="breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span>Contribute</p>',
+            body=legacy_contribute(),
+        ),
     }
     for slug, title, summary in topics:
         heading = escape(title)
-        pages[OUTPUT / slug / "index.html"] = template.substitute(
+        pages[DOCS_OUTPUT / slug / "index.html"] = render_page(
+            template,
             title=f"{heading} · Baryon OS Docs",
             heading=heading,
             description=escape(summary),
-            docs_current="location",
+            active="docs",
             breadcrumb=f'<p class="breadcrumb"><a href="/docs/">Docs</a><span aria-hidden="true">/</span>{heading}</p>',
-            body=chapter(slug, topics),
+            body=chapter(slug),
         )
     return pages
 
@@ -105,18 +288,22 @@ def main():
     parser.add_argument("--check", action="store_true", help="Check committed pages without writing")
     args = parser.parse_args()
     pages = render()
+    assets = render_assets()
+    outputs = pages | assets
     if args.check:
-        stale = [path for path, content in pages.items() if not path.is_file() or path.read_text(encoding="utf-8") != content]
-        unexpected = set(OUTPUT.rglob("index.html")) - pages.keys()
+        stale = [path for path, content in outputs.items() if not path.is_file() or path.read_text(encoding="utf-8") != content]
+        expected_docs = {path for path in pages if DOCS_OUTPUT in path.parents}
+        unexpected = set(DOCS_OUTPUT.rglob("index.html")) - expected_docs
         if stale or unexpected:
             for path in sorted(set(stale) | unexpected):
-                print(f"Stale or unexpected Docs output: {path.relative_to(OUTPUT.parent)}")
+                print(f"Stale or unexpected visitor page: {path.relative_to(SITE)}")
             return 1
     else:
-        for path, content in pages.items():
+        for path, content in outputs.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
-    print(f"{len(pages)} static Docs pages {'match the sources' if args.check else 'rendered'}.")
+    state = "match the sources" if args.check else "rendered"
+    print(f"{len(pages)} static visitor pages and {len(assets)} local asset(s) {state}.")
     return 0
 
 

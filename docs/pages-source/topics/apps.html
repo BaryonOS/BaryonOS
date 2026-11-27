@@ -1,0 +1,17 @@
+<h2>What does installing an app authorize?</h2>
+<p>Installation should authorize no general access by itself. Package provenance, permission to install, permission to launch, access to selected material, network destinations and administrative actions are separate decisions. A signed package can establish origin and integrity under a selected key; it cannot establish that the app is safe.</p>
+
+<h2>How should an app reach personal data?</h2>
+<p>The intended route uses explicit task grants. A document picker or other trusted portal grants a bounded handle for the selected object and operation. Helpers and extensions must not inherit broader rights or bypass revocation. Removing an app is not permission to erase user documents.</p>
+
+<h2>Where can apps come from?</h2>
+<p>The package design allows multiple explicitly chosen sources. Source rotation or revocation can stop new verification without silently deleting already installed apps. A production installer still needs durable source authority, native storage integration, transactional recovery, user-facing consent and a complete launch boundary.</p>
+
+<h2>What application ecosystem exists now?</h2>
+<p>The repository contains an SDK, example applications and package-verification and app-management cores. A publicly documented SDK criterion is accepted. Native installation, update/removal, broad everyday application coverage and integrated per-task permissions remain open.</p>
+
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/implementation/APP-PACKAGES.md">Package verification and app management <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/sdk/README.md">Application SDK <span aria-hidden="true">↗</span></a>
+  <a href="/docs/packages/">Packages and updates <span aria-hidden="true">→</span></a>
+</div>
