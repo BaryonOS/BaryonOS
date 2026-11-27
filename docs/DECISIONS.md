@@ -31,6 +31,8 @@ kernel anchor service that exposes the domains (REL-05 step S7) is not built.
    capability reaches no other domain's index and no other TPM command, and
    the reverse holds for domain 0.
 3. The implementation shall prevent, each with a native negative test:
+   - capability escape: a domain-1 capability cannot read or extend domain 0,
+     and the reverse; each direction is its own native negative test;
    - rollback: an older chain value is never accepted as current;
    - replay: a recorded earlier read or extend result is not accepted again;
    - cross-domain substitution: the extend value is domain-separated (the same
@@ -46,6 +48,8 @@ kernel anchor service that exposes the domains (REL-05 step S7) is not built.
    proves identity, not continuity. Domain 1 is never re-initialised on the
    strength of a matching EK.
 5. Each domain has its own per-boot extend budget and its own serialisation.
+   Exhausting one domain's budget never denies an extend in the other; a
+   native test shows this.
 6. Domain allocation stays extensible. Domains 2–7 remain reserved; any further
    holder (for example a NAS lineage domain) needs its own decision and
    allocation with separate domain authority.
@@ -62,8 +66,9 @@ kernel anchor service that exposes the domains (REL-05 step S7) is not built.
 
 **Falsified if:** a domain-1 capability reads or extends domain 0, or the
 reverse; the same `D(S)` yields the same `E` in both domains; a domain-1
-rollback or replay is accepted; an acknowledged revocation is lost after a
-crash cut; or domain 1 is re-initialised without authenticated recovery.
+rollback or replay is accepted; exhausting one domain's budget denies an
+extend in the other; an acknowledged revocation is lost after a crash cut; or
+domain 1 is re-initialised without authenticated recovery.
 
 ## ADR-B04-POLICY-DIRECTION-20261127 — Production signing-policy direction D1–D7 approved for design and synthetic implementation
 
@@ -449,16 +454,30 @@ replaced by the O5 freeze, and the consequence on volume authenticity by the
 O7 design. Independent verification and the acceptance conditions stay in
 force.
 
+Workstream agreements of 27 November 2026 (technical, not owner decisions):
+- Authentication ownership, proposed by U and accepted by B: B owns the
+  authentication step (session-service core, secret and TPM path, the state
+  machine authentication → T5f-1 → UNLOCK → T5f-2, rate limiting, fail
+  closed); U owns its user surface (lock, sign-in, verifying and error
+  states). The interface is a state enumeration plus events, drafted by B and
+  reviewed by U; one writer per file.
+- Refusal value -28 `NOT_AUTHENTICATED` (T5f-1 refused: no valid
+  authentication signal), proposed by H and B and agreed by S, who keeps only
+  -26. H defines the constant in the T5f-1 change after this ADR is on main.
+- OQ1: U accepts the U part (UI and session plaintext; S3 refuses with a
+  visible reason when a component does not report "clean" in time).
+
 Open, not decided by this amendment:
-- the authentication signal: H requires that the kernel learns the result from
-  a designated principal, never from the grantee, through a kernel-checkable
-  interface; O8 excludes material from volume domain 1. The mechanism and its
-  owner are not chosen;
+- the kernel-checkable authentication signal: H requires that the kernel
+  learns the result from a designated principal, never from the grantee; O8
+  excludes material from volume domain 1. The interface is not chosen;
 - the OQ1 split that H proposes (H: the single kernel S3 refusal point; K:
   process scrub or termination; B: Key Service plaintext and keys; U: UI and
-  session plaintext), pending K and U agreement;
-- a refusal value for "authentication absent", to be agreed with H and S next
-  to S's RemountRefused -26.
+  session plaintext), pending K's agreement;
+- the O7 key availability: S reports (#564, issuecomment-7219627534) that the
+  post-wake remount runs before UNLOCK, so a metadata key released only by
+  UNLOCK cannot verify the table then; the key must come earlier (for example
+  TPM-bound under O2), or the reads before the tag check must be bounded.
 
 H's T5f constraints (#564, issuecomment-7219429976) are design input, not
 decisions. LOCK and UNLOCK remain B's implementation under this ADR; H05
