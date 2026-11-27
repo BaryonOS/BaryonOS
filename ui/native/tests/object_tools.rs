@@ -154,7 +154,9 @@ fn keyboard_tool_selection_copy_and_close_dialog_preserve_draft() {
         }
         assert_eq!(ui.view().contents, Some("Een echt document"));
         let selection = (ui.view().anchor, ui.view().caret);
+        let status = ui.view().status;
         deliver(&mut ui, Event::Cancel(CancelReason::FocusLost));
+        assert_eq!(ui.view().status, status);
         assert_eq!(ui.view().tool, DocumentTool::Read);
         assert_eq!((ui.view().anchor, ui.view().caret), selection);
         ui.request_back().unwrap();

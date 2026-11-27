@@ -432,6 +432,8 @@ fn resize_cancel_rebind_and_new_focus_generation_cancel_pending_menu_clicks() {
             );
             assert_eq!(ui.view().tool, DocumentTool::Write);
             if cancellation == 1 {
+                // A window switch keeps the status; it is not an input failure (#541).
+                assert_eq!(after.4, before.4);
                 // The next input generation must be newer than the cancellation.
                 sequence += 1;
                 ui.deliver(InputEnvelope {
