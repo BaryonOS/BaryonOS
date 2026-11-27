@@ -22,8 +22,10 @@ const MIN_ITERATIONS: u64 = 2000;
 const MIN_TICKS: u64 = 50;
 /// Timer IRQs that must land on the job itself in each run; the job also
 /// yields every 64 iterations, so its self-reported duration alone does not
-/// prove preemption. A measured pass sees about 23 per run.
-const MIN_JOB_TIMER_IRQS: u64 = MIN_TICKS / 4;
+/// prove preemption. Measured passes see about 23 per run locally (KVM/TCG) and
+/// 12-17 on hosted TCG runners, so the bound is a small absolute count with a
+/// 3x margin below the hosted minimum, not a ratio of `MIN_TICKS`.
+const MIN_JOB_TIMER_IRQS: u64 = 4;
 /// 100 Hz PIT ticks (20 s); a measured pass needs about 110. The host
 /// runner's 60 s timeout is sized above this bound.
 const MAX_TICKS: u64 = 2000;
@@ -184,6 +186,13 @@ pub(super) fn observe_exit(s: &State, slot: usize, _: u64) {
         b"JOB_PREEMPTED_DURATION",
     );
     let job_irqs = e.timer[0] - e.timer_mark;
+    if job_irqs < MIN_JOB_TIMER_IRQS {
+        // Diagnostic only: shows whether ticks went to the canary or were coalesced.
+        print_number(b"AIJOB:DIAG:JOB_IRQS:", job_irqs);
+        print_number(b"AIJOB:DIAG:CANARY_IRQS:", e.timer[1]);
+        print_number(b"AIJOB:DIAG:JOB_TICKS:", end - start);
+        print_number(b"AIJOB:DIAG:LIFETIME_TICKS:", s.ticks - e.spawn_ticks);
+    }
     require(job_irqs >= MIN_JOB_TIMER_IRQS, b"JOB_TIMER_PREEMPTION");
     if e.runs == 0 {
         e.macs = word(s, 0, MACS);
