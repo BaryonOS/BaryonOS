@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "2961c754b706a8a444ae9ffcccfeb8ced150ec35",
+  "assessment_basis": "parent_commit",
+  "branch": "docs/ui-u-resume-20261127",
+  "task": "Refresh the UI-U resume pointer after PR #629 landed",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The portable UI-U handoff points to the landed owner-decision record and identifies the bounded #589 review dependencies. This documentation change adds no native, physical or human acceptance evidence."
+}
