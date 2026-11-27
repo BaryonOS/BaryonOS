@@ -134,6 +134,11 @@ fn limits_publish_nothing() {
     let r = t.encode("hello", &mut out, &mut Budget::new(u64::MAX, &Always));
     assert_eq!(r, Err(TokenError::Limit(Error::Cancelled)));
     assert_eq!(out, [0; 16]);
+    out = [7; 16];
+    // One-byte pieces never reach a pair lookup; cancellation must still win.
+    let r = t.encode("123", &mut out, &mut Budget::new(u64::MAX, &Always));
+    assert_eq!(r, Err(TokenError::Limit(Error::Cancelled)));
+    assert_eq!(out, [0; 16]);
     let mut short = [7; 4];
     let r = t.encode("hello", &mut short, &mut Budget::new(u64::MAX, &NoCancel));
     assert_eq!(r, Err(TokenError::Limit(Error::ContextLimit)));

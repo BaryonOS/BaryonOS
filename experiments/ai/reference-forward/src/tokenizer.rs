@@ -178,6 +178,8 @@ impl<'a> Tokenizer<'a> {
     ) -> Result<usize, TokenError> {
         let mut len = 0;
         for piece in pre_tokenize(text)? {
+            // Polls cancellation even for one-byte pieces, which skip the pair loop.
+            budget.charge(0).map_err(TokenError::Limit)?;
             let end = len + piece.len();
             let ids = out
                 .get_mut(len..end)
