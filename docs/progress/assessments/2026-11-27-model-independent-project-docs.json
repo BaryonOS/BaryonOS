@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "c6e8cb5c0f920dc759fd5ef8d0cc73eb4c5bccd3",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/project-docs-lite",
+  "task": "Establish a lightweight model-independent project-documentation route",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The change makes AGENTS.md the cross-client documentation contract, keeps Claude-specific files as compatibility adapters, and adds an indexed progressive-disclosure workflow for any repository-capable AI. It changes documentation maintenance and navigation only; no product criterion, implementation, native evidence, physical-hardware evidence or human-evaluation evidence changed."
+}

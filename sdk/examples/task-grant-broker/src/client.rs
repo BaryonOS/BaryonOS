@@ -5,8 +5,9 @@
 //! is a hostile helper that claims the owner's identity in every request,
 //! including a forged RETIRE and a read after the owner has exited.
 //!
-//! Startup words (kernel bootstrap): 0 role, 56 reply receive handle, 64
-//! request send handle, 176 broker PID, 184 owner PID (the claimed actor).
+//! Startup words (kernel bootstrap): 0 role, 16 end-by-fault flag (owner, case
+//! `test-task-grant-fault`), 56 reply receive handle, 64 request send handle,
+//! 176 broker PID, 184 owner PID (the claimed actor).
 //! Local diagnostics: 192.. one reply status per step, 320/328 the bytes of
 //! the last successful read. The kernel checks them against the broker log.
 
@@ -103,10 +104,14 @@ fn run() -> Result<(), ()> {
             client.call(OP_CLOSE, OBJECT_ONE)?;
             client.call(OP_READ, OBJECT_ONE)?;
             // Second fixture grant, then a read after the helper's forged
-            // RETIRE; exiting afterwards triggers the kernel exit notice.
+            // RETIRE; ending afterwards closes this process's reply endpoint,
+            // which is how the broker learns of the exit (owner option A).
             client.call(OP_READ, OBJECT_ONE)?;
             client.wait(STATUS_RESUME)?;
             client.call(OP_READ, OBJECT_ONE)?;
+            if support::word(16) == 1 {
+                fault();
+            }
         }
         HELPER => {
             client.wait(STATUS_GO)?;
@@ -121,6 +126,14 @@ fn run() -> Result<(), ()> {
         _ => return Err(()),
     }
     Ok(())
+}
+
+/// A03-T2c-3 fault case: end by a ring-3 #UD instead of `exit`, so the kernel
+/// reaches the shared fault cleanup path rather than the exit syscall.
+fn fault() -> ! {
+    // SAFETY: `ud2` touches no memory or registers; it raises #UD, which the
+    // kernel handles by terminating this process. Execution never continues.
+    unsafe { core::arch::asm!("ud2", options(noreturn, nomem, nostack)) }
 }
 
 #[no_mangle]
