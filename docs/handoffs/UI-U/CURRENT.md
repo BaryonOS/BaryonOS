@@ -25,20 +25,33 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
 
 ## Current cycle
 
-- **cycle_id:** `UI-U-C5-20261125`
-- **owner session:** local session "BaryonOS - Specialist U" (resumed
-  25 November 2026 from the cloud hand-back in #503).
-- **task:** U04 / FR-U05 — Alt+N panel as the single notification centre with
-  keyboard, mouse and system-clock routes; the shell `Page::Notifications` is
-  removed (owner decision, ADR-UI-NOTIFICATIONS-20261125).
-- **branch:** `claude/ui-u-notifications-panel-20261125` (based on `main`).
+- **cycle_id:** `UI-U-C9-20261126`
+- **owner session:** local session "BaryonOS - Specialist U (UI/UX)".
+- **task:** #545, two observation gaps in the native window-session harness.
+  (1) The kernel reporter now samples on compositor words 464/480
+  (Material/Calculator completed frames), so a frame that completes on a
+  RETAIN without a commit is still printed. (2) After F6 the harness waits for
+  `SHELL_READY == 1` as well as the focus flip, so the following captures
+  cannot show the previous taskbar state. Guest behaviour is unchanged.
+- **branch:** `claude/ui-u-545-reporter-20261126` (based on `main`
+  `8033e2dd`, after R's #578), worktree `~/projects/BaryonOS-worktrees/ui-u-545`.
 - **PR:** recorded in the PR itself and in its HANDOFF comment after merge.
-- **Evidence scope:** host tests (`keyboard_only.rs`, `shell.rs` header
-  zones) passed locally; hosted gates including the native window gates are
-  pending until the PR's HANDOFF comment records them. No native keyboard run,
-  screen reader or human trial.
+- **Evidence scope:** host tests (`tools/test_window_session.py`) and a local
+  native clipboard/workspace scale 1 run; results are in the PR. Hosted
+  `native-window-session` legs remain the acceptance gates.
+- **Next:** #537, then #541 (InputLost banner). Review of R's R02 candidate (1)
+  (`ipc_wait` reply deadline in the SUR1 client); R is the writer.
 
 ## Previous cycles
+
+- `UI-U-C8-20261125`: U03 read-only Ctrl+S refusal, merged as #523
+  (`55eeccc7`) through the merge queue; HANDOFF comment on #523.
+
+- `UI-U-C7-20261125`: #449 native materiaal probe run (no code change);
+  `normal` and `keyboard` passed with raw exit 33, `recover` timed out (fixed
+  by C8). HANDOFF comment on #449.
+- `UI-U-C5-20261125`: U04 Alt+N panel as the single notification centre,
+  merged as #520 (`017934d7`); HANDOFF comment on #520.
 
 - `UI-U-C6-20261125`: U04 Space activates a focused search result, merged as
   #516 (`d436a595`); HANDOFF comment on #516.
@@ -77,9 +90,10 @@ closure = Closed. No schema or permission changes and no artificial issues.
   owner decision above.
 - Deny copy (`Service(Access)`) stays generic until U03-T3 part 2 proves a real
   deny path; its test stays ignored.
-- #449 (materiaal probe Tab counts): the keystroke fix is on main; the issue
-  stays open until a native materiaal probe run shows raw exit 33 with the
-  reopen through the row.
+- #449 is closed (C7 native run). The `recover` readonly-phase timeout found
+  there is fixed by C8 (#523).
+- #559 (Orbitaal `progress.svg`, closes #568) touches protected lead files and
+  waits for the project owner's content review.
 - #448 (Editor 700–783 px compact overlap/collapse): changes frozen frames and
   needs the frame-change list and design approval.
 - U04-K1: no keyboard-only defect remains pinned by an ignored test; held-key
@@ -105,9 +119,19 @@ closure = Closed. No schema or permission changes and no artificial issues.
    `Failed` state, so they do not guard failure layouts.
 5. `tools/agent_gate.py` cannot list `native-window-session.yml` (its job env
    needs Actions context); run the workflow's commands directly.
+6. The materiaal `recover` case needs its own build
+   (`test-system-materiaal-recover`) in the same `NOS_BUILD_DIR`, `--parent`
+   pointing at a fresh `normal` run and `--vga-rom`; hosted CI never runs it.
+7. A `can_save` gate on a shortcut must still surface a read-only refusal;
+   the probe's kernel watchdog (20 000 ticks) is the only symptom otherwise.
+8. Host Rust gates use toolchain `1.100.0` (CI), not the `1.90.0` in AGENTS.md.
+9. With the merge queue active, `gh pr merge N --squash --match-head-commit
+   <sha>` enqueues; on a BLOCKED PR it silently enables auto-merge instead, so
+   check `mergeStateStatus` CLEAN and `autoMergeRequest` null first.
+10. `tools/test_window_session.py` pins the exact compositor activity offsets;
+    change it together with `snapshots` in `kernel/src/m2/m3/window_session.rs`.
 
 ## Next executable task
 
-After C5 merges: the next independent U item from the open list above (for
-example the unbounded `history_count` decode with the storage owner, or the
-#449 native materiaal run).
+After C8 merges: the next independent U item from the open list above (for
+example the unbounded `history_count` decode with the storage owner S).

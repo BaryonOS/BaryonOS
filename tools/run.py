@@ -51,8 +51,14 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
               expected_kernel_sha256=None, expected_loader_sha256=None, memory_mib=256,
               rtc_base=None, tpm_socket=None, cpus=1, tcg_threads="single",
               acpi_tables=(), reboot_on_reset=False, xhci_case=None,
-              hid_input_probe=False, vga_rom=None, usb_hid_case=None, s3_case=None):
+              hid_input_probe=False, vga_rom=None, usb_hid_case=None, s3_case=None,
+              virtio_rng=False):
     # Defaults keep every existing profile byte-identical (-smp 1, single TCG).
+    if type(virtio_rng) is not bool:
+        raise ValueError("virtio-rng selection must be boolean")
+    # The other isolated fixtures already refuse a TPM socket.
+    if virtio_rng and (tpm_socket is None or m5_case is not None):
+        raise ValueError("virtio-rng is an opt-in of the TPM loader fixture only")
     if type(cpus) is not int or not 1 <= cpus <= 16:
         raise ValueError("cpus must be an explicit integer in [1,16]")
     if tcg_threads not in ("single", "multi"):
@@ -73,7 +79,8 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     if not hid_input_probe and vga_rom is not None:
         raise ValueError("VGA ROM belongs only to the HID input fixture")
     if usb_hid_case is not None and (
-            usb_hid_case not in ("reports", "readonly", "reattach", "reattach-mouse") or cpus != 1
+            usb_hid_case not in ("reports", "readonly", "reattach", "reattach-mouse", "refuse-hub",
+                                 "refuse-tablet", "refuse-hs-kbd", "refuse-storage") or cpus != 1
             or tcg_threads != "single" or memory_mib != 256 or m5_case is not None
             or rtc_base is not None or tpm_socket is not None or acpi_tables
             or reboot_on_reset or xhci_case is not None or hid_input_probe):
@@ -148,14 +155,24 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{run_rel}/esp",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
     args += rtc_arguments
+    if virtio_rng:
+        # TEST entropy for firmware EFI_RNG_PROTOCOL (U25); host urandom, rate-bounded.
+        args += ["-object", "rng-random,id=rng0,filename=/dev/urandom",
+                 "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"]
     if xhci_case is not None:
         if xhci_case != "no-dmar":
             args += ["-device", "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39"]
         args += ["-device", "qemu-xhci,id=h02-xhci,bus=pcie.0,addr=0x5,p2=1,p3=1"]
     if usb_hid_case is not None:
+        port1 = ["-device", "usb-kbd,id=hid-kbd,bus=xhci.0,port=1,usb_version=1"]
+        if usb_hid_case.startswith("refuse-"):
+            from run_usb_hid import refused_device
+            if usb_hid_case == "refuse-storage":
+                # Disposable, zeroed and private to this run; never a host disk.
+                (run_dir / "usb-storage.img").write_bytes(bytes(1 << 20))
+            port1 = refused_device(usb_hid_case, f"{run_rel}/usb-storage.img")
         args += ["-device", "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39",
-                 "-device", "qemu-xhci,id=xhci,bus=pcie.0,addr=0x5,p2=2,p3=0",
-                 "-device", "usb-kbd,id=hid-kbd,bus=xhci.0,port=1,usb_version=1",
+                 "-device", "qemu-xhci,id=xhci,bus=pcie.0,addr=0x5,p2=2,p3=0", *port1,
                  "-device", "usb-mouse,id=hid-mouse,bus=xhci.0,port=2,usb_version=1"]
     if hid_input_probe:
         args += ["-device", f"VGA,vgamem_mb=16,romfile={run_rel}/VGA.rom",
@@ -227,6 +244,8 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
     report = {"label": label, "started_utc": started, "duration_s": time.monotonic()-start, "timeout_s": timeout, "timed_out": timed_out, "raw_qemu_exit": rc, "expected_exit": expected_exit, "required_markers": list(required_markers), "forbidden_markers": list(forbidden_markers), "passed": is_success(rc, stdout, timed_out, required_markers=required_markers, expected_exit=expected_exit, forbidden_markers=forbidden_markers), "command": args, "qemu_version": version, "profile": f"development-package; {machine}/qemu64/TCG{'' if tcg_threads == 'single' else '-MT'}/{cpus}CPU/{memory_mib}MiB", "base_commit": git.stdout.strip() if git.returncode == 0 else None, "source_fingerprint_version": 3, "source_sha256": source_hash(), "artifact_sha256": artifacts, "firmware_source": [str(code), str(variables)], "run_directory": str(run_dir), "stdout": stdout, "stderr": stderr}
     report.update(expected_artifact_sha256=expected_artifacts, artifact_binding_passed=artifact_binding_passed)
+    if virtio_rng:
+        report["profile"] += "; virtio-rng-pci 00:06.0 for firmware EFI_RNG_PROTOCOL"
     if xhci_case is not None:
         report.update(xhci_case=xhci_case, dma_scope="isolated QEMU requester 00:05.0; no USB device attached")
     if hid_input_probe:

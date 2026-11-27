@@ -1,0 +1,181 @@
+#![no_std]
+#![no_main]
+#![deny(unsafe_op_in_unsafe_fn)]
+//! A03 ring-3 grant broker. Every request is authorized by the kernel-supplied
+//! sender PID; the claimed actor field and object numbers never authenticate.
+//!
+//! Startup words (kernel bootstrap): 32 epoch, 56 request receive handle,
+//! 64/72 reply send handles for the owner/helper, 176/184 owner/helper PID.
+//! FIXTURE standing in for the trusted permission dialog: 96 present flag,
+//! 104 PID, 112 object, 120 revision, 128 rights bits, 136 duration code.
+//! FIXTURE: a second grant decision of the same form at 360..400, applied
+//! after the owner's close. FIXTURE lifecycle notice (kernel-written on each
+//! client exit, standing in for a product exit-notification path): 448 count,
+//! 456.. exited PIDs. Only the kernel and the broker can write this page.
+//! Evidence (written before each reply): 40 status (1 done, 0x1xx error),
+//! 144 fixtures applied, 152 exit notices consumed, 160 owner grants after the
+//! forged retire, 192 read ok, 200 denied, 208 close ok, 216 claimed actor
+//! differed from sender, 224 bad requests, 232/240/248 owner grants before
+//! retirement, grants retired, owner grants after, 256.. decision log.
+
+#[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
+compile_error!("task-grant-broker is only for the Baryon OS x86_64-unknown-none target");
+
+mod support;
+
+use nieuw_os_sdk_runtime::{native, Handle, ReceiveEndpoint, SendEndpoint};
+use nieuw_os_task_grant_broker_example::{
+    decode_request, encode_reply, Broker, FixtureVolume, DATA_MAX, EPOCH, OP_CLOSE, OP_READ,
+    STATUS_BAD_REQUEST, STATUS_DENIED, STATUS_GO, STATUS_OK, STATUS_RESUME, TAG,
+};
+
+const REQUESTS: u64 = 12;
+const LOG: u64 = 256;
+const EXIT_COUNT: u64 = 448;
+const EXIT_PIDS: u64 = 456;
+
+fn bump(offset: u64) {
+    support::put(offset, support::word(offset) + 1);
+}
+
+fn endpoint(offset: u64) -> Result<Handle, ()> {
+    Handle::from_raw(support::word(offset)).map_err(|_| ())
+}
+
+/// FIXTURE standing in for the trusted dialog: a kernel-written decision of
+/// (present, PID, object, revision, rights, duration) words at `base`.
+fn apply_fixture(broker: &mut Broker<FixtureVolume>, base: u64) -> Result<(), ()> {
+    if support::word(base) != 1 {
+        return Ok(());
+    }
+    broker
+        .trusted_grant(
+            support::word(base + 8),
+            support::word(base + 16),
+            support::word(base + 24),
+            support::word(base + 32),
+            support::word(base + 40),
+        )
+        .map_err(|_| ())?;
+    bump(144);
+    Ok(())
+}
+
+/// The first kernel-written exit notice. The private startup page is the
+/// authentication: no client can write it and no IPC message reaches it.
+fn wait_exit_notice() -> Result<u64, ()> {
+    for _ in 0..100_000 {
+        support::tick();
+        if support::word(EXIT_COUNT) != 0 {
+            return Ok(support::word(EXIT_PIDS));
+        }
+        native::yield_now().map_err(|_| ())?;
+    }
+    Err(())
+}
+
+fn run() -> Result<(), ()> {
+    native::check_abi().map_err(|_| ())?;
+    let owner = support::word(176);
+    let helper = support::word(184);
+    if support::word(32) == 0 || owner == 0 || helper == 0 || owner == helper {
+        return Err(());
+    }
+    let requests = ReceiveEndpoint::from_handle(endpoint(56)?);
+    let owner_reply = SendEndpoint::from_handle(endpoint(64)?);
+    let helper_reply = SendEndpoint::from_handle(endpoint(72)?);
+
+    // FIXTURE: T2c-2 replaces this stand-in with the real volume domain 0.
+    let mut broker = Broker::new(FixtureVolume { epoch: EPOCH }, EPOCH);
+    apply_fixture(&mut broker, 96)?;
+
+    let mut served = 0u64;
+    while served < REQUESTS {
+        let message = support::receive(requests)?;
+        // Reply routing uses the kernel-supplied sender only.
+        let sender = message.sender();
+        let reply = if sender == owner {
+            owner_reply
+        } else if sender == helper {
+            helper_reply
+        } else {
+            let _ = native::close_received_caps(&message);
+            bump(224);
+            continue;
+        };
+        let request = if message.cap_count() == 0 && message.tag() == TAG {
+            decode_request(message.payload())
+        } else {
+            let _ = native::close_received_caps(&message);
+            None
+        };
+        let (status, data, length, op, object) = match request {
+            Some(request) => {
+                if request.claimed_actor != sender {
+                    bump(216);
+                }
+                let (status, data, length) = broker.handle(sender, request);
+                (status, data, length, request.op, request.object & 0xff)
+            }
+            None => (STATUS_BAD_REQUEST, [0; DATA_MAX], 0, 0, 0),
+        };
+        match (status, op) {
+            (STATUS_OK, OP_READ) => bump(192),
+            (STATUS_OK, OP_CLOSE) => bump(208),
+            (STATUS_DENIED, _) => bump(200),
+            (STATUS_BAD_REQUEST, _) => bump(224),
+            _ => {}
+        }
+        support::put(
+            LOG + served * 8,
+            (sender << 32) | (op << 24) | (object << 16) | status,
+        );
+        served += 1;
+        support::send(reply, TAG, &encode_reply(status, &data[..length]))?;
+        // Fixed script; the kernel checks the resulting log order exactly.
+        match served {
+            3 | 9 => support::send(helper_reply, TAG, &encode_reply(STATUS_GO, &[]))?,
+            5 => support::send(owner_reply, TAG, &encode_reply(STATUS_RESUME, &[]))?,
+            8 => apply_fixture(&mut broker, 360)?,
+            10 => {
+                // After the helper's forged RETIRE: the owner's grant must survive.
+                support::put(160, broker.live_grants(owner));
+                support::send(owner_reply, TAG, &encode_reply(STATUS_RESUME, &[]))?;
+            }
+            11 => {
+                let exited = wait_exit_notice()?;
+                if exited != owner {
+                    return Err(());
+                }
+                support::put(232, broker.live_grants(exited));
+                support::put(240, broker.retire_process(exited).map_err(|_| ())?);
+                support::put(248, broker.live_grants(exited));
+                support::put(152, 1);
+                support::send(helper_reply, TAG, &encode_reply(STATUS_GO, &[]))?;
+            }
+            _ => {}
+        }
+    }
+    support::put(40, 1);
+    Ok(())
+}
+
+#[no_mangle]
+#[link_section = ".text.entry"]
+pub extern "C" fn _start() -> ! {
+    if run().is_err() {
+        support::put(40, 0x101);
+    }
+    loop {
+        support::tick();
+        let _ = native::yield_now();
+    }
+}
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo<'_>) -> ! {
+    support::put(40, 0x1ff);
+    loop {
+        let _ = native::yield_now();
+    }
+}

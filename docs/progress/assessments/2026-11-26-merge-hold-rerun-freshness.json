@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "29a159cc23757e90caccf360a0bc218ca4d64217",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/ci-stale-green-recheck-20261126",
+  "task": "Independent CI audit (#494): bind merge-hold to gate rerun attempts by invalidating older passing or active evidence on workflow_run in_progress and re-evaluating it on completed; suppress main-push recheck workflow objects; catalogue revision 16, contract, regression tests and source-bound audit evidence",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI correctness and administrative workflow maintenance only; no product criterion, native acceptance evidence or human audit changes. The merge queue remains disabled."
+}

@@ -7,6 +7,7 @@ from collections import Counter
 import datetime as dt
 import html
 import json
+import math
 from pathlib import Path
 import re
 import sys
@@ -309,25 +310,52 @@ def rubric_block(data: dict) -> str:
 
 
 def svg(data: dict) -> str:
-    """Render the local progress graphic from the canonical rubric."""
+    """Render the local progress graphic from the canonical rubric (Orbitaal identity)."""
+
     current = total_score(data)
     date = html.escape(data["assessment"]["date"])
-    width = 828 * current / 100
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 226" role="img" aria-labelledby="title description">
+    fraction = current / 100
+    # Orbit gauge: the arc starts at the top and runs clockwise; a light blade marks its leading edge.
+    cx, cy, r = 136, 128, 86
+    circumference = 2 * math.pi * r
+    arc = circumference * fraction
+    angle = math.radians(-90 + 360 * fraction)
+    bx1, by1 = cx + (r - 11) * math.cos(angle), cy + (r - 11) * math.sin(angle)
+    bx2, by2 = cx + (r + 11) * math.cos(angle), cy + (r + 11) * math.sin(angle)
+    # Linear track with the design-system progress treatment: muted fill ending in a 3 px blade.
+    track_x, track_w = 286, 626
+    fill_w = track_w * fraction
+    blade_x = track_x + max(0.0, min(fill_w - 3, track_w - 3))
+    ticks = "".join(
+        f'<text x="{track_x + track_w * step / 4:.1f}" y="200">{step * 25}%</text>' for step in range(5)
+    )
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 256" role="img" aria-labelledby="title description">
   <title id="title">Baryon OS: {current}% of the fixed product roadmap</title>
   <desc id="description">{current} of 100 weighted acceptance points. Zero means no fully accepted criterion; one hundred means a complete independent OS on supported hardware. Assessed on {date}. Partial implementation is reported separately. Not a time or security score.</desc>
-  <rect width="960" height="226" rx="16" fill="#f4f1eb"/>
-  <text x="48" y="40" fill="#45504c" font-family="system-ui,sans-serif" font-size="14" font-weight="600" letter-spacing="2">BARYON OS · INDEPENDENT KERNEL · INDEPENDENT PRODUCT</text>
-  <text x="48" y="104" fill="#173e34" font-family="system-ui,sans-serif" font-size="56" font-weight="700">{current}%</text>
-  <text x="238" y="78" fill="#173e34" font-family="system-ui,sans-serif" font-size="21" font-weight="600">From independent kernel to daily-use OS</text>
-  <text x="238" y="105" fill="#45504c" font-family="system-ui,sans-serif" font-size="15">{current} / 100 acceptance points · reassessed {date}</text>
-  <rect x="66" y="136" width="828" height="19" rx="9.5" fill="#d5ddd5"/>
-  <rect x="66" y="136" width="{width:.2f}" height="19" rx="9.5" fill="#207459"/>
-  <g fill="#45504c" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">
-    <text x="66" y="177">0%</text><text x="273" y="177">25%</text><text x="480" y="177">50%</text><text x="687" y="177">75%</text><text x="894" y="177">100%</text>
-  </g>
-  <text x="48" y="207" fill="#45504c" font-family="system-ui,sans-serif" font-size="13">No criteria accepted</text>
-  <text x="912" y="207" fill="#45504c" font-family="system-ui,sans-serif" font-size="13" text-anchor="end">Complete independent OS</text>
+  <defs>
+    <radialGradient id="p-space" cx=".18" cy=".45" r=".9"><stop offset="0" stop-color="#121A2C"/><stop offset=".6" stop-color="#090B12"/><stop offset="1" stop-color="#05060A"/></radialGradient>
+    <linearGradient id="p-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient>
+    <filter id="p-glow" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="3"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <mask id="p-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask>
+  </defs>
+  <rect width="960" height="256" rx="16" fill="url(#p-space)"/>
+  <rect x=".5" y=".5" width="959" height="255" rx="15.5" fill="none" stroke="#232A47"/>
+  <circle cx="{cx}" cy="{cy}" r="{r + 22}" fill="none" stroke="#232A47" stroke-dasharray="2 7"/>
+  <circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="#1A1F38" stroke-width="12"/>
+  <circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="url(#p-silver)" stroke-width="12" stroke-dasharray="{arc:.2f} {circumference:.2f}" transform="rotate(-90 {cx} {cy})"/>
+  <line x1="{bx1:.2f}" y1="{by1:.2f}" x2="{bx2:.2f}" y2="{by2:.2f}" stroke="#E6EBF5" stroke-width="3" stroke-linecap="round" filter="url(#p-glow)"/>
+  <text x="{cx}" y="{cy + 14}" fill="#EEF1F8" font-family="Inter,system-ui,sans-serif" font-size="44" font-weight="600" text-anchor="middle" font-variant-numeric="tabular-nums">{current}%</text>
+  <text x="{cx}" y="{cy + 38}" fill="#A9B2CB" font-family="Inter,system-ui,sans-serif" font-size="12" text-anchor="middle" letter-spacing="1.5">ACCEPTED</text>
+  <g transform="translate(286 30) scale(.026)"><g fill="url(#p-silver)" mask="url(#p-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#FF4A3D"/><circle cx="800.85" cy="705.13" r="103.95" fill="#2585FF"/><circle cx="199.15" cy="779.01" r="103.95" fill="#33C46B"/></g>
+  <text x="324" y="50" fill="#A9B2CB" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="600" letter-spacing="2">BARYON OS · INDEPENDENT KERNEL · INDEPENDENT PRODUCT</text>
+  <text x="286" y="98" fill="#EEF1F8" font-family="Inter,system-ui,sans-serif" font-size="24" font-weight="600">From independent kernel to daily-use OS</text>
+  <text x="286" y="126" fill="#A9B2CB" font-family="Inter,system-ui,sans-serif" font-size="15">{current} / 100 acceptance points · reassessed {date}</text>
+  <rect x="{track_x}" y="160" width="{track_w}" height="10" rx="5" fill="#1A1F38"/>
+  <rect x="{track_x}" y="160" width="{fill_w:.2f}" height="10" rx="5" fill="#A9B2CB"/>
+  <rect x="{blade_x:.2f}" y="157" width="3" height="16" rx="1.5" fill="#E6EBF5" filter="url(#p-glow)"/>
+  <g fill="#9BA2BC" font-family="Inter,system-ui,sans-serif" font-size="12" text-anchor="middle" font-variant-numeric="tabular-nums">{ticks}</g>
+  <text x="286" y="234" fill="#9BA2BC" font-family="Inter,system-ui,sans-serif" font-size="13">No criteria accepted</text>
+  <text x="912" y="234" fill="#9BA2BC" font-family="Inter,system-ui,sans-serif" font-size="13" text-anchor="end">Complete independent OS</text>
 </svg>
 '''
 

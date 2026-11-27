@@ -80,10 +80,11 @@ are rejected.
   - `select` (phase 4): as `enforce`, and workflows with a `select` job skip
     executions the plan does not select.
   - `full`: the selection rollback. Every plan becomes full with fallback
-    `policy-rollback`, so every workflow runs everything, while merge-hold
-    still verifies every applicable gate.
+    `policy-rollback`, so every workflow that its own path filter starts runs
+    everything (see "Tooling metadata"), while merge-hold still verifies every
+    applicable gate.
 - `[policy.budgets]` (required): `pull_request_wait_minutes` and
-  `merge_group_wait_minutes`, integers from 0 to 45 (below the 50-minute
+  `merge_group_wait_minutes`, integers from 0 to 80 (below the 90-minute
   merge-hold timeout). merge-hold reads them from the trusted base.
 - `always_full`: globs whose change forces a full plan (all of `.github/**`,
   every `Cargo.lock`, `rust-toolchain.toml`, root `Cargo.toml`,
@@ -95,10 +96,21 @@ are rejected.
 - `inert`: metadata globs; equal to the workflows' metadata `paths-ignore`
   and referenced from triggers as `"@metadata"`.
 - `core_only`: globs read only by the always-running core gates.
-- `[policy.events]`: one entry per event. `merge_group`, `push` and
-  `schedule` must be `full`; `validate` rejects anything else, and the
-  selector also plans these three events as full whatever the catalogue
-  says. `workflow_dispatch` must be `full` or `manual`. `pull_request` may
+- `"@nonnative"` (#494, phase 5 C2): `inert` followed by `core_only`, in that
+  order, as one `paths_ignore` macro. `validate` accepts it only on the
+  `pull_request` trigger of a workflow whose `push` trigger exists, applies to
+  `main` and uses `"@metadata"`: that push run is the post-merge backstop.
+  When a workflow uses it, `validate` also rejects a `core_only` pattern that
+  names or contains an `always_full` path (each pattern matched against the
+  other as a literal path). A partial overlap such as `plugins/**` with
+  `**/Cargo.lock` is caught by a host-quality test instead: no tracked path may
+  match both lists.
+- `[policy.events]`: one entry per event. `push` and `schedule` must be
+  `full`; `validate` rejects anything else, and the selector also plans these
+  two events as full whatever the catalogue says. `merge_group` must be
+  `select` or `full` (ADR-CI-MERGE-GROUP-SELECT-20261126); the selector plans
+  it as full (`merge-group`) under any policy but `select`, `full` being the
+  rollback. `workflow_dispatch` must be `full` or `manual`. `pull_request` may
   be `select`, `full` or `manual`.
 
 `[input_sets]`: named glob lists. `native` covers the integrated QEMU suites.
@@ -119,10 +131,13 @@ rejects a workflow without it; the current convention is `owner = "ci-owner"`),
 (a list of `{ cite = "file:line", anchor = "<text on that line>" }`; `cite`
 may be a `file:first-last` range) and `trigger.<event>` for `pull_request`,
 `push` and `merge_group` with verbatim `types`, `branches`, `paths` or
-`paths_ignore`.
+`paths_ignore`. `paths_ignore` may name a macro instead: `"@metadata"` or, on
+`pull_request` only, `"@nonnative"`; the workflow YAML lists its literal
+expansion, which `coverage` compares in order.
 
 `[[workflow.job]]`: `id`, verbatim `name`, `class`, `activation` (`automatic`,
-`dispatch`, `schedule`, `label:<name>` or `push-branch:<branch>`), verbatim
+`dispatch`, `schedule`, `workflow-run`, `label:<name>` or
+`push-branch:<branch>`), verbatim
 `condition` (the job `if`; for a `core` or `rwa` job it must be decidable on
 every automatic event of its workflow, see "Job conditions"), `needs`,
 `timeout_minutes`, `max_parallel`,
@@ -223,8 +238,12 @@ manifests are read at every revision too, because a workspace root's
    listing), `--base-ref` or `main` for `push`.
 1. Event: `workflow_dispatch` with a base and a `manual` policy gives
    `mode = "manual"` (nothing selected).
-   `merge_group`, `push` and `schedule` are full by policy (`merge-group`,
-   `push-main`, `schedule`); the diff is still recorded. A push whose `before`
+   `push` and `schedule` are full by policy (`push-main`, `schedule`), and
+   `merge_group` is full (`merge-group`) unless its policy is `select`; the
+   diff is still recorded. A `select` `merge_group` plan narrows like a
+   `pull_request` plan from the diff between `--base-sha` and the queue
+   commit; merge-hold passes the trusted base T (see **merge_group** below),
+   so the diff covers every entry ahead. A push whose `before`
    is empty, all zeros or not an ancestor gives `push-unknown-before`.
    A `workflow_dispatch` or `schedule` run without a base has no trusted
    catalogue: the plan is full with `no-trusted-base`, `selector.trusted` is
@@ -258,6 +277,12 @@ manifests are read at every revision too, because a workspace root's
    `filter_eval_uncertain` is set for zero or more than 300 changed files;
    `blocked_by_filter` is then `null` (unknown) for every filtered workflow,
    never a definite `true` or `false`.
+   On a `merge_group` `select` plan, `pull_request_filter_blocked` lists the
+   workflows whose own recorded `pull_request` path filter certainly keeps
+   them from starting for this diff (ADR-CI-MERGE-GROUP-SELECT-20261126); it
+   is empty on every other plan and for zero or more than 300 changed files,
+   and a workflow without a `pull_request` filter, with a negated pattern or
+   with both `paths` and `paths-ignore` is never listed.
 
 ## Plan schema
 
@@ -276,7 +301,10 @@ ASCII escapes (control characters in paths never reach logs raw):
   `paths` (at most 1000);
 - `selected`: `id`, `workflow`, `job`, `variant`, `check_name`, `class`,
   `reasons` (at most three `[glob, path]` pairs), `reason_count`,
-  `blocked_by_filter` (`true`, `false` or `null` for unknown);
+  `blocked_by_filter` (`true`, `false` or `null` for unknown),
+  `filter_hidden_inputs` (the sorted non-metadata hit paths of a row whose own
+  filter blocks it; every changed non-metadata path when a fallback stopped the
+  plan before classification; `[]` otherwise);
 - `excluded`: `id`, `class`, `workflow`, `job`, `check_name`, `reason` (class
   name, `not-automatic`, `event-not-applicable`, `condition-false`,
   `no-input-match` or `manual-event`);
@@ -330,7 +358,8 @@ matrix, the unexpanded evidence name templates). It also checks:
 - that each job's `activation` agrees with the workflow's `on:` keys; a
   `schedule` or `dispatch` job in a workflow that also has `pull_request`,
   `push` or `merge_group` needs a condition such as
-  `github.event_name == 'schedule'` (`activation-mismatch`);
+  `github.event_name == 'schedule'`, and a `workflow-run` job needs a
+  `workflow_run` trigger (`activation-mismatch`);
 - obligation citations: the anchor must occur on the cited line or range;
   within five lines it reports `citation-moved` with the new line, otherwise
   `citation-anchor-missing` or `citation-missing`;
@@ -395,14 +424,39 @@ problem rather than a clone depth. The pinned Python, with the host
 dependencies (`host-dependencies: 'true'`, which provides PyYAML for
 `coverage`), comes from `./.github/actions/setup-python`. The steps are:
 
-1. `./.github/actions/select-ci` writes `build/ci-impact/plan.json`.
-2. A report-only step runs `coverage` from the checkout and writes
+1. `./.github/actions/select-ci` (step id `select`) writes
+   `build/ci-impact/plan.json`. Its step summary opens with the heading "Plan
+   from the enforced catalogue `.github/ci-impact.toml`", and its "Selector
+   source" line names the same catalogue.
+2. The same action, with `catalogue: .github/ci-impact.candidate.toml` and
+   `out: build/ci-impact/plan-candidate.json`, plans the base commit's copy of
+   the advisory candidate catalogue (#494, phase 5 C3). Its summary opens with
+   "Plan from the advisory candidate catalogue `<catalogue>`", and its "Selector
+   source" line states that nothing consumes the plan. The candidate starts
+   as a copy of the enforced catalogue and later carries candidate selection
+   data, which is activated only on counterexample-free shadow evidence.
+   Its header declares the increment state in one line, `# Candidate
+   increment: none`. While that line says `none`, a host-quality test requires
+   the candidate to be its comment header plus a verbatim copy of
+   `.github/ci-impact.toml`, so every catalogue change, revision bumps
+   included, is copied in the same pull request. An intentional increment
+   replaces `none` with its name and #494 reference.
+   No selection or enforcement step reads it: merge-hold, the select jobs and
+   the `validate` and `coverage` steps of host-quality ignore it. A host-quality
+   unit test does validate the checked-out copy, so an invalid candidate fails
+   host-quality, and as a `.github/**` path every edit to it makes the plan
+   full. Without a base copy the candidate plan is `full`
+   (`bootstrap-no-base-catalogue`).
+3. A report-only step runs `coverage` from the checkout and writes
    `build/ci-impact/coverage.json`, plus its status and at most 50 problems
-   in the step summary. It never asserts the status.
-3. `./.github/actions/preserve-evidence` preserves both files as
+   in the step summary. It never asserts the status. Its condition,
+   `${{ !cancelled() && steps.select.outcome == 'success' }}`, depends on the
+   enforced plan only. A failed candidate step still fails the job but does not
+   skip the report; a failed `select` step skips it as before.
+4. `./.github/actions/preserve-evidence` preserves the three files as
    `ci-impact-plan` (compact upload `ci-impact-plan-reports`, three-day
    retention, docs/CI-EVIDENCE.md), with `if: ${{ always() }}`,
-   `if-no-files-found: error` and only the plan as a required path.
+   `if-no-files-found: error` and only the enforced plan as a required path.
 
 **Inputs.**
 
@@ -420,8 +474,12 @@ would then give `merge-ref-mismatch`. `github.event.before` is passed only on
 head, not the base.
 
 **Action `.github/actions/select-ci`.** A composite action with inputs
-`event-name`, `tested-sha`, `head-sha` and `base-sha`, and outputs `plan-id`,
-`mode` and `plan-path` (`build/ci-impact/plan.json`).
+`event-name`, `tested-sha`, `head-sha`, `base-sha`, `base-ref`, and the
+optional `catalogue` and `out` (empty by default: the enforced
+`.github/ci-impact.toml` and `build/ci-impact/plan.json`), and outputs
+`plan-id`, `mode` and `plan-path`. A `catalogue` other than
+`.github/<name>.toml` or an `out` other than `build/ci-impact/<name>.json` is a
+usage error (exit 2).
 
 - Every `${{ }}` value reaches the shell only through `env:`; no `run:`
   block contains an expression.
@@ -490,7 +548,33 @@ jobs) are never trusted; merge-hold's own recomputation is the reference.
 itself whose `blocked_by_filter` is not `true`. In full mode that is every
 automatic `core` and `rwa` gate whose workflow applies. `blocked_by_filter =
 null` (filter result unknown, more than 300 changed files) keeps the gate
-expected: fail closed.
+expected: fail closed. When such a gate has no run, its Pending line states
+the cause and the remedy: the filter result is undefined above 300 changed
+files (a smaller pull request or a new head clears it), or the changed-file
+list is incomplete after a fallback, which the line names (a re-run with a
+usable diff or a new head clears it). A closing line states that waiting
+does not help (K10). A path filter may hide only metadata: a row with
+`blocked_by_filter = true` and a non-empty `filter_hidden_inputs` is a
+failure ("its path filter hides registered input(s)"), never "not
+applicable" (#494, phase 5 C1). The rule makes `"@nonnative"` self-protecting:
+a `core_only` path that is also a registered input of a workflow whose
+pull_request filter hides it (for example the token-guard script of
+`native-hid-input` and `native-xhci`, which therefore keep `"@metadata"`) is a
+hidden input and fails. A row whose hidden hits are all metadata
+(`policy.inert`) stays "Not a pass … (path filter)"; that is a documented
+limit, for example a compiled vendored `README.md`. Central (`always_full`)
+paths are never hits, so a full plan still does not expect a gate whose own
+filter excludes the central path. When a fallback stops the plan before
+classification (for example `cargo-patch-unresolved`), no hits exist: every
+changed non-metadata path then counts as a possibly hidden input, central and
+unregistered paths included, so a blocked row fails unless only metadata
+changed. A pull request that introduces such a Cargo construct therefore needs
+the gate to run or the construct to be modelled; a transient read failure
+clears on a re-run. The two allowlist workflows without a push
+backstop (`storage-resilience`, `volume-acceptance`) keep their `paths` list,
+because the 2026-11-08 verification reads it; central paths outside that list and
+new top-level paths therefore still do not start them. Closing that needs a push
+backstop or a filter change with its own verification (#494).
 
 **Results.** merge-hold lists the Actions runs for the pull request head
 (`/actions/runs?head_sha=<head>&event=pull_request`, every page, by id, with a
@@ -508,8 +592,45 @@ an older success never masks a newer running or failed run, and a later
 re-run of an older run counts. Its jobs come from
 `/actions/runs/<id>/jobs?filter=latest` (every page, `run_id` checked), which
 reflects the latest attempt after a re-run. The run is read again after its
-jobs; if its attempt or status changed in between, it counts as pending. A
-job's class comes only from rows of its own workflow. Per expected execution exactly one
+jobs. If its id, attempt, status, conclusion or head SHA changed in between,
+merge-hold reads the jobs once more and the run a third time, and judges that
+third record only if the second and third reads agree on those five fields,
+name the requested run id and the listing's head SHA, and show an attempt no
+older than the listing; otherwise the run counts as pending ("changed while it
+was read"). Within one attempt a completed run does not run again or change
+its conclusion, and a running run gains a conclusion only when it completes:
+a re-read of the listed attempt that says otherwise is pending too ("was
+listed … but re-read as … in the same attempt"), because judging it could
+skip the conclusion check below. The settle step then compares its two jobs
+reads, so within that step a failed job of the judged attempt is never lost:
+a job that the first read lists for the judged attempt, or without an integer
+`run_attempt`, must still be listed by the second read ("dropped job(s)"), and
+a job that was completed in the first read must keep its status, conclusion
+and name ("changed the completed record of job(s)"), so a gate that had
+already failed in the first read cannot be re-listed under another job's name;
+a job that completes
+between the two reads is judged on the second read. A job of a newer attempt
+than the settled record in the first read leaves the run pending as well
+("first listed jobs of a newer attempt"). Jobs of an older attempt in the
+first read are neither compared nor carried into the judged attempt: a newer
+attempt replaces an older attempt's failure, which is how a re-run clears it.
+The judged record and its jobs must also
+belong together: a listed job whose `run_attempt` is missing, not an integer
+(a JSON boolean or a float is none) or another attempt than the judged
+record's, or a judged record without an integer attempt, leaves the run
+pending as a whole ("listed jobs of another attempt"). After a partial "re-run failed jobs"
+GitHub listed the carried-over jobs with the new attempt's number in three
+sampled runs,
+[45644765624](https://github.com/BaryonOS/BaryonOS/actions/runs/45644765624),
+[45649628788](https://github.com/BaryonOS/BaryonOS/actions/runs/45649628788)
+and
+[45629883279](https://github.com/BaryonOS/BaryonOS/actions/runs/45629883279),
+read on 26 November 2026, so such a re-run passes. merge-hold requests REST API
+version `2022-11-28` (`X-GitHub-Api-Version`); the version used for those
+sample reads was not recorded. GitHub does not
+document that copied attempt number, and it is not guaranteed for every
+partial re-run: a carried-over job listed under its old attempt leaves the run
+pending ("listed jobs of another attempt"). A job's class comes only from rows of its own workflow. Per expected execution exactly one
 job with the rendered check name must have concluded `success`; a runtime
 matrix (`id = "*"`) needs at least one matching job, all successful. Then:
 
@@ -528,54 +649,330 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   runtime matrix may not be listed yet; a runtime-matrix row never passes
   while its run is running. A running run of an advisory-only workflow does
   not hold merge-hold.
-  Advisory, manual, operational and publication jobs never block, and
-  merge-hold's own earlier runs are ignored.
+- a completed run whose own conclusion is blocking (`failure`, `cancelled`,
+  `timed_out`, `startup_failure`, `action_required` or `stale`) while none of
+  its listed jobs, in any class, has such a conclusion: the run adds a
+  **pending** line ("concluded … but lists no such job; re-run merge-hold; if
+  it persists, re-run that workflow run"), because `filter=latest` can omit the
+  failed job. That line does not replace the gate checks below: an expected
+  gate that this non-empty listing does not contain still adds its **failed**
+  "missing from" line (fail-closed), and the decision is then failed, not
+  pending. An advisory job's failure explains the run, so that run still
+  passes. Under the same omission premise, such a failure can mask an omitted
+  failure of a job the plan does not expect; an expected gate stays covered,
+  because a missing expected job fails. A run for which GitHub lists no job at
+  all is **failed**, not pending ("concluded …, but GitHub listed no job for
+  it"): a `startup_failure`, or a run cancelled before any job started, ran no
+  gate, and re-running merge-hold cannot change that; an expected gate of that
+  run is also "missing" as before. The line names both remedies: re-run
+  merge-hold if the jobs listing lagged, or re-run that workflow run (or push a
+  new head) if the run ended before any job started. This applies to every counted workflow,
+  trigger-only and advisory-only ones included, because an unregistered or
+  omitted failed job of such a run would otherwise pass. The cost: two other
+  causes reach this failure. Should an empty listing only lag behind a run that
+  did have jobs, that run is failed too, and a merge-hold re-run then clears
+  it. A run cancelled by concurrency before any job started can also win the
+  newest-run tie (equal start, then higher id) over a run of the same workflow
+  that started in the same second; this was seen once in the last 300
+  `pull_request` runs of the Materiaal probe (`materiaal-probe.yml`), read on
+  26 November 2026: run
+  [45808037891](https://github.com/BaryonOS/BaryonOS/actions/runs/45808037891)
+  (cancelled, no jobs) and the skipped run 45808037846 both started at
+  2026-11-26T11:09:49Z on head `9d632e11` of #555. A merge-hold re-run does not clear that case; re-running
+  that workflow run, or the next pull request event, may clear it (inferred,
+  not verified for this run pair). The rule makes no
+  extra API read.
+  Advisory, manual, operational and publication jobs never block by their
+  own conclusion, and merge-hold's own earlier runs are ignored.
 
 The pull request also fails when its head does not contain the base tip: the
 gates then did not test the tree that would merge. GitHub's strict
 required-check rule forces such an update anyway.
 
-**Waiting.** With `pull_request_wait_minutes = 40` (the current value)
-merge-hold first makes a full decision. If gates are pending and a counted
-workflow still has an unfinished run on the head, or an expected gate workflow
-has no run yet, it waits: once a minute it reads only the head's run listing,
-and it makes the next full decision once no gated workflow run is open or the
-budget ends. Only runs of workflows with a selectable gate count as open, and a
-failed poll counts as open (the next full decision settles it). A failure seen
-by a full decision ends the wait at once; a failed job inside a run that is
-still going is seen only when that run finishes. Pending gates with nothing
-left running decide at once, because waiting cannot resolve them. An expected
-gate workflow that GitHub never starts keeps the wait going until the budget
-ends, so such a pull request fails after 40 minutes instead of at once. Gates still pending at
-the decision are listed; re-run the failed merge-hold job after they finish
-(`gh run rerun <run id> --failed`, or any label change). With 0, merge-hold
-decides once without waiting.
+**Waiting.** With `pull_request_wait_minutes = 0` (the current value, #494
+B9) merge-hold makes one full decision as soon as it starts and holds no runner
+while gates run. Gates still pending at that decision are listed and fail the
+check with "Pending"; a failed gate fails it as before. The visible effect on a
+pull request: merge-hold turns red with "Pending" shortly after a push, and
+turns green only when the re-check below re-runs it after the gates have
+finished. A merge-hold failure whose error lines are all "Pending:" is
+therefore expected and needs no action: do not push a fix, wait for the
+re-check, and re-run by hand only after every gate has finished. One exception:
+a Pending line that says "if it persists" (a blocking run conclusion that the
+listed jobs do not explain) may need a re-run of that workflow run when a
+merge-hold re-run does not clear it; merge-hold then adds a footer line that
+says so. Watchers and
+Auto-fix act only on "Failed:" lines. Before B9 the budget was 40 minutes: a merge-hold run then held a
+runner while it polled, which over the last 100 `pull_request` merge-hold runs
+(5.4 hours, measured on 25 November 2026) came to 1,567 runner-minutes, about
+4.8 runners held permanently; 672 of them belonged to runs cancelled by a new
+push. A positive budget still works that way: once a minute merge-hold reads
+only the head's run listing and makes the next full decision once no gated
+workflow run is open or the budget ends; a failed poll counts as open, and
+pending gates with nothing left running decide at once. `merge_group` keeps
+`merge_group_wait_minutes = 80` and still waits that way; that budget now
+also covers the plan and every awaited gate run of the queue commit (see
+**merge_group** below).
 
-The wait lets a merge-hold started by the push finish green right after the
-last gate, so auto-merge or a manual merge needs no separate re-run. This
-shrinks the window in which another merge to `main` makes the pull request
-`behind` under the strict up-to-date rule; it does not remove that window.
-Only a merge queue does, and enabling one is a project-owner decision. A
-waiting job holds one runner; a new push cancels it through the workflow's
-concurrency group. Native suites that take longer than the budget (about 28
-minutes on the critical path of #512) still need the re-run.
+**Re-check.** `.github/workflows/merge-hold-recheck.yml` runs on
+`workflow_run` (`in_progress` and `completed`) of every workflow that owns an
+automatic `core` or `rwa` job in the catalogue (a gate workflow) and of every
+other catalogue workflow with a `pull_request` trigger, merge-hold excluded
+(`tests/test_ci_workflows.py` pins the list against the catalogue), for
+`pull_request` runs whose head is in this repository. Activities on `main` are
+filtered before GitHub creates a re-check run; they cannot change a pull request
+hold. The other workflows
+(today the Copilot environment, the Materiaal probe, the security alert summary
+and the Windows QEMU bundle) are triggers only: merge-hold counts their runs
+too, and a run that did not settle while merge-hold read it (including a
+same-attempt re-read that contradicts the listing, a job that was dropped or
+whose completed record changed between two jobs reads, and jobs of a newer
+attempt than the settled record), a run whose listed jobs belong to another
+attempt or do not explain its blocking conclusion, or a running job that the
+base catalogue does not know, leaves merge-hold at "Pending"; a run of theirs that ended blocking without any job fails it. Its script,
+`tools/merge_hold_recheck.py`, handles the two activities separately.
+
+When an attempt greater than one of a gate workflow enters `in_progress`, the
+script immediately invalidates older passing merge-hold evidence. GitHub treats
+`success`, `neutral` and `skipped` as passing required checks, so all three are
+re-run as a whole. An older hold that is still active is cancelled, followed by
+exact run id and attempt, and force-cancelled if regular cancellation does not
+reach a terminal state within six reads. A terminal passing race is re-run; a
+terminal blocking conclusion remains red. A newer attempt covers the gate only
+when it started strictly after the gate boundary. GitHub does not emit
+`workflow_run.requested` for re-runs, so `in_progress` is the earliest
+applicable activity. Initial attempts create a skipped re-check job, and
+`in_progress` attempts of trigger-only workflows are a script no-op.
+
+On `completed`, the script checks the newest merge-hold run of each listed pull
+request whose current head is still the run's head:
+
+- after a watched gate attempt greater than one, a passing hold that started no
+  later than the gate completion is re-run as a whole immediately, even while
+  another gate is open. Equality is re-run because timestamp resolution does
+  not order the race;
+- a hold with a blocking conclusion (`failure`, `cancelled`, `timed_out`,
+  `action_required`, `startup_failure` or `stale`) that started strictly before
+  the triggering run completed is retried only when no gate run remains open.
+  A hold at or after that boundary already covers the completion.
+
+The triggering attempt counts as finished even if the listing lags; a new
+attempt of the same run, which keeps the run id, still counts as open. Each open
+gate normally starts another re-check when it completes (see Limits for the
+exceptions). Open runs of trigger-only workflows do not hold merge-hold, so the
+re-check does not wait for them; one that ends later starts its own re-check.
+
+A merge-hold run that is still queued or running on a `completed` activity but
+whose latest attempt started before the triggering run finished may have read
+the gate state just before that run ended. The re-check then reads the run listing again, up to
+eight times 15 seconds apart (two minutes for all listed pull requests
+together, far below its 5-minute timeout), and applies the rules above to the
+newest merge-hold run in the fresh listing.
+
+Every selected hold and exact-run response must retain the merge-hold workflow
+path, same-repository pull request number, exact head and run id, a positive
+attempt, known status and immutable start time. The pull request head is read
+again immediately before cancel, force-cancel and every re-run POST. A regular
+cancel is polled six times and, if still active, force-cancel is polled twelve
+times, both at five-second intervals. A 409 from either endpoint is a race to
+resolve, never evidence. The helper returns normally only after a newer attempt
+strictly after the boundary, a confirmed blocking conclusion, or a stale
+passing conclusion for which a fresh re-run was requested. Exhausting both
+confirmation budgets is fatal.
+
+The re-check never sets a pull request check: the re-run merge-hold decides
+again on the same head and push-time merge commit, with live run, job, label
+and comment data, and fails closed as before, so it can only repeat a decision,
+never pass one. Every other case is a no-op. An unexpected API answer fails the
+re-check run and is never accepted as safe; an already requested cancellation
+can still leave the hold red. The re-check run itself appears on the
+default-branch head commit, so a failed one shows there. A 409,
+or a 403 that says the workflow already runs, is accepted as a duplicate POST
+only after up to six exact-run reads prove a higher attempt whose start is
+strictly after the applicable gate boundary. A higher attempt at or before the
+boundary is followed to completion and then re-run once; an unknown status,
+missing timestamp, inconclusive attempt or second unproven conflict remains
+fatal. The worst bounded cancel, force-cancel and re-run confirmation path
+sleeps for 130 seconds, below the job timeout. Its job has `actions: write`
+(needed for cancellation and the re-run), `contents: read` and
+`pull-requests: read`, a 5-minute timeout and one running job per concurrency
+key. Initial activities coalesce by head and activity. Each lifecycle activity
+of an attempt greater than one has a key that also includes the triggering run
+id and attempt, so a queued completion cannot replace its queued invalidation.
+On `workflow_run` GitHub always runs the default branch's copy of the workflow,
+and its checkout is the default branch, never pull request code. Re-check jobs
+for `push`, `merge_group`, `schedule`, `workflow_dispatch` and fork runs are
+skipped by the job condition and take no runner. The condition also skips
+`in_progress` for initial attempts.
+
+Limits. The re-check takes effect only once its workflow is on the default
+branch. If merge-hold is still open two minutes after the last watched run
+finished and its report predates that run, the re-check leaves it alone, and the
+check stays at "Pending". The same holds after a failed or timed-out re-check
+run, and for a pull request that renames a watched workflow, whose renamed runs
+start no re-check until the rename merges. The fallback is
+unchanged: re-run the failed merge-hold job once the gates have finished
+(`gh run rerun <run id> --failed`, or any label change). A hold that started
+after the last watched gate finished and is still Pending on an unsettled run
+(including a dropped or changed job between two jobs reads, or jobs of a newer
+attempt than the settled record), on jobs of another attempt or on a
+conclusion its jobs do not explain is never
+re-run by the re-check either, so it needs `gh run rerun <id> --failed`.
+An expected gate workflow that GitHub never starts keeps merge-hold at "Pending"; re-runs
+cannot resolve that, so push a new head or investigate the missing run. Only a
+push between the head read immediately before either re-run request and that
+request can still make the re-check re-run the old head's merge-hold, which
+cancels the new head's first merge-hold; the next gate completion re-runs it.
+If GitHub accepts regular and force cancellation but never reports an exact
+terminal state within the bounded polls, the re-check fails visibly and no
+state is accepted as safe; operator investigation is required. Scheduling the
+`in_progress` re-check and its API request is not atomic with the gate re-run, so a short
+stale-green interval remains before the invalidating request. The completed
+activity is a fallback if the start activity is delayed or fails before its
+request. Eliminating
+that interval requires the merge queue or making all applicable gates directly
+required; this workflow cannot make that claim. Like
+the earlier wait, the re-check lets merge-hold turn green shortly after the
+last gate without a manual re-run, so auto-merge can follow. It does not remove
+the window in which another merge to `main` makes the pull request `behind`
+under the strict up-to-date rule. Only a merge queue does, and enabling one is
+a project-owner decision. Expected cost per head: a merge-hold run of about one
+minute, one short re-check job per finished watched workflow run, one skipped
+administrative re-check for each initial `in_progress` activity, a short
+invalidation job for each watched gate re-run, a wait of up to two minutes only
+when merge-hold is still open as the last watched run finishes, and usually one
+merge-hold re-run. While
+merge-hold is red, each watched run that ends after the last gate re-runs it
+once more; the Materiaal probe also runs, and so starts a re-check, each time
+a label is added.
 
 API use: a full decision costs about one pull request read, one or two
 run-list pages, and one job list and one re-read per counted workflow run
-(about 30 today), and every wait poll one run-list page. A 40-minute wait thus
-costs about 100 requests instead of about 1,200 with a full decision per
-minute. A successful run without an expected gate is listed too, because a job
-with job-level `continue-on-error` can fail inside a run that concludes
-success. This stays well inside the 1,000 requests per hour per repository of
-`GITHUB_TOKEN` for several open pull requests at once.
+(about 30 today); a run that changed between those reads costs two job lists
+and two run reads. A re-check costs one pull request read and one or two
+run-list pages, one or two more pages per wait poll (at most eight), and one
+more pull request read per re-run request. It normally makes one request; a
+conflict adds at most six exact-run reads per request and at most one replacement
+request, with another pull request head read immediately before that POST,
+before it is accepted or fails. Active-hold invalidation normally adds one
+cancel POST and one exact-run read. Its bounded fallback adds up to eighteen
+exact-run reads (six regular and twelve force-cancel polls), with sixteen
+five-second sleeps, one more head read and one force-cancel POST; a passing
+completion can then add the re-run sequence above. A
+successful run without an expected
+gate is listed too, because a job with job-level `continue-on-error` can fail
+inside a run that concludes success. This stays well inside the 1,000 requests
+per hour per repository of `GITHUB_TOKEN` for several open pull requests at
+once.
 
-**merge_group.** The merge queue is not active on `main`, and only `ci.yml`,
-`codeql.yml` and `merge-hold.yml` have a `merge_group` trigger; the selected
-workflows do not run on a queue commit. So each queue member needs, besides
-its hold decision, a successful newest `pull_request` merge-hold run on its own
-head and a queue entry whose tree equals that head tree. This makes a queue
-with more than one pull request ahead fail closed. Activating the queue, with
-`merge_group` triggers on the selected workflows, is outside #494.
+**merge_group.** The merge queue is not active on `main`; enabling it needs the
+project owner's explicit confirmation at that moment (D1). Every workflow with
+an automatic `core` or `rwa` job has an unfiltered `merge_group` trigger (D1
+step 1), so every job also runs on a queue commit. Since D1 step 2 merge-hold
+judges the applicable gates on the queue commit itself, and since
+ADR-CI-MERGE-GROUP-SELECT-20261126 only those that the plan from the trusted
+base selects:
+
+- The trusted base T is the merge base of the queue commit and `main`, which
+  merge-hold.yml fetches from origin in the same job. `merge_group.base_sha`
+  can be the unlanded queue commit of the entry ahead, so it is never a source
+  of tools or catalogue. merge-hold.yml loads `tools/merge_hold.py` and
+  `tools/ci_impact.py` from T only after checking that T is a well-formed
+  commit on that `main`, an ancestor of (or equal to) `merge_group.base_sha`,
+  and that this base is an ancestor of the queue commit; otherwise the job
+  fails. `merge_hold.py` repeats these checks against the same ref and
+  requires `BASE_SHA` (the commit the two base files came from) to equal T and
+  `TESTED_SHA` (the checkout) `merge_group.head_sha`.
+- The plan is recomputed from T with `--event=merge_group` and must describe
+  that event, T as base and merge base, the queue commit and `main` before any
+  wait; any doubt fails at once. Under the catalogue's `merge_group =
+  "select"` it narrows from the diff T..queue commit, which covers every entry
+  ahead, with the `pull_request` fail-closed rules (`always_full`,
+  `unknown-path`); a diff that cannot be determined from T makes it full. The
+  wait budget is read from T's catalogue. The `select-ci` input `base-sha`
+  above stays `merge_group.base_sha`: the `select` jobs never narrow on
+  `merge_group`, so only this plan decides.
+- Under a `select` plan a workflow whose `core` or `rwa` gates are excluded
+  as `no-input-match`, none of them selected, and that the plan lists in
+  `pull_request_filter_blocked` (its own `pull_request` path filter certainly
+  keeps it from starting for the diff from T; any doubt keeps it off the list)
+  is neither awaited nor judged on the queue commit, and the report names it; a selected gate that is skipped
+  or missing still fails. A workflow with a selected gate, a workflow without
+  any `core` or `rwa` gate, and every workflow under a `full` plan are judged
+  as below.
+- A run counts only with event `merge_group`, head SHA the queue commit, head
+  branch the queue ref without `refs/heads/`, and repository and head
+  repository this repository; its `pull_requests` list is not used. GitHub's
+  `head_branch` and `head_repository` of a `merge_group` run have not been
+  observed on a live run yet. If GitHub fills them differently, no run counts
+  and the group fails closed at the deadline, so the first queue trial must
+  capture one real run payload.
+- After `host-quality` and `qemu-smoke` have completed, every poll first reads
+  the queue: two consecutive well-formed reads, one poll apart, that lack the
+  queue commit (the entry was removed or rebuilt) end the wait with a failure,
+  also while gate runs are open. Under an enforcing plan the poll then reads the
+  queue commit's run listing and waits while a gate run is open or an expected
+  gate has no run. A gate that has already failed ends the wait early: a newest
+  gate run that completed without success, or a completed check run with a
+  blocking conclusion (for an expected gate, any conclusion but success), makes
+  one full gate report, and a Failed line in it fails the group with exactly
+  that report. A trigger that the report does not count (an advisory job, a
+  superseded run) is not judged again, so these reports stay rare.
+- After the wait, which also covers the entries ahead
+  (ADR-MERGE-HOLD-20261113), one full gate report on the queue commit decides
+  with the `pull_request` rules above, the settle step and the job attempt
+  binding included; any Pending or Failed line fails the group and the queue
+  removes it.
+- Each member still needs its hold decision, a successful newest
+  `pull_request` merge-hold run on its own head, and, for a released hold, a
+  queue entry whose tree equals the released head tree. An unheld member may
+  land another tree only when the queue-commit report was enforced and clean (no
+  Pending or Failed line); under `shadow`, or with any such line, its queue
+  entry tree must equal its head tree.
+- That report judges only this group's own entry tree, the queue commit. A
+  member ahead lands the tree of its own entry E. When that tree differs from
+  its head's, the member also needs the newest merge-hold run on E to have
+  concluded `success`: event `merge_group`, head SHA E, a queue branch of that
+  pull request, and this repository as repository and head repository. That
+  run judged the gates on E. It is read as strictly as the queue-commit runs:
+  its jobs must all belong to its attempt and have succeeded, a re-read by id
+  must show the same id, attempt and status, still bound and successful, and
+  E's `merge-hold` check run, read again at the decision, must have concluded
+  `success`. A missing, running or failed run, or any disagreement between
+  these reads (a stale listing, a run that moved on, jobs of another attempt,
+  a failed check run), fails the member at the decision; the wait before it
+  already waits for E's merge-hold check run when the walk reaches E. The
+  ruleset's "Only merge non-failing pull
+  requests" setting, which the merge-queue rule must enable, keeps E from
+  merging without that success.
+- Under `shadow` the group neither waits for gate runs nor blocks on them, and
+  no gate ends its wait early.
+
+The 80-minute budget is counted from before the plan. The trusted-base
+checks, the plan and the catalogue read, the group's own checks, every awaited
+gate run of the queue commit and the chain of entries ahead share it, less a 3-minute reserve kept back for the
+decision after the wait; the deadline fails closed. Up to the wait's last poll
+the script, whose clock starts before the plan, therefore takes at most 78
+minutes; the workflow steps before the script are outside that clock. The last
+poll, the decision and those steps must fit the remaining 12 minutes of the
+90-minute job timeout. Counted one page each, the decision makes 2 + 2N + 4M
+requests for N counted runs and M members when no member is lifted, at most
+4N + 8M - 1; a lifted member ahead adds four reads of its entry's merge-hold.
+In an ordinary queue every member ahead but the first is lifted, which gives
+2 + 2N + 8M - 8 for M >= 2. A poll makes three requests
+plus one per entry walked, and the last poll may itself make a full gate report
+of 1 + 2N to 1 + 4N requests when a new failure trigger appears that the report
+does not count, such as an advisory check-run failure; the decision then makes
+its own. For N = 24 and M = 5 the last poll (one entry walked) and the decision
+make about 86 requests in an ordinary queue and about 240 at worst, so, less
+the steps before the script, under about 8 s and
+3 s per request on average. Each blocking socket read times out after 20 s, so
+a single request has no hard ceiling. Those 12 minutes are an assumption, not a
+guarantee; the job timeout stays the fail-closed backstop. A
+queue trial with at least two entries (D1 step 3) is still required before the
+queue may be enabled. merge-hold reads every page of a queue commit's check
+runs, up to `CHECK_RUN_MAX_PAGES` (five pages of 100); a full fifth page fails
+closed.
 
 **Bootstrap.** The pull request that introduces this enforcement is judged by
 the base copy that predates it, so its own merge-hold checks only the
@@ -599,12 +996,45 @@ owner never uses that bypass.
 ## Selection (phase 4)
 
 **Scope.** Three workflows narrow, on `pull_request` only:
-`component-leaves.yml` per variant (15 registered leaves),
+`component-leaves.yml` per variant (16 registered leaves),
 `app-management-quality.yml` and `net-tls-quality.yml` per job. The integrated
-native suites, CodeQL, `ci.yml` and every other workflow run as before:
-their input relations are not provable more narrowly (the `native` input set
-covers almost all code). `push`, `merge_group`, `schedule` and
-`workflow_dispatch` always run everything.
+native suites, CodeQL, `ci.yml` and every other workflow are not narrowed by
+job: their input relations are not provable more narrowly (the `native` input
+set covers almost all code); only their path filters decide whether they start
+(see "Tooling metadata" below). `push`, `merge_group`, `schedule` and
+`workflow_dispatch` always run everything; on `merge_group` merge-hold requires
+only the gates that the plan from the trusted base selects (**merge_group**
+above, ADR-CI-MERGE-GROUP-SELECT-20261126).
+
+**Tooling metadata (phase 5 C2).** On `pull_request`, 13 native workflows with
+a `push` backstop on `main` (`entropy-keys`, `nas-core`,
+`native-display-input`, `native-foundation`, `native-hw-inventory`,
+`native-power`, `native-rtc`, `native-smp`, `native-system`,
+`native-window-session`, `net-broker-quality`, `process-management`,
+`signed-updates`) ignore `"@nonnative"`: a change confined to documentation,
+project metadata and `core_only` tooling metadata (`.agents/**`, `.claude/**`,
+`plugins/**`, `LICENSE` and the rest of the list) starts none of them, and
+merge-hold does not wait for them. Without a usable diff or classification,
+merge-hold instead keeps those gates Pending or fails them as possibly hidden
+inputs ("Expected set", K10). Their `push` trigger stays `"@metadata"`, so
+the merged commit runs them on `main`; a failure there reopens the rule, and a
+run cancelled by a newer push to `main` is no evidence either way. `validate`
+keeps that backstop: it rejects `"@nonnative"` on a workflow whose push trigger
+on `main` is missing or not `"@metadata"`, and a `core` or `rwa` job that runs
+on `pull_request` but not on `push`, by its own condition or a `needs`
+prerequisite.
+`native-hid-input` and `native-xhci` (which execute `plugins/**` through
+`tools/tokenguard.py`), the PR-only `resource-pressure`, `storage-resilience`
+and `volume-acceptance`, and the advisory `windows-qemu-test-version` keep
+their filters. A host-quality test follows an over-approximate execution
+closure from every pull-request job of the native workflows and fails when a
+reached file is, or names, a `core_only` path that the catalogue does not
+register as that job's input. Activation check before the change: of the last
+120 merged commits, 4 changed only such paths; on their pull request heads 12
+of the 13 workflows ran (`native-hw-inventory` did not exist yet), with 47
+successes, 1 run cancelled by hand after the merge and no failure. **Rollback:**
+set the 13 pull_request filters back to `"@metadata"` in the catalogue and the
+YAML; `policy.mode = "full"` does not restart a workflow that GitHub filtered.
 
 **Mechanism.** Each of the three workflows has a `select` job (class `core`,
 check name `<workflow> select`, no `needs`, no `if`, `contents: read`). It
@@ -697,6 +1127,21 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
   `.github/ci-impact.toml` already was (`.github/**`).
 - **K9, activation OR-guard heuristic: unchanged, report only.** Activation
   correctness is not inferred from it; merge-hold judges actual results.
+- **K10, `@nonnative` gates that never start: open, fail-closed.** On a
+  tooling-metadata-only pull request (phase 5 C2) GitHub starts none of the 13
+  `@nonnative` workflows, but the plan can still expect them: after a pre-diff
+  fallback that merge-hold accepts (`ambiguous-merge-base`, `shallow-history`,
+  `missing-history`, `diff-failed`, `unknown-diff-status`, `diff-parse`), after
+  `diff-too-large` (more than 5,000 files), or under a rollback or full
+  `pull_request` mode with more than 300 changed files. merge-hold then reports
+  them Pending until a re-run with a usable diff or a new head. A fallback before classification (for example
+  `cargo-manifest-missing`, or a Cargo construct on the base) instead fails
+  those rows as possibly hidden inputs, with a message that names the
+  `core_only` paths. The causes are broken history, an oversized diff, a
+  transient read failure, a broken base catalogue, an active rollback or an
+  unmodelled Cargo construct on the base; only the last persists, because once
+  merged onto `main` it fails the 13 rows on every later tooling-only pull
+  request until the construct is modelled.
 
 ## Phases
 
@@ -708,10 +1153,14 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
 - **3 (enforce, merged):** merge-hold recomputes the plan from base-side code
   and blocks until every applicable gate passed on the pull request head;
   host-quality asserts catalogue consistency; limits K4, K6, K7 and K8 closed.
+- **5 (fail-closed native selection):** C1, a path filter may hide only
+  metadata (see "Expected set"); C2, `"@nonnative"` on the pull_request
+  trigger of 13 backstopped native workflows (see "Selection"); C3, the
+  advisory candidate shadow plan (see "Shadow-mode wiring").
 - **4 (current, select):** component leaves per variant, app-management and
   net-tls per job; see "Selection".
 - **Rollback:** setting `policy.mode = "full"` in the catalogue on the base
-  branch makes every plan full immediately: every workflow runs everything
-  while merge-hold keeps verifying every applicable gate, and host-quality,
+  branch makes every plan full immediately: every workflow that its own
+  path filter starts runs everything while merge-hold keeps verifying every applicable gate, and host-quality,
   qemu-smoke, CodeQL and the acceptance hold are unchanged. `shadow` (above)
   is the separate emergency switch for the enforcement itself.

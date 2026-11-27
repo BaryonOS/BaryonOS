@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "945847d83ec0fd060292bf675d820c80f4c18e78",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/h05-t5c-verified-20261126",
+  "task": "H05-T5c follow-up: ledger verified and H handoff refresh",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Bookkeeping only: ledger H05-T5c (slice 1) moves to verified after #556 squash-merged as 945847d8 with all applicable hosted gates green on 0e9e1b91, including native-power and power-system-gate. No code, test or evidence change. H05 stays open: no key-erasure SUSPEND gate, remount or ring-3 block re-grant (slices 2-4, H05-T5d to H05-T5f), no physical S3, BARS=KEPT unobserved, no IOMMU and no human acceptance."
+}

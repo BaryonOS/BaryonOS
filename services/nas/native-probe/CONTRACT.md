@@ -90,13 +90,15 @@ zero. The existing volume service uses its **own unmodified** layout.
 | 80 | guest coordination RECV | guest reply SEND | admin coordination RECV |
 | 88 | 0 | volume SEND | 0 |
 | 96 | 0 | volume reply RECV | 0 |
-| 112 | normal 0, cold 1 | normal 0, cold 1 | normal 0, cold 1 |
+| 112 | normal 0, cold 1, interrupt 2, repair 3, offline 4, resume 5 | same | same |
+| 208 | 0 | repair: 1 after `finish_cleanup` | 0 |
 | 120 | 0 | 1 | 3 |
 | 160 | NAS PID | admin PID | NAS PID |
 | 168 | guest PID | guest PID | admin PID |
 | 176 | own PID | own PID | own PID |
 | 184 | 0 | volume PID | 0 |
 | 200 | guest-exit observation | 0 | 0 |
+| 216 | 0 | 0 | offline: NAS-exit observation |
 
 In the normal fixture, only kernel `observe_exit(GUEST)` sets admin word 200
 from 0 to 1 and emits `NAS:GUEST_OFFLINE:PASS`. The administrator never writes
@@ -121,7 +123,7 @@ NAS or volume authority.
 |---|---|
 | 0..4 | `NASP` |
 | 4..6 | version 1 |
-| 6..8 | opcode 1..14; only a reply sets bit `0x8000` |
+| 6..8 | opcode 1..15; only a reply sets bit `0x8000` |
 | 8..16 | non-zero request correlation, not a capability |
 | 16..20 | status: 0 or fixed negative error code; requests always 0 |
 | 20..22 | payload length 0..104 |
@@ -134,13 +136,31 @@ NAS or volume authority.
 | 152..256 | payload; all bytes after the length zero |
 
 Opcodes: 1 Invite, 2 Accept, 3 Open, 4 Stage, 5 Commit, 6 Read, 7 Usage,
-8 SetQuota, 9 Revoke, 10 Evict, 11 Shutdown, 12 UsageAt, 13 Close, 14 Cancel.
+8 SetQuota, 9 Revoke, 10 Evict, 11 Shutdown, 12 UsageAt, 13 Close, 14 Cancel,
+15 Head.
 The parser also checks **unused fields per opcode**, token form,
 reply form and empty error replies. Session decoding grants no rights:
 the core re-checks caller, live handle, namespace and epoch.
 Cancel requires only the live session and upload fields; its namespace, revision,
 value and payload are zero. It delegates to the existing core cancellation with
 the same authenticated caller and returns an empty success or canonical error.
+Head requires only the live session field and an object index in the value
+field; namespace, upload, revision and payload are zero. It delegates to the
+existing read-only `Service::head` with the same authenticated caller and
+returns the latest committed revision in the revision field, zero for an object
+that was never published. Staged uploads stay invisible, a session used by
+another caller is `Stale`, and an object index outside the namespace is
+`Invalid`. Head writes nothing and grants no rights; reconciliation still
+re-reads through the existing expected-revision checks.
+
+`NaspRemote` runs the existing `native-client` queue over these frames through
+its `Remote` trait. It sends no principal; the caller it holds only routes the
+client's own tickets. Each exchange gets a fresh correlation, and a reply must
+match the request's opcode and correlation. A request that was not delivered
+keeps its error; one that was delivered without a matching valid reply is
+`Unknown`, so a lost Commit reply leaves the edit `NeedsReconcile` and is never
+replayed. Ciphertext above the 104-byte probe payload fails `Invalid` before
+anything is sent.
 No principal, key, mutable client buffer or capability in the wire.
 
 The 104-byte payload and one selected guest are visible probe limits,
@@ -192,6 +212,65 @@ two bounded test inputs below; they are not included in the NAS wire,
 snapshot, ordinary logs or reports. Idempotent eviction/shutdown
 write nothing.
 No content key is delivered to the NAS or administrator.
+
+## Interrupted purge and repair (P04-T1, LP-25)
+
+Interrupt (stage 2, writable fresh image, no replay attachment): the
+administrator offers 128 bytes; the guest accepts, opens, commits 96 synthetic
+bytes and exits. With usage Active 96/0 observed, the administrator sends
+Evict. The NAS service performs revoke (WRITE+PURGE) and evict's WRITE, then
+exits with code 3 and word 40 = 2 before evict's history PURGE reaches the
+volume service. The kernel requires that exit, emits
+`NAS:PURGE_INTERRUPTED:PASS`, and reaps the still-waiting administrator
+(word 40 = 2). Core generation 6; volume generation 10; the authority object
+keeps exactly one history version: the Revoked snapshot holding the 96-byte
+ciphertext copy. Expected successes/errors: admin 2/0, NAS 6/2, guest 4/2.
+
+Repair (stage 3, the exact passing interrupt image, writable): the first
+`Service::recover` must return `ReopenRequired` without writing. The NAS then
+calls `VolumeStorage::finish_cleanup` (validates the current snapshot, then
+purges history), sets word 208 = 1 and recovers. Admin and guest observe the
+same Evicted/denied state as cold; the guest replays no tokens. Volume
+generation 11 with no history. Expected successes/errors: admin 4/0, NAS 4/3,
+guest 0/3. Both disk states are checked by `disk_oracle.py --stage`.
+
+Evidence limit: a controlled NAS process exit between two volume RPCs while
+the volume service stays alive. Not covered: power loss, torn or reordered
+writes, disk errors, the revoke-PURGE window, remote sessions, or physical
+erasure of freed sectors (the oracle checks logical volume state only).
+
+## Offline edit across a NAS cold restart (P02-T3)
+
+The guest runs `native-client` through `NaspRemote` in both stages. A send
+that queues nothing is `NotSent(Io)`; once a request is queued, a failed or
+mismatched reply is `Sent` (`Unknown`).
+
+Offline (stage 4, writable fresh image, no replay attachment): the
+administrator offers 128 bytes; the guest accepts, then `prepare_via` and
+`commit_via` publish revision 1 (96 synthetic bytes). After usage Active 96
+the administrator sends Shutdown and the NAS exits normally. Only kernel
+`observe_exit(NAS)`, after `process_died` revoked the NAS endpoints, sets guest
+word 216 to 1 and emits `NAS:NAS_OFFLINE:PASS`. The guest then queues a 32-byte
+edit on base 1; `prepare_via` cannot deliver Open, returns `Io` and the edit
+stays `NeedsReconcile`. Core generation 4; volume generation 7. Expected
+successes/errors: admin 3/0, NAS 8/2, guest 5/2.
+
+Resume (stage 5, the exact passing offline image, writable): the NAS runs
+plain `Service::recover`. The administrator finds the namespace through
+`UsageAt(0)` (Active, 96 bytes, epoch 1) and hands it to the guest. A 40-byte
+edit on base 0 reconciles through Head to `Conflict` and writes nothing. The
+offline edit is then re-created from fixed probe constants (this probe has no
+client persistence; that is a separate OWNER question), reconciles through
+Head to `Ready`, and commits revision 2. Usage ends Active at 32 bytes: the
+copy-on-write reservation counts the old 96 bytes, so 96 + 32 fills the
+128-byte quota exactly. Core generation 5; volume generation 9; no history.
+Expected successes/errors: admin 3/0, NAS 15/2, guest 12/2. Both disk states
+are checked by `disk_oracle.check_resume_image`.
+
+Evidence limit: local QEMU IPC and a controlled NAS exit followed by a second
+boot on the same disk. Not covered: real transport, remote identity, power
+loss, a NAS restart while the client device keeps running, or persistence of
+the client's queue across the guest's own restart.
 
 ## Exact boot-1 token replay — leaf requirement, root binding still open
 

@@ -12,7 +12,8 @@ import unittest.mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (DEVICE_ORDER, KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
-                        S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext)
+                        S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext,
+                        BLK_CASES, BOOT, evaluate_lock_red)
 import volume_disk
 
 
@@ -361,7 +362,7 @@ class SystemHarnessTests(unittest.TestCase):
 
 # Printed by the kernel between BROKERS:PASS and CLEANUP:PASS, and after it.
 TEARDOWN = ("LIVE_PROCESSES_AFTER", "FRAMES_RECOVERED")
-DEVICE = tuple(f"SUSPEND_{key}" for key in DEVICE_ORDER)
+DEVICE = tuple(f"SUSPEND_{key}" for key in (*DEVICE_ORDER, "DEVICE_IO_ACCOUNTED_VOLUME"))
 AT_WAKE = dict(SUSPEND_DEVICE_IO_AT_WAKE_KEYRING=9, SUSPEND_DEVICE_IO_AT_WAKE_VOLUME=700)
 
 
@@ -369,7 +370,7 @@ def power_transcript(case="power", tail=None, **changes):
     """H05 power run in the kernel's real order: the wake evidence and the
     counters, BROKERS, teardown, CLEANUP, the post-wake device evidence, then
     the gate, case marker and S5 tail."""
-    ok = case in ("power", "power-s3", "power-s3-reinit", "power-s3-held-completion")
+    ok = case in ("power", "power-lock", "power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
     values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
                   POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
     held = int(case == "power-s3-held-completion")
@@ -382,6 +383,19 @@ def power_transcript(case="power", tail=None, **changes):
                       SUSPEND_HELD_REFUSALS=0, SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
                       SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_LOST_BLOCK=14,
                       **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0)
+    if case in BLK_CASES:
+        quarantined = BLK_CASES[case] is not None
+        values.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
+                      SUSPEND_HELD_REFUSALS=0, SUSPEND_REINIT_ENTROPY=32, SUSPEND_REINIT_STALE_TICKET=1,
+                      SUSPEND_REINIT_ENTROPY_AUTH=6, SUSPEND_BLK_QUARANTINED=int(quarantined),
+                      SUSPEND_BLK_STALE_TICKET=0 if quarantined else 1,
+                      SUSPEND_BLK_PIC_MASTER=0 if quarantined else 0xfe,
+                      SUSPEND_BLK_PIC_SLAVE=0 if quarantined else 0xff,
+                      SUSPEND_BLK_INTX_LINE=0 if quarantined else 10,
+                      SUSPEND_BLK_LATCH_CARRIED=1,
+                      SUSPEND_LOST_BLOCK=24 if quarantined else 6,
+                      **AT_WAKE, SUSPEND_DEVICE_IO_AFTER_WAKE=0, SUSPEND_DEVICE_SUPPRESSED=0,
+                      SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=0 if case.endswith("-busy") else 8)
     values.update(changes)
     values = {key: value for key, value in values.items() if value is not None}
     lines = transcript("normal", **values).replace(
@@ -579,6 +593,94 @@ class PowerS3ReinitHarnessTests(unittest.TestCase):
                           source_sha256="source", after_sha256="disk"), "source", "disk", network=False)
 
 
+S3_BLK_REINIT = "VOLUME:S3:REINIT:BARS=RESTORED:STATUS=15:CAPACITY=00000000000000002048:SELFTEST=READ"
+
+
+def blk_transcript(case="power-s3-blk-reinit", volume=None, injected=None, **changes):
+    """H05-T5c: the rng re-init marker, then the injection label (injected
+    cases) and the blk success or quarantine marker, before BROKERS."""
+    expected = BLK_CASES[case]
+    if volume is None:
+        volume = (S3_BLK_REINIT,) if expected is None else (f"VOLUME:S3:REINIT:QUARANTINE:{expected[1]}",)
+    if injected is None:
+        injected = () if expected is None else (f"SYSTEM:FAULT_INJECTED:S3_BLK_{expected[0]}",)
+    return s3_transcript(s3=(S3_ENTER, S3_RESUMED, S3_REINIT, *injected, *volume), case=case, **changes)
+
+
+class PowerS3BlkReinitHarnessTests(unittest.TestCase):
+    """H05-T5c run_system oracle: exact markers, codes and accounting."""
+
+    def test_every_blk_case_passes_only_with_raw_exit_zero(self):
+        for case in BLK_CASES:
+            with self.subTest(case=case):
+                found = evaluate(case, blk_transcript(case), 0, False)
+                quarantined = BLK_CASES[case] is not None
+                self.assertEqual(found["SUSPEND_LOST_BLOCK"], 24 if quarantined else 6)
+                self.assertEqual(found["SUSPEND_BLK_QUARANTINED"], int(quarantined))
+                for raw, timed_out in ((33, False), (35, False), (None, True)):
+                    with self.assertRaises(ValueError):
+                        evaluate(case, blk_transcript(case), raw, timed_out)
+        kept = blk_transcript(volume=(S3_BLK_REINIT.replace("RESTORED", "KEPT"),))
+        self.assertEqual(evaluate("power-s3-blk-reinit", kept, 0, False)["SUSPEND_BLK_STALE_TICKET"], 1)
+
+    def test_missing_doubled_or_misplaced_blk_markers_are_refused(self):
+        for case, (label, reason) in ((c, v) for c, v in BLK_CASES.items() if v):
+            quarantine = f"VOLUME:S3:REINIT:QUARANTINE:{reason}"
+            inject = f"SYSTEM:FAULT_INJECTED:S3_BLK_{label}"
+            for change in (dict(volume=()), dict(volume=(quarantine, quarantine)),
+                           dict(injected=()), dict(injected=(inject, inject)),
+                           dict(volume=(S3_BLK_REINIT,), injected=()),
+                           dict(volume=(quarantine.replace(reason, "OTHER"),))):
+                with self.subTest(case=case, change=change), self.assertRaisesRegex(ValueError, "marker"):
+                    evaluate(case, blk_transcript(case, **change), 0, False)
+            swapped = blk_transcript(case).replace(f"{inject}\n{quarantine}\n", f"{quarantine}\n{inject}\n")
+            with self.subTest(case=case, swapped=True), self.assertRaisesRegex(ValueError, "order"):
+                evaluate(case, swapped, 0, False)
+        for change in (dict(volume=()), dict(volume=(S3_BLK_REINIT, S3_BLK_REINIT)),
+                       dict(volume=(S3_BLK_REINIT.replace("SELFTEST=READ", "SELFTEST=NONE"),)),
+                       dict(volume=(S3_BLK_REINIT.replace("STATUS=15", "STATUS=11"),)),
+                       dict(volume=("VOLUME:S3:REINIT:QUARANTINE:CAPACITY",)),
+                       dict(injected=("SYSTEM:FAULT_INJECTED:S3_BLK_BUSY",))):
+            with self.subTest(change=change), self.assertRaisesRegex(ValueError, "marker"):
+                evaluate("power-s3-blk-reinit", blk_transcript(**change), 0, False)
+        late = blk_transcript().replace(S3_BLK_REINIT + "\n", "").replace(
+            "SYSTEM:BROKERS:PASS\n", f"SYSTEM:BROKERS:PASS\n{S3_BLK_REINIT}\n")
+        before_rng = blk_transcript().replace(f"{S3_REINIT}\n{S3_BLK_REINIT}\n", f"{S3_BLK_REINIT}\n{S3_REINIT}\n")
+        for text in (late, before_rng):
+            with self.assertRaisesRegex(ValueError, "order"):
+                evaluate("power-s3-blk-reinit", text, 0, False)
+
+    def test_codes_and_accounting_are_exact(self):
+        for case, change in (("power-s3-blk-reinit", dict(SUSPEND_LOST_BLOCK=14)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_LOST_BLOCK=24)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_QUARANTINED=1)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_STALE_TICKET=0)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_PIC_SLAVE=0xfb)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=0)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=None)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_DEVICE_IO_AFTER_WAKE=1)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_INTX_LINE=None)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_LATCH_CARRIED=0)),
+                             ("power-s3-blk-reinit", dict(SUSPEND_BLK_LATCH_CARRIED=None)),
+                             ("power-s3-blk-reinit-capacity", dict(SUSPEND_BLK_LATCH_CARRIED=0)),
+                             ("power-s3-blk-reinit-busy", dict(SUSPEND_BLK_LATCH_CARRIED=None)),
+                             ("power-s3-blk-reinit-capacity", dict(SUSPEND_LOST_BLOCK=14)),
+                             ("power-s3-blk-reinit-capacity", dict(SUSPEND_LOST_BLOCK=6)),
+                             ("power-s3-blk-reinit-capacity", dict(SUSPEND_BLK_QUARANTINED=0)),
+                             ("power-s3-blk-reinit-busy", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=1)),
+                             ("power-s3-blk-reinit-identity", dict(SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME=0))):
+            with self.subTest(case=case, change=change), self.assertRaises(ValueError):
+                evaluate(case, blk_transcript(case, **change), 0, False)
+
+    def test_blk_evidence_outside_its_profiles_is_refused(self):
+        for text in (reinit_transcript() .replace(S3_REINIT + "\n", f"{S3_REINIT}\n{S3_BLK_REINIT}\n"),
+                     reinit_transcript(SUSPEND_BLK_QUARANTINED=0)):
+            with self.assertRaisesRegex(ValueError, "outside"):
+                evaluate("power-s3-reinit", text, 0, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power-s3", s3_transcript() + "SYSTEM:FAULT_INJECTED:S3_BLK_BUSY\n", 0, False)
+
+
 def held_transcript(**changes):
     """Review R1 power-s3-held-completion: the base S3 cycle plus the held -8."""
     return s3_transcript(case="power-s3-held-completion", **changes)
@@ -672,7 +774,8 @@ DRIVERS = Path(__file__).resolve().parents[1] / "drivers"
 # Driver entry points that touch neither MMIO nor PCI config space: pool and
 # feature checks, used-ring validation, BAR classification, the in-memory
 # pending flag. Every other `pub fn` / `pub unsafe fn` is a device call.
-PURE = {"validate", "negotiate_rng_features", "validate_used", "classify_bars", "pending"}
+PURE = {"validate", "negotiate_rng_features", "validate_used", "classify_bars", "pending",
+        "identity_matches", "negotiated_matches", "negotiated"}
 DRIVER_FNS = {name for crate in ("virtio-rng", "virtio-blk") for name in re.findall(
     r"^\s*pub (?:unsafe )?fn (\w+)", (DRIVERS / crate / "src/lib.rs").read_text(), re.M)}
 DEVICE_METHODS = "|".join(sorted(DRIVER_FNS - PURE))
@@ -730,9 +833,11 @@ class PostWakeLatchStructure(unittest.TestCase):
     # submission syscalls, owner teardown): latched and counted.
     REACHABLE = {"keyring.rs": {"call", "advance", "quarantine_pending"},
                  "volume.rs": {"device_call", "reset", "advance_lane"}}
-    LATCH = {"keyring.rs": "device_lost()", "volume.rs": "system::resumed()"}
-    # The validated re-init path (test-system-s3-reinit only): accounted.
-    REINIT = {"keyring.rs": {"reinit_poll", "reinit_fail"}, "volume.rs": set()}
+    LATCH = {"keyring.rs": "device_lost()", "volume.rs": "device_lost()"}
+    # The validated re-init paths (test-system-s3-reinit, and for volume.rs
+    # test-system-s3-blk-reinit, H05-T5c): accounted.
+    REINIT = {"keyring.rs": {"reinit_poll", "reinit_fail"},
+              "volume.rs": {"blk_reinit_poll", "blk_reinit_quarantine"}}
     # Boot-time setup, and standalone-profile fixtures whose `poll` is compiled
     # only without native-system (checked below).
     OTHER = {"keyring.rs": {"prepare", "restart_fixture", "finish"},
@@ -782,10 +887,22 @@ class PostWakeLatchStructure(unittest.TestCase):
         self.assertIn('#[cfg(feature = "test-system-s3")]\n    let lost = super::system::resumed() && !reinitialised();',
                       lost)
         lines = (KERNEL / "m3/volume.rs").read_text().splitlines()
-        latches = [index for index, line in enumerate(lines) if "if super::system::resumed()" in line]
+        latches = [index for index, line in enumerate(lines) if "if device_lost()" in line]
         self.assertEqual(len(latches), 3)
         for index in latches:
             self.assertEqual(lines[index - 1].strip(), '#[cfg(feature = "test-system-s3")]')
+        # H05-T5c: no raw wake flag latches a volume path any more; the volume
+        # latch opens only after the validated blk re-init, never globally.
+        self.assertEqual([line for line in lines if "system::resumed()" in line.split("//")[0]],
+                         ["    super::system::resumed() && !blk_reinitialised()"])
+        bodies = functions(KERNEL / "m3/volume.rs")
+        start = bodies["device_lost"][0][0]
+        self.assertEqual(lines[start - 2].strip(), '#[cfg(feature = "test-system-s3")]')
+        text = "\n".join(lines)
+        self.assertIn('#[cfg(all(feature = "test-system-s3", not(feature = "test-system-s3-blk-reinit")))]\n'
+                      'fn blk_reinitialised() -> bool {\n    false\n}', text)
+        self.assertIn('#[cfg(feature = "test-system-s3-blk-reinit")]\nfn blk_reinitialised() -> bool {\n'
+                      '    blk_state().stage == BLK_DONE\n}', text)
 
     def test_each_latch_returns_before_any_device_statement(self):
         """The guarded statement itself, not only the latch text: each latch
@@ -813,10 +930,10 @@ class PostWakeLatchStructure(unittest.TestCase):
         self.assertEqual(following(quarantine, "let r = runtime();")[0], "let touch = !device_lost();")
         self.assertEqual(following(quarantine, bind)[:3], ["device_access();", "device.begin_reset();", "}"])
         self.assertEqual([line.split("//")[0].strip() for _, line in quarantine if "r.device" in line], [bind])
-        self.assertEqual(following(volume["reset"], "if super::system::resumed() {")[:2],
+        self.assertEqual(following(volume["reset"], "if device_lost() {")[:2],
                          ["super::system::device_access_suppressed();", "return;"])
-        self.assertEqual(following(volume["advance_lane"], "if super::system::resumed() {")[0], "return;")
-        self.assertEqual(following(volume["device_call"], "if super::system::resumed() {")[0], "return Err(-14);")
+        self.assertEqual(following(volume["advance_lane"], "if device_lost() {")[0], "return;")
+        self.assertEqual(following(volume["device_call"], "if device_lost() {")[0], "return Err(-14);")
         # Re-init: no MMIO before `rediscover` validated the BARs.
         fail = keyring["reinit_fail"]
         bind = "if let Some(device) = r.device.as_mut().filter(|_| validated) {"
@@ -845,6 +962,90 @@ class PostWakeLatchStructure(unittest.TestCase):
         poll = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["poll"])
         self.assertIn("if resumed() {\n        let handle = suspend_state().key_entropy;\n"
                       "        keyring::reinit_poll(", poll)
+
+    @staticmethod
+    def check_blk_reinit(volume: str, system: str) -> None:
+        """H05-T5c structural contract of the volume re-init (raises on a
+        violation): accounted device calls, reached only after the wake and
+        the rng re-init, no MMIO before `rediscover`, the same Policy object."""
+        bodies = {}
+        lines = volume.splitlines()
+        for index, line in enumerate(lines):
+            match = FUNCTION.match(line)
+            if match and match.group(1) not in bodies:
+                depth, started, body = 0, False, []
+                for number in range(index, len(lines)):
+                    code = lines[number].split("//")[0]
+                    depth += code.count("{") - code.count("}")
+                    started = started or "{" in code
+                    body.append((number + 1, lines[number]))
+                    if started and depth == 0:
+                        break
+                bodies[match.group(1)] = body
+        for fn in ("blk_reinit_poll", "blk_reinit_quarantine"):
+            body = bodies[fn]
+            if lines[body[0][0] - 2].strip() != '#[cfg(feature = "test-system-s3-blk-reinit")]':
+                raise AssertionError(f"{fn} is not test-system-s3-blk-reinit only")
+            previous = body[0][0]
+            for number, line in device_calls(body):
+                window = [text.strip() for at, text in body if previous <= at < number]
+                if "blk_reinit_access();" not in window[-8:]:
+                    raise AssertionError(f"unaccounted device call in {fn}: {line.strip()}")
+                previous = number
+        callers = {fn for fn, body in bodies.items() if fn != "blk_reinit_quarantine"
+                   and any("blk_reinit_quarantine(" in line for _, line in body)}
+        if callers != {"blk_reinit_poll"}:
+            raise AssertionError(f"quarantine reached from {callers}")
+        quarantine = [line.split("//")[0].strip() for _, line in bodies["blk_reinit_quarantine"]]
+        if quarantine[1] != "let validated = blk_state().bars.is_some();" or \
+                "if let Some(device) = lane.device.as_mut().filter(|_| validated) {" not in quarantine:
+            raise AssertionError("quarantine may touch the device before rediscover validated it")
+        poll = [line.split("//")[0].strip() for _, line in bodies["blk_reinit_poll"]]
+        if poll.index("let Ok(bars) = virtio_blk_driver::rediscover(&saved) else {") > \
+                next(i for i, line in enumerate(poll) if "begin_reset()" in line):
+            raise AssertionError("reset before rediscover")
+        block = volume[volume.index("// H05-T5c slice 1"):]
+        if "Policy::new" in block or re.search(r"\.policy\s*=[^=]", block):
+            raise AssertionError("re-init replaces the lane Policy")
+        for term in ("lane.policy.start_reset()", "lane.policy.reset_completed(true)",
+                     "lane.policy.reset_completed(false)"):
+            if term not in block:
+                raise AssertionError(f"missing {term}")
+        callers = [line for line in system.splitlines() if "blk_reinit_poll(" in line]
+        guard = ('    #[cfg(feature = "test-system-s3-blk-reinit")]\n'
+                 '    if resumed() && keyring::reinit_done() && !m5::blk_reinit_settled() {\n'
+                 '        m5::blk_reinit_poll(s);\n    }\n')
+        if callers != ["        m5::blk_reinit_poll(s);"] or guard not in system:
+            raise AssertionError("blk re-init reachable outside the validated wake")
+
+    def test_blk_reinit_is_accounted_latched_and_keeps_the_policy(self):
+        volume = (KERNEL / "m3/volume.rs").read_text()
+        system = (KERNEL / "m3/system.rs").read_text()
+        self.check_blk_reinit(volume, system)
+        guard = "if resumed() && keyring::reinit_done() && !m5::blk_reinit_settled() {"
+        mutants = {
+            # The re-init runs without a validated wake (unlatched re-init).
+            "unlatched re-init": (volume, system.replace(guard, "if !m5::blk_reinit_settled() {")),
+            "before the rng re-init": (volume, system.replace(guard, "if resumed() && !m5::blk_reinit_settled() {")),
+            "uncounted device call": (volume.replace(
+                "            blk_reinit_access();\n            if device.submit(", "            if device.submit("), system),
+            "quarantine MMIO before rediscover": (volume.replace(
+                "lane.device.as_mut().filter(|_| validated)", "lane.device.as_mut()"), system),
+            "fresh Policy": (volume.replace(
+                "        if lane.policy.start_reset().is_err() {",
+                "        lane.policy = Policy::new();\n        if lane.policy.start_reset().is_err() {"), system),
+            "global latch": (volume.replace("super::system::resumed() && !blk_reinitialised()",
+                                            "super::system::resumed()"), system),
+        }
+        for name, (v, s) in mutants.items():
+            with self.subTest(mutant=name):
+                self.assertTrue(v != volume or s != system, name)
+                if name == "global latch":
+                    # Caught by the exact device_lost body pin above.
+                    self.assertNotIn("super::system::resumed() && !blk_reinitialised()", v)
+                    continue
+                with self.assertRaises(AssertionError):
+                    self.check_blk_reinit(v, s)
 
     def test_standalone_broker_fixtures_never_run_in_native_system(self):
         m3 = (KERNEL / "m3.rs").read_text()
@@ -1053,6 +1254,81 @@ class RelayHarnessTests(unittest.TestCase):
 
 BOOT_LINES = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 
+
+
+# B01-LOCK: the values of the first passing native power-lock run.
+LOCK_VALUES = dict(LOCK_COUNT=1, LOCK_REFUSALS=6, LOCK_STACK_SCRUBS=1, LOCK_STACK_RESIDUE=0,
+                   LOCK_CANARY_BEFORE=6, LOCK_CANARY_AFTER=0, LOCK_ENTROPY_OBJECTS_BEFORE=1,
+                   LOCK_ENTROPY_OBJECTS_AFTER=0, LOCK_FRAMES_ZEROED=65, LOCK_GRANT_HOLDS=724,
+                   LOCK_APP_SEND=10, LOCK_APP_RECEIVE=8)
+
+
+def lock_transcript(locked=("SYSTEM:LOCK:LOCKED",), admin=(6, 4), **changes):
+    """power-lock in the kernel's order: LOCKED during the run, the LOCK
+    evidence after BROKERS, then CLEANUP and the S5 tail."""
+    values = {key: value for key, value in {**LOCK_VALUES, **changes}.items() if value is not None}
+    evidence = "".join(f"SYSTEM:{key}:{value:020d}\n" for key, value in values.items())
+    text = power_transcript("power-lock", ADMIN_REQUESTS=admin[0], ADMIN_DENIED=admin[1])
+    text = text.replace("SYSTEM:MANIFEST:PASS\n", "SYSTEM:MANIFEST:PASS\n" + "".join(
+        f"{line}\n" for line in locked), 1)
+    return text.replace("SYSTEM:BROKERS:PASS\n", f"SYSTEM:BROKERS:PASS\n{evidence}SYSTEM:LOCK:PASS\n", 1)
+
+
+def lock_red_transcript(reason, locked=1, extra=()):
+    return "\n".join((*BOOT, "SYSTEM:MANIFEST:PASS", *["SYSTEM:LOCK:LOCKED"] * locked, *extra,
+                      f"SYSTEM:FAIL:{reason}")) + "\n"
+
+
+class PowerLockHarnessTests(unittest.TestCase):
+    def test_power_lock_passes_with_exact_evidence(self):
+        found = evaluate("power-lock", lock_transcript(), 0, False)
+        self.assertEqual((found["LOCK_COUNT"], found["LOCK_CANARY_AFTER"], found["ADMIN_REQUESTS"]), (1, 0, 6))
+
+    def test_power_lock_refuses_weaker_evidence(self):
+        for change in (dict(LOCK_CANARY_AFTER=1), dict(LOCK_CANARY_BEFORE=0), dict(LOCK_STACK_SCRUBS=0),
+                       dict(LOCK_STACK_RESIDUE=8), dict(LOCK_REFUSALS=5), dict(LOCK_COUNT=2),
+                       dict(LOCK_ENTROPY_OBJECTS_AFTER=1), dict(LOCK_FRAMES_ZEROED=None),
+                       dict(LOCK_GRANT_HOLDS=0), dict(LOCK_APP_SEND=0), dict(LOCK_APP_RECEIVE=0),
+                       dict(LOCK_APP_SEND=None)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-lock", lock_transcript(**change), 0, False)
+
+    def test_power_lock_needs_one_locked_marker_in_order(self):
+        for locked in ((), ("SYSTEM:LOCK:LOCKED",) * 2):
+            with self.subTest(locked=locked), self.assertRaises(ValueError):
+                evaluate("power-lock", lock_transcript(locked=locked), 0, False)
+        late = lock_transcript(locked=()).replace("SYSTEM:BROKERS:PASS\n",
+                                                  "SYSTEM:BROKERS:PASS\nSYSTEM:LOCK:LOCKED\n", 1)
+        with self.assertRaises(ValueError):
+            evaluate("power-lock", late, 0, False)
+
+    def test_power_lock_pins_the_extra_refused_admin_request(self):
+        for admin in ((5, 3), (6, 3), (7, 4)):
+            with self.subTest(admin=admin), self.assertRaises(ValueError):
+                evaluate("power-lock", lock_transcript(admin=admin), 0, False)
+
+    def test_lock_evidence_outside_power_lock_is_refused(self):
+        text = power_transcript().replace("SYSTEM:MANIFEST:PASS\n", "SYSTEM:MANIFEST:PASS\nSYSTEM:LOCK:LOCKED\n", 1)
+        with self.assertRaises(ValueError):
+            evaluate("power", text, 0, False)
+
+    def test_red_lock_cases_need_their_exact_refusal(self):
+        # F1: without the scrub LOCKED never latches, so no LOCKED marker either.
+        noscrub = evaluate_lock_red("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0),
+                                    35, False)
+        self.assertEqual(noscrub["fail"], "SYSTEM:FAIL:LOCK_CANARY_RESIDUE")
+        own_exit = evaluate_lock_red("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT", locked=0), 35, False)
+        self.assertEqual(own_exit["fail"], "SYSTEM:FAIL:UNEXPECTED_EXIT")
+        for case, text, raw in (
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_ABSENT", locked=0), 35),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE"), 35),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0), 33),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0,
+                                                           extra=("SYSTEM:LOCK_COUNT:" + "0" * 19 + "1",)), 35),
+                ("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT"), 35),
+                ("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT", locked=0, extra=("M1:PASS",)), 35)):
+            with self.subTest(case=case, text=text, raw=raw), self.assertRaises(ValueError):
+                evaluate_lock_red(case, text, raw, False)
 
 if __name__ == "__main__":
     unittest.main()

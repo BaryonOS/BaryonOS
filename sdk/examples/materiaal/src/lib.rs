@@ -100,6 +100,12 @@ pub struct App<'a, V: Transport, I: Transport, S: Transport> {
     /// a complete frame in this epoch. `None` keeps full repaints.
     damage: Option<&'a mut [u64]>,
     damage_valid: bool,
+    /// Tiles `[start, end)` blitted so far in the current frame.
+    blitted: (u64, u64),
+    /// Hull of tiles blitted by superseded partial frames since the last
+    /// complete frame. The receiver refuses RETAIN for them and their cached
+    /// digests may not be on screen, so they are always re-sent.
+    stale: (u64, u64),
 }
 impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
     /// `geometry` must be the actual authenticated INFO response from this
@@ -138,6 +144,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             retained_enabled: false,
             damage: None,
             damage_valid: false,
+            blitted: (0, 0),
+            stale: (0, 0),
         })
     }
     /// Like `new`, but after the first complete frame only changed tiles (and
@@ -488,6 +496,17 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         self.evidence.ready = false;
         let mut view = self.controller.view();
         if view.generation != self.frame {
+            // Keep tiles a superseded partial frame blitted out of
+            // digest-proven RETAIN until the next complete frame.
+            let (start, end) = self.blitted;
+            if start != end {
+                self.stale = if self.stale.0 == self.stale.1 {
+                    self.blitted
+                } else {
+                    (self.stale.0.min(start), self.stale.1.max(end))
+                };
+            }
+            self.blitted = (0, 0);
             self.frame = view.generation;
             self.next_tile = 0;
         }
@@ -524,9 +543,10 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         } else {
             let frame = Frame::new(view);
             let last = self.geometry.tiles() - 1;
+            let start = self.next_tile;
             let mut scanned = 0;
             let mut bytes = [0; 1024];
-            let (rectangle, hash) = loop {
+            let found = loop {
                 let rectangle = self
                     .geometry
                     .rectangle(self.next_tile)
@@ -546,37 +566,48 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                 {
                     chunk.copy_from_slice(&p.to_le_bytes());
                 }
-                let hash = if !self.retained_enabled && self.damage.is_some() {
+                let hash = if self.damage.is_some() {
                     digest(&bytes[..rectangle.bytes()])
                 } else {
                     0
                 };
-                // Explicit retained coverage cannot also omit tiles via sparse digests.
-                let unchanged = !self.retained_enabled
-                    && self.damage_valid
+                // Controller damage is conservative (often the whole viewport).
+                // Every tile is rendered, so a tile whose bytes match the
+                // digest of what the surface shows is unchanged; retained mode
+                // covers such a run with RETAIN instead of omitting it.
+                let unchanged = self.damage_valid
                     && self.next_tile != last
+                    && !(self.stale.0..self.stale.1).contains(&self.next_tile)
+                    && (!self.retained_enabled || self.surface.retained_base().is_some())
                     && self
                         .damage
                         .as_deref()
                         .is_some_and(|cache| cache[self.next_tile as usize] == hash);
                 if !unchanged {
-                    break (rectangle, hash);
+                    break Some((rectangle, hash));
                 }
                 self.next_tile += 1;
                 scanned += 1;
                 if scanned == SCAN_LIMIT {
-                    return Ok(());
+                    break None;
                 }
             };
-            if !self.retained_enabled {
+            if self.retained_enabled && scanned != 0 {
+                // The first changed tile, if any, is rendered again next step.
+                self.next_tile = start;
+                retained = scanned as u32;
+                self.surface.retain(self.frame, start, retained)
+            } else if let Some((rectangle, hash)) = found {
                 accepted_digest = Some(hash);
+                self.surface.blit(
+                    self.frame,
+                    self.next_tile,
+                    rectangle,
+                    &bytes[..rectangle.bytes()],
+                )
+            } else {
+                return Ok(());
             }
-            self.surface.blit(
-                self.frame,
-                self.next_tile,
-                rectangle,
-                &bytes[..rectangle.bytes()],
-            )
         };
         if let Err(error) = result {
             self.surface_failed = true;
@@ -591,13 +622,21 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
             if let (Some(cache), Some(hash)) = (self.damage.as_deref_mut(), accepted_digest) {
                 cache[self.next_tile as usize] = hash;
             }
+            if self.blitted.0 == self.blitted.1 {
+                self.blitted.0 = self.next_tile;
+            }
+            self.blitted.1 = self.next_tile + 1;
         }
         self.next_tile = self
             .next_tile
             .checked_add(u64::from(retained.max(1)))
             .ok_or(Error::Binding)?;
         if self.next_tile == self.geometry.tiles() {
-            self.damage_valid = self.damage.is_some() && !self.retained_enabled;
+            // The cache now describes the complete frame the surface shows;
+            // the receiver clears its changed-since-base state at this point.
+            self.damage_valid = self.damage.is_some();
+            self.stale = (0, 0);
+            self.blitted = (0, 0);
             if !self.controller.presented(self.frame, self.geometry.epoch) {
                 return Err(Error::Binding);
             }
@@ -723,6 +762,8 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
         self.step_succeeded = false;
         self.frame = 0;
         self.next_tile = 0;
+        self.blitted = (0, 0);
+        self.stale = (0, 0);
         self.evidence.presented_generation = 0;
         self.evidence.ready = false;
         Ok(())
