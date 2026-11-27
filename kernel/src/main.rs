@@ -227,6 +227,7 @@ compile_error!("native-smp is an IF0 M2 bring-up profile; single-CPU subsystems 
     feature = "native-smp-m3",
     any(
         feature = "native-fpu",
+        feature = "native-ai-job",
         all(
             any(feature = "ipc-wait", feature = "milestone-m4"),
             not(any(

@@ -64,6 +64,7 @@ updates:
       - /experiments/ai/candle-oracle
       - /experiments/ai/model-format
       - /experiments/ai/model-store-contract
+      - /experiments/ai/native-job
       - /experiments/ai/reference-forward
       - /experiments/quantum/job-protocol
       - /experiments/quantum/native

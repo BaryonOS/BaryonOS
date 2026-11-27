@@ -43,7 +43,8 @@ HOST_PYTHON_STEP = "Python syntax and DocumentSession host tests"
 HOST_PYTHON_COMMANDS = (
     "mkdir -p build/coverage-raw/python",
     "python3 -m compileall -q tools tests userspace/tests experiments/quantum/native "
-    "experiments/quantum/native/job .agents/skills/os-dev",
+    "experiments/quantum/native/job experiments/ai/native-job .agents/skills/os-dev",
+    "python3 -B -m unittest discover -s experiments/ai/native-job/tests",
     "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'",
     "coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'",
     "python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'",
