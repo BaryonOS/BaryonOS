@@ -26,7 +26,7 @@ before any SUSPEND; the KL2 gate is never reached.
 
 | Run | Command | Raw exit | Outcome |
 |---|---|---|---|
-| `power-s3-noscrub/` | `NOS_BUILD_DIR=build/s3-noscrub python3 -B tools/build.py --kernel-feature test-system-s3-lock-noscrub` then `python3 -B tools/run_system.py --case power-s3-noscrub` | build 0, QEMU 35 | expected failure: one `POWER:S3:PLAN` bootstrap line, `SYSTEM:MANIFEST:PASS`, exactly one `SYSTEM:FAIL:LOCK_STACK_RESIDUE`, zero `SYSTEM:LOCK:LOCKED`, no `SYSTEM:SUSPEND`, no PM1 write, no `M1:PASS`; harness `passed=True` |
+| `power-s3-noscrub/` | `NOS_BUILD_DIR=build/s3-noscrub python3 -B tools/build.py --kernel-feature test-system-s3-lock-noscrub` then `NOS_BUILD_DIR=build/s3-noscrub python3 -B tools/run_system.py --case power-s3-noscrub` (both steps need the same build directory; `tools/common.py` resolves it at import) | build 0, QEMU 35 | expected failure: one `POWER:S3:PLAN` bootstrap line, `SYSTEM:MANIFEST:PASS`, exactly one `SYSTEM:FAIL:LOCK_STACK_RESIDUE`, zero `SYSTEM:LOCK:LOCKED`, no `SYSTEM:SUSPEND`, no PM1 write, no `M1:PASS`; harness `passed=True` |
 | `mutant-build-order/` | same, with `tools/build.py` from `main` `8ee0d501` (the defect) | build 0, QEMU 35 | killed: init stops at its step 81 (`SYSTEM:ERROR:STEP:…81`, the plain init without the LOCK caller) with `SYSTEM:FAIL:APP_OR_INIT_RESULT`, rejected as "stopped for another reason" |
 | `power-s3-noscrub` reruns | same as the first row, after a forced kernel rebuild (see Limits) | build 0, QEMU 35 | 2/2 `passed=True` |
 | S5 red controls | `--case power-lock-noscrub` and `--case power-lock-exit` with their kernel features | build 0, QEMU 35 | both `passed=True` under the tightened evaluator |
