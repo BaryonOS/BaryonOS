@@ -50,6 +50,8 @@ struct Model {
     published: Option<Vec<SourceRecord>>,
     budget: u32,
     closed: bool,
+    known_unsubmitted: bool,
+    pending_revoke: bool,
 }
 impl Model {
     fn new(budget: u32) -> Self {
@@ -61,6 +63,8 @@ impl Model {
             published: None,
             budget,
             closed: true,
+            known_unsubmitted: false,
+            pending_revoke: false,
         }
     }
     fn candidate(&self, records: Vec<SourceRecord>) -> Snapshot {
@@ -88,6 +92,28 @@ impl Model {
         self.chain = chain_after(DOMAIN, &s.prev, &s.digest());
         Outcome::Accepted
     }
+    fn valid_transition(&self, next: &[SourceRecord]) -> bool {
+        let Some(current) = &self.published else {
+            return true;
+        };
+        current.iter().all(|old| {
+            next.iter().find(|new| new.id == old.id).is_some_and(|new| {
+                if old == new {
+                    return true;
+                }
+                old.state == SourceStatus::Active
+                    && old.generation.checked_add(1) == Some(new.generation)
+                    && match new.state {
+                        SourceStatus::Active => new.anchors != old.anchors,
+                        SourceStatus::Revoked => new.anchors == old.anchors,
+                    }
+            })
+        }) && next
+            .iter()
+            .filter(|new| !current.iter().any(|old| old.id == new.id))
+            .all(|new| new.generation == 1 && new.state == SourceStatus::Active)
+            && next.iter().filter(|new| !current.contains(new)).count() == 1
+    }
     fn commit(&mut self, s: Snapshot, revoke: bool, lose_reply: bool) -> Outcome {
         if self.closed && self.published.is_some() {
             return Outcome::Closed;
@@ -96,6 +122,19 @@ impl Model {
             || s.domain != DOMAIN
             || s.instance != self.instance
             || SourceRegistry::from_snapshot(&s.records).is_err()
+            || s.prev != self.chain
+            || !self.valid_transition(&s.records)
+            || (self.published.is_some()
+                && revoke
+                    != s.records.iter().any(|new| {
+                        new.state == SourceStatus::Revoked
+                            && self
+                                .published
+                                .as_ref()
+                                .unwrap()
+                                .iter()
+                                .any(|old| old.id == new.id && old.state == SourceStatus::Active)
+                    }))
         {
             return Outcome::Closed;
         }
@@ -104,8 +143,10 @@ impl Model {
         }
         if revoke {
             self.closed = true;
+            self.pending_revoke = true;
         }
         self.write(s.clone());
+        self.known_unsubmitted = false;
         if self.extend(&s) != Outcome::Accepted {
             return Outcome::Closed;
         }
@@ -114,6 +155,7 @@ impl Model {
             return Outcome::Closed;
         }
         self.published = Some(s.records);
+        self.pending_revoke = false;
         self.closed = false;
         Outcome::Accepted
     }
@@ -129,8 +171,15 @@ impl Model {
         {
             return Outcome::Closed;
         }
+        if self.pending_revoke && s.records.iter().any(|r| r.state == SourceStatus::Active) {
+            return Outcome::Closed;
+        }
         let after = chain_after(DOMAIN, &s.prev, &s.digest());
         if self.chain == s.prev {
+            if !self.known_unsubmitted {
+                return Outcome::Closed;
+            }
+            self.known_unsubmitted = false;
             if self.extend(&s) != Outcome::Accepted {
                 return Outcome::Closed;
             }
@@ -138,6 +187,7 @@ impl Model {
             return Outcome::Closed;
         }
         self.published = Some(s.records);
+        self.pending_revoke = false;
         self.closed = false;
         Outcome::Accepted
     }
@@ -181,7 +231,9 @@ fn crash_cuts_reconcile_once_without_acknowledging_early() {
     let mut m = installed();
     let s = m.candidate(vec![revoked()]);
     m.closed = true; // revoke closes the source before durable work
+    m.pending_revoke = true;
     m.write(s.clone()); // A1, no ACK yet
+    m.known_unsubmitted = true; // fixture proves no request was submitted
     assert!(!m.accepts(record().id, 1));
     assert_eq!(m.recover(), Outcome::Accepted); // roll forward once
     assert!(!m.accepts(record().id, 1));
@@ -294,6 +346,49 @@ fn changed_domain_and_stray_extend_cannot_restore_old_snapshot() {
     assert_eq!(m.recover(), Outcome::Closed);
     let mut m = installed();
     m.chain = chain_after(DOMAIN, &m.chain, &[9; 32]);
+    assert_eq!(m.recover(), Outcome::Closed);
+    assert!(!m.accepts(record().id, 1));
+}
+
+#[test]
+fn unknown_unsettled_extend_never_retries_or_reopens_revoke() {
+    let mut m = installed();
+    let s = m.candidate(vec![revoked()]);
+    m.closed = true;
+    m.pending_revoke = true;
+    m.write(s); // request status is unknown; chain has not advanced yet
+    m.budget -= 1; // uncertain submissions consume the fixture budget
+    let (chain, budget) = (m.chain, m.budget);
+    assert_eq!(m.recover(), Outcome::Closed);
+    assert_eq!((m.chain, m.budget), (chain, budget));
+    assert!(!m.accepts(record().id, 1));
+}
+
+#[test]
+fn transition_and_predecessor_checks_preserve_confirmed_snapshot() {
+    let mut m = installed();
+    let old = m.disk.clone().unwrap().digest();
+    let mut forged = m.candidate(vec![]); // removing an occupied slot is forbidden
+    assert_eq!(m.commit(forged.clone(), true, false), Outcome::Closed);
+    assert_eq!(m.disk.as_ref().unwrap().digest(), old);
+    assert!(m.accepts(record().id, 1));
+    forged = m.candidate(vec![revoked()]);
+    forged.prev[0] ^= 1;
+    assert_eq!(m.commit(forged, true, false), Outcome::Closed);
+    assert_eq!(m.disk.as_ref().unwrap().digest(), old);
+    assert!(m.accepts(record().id, 1));
+    let mut bad = revoked();
+    bad.generation += 1;
+    let s = m.candidate(vec![bad]);
+    assert_eq!(m.commit(s, true, false), Outcome::Closed);
+    assert_eq!(m.disk.as_ref().unwrap().digest(), old);
+}
+
+#[test]
+fn pending_revoke_does_not_reopen_confirmed_old_snapshot() {
+    let mut m = installed();
+    m.closed = true;
+    m.pending_revoke = true;
     assert_eq!(m.recover(), Outcome::Closed);
     assert!(!m.accepts(record().id, 1));
 }

@@ -218,10 +218,12 @@ claimed files are recorded in issuecomment-7227073471.
 
 `sdk/app-management/tests/source_registry_anchor.rs` is an executable fixture
 model, not an implementation of source management or authenticated storage.
-It reuses the actual `SourceRegistry` snapshot and anchor chain helpers. Eight
+It reuses the actual `SourceRegistry` snapshot and anchor chain helpers. Eleven
 host tests cover A1/X crash recovery, uncertain extend, stale/foreign and
 unauthenticated fixtures, budget exhaustion, chain-domain separation, missing
-and invalid stores, source generations and revocation tombstones. The fixture
+and invalid stores, source generations, transition fencing and revocation
+tombstones. A pending revocation conservatively closes the entire fixture
+registry. The fixture
 models authentication as a boolean: it does not verify a MAC, bind a real
 kernel actor, perform disk I/O, instantiate a TPM or establish native domain
 allocation. It does not close A02 or establish product recovery/security.
