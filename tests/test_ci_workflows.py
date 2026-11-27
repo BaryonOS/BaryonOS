@@ -30,6 +30,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_ACTION = ".github/actions/preserve-evidence/action.yml"
+TRUSTED_BASE_ACTION = ".github/actions/trusted-base/action.yml"
 CACHE_ACTION_VERSION = "v6.1.0"
 CACHE_ACTION_SHA = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
 ACTIONLINT_VERSION = "1.7.12"
@@ -1566,6 +1567,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         """#494: every select-ci step and BASE_REF use ci.yml's exact pull_request, merge_group and push values."""
         head = "${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}"
         base = "${{ github.event.merge_group.base_sha || (github.event_name == 'push' && github.event.before) || '' }}"
+        # PR B (ADR-CI-MERGE-GROUP-SELECT-20261126): the three select jobs plan merge_group from T.
+        trusted = "${{ steps.trusted.outputs.base-sha || (github.event_name == 'push' && github.event.before) || '' }}"
         ref = "${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref_name }}"
         steps = [(path, job_id, step) for path, job_id, step in self.steps() if path in self.workflows]
         selects = [(path, job_id, step) for path, job_id, step in steps
@@ -1576,7 +1579,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual((len(selects), len(base_refs)), (5, 3))
         for path, job_id, step in selects:
             with self.subTest(path=path, job=job_id, step=step.get("name")):
-                self.assertEqual((step["with"]["head-sha"], step["with"]["base-sha"]), (head, base))
+                self.assertEqual((step["with"]["head-sha"], step["with"]["base-sha"]),
+                                 (head, base if path == ".github/workflows/ci.yml" else trusted))
                 # ci.yml passes no base-ref; where one is passed it is exactly this.
                 self.assertEqual(step["with"].get("base-ref", ref), ref)
         for path, job_id, value in base_refs:
@@ -1718,32 +1722,16 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         for step in (checkout, load, decide):
             for key in ("if", "continue-on-error", "working-directory"):
                 self.assertNotIn(key, step)
-        # Phase 3 (#494): the decision runs the base commit's copies, never the PR's.
-        self.assertNotIn("uses", load)
+        # Phase 3 (#494): the decision runs the base commit's copies, never the PR's. The
+        # derivation is the one shared action the merge-group gates use too (PR B).
         self.assertEqual(load["id"], "base")
-        self.assertNotIn("${{", load["run"])
-        for needle in ('git rev-list --parents -n 1 HEAD', '"$second" != "$HEAD_SHA"',
-                       'git cat-file blob "$base:tools/merge_hold.py"',
-                       'git cat-file blob "$base:tools/ci_impact.py"', 'set -euo pipefail'):
-            self.assertIn(needle.replace('"$second"', '"${second:-}"'), load["run"])
-        # merge_group (ADR-CI-MERGE-GROUP-SELECT-20261126): the base files come from T, the merge base of
-        # the queue commit and freshly fetched main, never from merge_group.base_sha (an unlanded entry ahead).
-        for needle in ('git fetch --no-tags --quiet origin "+refs/heads/main:$main"',
-                       'base="$(git merge-base "$tested" "$main")" || base=""',
-                       'git merge-base --is-ancestor "$base" "$main"',
-                       'git merge-base --is-ancestor "$base" "$MERGE_GROUP_BASE_SHA"',
-                       'git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"'):
-            self.assertIn(needle, load["run"])
-        self.assertNotIn('base="$MERGE_GROUP_BASE_SHA"', load["run"])
-        # merge_hold.py reads the same ref this step fetches (D2 N1).
-        main_ref = re.search(r'^MAIN_REF = "([^"]+)"$', (ROOT / "tools/merge_hold.py").read_text(), re.M)
-        self.assertIsNotNone(main_ref)
-        self.assertIn(f"main={main_ref.group(1)}\n", load["run"])
-        self.assertEqual(load["env"], {
-            "EVENT_NAME": "${{ github.event_name }}",
-            "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
-            "MERGE_GROUP_BASE_SHA": "${{ github.event.merge_group.base_sha }}",
+        self.assertEqual(load["uses"], "./.github/actions/trusted-base")
+        self.assertEqual(load["with"], {
+            "event-name": "${{ github.event_name }}",
+            "head-sha": "${{ github.event.pull_request.head.sha }}",
+            "merge-group-base-sha": "${{ github.event.merge_group.base_sha }}",
         })
+        self.assert_trusted_base_action()
         self.assertNotIn("uses", decide)
         self.assertEqual(decide["shell"], "bash")
         self.assertEqual(decide["run"].strip(), 'python3 -B -I "$RUNNER_TEMP/merge-hold-base/merge_hold.py"')
@@ -1763,6 +1751,109 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         })
         read = set(re.findall(r'os\.environ(?:\.get)?[\[(]"([A-Z_]+)"', source))
         self.assertLessEqual(read - {"GITHUB_RUN_ID", "GITHUB_STEP_SUMMARY"}, set(decide["env"]))
+
+    def assert_trusted_base_action(self):
+        """The one T derivation (ADR-CI-MERGE-GROUP-SELECT-20261126), pinned by its needles."""
+        action = self.actions[TRUSTED_BASE_ACTION]
+        self.assertEqual(action["runs"]["using"], "composite")
+        self.assertEqual(set(action["inputs"]), {"event-name", "head-sha", "merge-group-base-sha"})
+        self.assertEqual(action["outputs"], {
+            "base-sha": {"description": action["outputs"]["base-sha"]["description"],
+                         "value": "${{ steps.base.outputs.base-sha }}"},
+            "tested-sha": {"description": action["outputs"]["tested-sha"]["description"],
+                           "value": "${{ steps.base.outputs.tested-sha }}"}})
+        load, = action["runs"]["steps"]
+        for key in ("if", "continue-on-error", "working-directory", "uses"):
+            self.assertNotIn(key, load)
+        self.assertEqual((load["id"], load["shell"]), ("base", "bash"))
+        self.assertNotIn("${{", load["run"])
+        for needle in ('git rev-list --parents -n 1 HEAD', '"$second" != "$HEAD_SHA"',
+                       'git cat-file blob "$base:tools/merge_hold.py"',
+                       'git cat-file blob "$base:tools/ci_impact.py"', 'set -euo pipefail'):
+            self.assertIn(needle.replace('"$second"', '"${second:-}"'), load["run"])
+        # merge_group (ADR-CI-MERGE-GROUP-SELECT-20261126): the base files come from T, the merge base of
+        # the queue commit and freshly fetched main, never from merge_group.base_sha (an unlanded entry ahead).
+        for needle in ('git fetch --no-tags --quiet origin "+refs/heads/main:$main"',
+                       'base="$(git merge-base "$tested" "$main")" || base=""',
+                       'git merge-base --is-ancestor "$base" "$main"',
+                       'git merge-base --is-ancestor "$base" "$MERGE_GROUP_BASE_SHA"',
+                       'git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"'):
+            self.assertIn(needle, load["run"])
+        self.assertNotIn('base="$MERGE_GROUP_BASE_SHA"', load["run"])
+        # merge_hold.py reads the same ref this step fetches (D2 N1).
+        main_ref = re.search(r'^MAIN_REF = "([^"]+)"$', (ROOT / "tools/merge_hold.py").read_text(), re.M)
+        self.assertIsNotNone(main_ref)
+        self.assertIn(f"main={main_ref.group(1)}\n", load["run"])
+        self.assertEqual(load["env"], {
+            "EVENT_NAME": "${{ inputs.event-name }}",
+            "HEAD_SHA": "${{ inputs.head-sha }}",
+            "MERGE_GROUP_BASE_SHA": "${{ inputs.merge-group-base-sha }}",
+        })
+        # No inline copy elsewhere: every T derivation goes through this action.
+        for path, job_id, step in self.steps():
+            if path != TRUSTED_BASE_ACTION:
+                with self.subTest(path=path, job=job_id, step=step.get("name")):
+                    self.assertNotIn("merge-base --is-ancestor", step.get("run", ""))
+
+    def test_trusted_base_action_takes_t_from_main_never_from_the_queue_base(self):
+        """Execute the shared action: T is the merge base with fetched main; any doubt fails before a copy."""
+        action = self.actions[TRUSTED_BASE_ACTION]
+        script = action["runs"]["steps"][0]["run"]
+        environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+        environment.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)
+
+        def git(cwd, *args):
+            return subprocess.run(["git", "-c", "user.name=fixture", "-c", "user.email=fixture@example.invalid",
+                                   "-c", "commit.gpgsign=false", "-c", "init.defaultBranch=main", *args],
+                                  cwd=cwd, check=True, capture_output=True, text=True, env=environment).stdout.strip()
+
+        def commit(repo, label):
+            (repo / "tools").mkdir(exist_ok=True)
+            (repo / "tools/merge_hold.py").write_text(f"# {label}\n", encoding="utf-8")
+            (repo / "tools/ci_impact.py").write_text(f"# {label} selector\n", encoding="utf-8")
+            git(repo, "add", "-A")
+            git(repo, "commit", "-q", "-m", label)
+            return git(repo, "rev-parse", "HEAD")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            origin, repo = root / "origin.git", root / "repo"
+            repo.mkdir()
+            git(repo, "init", "-q")
+            main = commit(repo, "main")
+            ahead = commit(repo, "ahead")  # the unlanded queue commit of the entry ahead
+            queue = commit(repo, "queue")
+            git(root, "init", "-q", "--bare", str(origin))
+            git(repo, "push", "-q", str(origin), f"{main}:refs/heads/main")
+            git(repo, "remote", "add", "origin", str(origin))
+
+            def run(label, **env):
+                temp = root / label
+                temp.mkdir()
+                out = temp / "output.txt"
+                out.write_text("", encoding="utf-8")
+                result = subprocess.run(["bash", "-c", script], cwd=repo, capture_output=True, text=True,
+                                        check=False, env={**environment, "RUNNER_TEMP": str(temp),
+                                                          "GITHUB_OUTPUT": str(out), **env})
+                outputs = dict(line.split("=", 1) for line in out.read_text(encoding="utf-8").splitlines())
+                copied = temp / "merge-hold-base/merge_hold.py"
+                return result, outputs, copied.read_text(encoding="utf-8") if copied.exists() else None
+
+            result, outputs, copied = run("stacked", EVENT_NAME="merge_group", MERGE_GROUP_BASE_SHA=ahead)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(outputs, {"base-sha": main, "tested-sha": queue})
+            self.assertEqual(copied, "# main\n")  # protected main's copy, not the entry ahead's
+            for label, base in (("not-an-ancestor", git(repo, "rev-parse", "HEAD^{tree}")),
+                                ("empty-base", ""), ("ahead-of-queue", "f" * 40)):
+                with self.subTest(case=label):
+                    result, outputs, copied = run(label, EVENT_NAME="merge_group", MERGE_GROUP_BASE_SHA=base)
+                    self.assertEqual(result.returncode, 1, result.stdout)
+                    self.assertEqual((outputs, copied), ({}, None))
+            git(repo, "remote", "set-url", "origin", str(root / "missing.git"))
+            result, outputs, copied = run("no-main", EVENT_NAME="merge_group", MERGE_GROUP_BASE_SHA=ahead)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("Could not fetch main", result.stdout)
+            self.assertEqual((outputs, copied), ({}, None))
 
     def test_merge_hold_recheck_reruns_from_the_default_branch_after_every_gate_workflow(self):
         """#494 B9: merge-hold decides at once on pull_request; an event-driven re-check re-runs it."""
@@ -2038,7 +2129,9 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         job = self.workflows[".github/workflows/nas-core.yml"]["jobs"]["task-grant-volume"]
         self.assertEqual(job["name"], "task-grant-volume")
         self.assertEqual(job["timeout-minutes"], "20")
-        for key in ("if", "needs", "continue-on-error", "strategy"):
+        # Only the merge-group gate's wiring (PR B, MergeGroupGateTests); no other condition or dependency.
+        self.assertEqual((job["needs"], job["if"]), (GATE_JOB, "${{ " + GATE_RUNS + " }}"))
+        for key in ("continue-on-error", "strategy"):
             self.assertNotIn(key, job)
         runs = "\n".join(step.get("run", "") for step in job["steps"])
         for feature, case in (("native-task-grant-volume", "volume"),
@@ -2058,6 +2151,20 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         preserve, = [step for step in job["steps"] if step.get("uses") == "./.github/actions/preserve-evidence"]
         self.assertEqual((row["class"], row["input_sets"], row["evidence"]),
                          ("rwa", ["native"], [preserve["with"]["name"]]))
+
+    def test_task_grant_broker_cases_run_in_qemu_smoke(self):
+        """A03: the normal, denied and client-fault broker cases each build their own profile and keep evidence."""
+        job = self.workflows[".github/workflows/ci.yml"]["jobs"]["qemu-smoke"]
+        preserve, = [step for step in job["steps"] if step.get("uses") == "./.github/actions/preserve-evidence"]
+        for feature, case in (("native-task-grant", "normal"), ("test-task-grant-denied", "denied"),
+                              ("test-task-grant-fault", "fault")):
+            with self.subTest(case=case):
+                step, = [step for step in job["steps"] if f"run_task_grant.py --case {case}\n" in step.get("run", "")]
+                self.assertEqual(step["run"].count(f'NOS_BUILD_DIR="$PWD/build/ci-task-grant-{case}"'), 2)
+                self.assertLess(step["run"].index(f"tools/build.py --kernel-feature {feature}\n"),
+                                step["run"].index(f"tools/run_task_grant.py --case {case}\n"))
+                self.assertIn(f"build/ci-task-grant-{case}/native-task-grant-{case}.json",
+                              preserve["with"]["path"])
 
 
 WINDOW_WORKFLOW = ".github/workflows/native-window-session.yml"
@@ -2179,12 +2286,30 @@ def render_matrix(text, combination):
     return re.sub(r"\$\{\{ matrix\.(\w+) \}\}", lambda match: combination[match.group(1)], text)
 
 
+# PR B of ADR-CI-MERGE-GROUP-SELECT-20261126: the merge-group gate and the two forms below it.
+GATE_JOB = "merge-group-gate"
+GATE_CONDITION = "${{ github.event_name == 'merge_group' }}"
+GATE_RUNS = ("!cancelled() && (needs.merge-group-gate.result != 'success' "
+             "|| needs.merge-group-gate.outputs.run != 'false')")
+GATE_ACTION = ".github/actions/merge-group-gate/action.yml"
+PACKAGING_NEEDS = ["host-checks", "native-window-session", "readonly-compile"]
+
+
+def below_gate_condition(needs):
+    """The `if` of a job below a gated root: the success of each need, nothing implicit."""
+    return "${{ " + " && ".join(["!cancelled()"] + [f"needs.{need}.result == 'success'" for need in needs]) + " }}"
+
+
 def packaging_gate_problems(jobs):
-    """Packaging may start only after every gate passed: full needs, no job-level override."""
+    """Packaging may start only after every gate passed: full needs, no other job-level override.
+
+    Its one `if` names the success of each need: below the merge-group gate, implicit success()
+    would skip it whenever the gate is skipped, and anything else (always()) could package after
+    a failed gate."""
     job = jobs["normal-and-package"]
-    problems = sorted({"host-checks", "native-window-session", "readonly-compile"} - set(job.get("needs", [])))
-    if "if" in job:
-        problems.append("job-level if: " + job["if"])
+    problems = sorted(set(PACKAGING_NEEDS) - set(job.get("needs", [])))
+    if job.get("if") != below_gate_condition(PACKAGING_NEEDS):
+        problems.append(f"job-level if: {job.get('if')}")
     return problems
 
 
@@ -2205,6 +2330,14 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
         cls.text = (ROOT / WINDOW_WORKFLOW).read_text(encoding="utf-8")
         cls.workflow = yaml.load(cls.text, Loader=UniqueKeyLoader)
         cls.jobs = cls.workflow["jobs"]
+
+    def work_jobs(self):
+        """Every job but the merge-group gate, whose shape MergeGroupGateTests pins."""
+        return {job_id: job for job_id, job in self.jobs.items() if job_id != GATE_JOB}
+
+    def assert_gated_root(self, job):
+        """A root job waits only for the merge-group gate, which never blocks it off merge_group."""
+        self.assertEqual((job["needs"], job["if"]), (GATE_JOB, "${{ " + GATE_RUNS + " }}"))
 
     def runs(self, job=None):
         """Join the run scripts of one job, or of the whole workflow."""
@@ -2252,14 +2385,14 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
         self.assertEqual(len(names), len(set(names)), "artifact names must be unique per run")
 
     def test_every_job_checks_tracked_source_integrity(self):
-        for job_id, job in self.jobs.items():
+        for job_id, job in self.work_jobs().items():
             with self.subTest(job=job_id):
                 commands = "\n".join(step.get("run", "") for step in job["steps"])
                 self.assertIn("git diff --exit-code", commands)
                 self.assertIn('test -z "$(git status --porcelain)"', commands)
 
     def test_layout_is_host_native_readonly_and_packaging(self):
-        self.assertEqual(set(self.jobs), {"host-checks", "native-window-session",
+        self.assertEqual(set(self.jobs), {GATE_JOB, "host-checks", "native-window-session",
                                           "readonly-compile", "normal-and-package"})
         self.assertNotIn("actions/download-artifact", self.text)
         self.assertNotIn("actions/upload-artifact", self.text)
@@ -2267,7 +2400,7 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
     def test_host_checks_run_once_without_scale_variants(self):
         job = self.jobs["host-checks"]
         self.assertNotIn("strategy", job)
-        self.assertNotIn("needs", job)
+        self.assert_gated_root(job)
         self.assertNotIn("NOS_WINDOW", json.dumps(job))
         commands = self.runs("host-checks")
         for required in ("tools/test_window_session.py", "tools.tests.test_package_windows_qemu",
@@ -2283,7 +2416,7 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
 
     def test_native_legs_are_independent_isolated_and_bounded(self):
         job = self.jobs["native-window-session"]
-        self.assertNotIn("needs", job)
+        self.assert_gated_root(job)
         self.assertEqual(job["strategy"]["max-parallel"], "5")
         self.assertEqual(job["strategy"]["fail-fast"], "false")
         self.assertEqual(job["timeout-minutes"], "${{ matrix.timeout }}")
@@ -2347,11 +2480,15 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
 
     def test_packaging_override_after_failed_gate_is_rejected(self):
         """An `always()` job condition would package after a failed native leg."""
-        header = "  normal-and-package:\n"
-        self.assertEqual(self.text.count(header), 1)
-        mutated = self.text.replace(header, header + "    if: ${{ always() }}\n")
-        jobs = yaml.load(mutated, Loader=UniqueKeyLoader)["jobs"]
-        self.assertEqual(packaging_gate_problems(jobs), ["job-level if: ${{ always() }}"])
+        line = f"    if: {below_gate_condition(PACKAGING_NEEDS)}\n"
+        self.assertEqual(self.text.count(line), 1)
+        dropped = below_gate_condition(PACKAGING_NEEDS[:2])
+        for replacement, problem in (("    if: ${{ always() }}\n", "job-level if: ${{ always() }}"),
+                                     (f"    if: {dropped}\n", f"job-level if: {dropped}"),
+                                     ("", "job-level if: None")):
+            with self.subTest(problem=problem):
+                jobs = yaml.load(self.text.replace(line, replacement), Loader=UniqueKeyLoader)["jobs"]
+                self.assertEqual(packaging_gate_problems(jobs), [problem])
 
     def test_every_offline_job_fetches_through_the_one_shared_action(self):
         """The locked manifest list exists once; each job fetches before offline work."""
@@ -2365,7 +2502,7 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
         self.assertEqual(set(manifests), FETCH_MANIFESTS)
         self.assertIn('cargo +1.100.0 fetch --locked --manifest-path "$manifest"', lines)
         self.assertNotIn("fetch --locked", self.text)
-        for job_id, job in self.jobs.items():
+        for job_id, job in self.work_jobs().items():
             with self.subTest(job=job_id):
                 steps = job["steps"]
                 uses = [item.get("uses") for item in steps]
@@ -2382,7 +2519,7 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
 
     def test_readonly_compile_is_standalone(self):
         job = self.jobs["readonly-compile"]
-        self.assertNotIn("needs", job)
+        self.assert_gated_root(job)
         self.assertIn("readonly-compile", job["env"]["NOS_BUILD_DIR"])
         self.assertNotIn("run_window_session.py", self.runs("readonly-compile"))
         self.step("readonly-compile", "--kernel-feature test-window-session-readonly")
@@ -2505,6 +2642,8 @@ class NativeCoreOnlyClosureTests(unittest.TestCase):
         for entry in self.catalogue["workflow"]:
             nonnative = entry.get("trigger", {}).get("pull_request", {}).get("paths_ignore") == "@nonnative"
             for job in entry["job"]:
+                if job.get("condition") == GATE_CONDITION:
+                    continue  # the merge-group gate never runs on pull_request
                 # @nonnative skips the whole workflow, so its host jobs count as well.
                 if job["activation"] == "automatic" and ("native" in job.get("input_sets", []) or nonnative):
                     yield entry, job
@@ -2779,7 +2918,13 @@ class CiImpactShadowTests(unittest.TestCase):
                 self.assertEqual(select["permissions"], {"contents": "read"})
                 for key in ("needs", "if", "continue-on-error", "strategy"):
                     self.assertNotIn(key, select)
-                checkout, python, plan, render = select["steps"]
+                checkout, python, trusted, plan, render = select["steps"]
+                self.assertEqual({key: value for key, value in trusted.items() if key != "name"}, {
+                    "if": "${{ github.event_name == 'merge_group' }}", "id": "trusted",
+                    "uses": "./.github/actions/trusted-base",
+                    "with": {"event-name": "${{ github.event_name }}",
+                             "merge-group-base-sha": "${{ github.event.merge_group.base_sha }}"}})
+                self.assertTrue(plan["with"]["base-sha"].startswith("${{ steps.trusted.outputs.base-sha || "))
                 self.assertEqual(checkout["uses"], host_checkout["uses"])
                 self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
                 self.assertEqual(plan["uses"], "./.github/actions/select-ci")
@@ -3007,6 +3152,352 @@ class HeavyRunnerRoutingTests(unittest.TestCase):
                       "vars.BARYON_HEAVY_ENABLED == 'true'"):
             self.assertIn(guard, HEAVY_RUNNER_EXPRESSION)
         self.assertNotIn("inputs.", HEAVY_RUNNER_EXPRESSION)
+
+
+def load_tool(name):
+    """Import tools/<name>.py under a private name (the trusted copies run the same file)."""
+    spec = importlib.util.spec_from_file_location(f"{name}_under_test", ROOT / "tools" / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def as_needs(job):
+    needs = job.get("needs", [])
+    return [needs] if isinstance(needs, str) else list(needs)
+
+
+class MergeGroupGateTests(unittest.TestCase):
+    """PR B of ADR-CI-MERGE-GROUP-SELECT-20261126: on merge_group only, a workflow that merge-hold
+    leaves out skips its jobs. The answer is merge-hold's own (merge_group_skip at T); off
+    merge_group, and on any doubt, every job runs exactly as without the gate."""
+
+    # Their pull_request path filters start them for LICENSE although no catalogue input matches.
+    STARTED_BY_LICENSE = {".github/workflows/native-hid-input.yml", ".github/workflows/native-xhci.yml",
+                          ".github/workflows/resource-pressure.yml"}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.workflows = {path.relative_to(ROOT).as_posix(): yaml.load(path.read_text(encoding="utf-8"),
+                                                                      Loader=UniqueKeyLoader)
+                         for path in sorted((ROOT / ".github/workflows").glob("*.y*ml"))}
+        cls.action = yaml.load((ROOT / GATE_ACTION).read_text(encoding="utf-8"), Loader=UniqueKeyLoader)
+        cls.catalogue_text = (ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8")
+        cls.catalogue = tomllib.loads(cls.catalogue_text)
+        cls.ci_impact, cls.merge_hold = load_tool("ci_impact"), load_tool("merge_hold")
+        cls.gated = {path for path, workflow in cls.workflows.items() if GATE_JOB in workflow["jobs"]}
+
+    def test_the_constants_are_the_selector_s(self):
+        self.assertEqual((GATE_JOB, GATE_CONDITION, GATE_RUNS),
+                         (self.ci_impact.GATE_JOB, self.ci_impact.GATE_CONDITION, self.ci_impact.GATE_RUNS))
+
+    def test_exactly_the_workflows_merge_hold_can_leave_out_have_a_gate(self):
+        # Left out needs an rwa gate, no core gate (always selected) and a pull_request path filter.
+        leavable = {entry["path"] for entry in self.catalogue["workflow"]
+                    if "merge_group" in entry["events"] and entry["path"] != ".github/workflows/merge-hold.yml"
+                    and not any(job["class"] == "core" for job in entry["job"])
+                    and any(job["class"] == "rwa" for job in entry["job"])
+                    and {"paths", "paths_ignore"} & set(entry.get("trigger", {}).get("pull_request", {}))}
+        self.assertEqual(self.gated, leavable)
+        self.assertEqual(len(self.gated), 19)
+        for path in (".github/workflows/ci.yml", ".github/workflows/merge-hold.yml", ".github/workflows/codeql.yml",
+                     ".github/workflows/component-leaves.yml", ".github/workflows/app-management-quality.yml",
+                     ".github/workflows/net-tls-quality.yml"):
+            self.assertNotIn(path, self.gated)
+
+    def test_required_checks_are_never_below_a_gate(self):
+        """A job skipped by its `if` passes branch protection, so gating a required check fails open."""
+        records = {(entry["path"], job["id"]): job for entry in self.catalogue["workflow"] for job in entry["job"]}
+        below_any = set()
+        for path, workflow in self.workflows.items():
+            jobs, below = workflow["jobs"], {GATE_JOB}
+            while True:
+                more = {job_id for job_id, job in jobs.items() if below & set(as_needs(job))} - below
+                if not more:
+                    break
+                below |= more
+            below_any |= {(path, job_id) for job_id in below - {GATE_JOB} if GATE_JOB in jobs}
+        self.assertEqual(len(below_any), 30)
+        for key in sorted(below_any):
+            with self.subTest(job=key):
+                record = records[key]
+                self.assertNotIn(record["class"], ("core", "publication"))
+                self.assertFalse(record.get("ruleset_required", False))
+                self.assertNotIn(self.workflows[key[0]]["jobs"][key[1]].get("name", key[1]),
+                                 ("host-quality", "qemu-smoke", "merge-hold"))
+        required = {key for key, record in records.items() if record.get("ruleset_required")}
+        self.assertTrue(required)
+        self.assertFalse({path for path, _ in required} & self.gated)
+
+    def test_each_gate_has_one_shape_and_asks_for_its_own_workflow(self):
+        checkout = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"][0]["uses"]
+        self.assertTrue(checkout.startswith("actions/checkout@"))
+        for path in sorted(self.gated):
+            with self.subTest(workflow=path):
+                self.assertEqual(self.workflows[path]["jobs"][GATE_JOB], {
+                    "name": f"{Path(path).stem} merge-group gate", "if": GATE_CONDITION,
+                    "runs-on": "ubuntu-24.04", "timeout-minutes": "20", "permissions": {"contents": "read"},
+                    "outputs": {"run": "${{ steps.gate.outputs.run }}"},
+                    "steps": [{"name": "Checkout", "uses": checkout,
+                               "with": {"persist-credentials": "false", "fetch-depth": "0"}},
+                              {"name": "Decide from merge-hold's plan", "id": "gate",
+                               "uses": "./.github/actions/merge-group-gate", "with": {"workflow": path}}]})
+                record, = [job for entry in self.catalogue["workflow"] if entry["path"] == path
+                           for job in entry["job"] if job["id"] == GATE_JOB]
+                self.assertEqual((record["class"], record["activation"], record["condition"]),
+                                 ("operational", "automatic", GATE_CONDITION))
+
+    def test_the_gate_action_asks_merge_hold_at_t_and_runs_on_any_doubt(self):
+        self.assertEqual(set(self.action["inputs"]), {"workflow"})
+        self.assertEqual(self.action["outputs"]["run"]["value"], "${{ steps.decide.outputs.run }}")
+        base, decide = self.action["runs"]["steps"]
+        self.assertEqual((base["id"], base["uses"], base["with"]), ("base", "./.github/actions/trusted-base", {
+            "event-name": "${{ github.event_name }}",
+            "merge-group-base-sha": "${{ github.event.merge_group.base_sha }}"}))
+        self.assertEqual(decide["env"], {
+            "WORKFLOW": "${{ inputs.workflow }}",
+            "BASE_SHA": "${{ steps.base.outputs.base-sha }}", "TESTED_SHA": "${{ steps.base.outputs.tested-sha }}",
+            "MERGE_GROUP_HEAD_SHA": "${{ github.event.merge_group.head_sha }}",
+            "MERGE_GROUP_HEAD_REF": "${{ github.event.merge_group.head_ref }}",
+            "MERGE_GROUP_BASE_REF": "${{ github.event.merge_group.base_ref }}",
+            "MERGE_GROUP_BASE_SHA": "${{ github.event.merge_group.base_sha }}"})
+        for step in (base, decide):
+            for key in ("if", "continue-on-error", "working-directory"):
+                self.assertNotIn(key, step)
+        self.assertNotIn("${{", decide["run"])
+        self.assertIn('python3 -B -I - "$RUNNER_TEMP/merge-hold-base/merge_hold.py"', decide["run"])
+        # merge-hold.yml runs the same trusted module from the same place.
+        hold = self.workflows[".github/workflows/merge-hold.yml"]["jobs"]["merge-hold"]["steps"][-1]["run"]
+        self.assertEqual(hold, 'python3 -B -I "$RUNNER_TEMP/merge-hold-base/merge_hold.py"')
+        self.assertTrue(callable(getattr(self.merge_hold, "merge_group_skip", None)))
+
+    def run_driver(self, stub, workflow=".github/workflows/native-rtc.yml", environment=None):
+        """Run the action's decision script against a stand-in merge_hold.py; return (exit, outputs)."""
+        script = self.action["runs"]["steps"][1]["run"]
+        driver = script.split("<<'PY'\n", 1)[1].rsplit("\nPY", 1)[0] + "\n"
+        with tempfile.TemporaryDirectory() as directory:
+            module, output = Path(directory) / "merge_hold.py", Path(directory) / "output"
+            if stub is not None:
+                module.write_text(stub, encoding="utf-8")
+            output.write_text("", encoding="utf-8")
+            env = {key: value for key, value in os.environ.items() if not key.startswith(("MERGE_GROUP_", "GITHUB_"))}
+            env.update({"WORKFLOW": workflow, "GITHUB_OUTPUT": str(output)}, **(environment or {}))
+            result = subprocess.run([sys.executable, "-B", "-I", "-", str(module)], input=driver, text=True,
+                                    capture_output=True, env=env, check=False)
+            self.last_stdout = result.stdout
+            return result.returncode, output.read_text(encoding="utf-8")
+
+    def test_the_fallback_notice_cannot_inject_a_workflow_command(self):
+        """N1: the error text is escaped as merge_hold.hidden_listing does, so the runner decodes nothing."""
+        stub = "def merge_group_skip(workflow):\n    raise ValueError('50%\\nline2\\n::error::x \\u00e9')\n"
+        self.assertEqual(self.run_driver(stub), (0, "run=true\n"))
+        self.assertEqual(self.last_stdout, '::notice::merge-group gate: "ValueError: 50%25\\nline2\\n::error::x '
+                                           '\\u00e9"; every job runs.\n')
+
+    def test_the_gate_says_skip_only_on_an_explicit_true(self):
+        skip = "def merge_group_skip(workflow):\n    return {}\n"
+        cases = [
+            ("", "true"),  # merge-hold at T predates PR B (this change itself in the queue)
+            (skip.format("True"), "false"),
+            (skip.format("workflow == '.github/workflows/native-rtc.yml'"), "false"),
+            (skip.format("workflow == '.github/workflows/native-power.yml'"), "true"),
+            (skip.format("False"), "true"), (skip.format("None"), "true"), (skip.format("1"), "true"),
+            (skip.format("'true'"), "true"), (skip.format("[True]"), "true"),
+            ("def merge_group_skip(workflow):\n    raise ValueError('doubt')\n", "true"),
+            ("import sys\ndef merge_group_skip(workflow):\n    sys.exit(0)\n", "true"),
+            ("def merge_group_skip(workflow):\n    print('run=false')\n    return False\n", "true"),
+            ("merge_group_skip = lambda: True\n", "true"),  # wrong signature
+            ("this is not python\n", "true"),
+            (None, "true"),  # no copy at all
+        ]
+        for stub, run in cases:
+            with self.subTest(stub=stub):
+                self.assertEqual(self.run_driver(stub), (0, f"run={run}\n"))
+        # The real function raises outside a well-formed merge_group run, so the gate runs every job.
+        real = (ROOT / "tools/merge_hold.py").read_text(encoding="utf-8")
+        self.assertEqual(self.run_driver(real), (0, "run=true\n"))
+        self.assertEqual(self.run_driver(real, environment={
+            "MERGE_GROUP_HEAD_SHA": "a" * 40, "MERGE_GROUP_HEAD_REF": "refs/heads/main",
+            "MERGE_GROUP_BASE_REF": "refs/heads/main", "MERGE_GROUP_BASE_SHA": "b" * 40}), (0, "run=true\n"))
+
+    def wiring(self, path):
+        """{job: 'gate' | 'root' | 'below' | 'untouched'} of a gated workflow, asserting each form."""
+        jobs, kinds = self.workflows[path]["jobs"], {GATE_JOB: "gate"}
+        runs = "${{ " + GATE_RUNS
+        for job_id, job in jobs.items():
+            if as_needs(job) == [GATE_JOB]:
+                condition = job["if"]
+                self.assertTrue(condition == runs + " }}" or (condition.startswith(runs + " && (")
+                                                               and condition.endswith(") }}")), (job_id, condition))
+                kinds[job_id] = "root"
+        while True:
+            more = {job_id for job_id, job in jobs.items()
+                    if job_id not in kinds and any(kinds.get(need) in ("root", "below") for need in as_needs(job))}
+            if not more:
+                break
+            for job_id in more:
+                self.assertEqual(jobs[job_id].get("if"), below_gate_condition(as_needs(jobs[job_id])), job_id)
+                kinds[job_id] = "below"
+        for job_id, job in jobs.items():
+            if job_id not in kinds:
+                kinds[job_id] = "untouched"
+                self.assertNotIn(GATE_JOB, json.dumps(job))
+                # Nothing that can run on merge_group escapes the gate (`always() && X` runs when X does).
+                condition = (job.get("if") or "").replace("${{ always() && ", "${{ ", 1) or None
+                self.assertIs(self.ci_impact.condition_value(condition, "merge_group"), False, job_id)
+        return kinds
+
+    def ungated(self, path):
+        """The workflow's jobs as they would be without the gate: roots and jobs below lose the wiring."""
+        jobs = json.loads(json.dumps(self.workflows[path]["jobs"]))
+        kinds = self.wiring(path)
+        del jobs[GATE_JOB]
+        for job_id, kind in kinds.items():
+            job = jobs.get(job_id)
+            if kind == "root":
+                del job["needs"]
+                own = job.pop("if")[len("${{ " + GATE_RUNS):-len(" }}")]
+                if own:
+                    job["if"] = "${{ " + own[len(" && ("):-1] + " }}"
+            elif kind == "below":
+                del job["if"]
+        return jobs
+
+    def started(self, jobs, event, failed=(), gate=("success", "true")):
+        """Result of each job in one uncancelled run, modelling the documented status semantics.
+
+        A job without a status function runs only when every job above it, transitively, succeeded
+        (implicit success()); the two gate forms and `always() && X` name their own condition
+        instead. `gate` is the
+        result and run output of the merge-group gate when it runs. An undecidable own condition
+        (inputs on workflow_dispatch) stays unknown on both sides."""
+        results, outputs = {}, {}
+
+        def ancestors(job_id):
+            found, todo = set(), list(as_needs(jobs[job_id]))
+            while todo:
+                need = todo.pop()
+                if need not in found:
+                    found.add(need)
+                    todo += as_needs(jobs[need])
+            return found
+
+        def result(job_id):
+            if job_id not in results:
+                job, needs = jobs[job_id], as_needs(jobs[job_id])
+                for need in needs:
+                    result(need)
+                condition = job.get("if")
+                runs_prefix = "${{ " + GATE_RUNS
+                if condition and condition.startswith(runs_prefix):
+                    own = condition[len(runs_prefix):-len(" }}")]
+                    own = "${{ " + own[len(" && ("):-1] + " }}" if own else None
+                    upstream = not (results[GATE_JOB] == "success" and outputs.get(GATE_JOB) == "false")
+                elif needs and condition == below_gate_condition(needs):
+                    own, upstream = None, all(results[need] == "success" for need in needs)
+                elif condition and condition.startswith("${{ always() && "):
+                    own, upstream = "${{ " + condition[len("${{ always() && "):], True
+                else:
+                    own, upstream = condition, all(results[need] == "success" for need in ancestors(job_id))
+                value = self.ci_impact.condition_value(own, event)
+                if value is None:
+                    results[job_id] = "unknown"
+                elif not (upstream and value):
+                    results[job_id] = "skipped"
+                elif job_id == GATE_JOB:
+                    results[job_id] = gate[0]
+                    if gate[1] is not None:
+                        outputs[job_id] = gate[1]
+                else:
+                    results[job_id] = "failure" if job_id in failed else "success"
+            return results[job_id]
+
+        for job_id in jobs:
+            result(job_id)
+        return {job_id: value for job_id, value in results.items() if job_id != GATE_JOB}
+
+    def test_jobs_run_as_without_the_gate_off_merge_group_and_on_any_doubt(self):
+        for path in sorted(self.gated):
+            jobs, plain = self.workflows[path]["jobs"], self.ungated(path)
+            events = sorted(self.workflows[path]["on"])
+            self.assertIn("merge_group", events)
+            for event in events:
+                gates = ([("success", "true"), ("success", ""), ("success", None), ("failure", None)]
+                         if event == "merge_group" else [("success", "true")])
+                for gate in gates:
+                    for failed in [()] + [(job_id,) for job_id in plain]:
+                        with self.subTest(workflow=path, event=event, gate=gate, failed=failed):
+                            self.assertEqual(self.started(jobs, event, failed, gate),
+                                             self.started(plain, event, failed))
+            with self.subTest(workflow=path, skipped=True):
+                skipped = self.started(jobs, "merge_group", gate=("success", "false"))
+                self.assertEqual(set(skipped.values()), {"skipped"})
+                self.assertIn("success", self.started(plain, "merge_group").values())
+        # Not vacuous: the model propagates a failure below a root, and implicit success() below a
+        # skipped gate would have skipped the jobs below a root on pull_request.
+        net = ".github/workflows/net-broker-quality.yml"
+        jobs = self.workflows[net]["jobs"]
+        self.assertEqual(self.started(jobs, "pull_request", ("net-broker-quality",)),
+                         {"net-broker-quality": "failure", "native-network-service": "skipped",
+                          "native-network-extensions": "skipped", "native-network-slirp": "skipped"})
+        implicit = json.loads(json.dumps(jobs))
+        del implicit["native-network-slirp"]["if"]
+        self.assertEqual(self.started(implicit, "pull_request")["native-network-slirp"], "skipped")
+        self.assertEqual(self.started(jobs, "pull_request")["native-network-slirp"], "success")
+
+    def plan(self, catalogue, event, changed):
+        """The plan the selector makes of `catalogue` for this diff (the steps of Planner._run)."""
+        ci = self.ci_impact
+        planner = ci.Planner(str(ROOT), event, "", "", None, ci.CATALOGUE_PATH, None, False, base_ref="main")
+        planner.catalogue, planner.changed = catalogue, changed
+        planner.policy_mode = catalogue["policy"]["mode"]
+        if catalogue["policy"]["events"][event] == "full" or event == "push":
+            planner.full("event-policy-full", [event])
+        planner.execs = ci.executions(catalogue)
+        ci.attach_globs(catalogue, planner.execs, [lambda path: (ROOT / path).read_bytes()
+                                                   if (ROOT / path).is_file() else None], require_roots=False)
+        always, planner.hits, unknown = ci.classify(changed, catalogue["policy"], planner.execs)
+        planner.classified = True
+        if always:
+            planner.full("always-full", [path for _, path in always])
+        if unknown:
+            planner.full("unknown-path", unknown)
+        return planner.finish()
+
+    def test_the_real_catalogue_leaves_out_the_gated_workflows_and_plans_as_without_gates(self):
+        left_out = {name: self.merge_hold.unselected_workflows(self.plan(tomllib.loads(self.catalogue_text),
+                                                                         "merge_group", [changed]))
+                    for name, changed in (("docs", "docs/CI-CONTRACT.md"), ("licence", "LICENSE"),
+                                          ("kernel", "kernel/src/lib.rs"), ("selector", "tools/ci_impact.py"))}
+        self.assertEqual(left_out["docs"], self.gated)
+        self.assertEqual(left_out["licence"], self.gated - self.STARTED_BY_LICENSE)
+        self.assertEqual(len(left_out["licence"]), 16)
+        self.assertNotIn(".github/workflows/native-foundation.yml", left_out["kernel"])
+        self.assertEqual(left_out["selector"], set())  # always_full
+        plain = tomllib.loads(self.catalogue_text)
+        for entry in plain["workflow"]:
+            entry["job"] = [job for job in entry["job"] if job["id"] != GATE_JOB]
+            for job in entry["job"]:
+                wiring = self.ci_impact.gate_wiring(job)
+                if wiring:
+                    own, needs = wiring
+                    del job["condition"], job["needs"]
+                    job.update({"condition": own} if own else {})
+                    job.update({"needs": needs} if needs else {})
+        self.assertEqual(self.ci_impact.validate(plain), [])
+        for event in ("pull_request", "push", "merge_group"):
+            for changed in ("docs/CI-CONTRACT.md", "LICENSE", "kernel/src/lib.rs", "tools/ci_impact.py",
+                            "services/net-stack/src/lib.rs"):
+                with self.subTest(event=event, changed=changed):
+                    gated = self.plan(tomllib.loads(self.catalogue_text), event, [changed])
+                    ungated = self.plan(plain, event, [changed])
+                    gate_rows = [row for row in gated["excluded"] if row["job"] == GATE_JOB]
+                    self.assertEqual(({row["reason"] for row in gate_rows}, len(gate_rows)), ({"operational"}, 19))
+                    gated["excluded"] = [row for row in gated["excluded"] if row not in gate_rows]
+                    for plan in (gated, ungated):
+                        plan.pop("plan_id")
+                        plan.pop("catalogue")
+                    self.assertEqual(gated, ungated)
 
 
 if __name__ == "__main__":

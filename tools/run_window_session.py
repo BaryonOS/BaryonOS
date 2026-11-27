@@ -1174,8 +1174,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                         shell_key(char)
                     workspace_wait("search")
                     shell_key("ret")
-                    # Interim until #541: F6 moved focus away, so Material shows its
-                    # input-lost banner once its latest generation is presented.
+                    # F6 moved focus away; since #541 Material keeps its normal status
+                    # (no input-lost banner) once its latest generation is presented.
                     wait("workspace-selected", lambda raw, s: comp(raw).get("FOCUSED") == 0 and
                          s["MATERIAL"] and comp(raw).get("MATERIAL") == s["MATERIAL"][-1]["GEN"],
                          image_check=lambda image: material_matches(image, fixture["frames"]["initial-focus-lost"], body)
