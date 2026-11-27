@@ -1257,6 +1257,13 @@ impl State {
             } else {
                 mode()
             }
+        } else if cfg!(feature = "test-m3-syscall-spin")
+            && slot == 1
+            && mode() == 0
+            && self.round < 2
+        {
+            // Slot 1 polls the fixture's again call (-8) in both mode-0 rounds.
+            22
         } else {
             0
         };
@@ -2513,6 +2520,10 @@ fn event(source: *const u64) -> *const u64 {
                         terminate = true;
                         state.exited = true;
                     }
+                    // Fixture only: a poll that never succeeds (again, -8).
+                    15 if cfg!(feature = "test-m3-syscall-spin") => {
+                        p.context[14] = (-8i64) as u64;
+                    }
                     _ => p.context[14] = (-2i64) as u64,
                 }
             }
@@ -2696,6 +2707,10 @@ fn event(source: *const u64) -> *const u64 {
             if cfg!(feature = "test-m3-syscall-spin") {
                 // Slot 0's ordinary syscalls must continue it inside its quantum.
                 assert!(state.syscall_calls > 2 * state.selections);
+                // Slot 1's again (-8) results must each end its turn, so its
+                // loop count cannot outrun its genuine selections.
+                let poller = &state.processes[1];
+                assert!(read_word(poller.physical(DATA + 8)) <= poller.selected + 1);
                 serial::write(b"M3:SYSCALL_SPIN:PASS\n");
             }
             state.complete_round();
