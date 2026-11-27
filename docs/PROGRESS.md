@@ -55,9 +55,12 @@ remote evidence, run the OS or authenticate the technical content of a claim.
 Under ADR-PROGRESS-OWN-ROWS-20261127 the owner of a criterion keeps that
 criterion's `delivery_review` rows current without asking permission for each
 update. Only its own rows change; the shared date and source commit above stay
-unchanged and the row text carries `updated YYYY-MM-DD @<sha>: …`. Score,
-status, rubric, weights and acceptance conditions are untouched, and the views
-are regenerated with `python3 tools/progress.py --write` and `--check`.
+unchanged and the row text carries `updated YYYY-MM-DD @<sha>: …`. A routine
+refresh leaves score, status, rubric, weights and acceptance conditions
+untouched, and the views are regenerated with `python3 tools/progress.py
+--write` and `--check`. Formal acceptance stays the existing procedure, which
+the criterion owner initiates and runs once every condition is demonstrably met
+and the required independent verification is complete.
 
 ## Fixed criteria register
 

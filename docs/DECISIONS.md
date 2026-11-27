@@ -39,9 +39,17 @@ that no longer holds. A single owner cannot keep every row current.
 - **Conditions.**
   - Only the rows of the owner's own criterion change.
   - Each claim rests on current, source-bound evidence.
-  - Rubric, weights, acceptance conditions, status and score stay unchanged.
-    A score rises only after full acceptance and completed independent
-    verification, under the existing procedure.
+  - A routine snapshot refresh leaves rubric, weights, acceptance conditions,
+    status and score unchanged.
+  - Formal acceptance is separate (owner clarification, 27 November 2026, no
+    later than 13:12:47 UTC by the PR guard's `date -u` log): once every
+    existing acceptance condition is demonstrably met and the required
+    independent verification is complete, the criterion owner initiates and
+    runs the existing acceptance procedure itself, which may change status and
+    score. No extra owner approval is needed unless that procedure explicitly
+    requires it. The PR guard checks that achieved criteria reach the formal
+    score without unnecessary delay; rubric, weights and acceptance conditions
+    stay unchanged.
   - The shared `date` and `source_commit` of `delivery_review` stay unchanged,
     because they date every row. The refresh date and commit go into the row
     text itself (`updated YYYY-MM-DD @<sha>: …`).
@@ -65,8 +73,8 @@ content of a claim.
 decision; lead ownership of the rows then applies again. Rows already refreshed
 stay as evidence-bound history.
 
-**Review criteria:** a refresh changes only the author's own criterion rows,
-leaves the shared header, score, status, rubric and weights unchanged, carries
+**Review criteria:** a routine refresh changes only the author's own criterion
+rows, leaves the shared header, score, status, rubric and weights unchanged, carries
 the date and commit in the row text, and passes `progress.py --check`.
 
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
