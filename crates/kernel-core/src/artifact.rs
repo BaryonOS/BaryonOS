@@ -48,7 +48,9 @@ pub struct Binding {
     pub length: u64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// Deliberately neither `Clone` nor `Copy`: a duplicate would carry its own
+/// link counter and could be released while the original still has links.
+#[derive(Debug, PartialEq, Eq)]
 pub struct Artifact {
     binding: Binding,
     /// Pinned public reference digest from the manifest descriptor.
@@ -204,6 +206,15 @@ mod tests {
     use crate::{Alias, Kind, Owner, Range, USER_QUOTA};
     use std::{boxed::Box, vec, vec::Vec};
 
+    // Compile-time: the lifecycle value has one owner. This line is ambiguous,
+    // so a build error, as soon as `Artifact` is `Clone` (and so also `Copy`).
+    trait NotClone<A> {
+        fn ok() {}
+    }
+    impl<T> NotClone<()> for T {}
+    impl<T: Clone> NotClone<u8> for T {}
+    const _: fn() = || <Artifact as NotClone<_>>::ok();
+
     const N: usize = 8192;
     const ID: u16 = 7;
     const REF: [u8; 32] = [0x5a; 32];
@@ -324,7 +335,12 @@ mod tests {
         assert_eq!(read_all(&mut a), BIND.length);
         let mut wrong = REF;
         wrong[31] ^= 1;
-        let mut rejected = a;
+        // The failure path runs on its own, identically prepared artifact.
+        let mut g = pool();
+        let (mut rejected, _) = filled(&mut g);
+        rejected.seal(&mut g).unwrap();
+        assert_eq!(rejected.link(BIND), Err(ArtifactError::State));
+        assert_eq!(read_all(&mut rejected), BIND.length);
         assert_eq!(rejected.verify(BIND, &wrong), Err(ArtifactError::Mismatch));
         assert_eq!(rejected.state(), State::Rejected);
         assert_eq!(rejected.link(BIND), Err(ArtifactError::State));
