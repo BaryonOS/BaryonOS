@@ -201,13 +201,16 @@ KV/scratch) need their own owner decisions (section 7).
   (`kernel/src/m2/m3.rs:1349-1350`). The artifact check above is therefore a new
   audit rule, and the subtree must never be linked into the kernel root, whose walk
   asserts that every table it reaches is its own (`kernel/src/m2/paging.rs:912`).
-- Artifact state machine: `Empty → Filling → Sealed → Verified → Released`.
-  `Sealed` requires `writable == 0` for every frame. In `Sealed`, only a holder of
-  the distinct `ARTIFACT_VERIFY` right (section 4.4, V2) may link; `Sealed →
-  Verified` requires an exact 32-byte digest equality with the pinned descriptor and
-  zero verifier links. `ARTIFACT_MAP` links are allowed only in `Verified`;
-  `Released` requires zero links of either kind. Every illegal transition is an
-  error.
+- Artifact state machine: `Empty → Filling → Sealed → Verified → Released`, plus
+  the terminal failure state `Sealed → Rejected → Released`. `Sealed` requires
+  `writable == 0` for every frame. Nothing links in `Sealed`: the verifier never
+  maps the artifact; it receives the sealed bytes through a bounded kernel
+  copy-out (section 4.4). `Sealed → Verified` requires that the verifier with the
+  distinct `ARTIFACT_VERIFY` right has read every byte sequentially in the
+  current generation and reports a 32-byte digest equal to the pinned descriptor.
+  Any mismatch moves the artifact to `Rejected`, which never links. Links are
+  allowed only in `Verified` (decision agreed with K, #534 issuecomment-7219369139).
+  `Released` requires zero links. Every illegal transition is an error.
 
 ### 4.2 Paging and process lifecycle
 
@@ -225,13 +228,22 @@ KV/scratch) need their own owner decisions (section 7).
   without `WRITE`; refuses if the entry is non-zero. `unlink_artifact(root)`:
   clears it. Both run in kernel context after the entry-time CR3 load
   (`kernel/src/m2/m3.rs:2172`), so the next return CR3 load flushes stale user
-  translations on one CPU (L9).
+  translations on one CPU (L9). Link and unlink act only on the calling process's
+  own address space, so no cross-CPU shootdown is needed while PCID and PGE are
+  off; adopting PCID/PGE later (K-2) must add explicit invalidation for this window.
+- The general mapper never reaches the window: the `va < 0x80000000` asserts in
+  `map_kind` and the private preflight stay. Every leaf under PDPT entry 2 is
+  `PRESENT | USER | NX` without `WRITE` and points to an `Owner::Artifact` frame of
+  a `Verified` artifact.
 - Process cleanup unlinks before `Paging::destroy` and decrements the link count;
+  under the artifact feature `Paging::destroy` asserts that PDPT entry 2 is zero,
+  so a live link can never be dropped silently with the process PDPT frame.
   `retire_authority` (`kernel/src/m2/m3.rs:2871`) also revokes the capability.
 - `audit_process` (`kernel/src/m2/m3.rs:1322`) is extended: PDPT entry 2 is zero,
-  or exactly the artifact directory with the flags above while the process holds
-  `ARTIFACT_MAP` and the artifact is `Verified`, or holds `ARTIFACT_VERIFY` and the
-  artifact is `Sealed`.
+  or exactly the shared artifact directory with the flags above while the process
+  holds `ARTIFACT_MAP` and the artifact is `Verified`. The shared directory and its
+  tables are not counted in the process's `tables` or `owned_table_count`, whose
+  values existing M3 tests compare.
 - User pointers (I2a). Today every syscall that translates a user pointer does so
   through `bounded_copy_plan`, which rejects any range ending above `0x80000000`
   before any lookup (`crates/kernel-core/src/user.rs:205-216`), and each lookup also
@@ -248,15 +260,30 @@ Follow the manifest-only, non-delegable rights in `capability-core`
 (`crates/capability-core/src/lib.rs:31-47`, checked as in
 `crates/capability-core/src/lib.rs:940`): a new right `ARTIFACT_MAP` naming one
 artifact object, issued by the manifest, without DERIVE or TRANSFER, bound to PID
-and generation. Syscall numbers are assigned by the kernel owner; the shape is:
+and generation. A second right `ARTIFACT_VERIFY` has the same properties and
+names the same object. Syscall numbers were assigned by K in the `0xA0` block
+(#534 issuecomment-7219369139); `0xA3–0xAF` stay reserved for later artifact
+calls, and outside the `native-ai-artifact` profile every `0xA*` number returns
+`-2` (ENOSYS) as contract §4 requires. The shape is:
 
 ```text
-artifact_map(handle)   -> Ok(base = 0x8000_0000, length) | Err(Denied | Stale | NotVerified | Busy)
-artifact_unmap(handle) -> Ok | Err(Denied | Stale | NotMapped)
+0xA0 artifact_map(handle)             -> Ok(base, length) | Err(Denied | Stale | NotVerified | Busy)
+0xA1 artifact_verify(handle, digest)  -> Ok | Err(Denied | Stale | NotSealed | Incomplete | Mismatch)
+0xA2 artifact_read(handle, buf, len)  -> Ok(copied, 0 at end) | Err(Denied | Stale | NotSealed | Fault)
+artifact_unmap(handle)                -> Ok | Err(Denied | Stale | NotMapped)   (number assigned in S1)
 ```
 
-No address, length, offset or digest is accepted from user space; the kernel
-returns base and exact length. Bytes after `length` within the last page are zero.
+`artifact_map` needs `ARTIFACT_MAP`; `artifact_read` and `artifact_verify` need
+`ARTIFACT_VERIFY`. No address, length, offset or digest of the artifact itself is
+accepted from user space: the kernel returns base and exact length, keeps the read
+cursor in the artifact state, and `artifact_read` copies at most one fixed chunk
+(64 KiB) per call into the caller's private buffer through `bounded_copy_plan`,
+so every call is bounded (contract §3) and the user-space loop is resumable.
+`artifact_verify` is an O(1) 32-byte comparison and returns `Incomplete` until the
+cursor equals the length. `Mismatch` moves the artifact to `Rejected`. Bytes after
+`length` within the last page are zero. The 32-byte `digest` argument is the
+verifier's result; the reference digest comes only from the manifest-pinned
+descriptor.
 
 ### 4.4 Who verifies the hash
 
@@ -266,8 +293,9 @@ cryptographic protocol or storage policy in privileged code. The ordering rule i
 fixed: seal before the final hash pass, link to an `ARTIFACT_MAP` holder only
 after a match. Placements: (V1) the kernel hashes through the RO/NX scratch
 reader; (V2) a trusted ring-3 verifier holding a distinct, manifest-only
-`ARTIFACT_VERIFY` right maps the sealed frames read-only, hashes them with the
-existing verifier (`experiments/ai/model-store-contract/README.md:25-31`) and
+`ARTIFACT_VERIFY` right reads the sealed frames through the bounded kernel
+copy-out `artifact_read` (section 4.3; the verifier never maps the artifact, so
+nothing links before `Verified`), hashes them with the existing verifier (`experiments/ai/model-store-contract/README.md:25-31`) and
 reports the digest, which the kernel compares byte-for-byte with the pinned
 descriptor. Because the pinned digest is public, the kernel compare does not detect a
 verifier that reports it without hashing: under V2 the verifier joins the trusted
@@ -298,13 +326,14 @@ Host (`kernel-core`, `capability-core`):
 
 1. User alias of an `Artifact` frame with `writable` or `executable` is refused.
 2. Seal is refused while any writable alias exists; any write alias after seal is refused.
-3. Link in `Filling`, `Sealed` or `Released` state is refused; `Verified` with a
-   one-bit digest difference is unreachable.
+3. Link in `Filling`, `Sealed`, `Rejected` or `Released` state is refused;
+   `Verified` with a one-bit digest difference or before the read cursor reaches the
+   length is unreachable; a mismatch moves the artifact to `Rejected`.
 4. Artifact reservation beyond the budget fails with no owner change; USER_QUOTA
    counts are unchanged by artifact frames.
 5. Release with a non-zero link count is refused; release zeroes every frame.
-6. `ARTIFACT_MAP` cannot be derived, transferred, or used by another PID or after
-   PID reuse (stale handle).
+6. `ARTIFACT_MAP` and `ARTIFACT_VERIFY` cannot be derived, transferred, or used by
+   another PID or after PID reuse (stale handle); neither right implies the other.
 
 Native (QEMU, one CPU):
 
@@ -324,6 +353,10 @@ Native (QEMU, one CPU):
     maps successfully, proving it is not charged to the process quota.
 15. A syscall that takes a user buffer, given a pointer into `0x80000000..`,
     returns an error; no bytes are copied and the kernel does not fault (I2a).
+16. Access after unlink faults (#PF); a second link is refused; `Paging::destroy`
+    with a linked window asserts; `artifact_read` or `artifact_verify` without
+    `ARTIFACT_VERIFY` is refused before any state change (K's list,
+    #534 issuecomment-7219369139).
 
 ## 6. Acceptance commands, evidence limits and first slice
 
@@ -346,8 +379,10 @@ rule, the state machine and the `ARTIFACT_MAP` right (tests 1–6); paging
 link/unlink and the audit extension; one native fixture in the existing 256 MiB
 profile with a 3,072-page synthetic artifact filled by the kernel with a
 deterministic pattern, a holder, a peer without the right and one slot reuse
-(tests 7–15). The digest comparison in S1 is fed by a build-time host digest and
-labelled as a test stub until Q1 is decided. Because `native-ai-job` excludes
+(tests 7–16). The digest reported in S1 is a build-time host digest, labelled as a
+test stub until S2 adds the ring-3 verifier. The S1 pull request adds the `0xA0`–`0xA2`
+rows to `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md` §4, and K reviews the
+paging and audit hunks as interface owner. Because `native-ai-job` excludes
 `milestone-m4`, S1 needs its own profile; the name `native-ai-artifact` and a
 runner `tools/run_ai_artifact.py` are proposals only (Q4).
 
