@@ -28,7 +28,7 @@ fn known_rights_do_not_allow_unknown_permission_bits() {
     for value in 0..=Rights::KNOWN_MASK {
         assert_eq!(Rights::from_bits(value).unwrap().bits(), value);
     }
-    for value in [131072, 1 << 31, 1 << 63, u64::MAX] {
+    for value in [Rights::KNOWN_MASK + 1, 1 << 31, 1 << 63, u64::MAX] {
         assert_eq!(Rights::from_bits(value), Err(Error::InvalidRights));
     }
     assert_eq!(Rights::KNOWN_MASK, capability_core::KNOWN_RIGHTS);
@@ -45,6 +45,7 @@ fn known_rights_do_not_allow_unknown_permission_bits() {
     );
     assert_eq!(Rights::INPUT.bits(), capability_core::INPUT);
     assert_eq!(Rights::POWER.bits(), capability_core::POWER);
+    assert_eq!(Rights::ANCHOR.bits(), capability_core::ANCHOR);
 }
 
 #[test]
