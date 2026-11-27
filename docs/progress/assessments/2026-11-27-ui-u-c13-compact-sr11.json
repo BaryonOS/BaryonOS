@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "d5124431",
+  "assessment_basis": "parent_commit",
+  "branch": "fix/ui-u05-compact-recovery",
+  "task": "UI-U-C13-20261127 U05 compact recovery (#630, ADR-U-OWNER-20261127): compact status copy and the save-progress bar inside the viewport; SR11 enabled",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Frame::status_text paints and announces the full status label wherever it fits its (possibly grown) status area and otherwise a one-line compact_status_label copy of at most 272 logical px; the save-progress bar uses the rect's second line where one exists, else the divider band above the text, instead of the bottom edge of a 240-high viewport. Test evidence: SR11 in recovery_matrix.rs is no longer ignored; new render_regressions sweeps cover every status on six screens at logical heights 240..359 (320, 640 @ 200 %, 700 and 720 wide), the compact UX-SR07 distinctions and the progress band; two mutation controls (no compact fallback; old bar position) fail as expected. Host suites, clippy -D warnings, fmt and the x86_64-unknown-none build pass on 1.100.0. Native window-session evidence comes from hosted CI on the PR head. The compact copy is a UX-writing judgement awaiting the human trials; the workspace panels' elided status line (render.rs Paint::workspace) is not changed and stays open on #630. U05 is not fully met: human trials and the remaining recovery rows stay open."
+}
