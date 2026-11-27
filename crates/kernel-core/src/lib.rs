@@ -31,9 +31,11 @@ pub enum Owner {
     User(u64, Kind),
     /// One frame of an immutable artifact (L01 weights). It never has an
     /// executable alias, a user alias only once `sealed`, and no writable alias
-    /// after sealing. `id` 0 is invalid.
+    /// after sealing. `id` 0 is invalid; `generation` prevents stale values
+    /// from changing frames after an id is reused.
     Artifact {
         id: u16,
+        generation: u32,
         sealed: bool,
     },
 }
@@ -312,15 +314,23 @@ impl<const N: usize> Frames<N> {
     /// global [`ARTIFACT_QUOTA`] across every artifact id; they never count
     /// toward [`USER_QUOTA`].
     fn artifact_preflight(&self, owner: Owner, count: usize) -> Result<(), Error> {
-        let Owner::Artifact { id, sealed } = owner else {
+        let Owner::Artifact {
+            id,
+            generation,
+            sealed,
+        } = owner
+        else {
             return Ok(());
         };
         if id == 0 || sealed {
             return Err(Error::Owner);
         }
-        // A sealed artifact never grows: a new frame of the same id could
-        // otherwise receive a writable alias after sealing.
-        if self.owners.contains(&Owner::Artifact { id, sealed: true }) {
+        // An id cannot be reused until every old frame is free. A sealed
+        // generation cannot grow or regain a writable alias.
+        if self.owners.iter().any(|entry| {
+            matches!(entry, Owner::Artifact { id: i, generation: g, sealed: s }
+                if *i == id && (*g != generation || *s))
+        }) {
             return Err(Error::Owner);
         }
         let owned = self
@@ -337,14 +347,18 @@ impl<const N: usize> Frames<N> {
         Ok(())
     }
 
-    /// Seal every frame of artifact `id`: all `pages` frames must exist, be
+    /// Seal every frame of artifact `(id, generation)`: all `pages` frames must exist, be
     /// unsealed and have no writable alias. Validation completes before any
     /// owner changes; afterwards no writable alias can be recorded.
-    pub fn seal_artifact(&mut self, id: u16, pages: usize) -> Result<(), Error> {
+    pub fn seal_artifact(&mut self, id: u16, generation: u32, pages: usize) -> Result<(), Error> {
         let mut found = 0usize;
         for (owner, alias) in self.owners.iter().zip(self.aliases.iter()) {
             match owner {
-                Owner::Artifact { id: i, sealed } if *i == id => {
+                Owner::Artifact {
+                    id: i,
+                    generation: g,
+                    sealed,
+                } if *i == id && *g == generation => {
                     if *sealed {
                         return Err(Error::Owner);
                     }
@@ -360,8 +374,14 @@ impl<const N: usize> Frames<N> {
             return Err(Error::Range);
         }
         for owner in self.owners.iter_mut() {
-            if matches!(owner, Owner::Artifact { id: i, .. } if *i == id) {
-                *owner = Owner::Artifact { id, sealed: true };
+            if matches!(owner, Owner::Artifact { id: i, generation: g, .. }
+                if *i == id && *g == generation)
+            {
+                *owner = Owner::Artifact {
+                    id,
+                    generation,
+                    sealed: true,
+                };
             }
         }
         Ok(())

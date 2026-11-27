@@ -122,7 +122,7 @@ impl Artifact {
             return Err(ArtifactError::State);
         }
         frames
-            .seal_artifact(self.binding.id, self.pages())
+            .seal_artifact(self.binding.id, self.binding.generation, self.pages())
             .map_err(ArtifactError::Frames)?;
         self.state = State::Sealed;
         Ok(())
@@ -230,7 +230,11 @@ mod tests {
         f
     }
     fn owner(sealed: bool) -> Owner {
-        Owner::Artifact { id: ID, sealed }
+        Owner::Artifact {
+            id: ID,
+            generation: BIND.generation,
+            sealed,
+        }
     }
     /// A reserved artifact in `Filling`, with no fill alias recorded.
     fn filled(f: &mut Frames<N>) -> (Artifact, Vec<u64>) {
@@ -317,6 +321,41 @@ mod tests {
         a.begin_fill().unwrap();
         assert_eq!(a.seal(&mut f), Err(ArtifactError::Frames(Error::Range)));
         assert!(short.iter().all(|&pa| f.owner(pa) == Ok(owner(false))));
+    }
+
+    #[test]
+    fn stale_generation_cannot_seal_reused_frames() {
+        let mut f = pool();
+        let old_binding = Binding {
+            generation: BIND.generation - 1,
+            ..BIND
+        };
+        let mut stale = Artifact::new(old_binding, REF).unwrap();
+        let old_owner = Owner::Artifact {
+            id: ID,
+            generation: old_binding.generation,
+            sealed: false,
+        };
+        let mut old_pages = vec![0; stale.pages()];
+        f.allocate_many(old_owner, &mut old_pages, |_| {}).unwrap();
+        stale.begin_fill().unwrap();
+        let mut premature = [0; 1];
+        assert_eq!(
+            f.allocate_many(owner(false), &mut premature, |_| {}),
+            Err(Error::Owner)
+        );
+        for pa in old_pages {
+            f.free(pa, old_owner, |_| {}).unwrap();
+        }
+
+        let (current, current_pages) = filled(&mut f);
+        assert_eq!(current.state(), State::Filling);
+        assert_eq!(stale.seal(&mut f), Err(ArtifactError::Frames(Error::Range)));
+        assert_eq!(stale.state(), State::Filling);
+        assert_eq!(current.state(), State::Filling);
+        assert!(current_pages
+            .iter()
+            .all(|&pa| f.owner(pa) == Ok(owner(false))));
     }
 
     // Design test 3: nothing links before Verified; Verified needs a complete
@@ -440,6 +479,7 @@ mod tests {
             f.allocate(
                 Owner::Artifact {
                     id: ID + 1,
+                    generation: BIND.generation,
                     sealed: false
                 },
                 |_| {}
@@ -451,6 +491,7 @@ mod tests {
             f.allocate(
                 Owner::Artifact {
                     id: 0,
+                    generation: BIND.generation,
                     sealed: false
                 },
                 |_| {}
