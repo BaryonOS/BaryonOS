@@ -35,10 +35,34 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   #573 (B01-LOCK L1, issue #564) as 40c10d3a; #590 (S3 LOCK noscrub red-control profile for H05-T5d) as 9fe65ba9
   on 27 Nov. H adds the `power-s3-noscrub` case after #597 (pitfall reported: `S3_SYSTEM_FEATURES` must include
   the profile).
-- cycle: REL-05 §7.9 M1-HAUTH halt. branch: claude/b03-rel05-hauth-unenrolled-20261127, worktree
-  ~/projects/BaryonOS-worktrees/b03-hauth-unenrolled. Live head, checks and evidence: the PR body and the newest
-  HANDOFF comment on that PR. The verify-only TEST loader halts `TPM_UNENROLLED` with `RECOVERY:REQUIRED` on an
-  unset ownerAuth (never-provisioned or cleared); the enrollment build is the unauthenticated TEST stand-in for S3b.
+- cycle: REL-05 §7.9 M1-HAUTH halt, PR #608, branch claude/b03-rel05-hauth-unenrolled-20261127. Live head, checks
+  and evidence: the PR body and the newest "HANDOFF — specialist B" comment on #608 (plus its addendum). The
+  verify-only TEST loader halts `TPM_UNENROLLED` with `RECOVERY:REQUIRED` on an unset ownerAuth (never-provisioned or
+  cleared); the enrollment build is the unauthenticated TEST stand-in for S3b.
+- Canonical state (portability rule, 27 Nov): this file plus the newest B HANDOFF comment. Any agent resumes from
+  them alone after checking branch, HEAD, `git status --short`, ownership and freshness; Graphify and client memory
+  are optional context, and local paths are optional additions.
+
+## Standing owner rules for B (27 Nov, relayed by the PR guard)
+
+- Project integrity: per own PR, B maintains labels, milestone, Project fields (Status, Subsystem, Work Type; the
+  local token lacks `read:project`, so the PR guard sets them), `Part of`/`Refs`, source-bound evidence, a D3
+  assessment in `docs/progress/assessments/` (also for docs or handoff PRs), this file and a Graphify `remember`
+  note for durable knowledge. The PR body names the affected criteria and the evidence behind any progress claim. A
+  merge is not acceptance.
+- `docs/progress.json` `delivery_review`: B keeps the implementation and verification rows of B01–B06 current
+  without asking per update: own rows only, current source-bound evidence, rubric, weights and acceptance text
+  unchanged, the global snapshot `date`/`source_commit` untouched (date and SHA in the row text), then
+  `tools/progress.py --write` and `--check`.
+- Criterion acceptance (owner, 27 Nov 13:14:07Z, correcting 13:12:47Z): B is the technical owner of its criteria
+  and delivers implementation, snapshot-row refreshes (score unchanged), verification and the acceptance evidence.
+  When B believes every acceptance condition of a B criterion is met and the required independent verification is
+  complete, B reports the criterion ID and evidence links to the PR guard. Formal acceptance and the score change are
+  done by the PR guard, never by B; conditions requiring human acceptance or an owner decision keep that requirement.
+  No B criterion qualifies on 27 Nov.
+- B01 stays accepted (reassessment of 24 Nov). LOCK/UNLOCK (ADR-KEYRING-LOCK, issue #564) lies outside its
+  acceptance text and counts towards H05; the earlier "B01 stays open" wording is rectified by
+  `docs/progress/assessments/2026-11-27-b01-criterion-wording.json`.
 
 ## Evidence / NOT RUN (B03-REL05, landed via #524)
 
@@ -69,7 +93,7 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   event with one `H(CLOSED)` digest per active bank, no earlier PCR 13 entry; seventeen native cases at source
   42e48d3c; `docs/verification/b03-rel05-hauth-eventlog-20261126/`, local commit 477674bf),
   the unenrolled halt (verify-only `tpm-hauth-verify-test` halts `TPM_UNENROLLED` + `RECOVERY:REQUIRED`, raw 35,
-  state unchanged, on a never-provisioned and on a cleared TPM; nineteen native cases at source 5b392b72;
+  state unchanged, on a never-provisioned and on a cleared TPM; nineteen native cases at source 5b392b72, repeated at aa95a441 after a main merge;
   `docs/verification/b03-rel05-hauth-unenrolled-20261127/`).
 - NOT RUN: a fault-injected interruption of a real loader boot and a torn NV write (every provisioning step is
   covered by a host-seeded cut), the event log on halt paths, the SHA-1-format log and the final events table, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
@@ -105,6 +129,11 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Queued B work (no PR yet)
 
+- Next after #608 lands: REL-05 S7, the kernel cold-freshness anchor service for N04
+  (`docs/implementation/COLD-FRESHNESS-ANCHOR.md`; promised to N on #529, issuecomment-7217115559). A thin adapter
+  implements N's `FreshnessAnchor` over a capability for `AnchorDomain::Network` only; the syscall number, the
+  capability kind and the TEST extend budget are fixed in that PR and posted on #529 before N wires its S5 run. In the
+  same PR: refresh the B `delivery_review` rows with the #608 landing SHA.
 - Later: B02-T3 cold rollback anchor consumers and B04 production custody (both need owner decisions); SUSPEND and
   UNLOCK for B01-LOCK (UNLOCK blocked on O2, O5 and O8; no production LOCK before O5).
 
@@ -116,10 +145,12 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- The M1-HAUTH halt PR: after the hosted gates are green (first candidate failure: the `clear` seed on swtpm 0.7.3 in
-  `native-system.yml`), 0 unresolved threads, `mergeStateStatus` CLEAN/HAS_HOOKS/BEHIND, `autoMergeRequest` null and
-  the open-run check `[]`: ready, then enqueue with GraphQL `enqueuePullRequest` (never `gh pr merge` while BLOCKED).
-  Report the landing SHA to the PR guard.
+- #608: after the hosted gates are green on the current head, 0 unresolved threads, `mergeStateStatus`
+  CLEAN/HAS_HOOKS/BEHIND, `autoMergeRequest` null and the open-run check `[]`, enqueue with GraphQL
+  `enqueuePullRequest` and `expectedHeadOid` (never `gh pr merge` while BLOCKED). The required `merge-hold` check
+  fails when the head lacked the base tip at push time (`BASE_SHA` of the push event); fetch and merge `main`
+  immediately before every push and let the gates run again. Report the
+  landing SHA to the PR guard.
 - Then the queued items above, one PR at a time. TEST/QEMU/swtpm only; the progress score stays 43/100.
 - The detailed #524 slice history (M1-HAUTH provisioning, seeded cases, PCR 13 banks, event log) is in the #524
   HANDOFF/CHECKPOINT comments and the `docs/verification/b03-rel05-*` directories.

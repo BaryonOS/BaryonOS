@@ -22,6 +22,17 @@ criterion and grants no progress points; REL-05 stays open.
   Unchanged: the probe loader `b231b4b9…` and the default loader `0065fdf6…`.
   `kernel.elf` is `8eb93c60…` (`absent`: `35775f1d…`); it changed only through
   the `main` merge. The reports' artifact binding passed on every boot.
+- Re-run after a second `main` merge (`c6e8cb5c` merged as `ceb7a733`,
+  13:15 to 13:18 UTC, `source_hash()` `aa95a441…`): the same nineteen cases
+  exited 0, and every raw QEMU exit and guest stdout SHA-256 per boot equals
+  the table below. The four loader binaries are unchanged; `kernel.elf` is
+  `f80679a5…` (`absent`: `979bc841…`), changed only through that merge. On
+  that tree the host gates were repeated with exit 0 each: `tools.tests.test_tpm`
+  16 tests, `tools/tests` discovery 1370 tests (15 skipped), `compileall` and
+  `tools/test.py` (10 acceptance groups).
+- Hosted: `native-system.yml` (FR-I01) ran `python3 -B -m unittest
+  tools.tests.test_tpm` with the pinned swtpm 0.7.3 on head `ef107327`: 16 tests
+  OK, including the new `clear` seed test (run 45990225348).
 
 ## Change
 
@@ -133,8 +144,7 @@ the split changed no output on any boot that provisions or verifies.
 
 ## NOT RUN
 
-- swtpm 0.7.3 (hosted `native-system.yml` runs `tools.tests.test_tpm` with it,
-  including the new `clear` seed test), the hosted OVMF 2024.02 image and
-  hosted CI for the loader-* cases.
+- The hosted OVMF 2024.02 image and hosted CI for the loader-* cases (no hosted
+  job runs them; swtpm 0.7.3 ran only the `tools.tests.test_tpm` suite).
 - A physical TPM or firmware; a firmware-mediated clear (physical-presence
   interface); an EK read-back across the clear; independent human audit.
