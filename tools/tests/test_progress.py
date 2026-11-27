@@ -344,6 +344,16 @@ class RowReportTests(unittest.TestCase):
         self.task_file(criteria=["B01"])
         self.assertIn("row-without-new-updated-marker: B01 row 1", self.report()[1])
 
+    def test_renamed_row_cannot_reuse_a_base_marker(self):
+        # CI follow-up (i): a description edit leaves no description-keyed predecessor.
+        self.item()["observation"] += " updated 2026-11-26 @abcdef2: old."
+        self.base = self.commit("marker at base")
+        self.item()["description"] += " Reworded."
+        self.task_file(criteria=["B01"])
+        self.assertIn("- row-without-new-updated-marker: B01 row 1", self.report()[1])
+        self.item()["observation"] += " updated 2026-11-27 @abcdef3: reworded."
+        self.assertNotIn("row-without-new-updated-marker", self.report()[1])
+
     def test_added_local_evidence_must_exist_at_the_header_source_commit(self):
         (self.root / "later.txt").write_text("Added after the header source commit.\n")
         self.base = self.commit("later evidence")

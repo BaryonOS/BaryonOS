@@ -445,13 +445,16 @@ def row_findings(base: dict, head: dict, named: set[str]) -> tuple[list[str], li
         if cid not in new:
             findings.append(f"criterion-removed: {label_}")
             continue
-        before = {item["description"]: item for item in old.get(cid, {}).get("requirements", [])}
+        base_rows = old.get(cid, {}).get("requirements", [])
+        before = {item["description"]: item for item in base_rows}
+        # Fresh means absent from every base row of the criterion, so a renamed row cannot reuse its old marker.
+        base_markers = set().union(*map(row_markers, base_rows))
         for index, item in enumerate(new[cid]["requirements"], 1):
             prior = before.get(item["description"])
             if item == prior:
                 continue
             where = f"{label_} row {index}"
-            if not row_markers(item) - row_markers(prior):
+            if not row_markers(item) - base_markers:
                 findings.append(f"row-without-new-updated-marker: {where}")
             added = [ref for ref in item["evidence"]
                      if not ref.startswith("https://") and ref not in (prior or {}).get("evidence", [])]
