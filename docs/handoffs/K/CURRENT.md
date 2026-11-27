@@ -1,81 +1,138 @@
-# Specialist K — current handoff
+# Specialist K — resume pointer
 
-Compact resume pointer for the K workstream (kernel engineering, maintenance
-and performance). It is not a backlog: criteria live in `docs/progress.json`
-(K01–K07), tasks come from other specialists' kernel dependencies and GitHub.
+Compact resume pointer for the kernel engineering, maintenance and performance
+workstream (K01–K07 in `docs/progress.json`). This file is not a backlog:
+tasks come from kernel dependencies of other workstreams, issues and pull
+requests. Newer ADRs and live evidence take precedence over it.
 
-## Scope and mandate
+The canonical live state is the latest `HANDOFF K` comment on issue #614
+(as of 27 November 2026:
+[issuecomment-7217960025](https://github.com/BaryonOS/BaryonOS/issues/614#issuecomment-7217960025))
+and the open K pull requests. This file plus GitHub is sufficient to resume;
+local paths at the end are optional additions for a local session.
+
+## Resuming
+
+A resuming agent, whatever its client, first verifies branch, exact HEAD,
+`git status --short`, ownership and the freshness of the latest `HANDOFF K`
+comment against GitHub, and never redoes completed work. Graphify is optional
+context; client-specific notes are adapters and hold no state.
+
+## Scope, mandate and working agreements (recorded once)
 
 - **Scope:** `kernel/` development, maintenance and optimisation, and kernel
-  dependencies of other specialists (project owner, 26 Nov 2026 ~21:25Z).
-  The original K roadmap is complete; it is not reopened generically.
-- **Continuous mandate (project owner, 26 Nov 2026 22:24Z):** K owns kernel
+  dependencies of other specialists (project owner, 26 November 2026). The
+  original K roadmap is complete and is not reopened generically.
+- **Continuous mandate (project owner, 26 November 2026):** K owns kernel
   maturity: scheduler and switches, IPC, memory, SMP and locks, IRQs and
   timers, idle and energy, boot, robustness, telemetry, technical debt and
-  other specialists' kernel blockers. Priority order: user or performance
-  gain > reliability and security > blockers for others > cost and risk >
-  CI time. Measure targeted before and after; no broad audit and no
-  speculative change. Escalate only fundamental architecture changes,
-  material security risks or changes to binding contracts. With nothing
-  demonstrably valuable left, K is on call.
-- **Rules:** root `AGENTS.md`, `kernel/AGENTS.md`, Security Floor, D1–D3
-  review policy, GR-12 for Graphify review findings, autonomous merge queue
-  (own merge-ready PRs, PR guard coordinates), handoff and CLEAR_READY at
-  70/75/80/85 % of a 400K window.
+  other specialists' kernel blockers. Priority: user or performance gain >
+  reliability and security > blockers for others > cost and risk > CI time.
+  Measure before and after; no broad audit and no speculative change.
+  Escalate only fundamental architecture changes, material security risks or
+  changes to binding contracts. With nothing demonstrably valuable left, K is
+  on call.
+- **Rules:** root `AGENTS.md`, `kernel/AGENTS.md`, the Security Floor, D1–D3
+  review policy (CI files need a D2 delta review by CI), GR-12 for Graphify
+  review findings.
+- **Merge route:** K enqueues its own merge-ready pull requests in its own
+  area under ADR-MERGE-QUEUE-AUTONOMY-20261126, which the project owner
+  extended to all appointed specialists on 27 November 2026 (relayed by the PR
+  guard; Specialist G records it). The PR guard coordinates and verifies
+  landings. Never `--admin`, never auto-merge; CI pull requests go first.
+  Before enqueueing: all applicable gates green, `merge-hold` green,
+  `autoMergeRequest` null, no unresolved review threads, no queued or
+  in-progress run on the head; enqueue with
+  `gh pr merge <N> --squash --match-head-commit <sha>` and check
+  `autoMergeRequest` again afterwards. A `merge-hold` failure with only
+  `Pending:` lines means wait for its re-check; a base-tip failure means merge
+  `main` once (no rebase) and push; `Failed:` means repair.
 - **Gate preserved:** K03 (isolated preempted processes) covers the
   single-CPU scheduler; its regression gates are the `milestone-m3` smoke,
-  the `test-m3-*` fault profiles and `m3-single-regression`.
+  the `test-m3-*` cases (`tools/gate_contract.py` `M3_CASES`, including
+  `test-m3-syscall-spin`) and `m3-single-regression` (`tools/test_smp.py`).
 
-## Current cycle
+## Invariants and security boundaries
 
-- Session "BaryonOS - Specialist K", registered with "BaryonOS - PR Bewaker".
-- Branch `claude/k-sched-continue-20261126`, worktree
-  `~/projects/BaryonOS-worktrees/k-sched`, base `main` `bbf4df38` (contains
-  #573 `40c10d3a`, #588 `295cb307`, #538 `ac495b2f` and #582 `a96963e9`).
-- Scratch: `~/projects/BaryonOS-scratch/k/` (`RESUME.md`, design note
-  `C3-DESIGN.md` revision 2, `C3-IMPL-SPEC.md`, batch logs).
+- Single-CPU scheduling follows ADR-K-SCHED-CONTINUE-20261126 and
+  `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md` §3: a continued
+  caller never outlives its quantum (I1); yield, exit, termination, faults,
+  non-`Ready` returns and the timer tick always select (I2); every entry runs
+  the full selection housekeeping (I3); no ABI change (I4); the candidate is
+  single-use (I5).
+- CR4.PCIDE and PGE stay off and every M3 entry switches address space
+  (contract §2). Changing that (candidate K-2) alters the address-space
+  isolation invariant and needs an owner decision.
+- No change to capability enforcement, key isolation or `crates/smp-lock`
+  semantics without its own design and negative tests.
 
-## Task: R02-C3 single-CPU scheduler continuation (approved)
+## Last cycle
 
-- The project owner approved design revision 2 on 26 Nov 2026 22:22Z with
-  the recommended options D1–D6 (continuation; keep the `sched::Quantum`
-  parity check; §5 kill criterion; qsim-job fixture fix first; new case
-  `test-m3-syscall-spin`; exact mode-0 boundary of 4 unchanged).
-- **Landing gate:** the code branch is cut from `main` only after #573 (B,
-  keyring LOCK), #538 (L, native AI job) and #588 (L, D4: qsim-job yields on
-  EAGAIN, head `52035629`, local `native-qsim-job` pass) have landed. The
-  PR guard reports the landing SHAs. The ADR goes on top of
-  `docs/DECISIONS.md` only after #582. Coordinate `m3.rs` pushes with H
-  (T5d-T) via the PR guard.
-- Write set: design note §6.
+| Field | Value |
+|---|---|
+| cycle_id | `K-20261127-sched-continue` |
+| Task | R02-C3 (issue #530): single-CPU continuation after ordinary system calls; design revision 2 approved by the project owner on 26 November 2026 22:22 UTC (D1–D6); D3 judged met by the project owner on 27 November 2026 at about 12:03 UTC |
+| Prerequisite | #604 (the K05 client waits for the HELLO receipt before exit), landed as `20c7e18a` |
+| Pull request | #602, branch `claude/k-sched-continue-20261126`; this file lands with it |
+| Write set | `kernel/src/m2/m3.rs`, `kernel/Cargo.toml`, `userspace/probe.rs`, `userspace/tests/test_probe.py`, `tools/gate_contract.py`, `tools/test_milestones.py`, `tools/test_smp.py`, `tools/tests/test_smp_host.py`, `tests/test_capture_gate.py`, `tools/build.py`, `.github/workflows/native-smp.yml` (step name only, D2), `docs/DECISIONS.md` (ADR), contract §3 sentence, `docs/verification/k-sched-continue-20261127/`, `docs/progress/assessments/2026-11-27-k-sched-continue.json`, this file |
+| Evidence | `docs/verification/k-sched-continue-20261127/` (local QEMU TCG native list and local KVM A/B; not hosted acceptance). Hosted CI, the D2 review and the hosted-duration comparison are recorded on #602 |
+| Coordination | L: #598 landed before #602, so K re-measured `JOB_IRQS` on #602 (28–41 per run locally, inside the documented range; no code change). R: QEMU batches announced. CI: D2 delta review of the `native-smp.yml` and `tools/test_smp.py` hunks |
+| Score | 43/100 unchanged; K03 stays accepted under its regression gates |
 
-## Candidates (prioritised, 26 Nov 2026 22:29Z)
+## Candidates (prioritised)
 
 | ID | Area | Finding and evidence | Status | Next step |
 |----|------|----------------------|--------|-----------|
-| K-1 | Scheduler | R02 baseline: about 40–50 kernel entries per changed tile, each a switch; 0.35–0.39 ms per tile (`docs/verification/r02-window-baseline-20261126`). | Approved, waiting on landings | Implement C3 per design §3, test per §5. |
-| K-2 | Memory, switches | Every M3 kernel entry loads the kernel root (`event()`, `kernel/src/m2/m3.rs:2105` at `d5022f9b`) and `select()` loads the user root (`m3.rs:1576`). PCID and PGE are off (`m3/heap.rs:186`, `paging.rs:1041`, `smp.rs:3795`), so each system call flushes the TLB twice, also for a caller that C3 continues. Validated in source; cost not measured. | Open, after K-1 | After C3: measure CR3 loads and phase times; then a design note. Any change (PCID with explicit invalidation, or no root switch on entry) alters the address-space isolation invariant: owner escalation expected. |
-| K-1a | Scheduler (C3 delta) | #573's LOCK fixture advances per kernel entry (\`system_lock.rs:370-391\` via \`progress_observers\`). Under C3, stage-3 \`cleanup(KEY)\` can run in KEY's own next entry after KEY was marked Ready, so the continuation must re-check \`slot == current\`, Ready and not Dying at select time. \`LOCK_CANARY_ABSENT\` (\`:392\`) and #538's \`ENTRY_SWITCH_COUNTS\` (\`ai_job.rs:276-281\`) also depend on entry and restore counts. Subagent survey at PR heads; not re-verified by K. | Part of K-1 | Re-verify at the landing SHAs; add \`native-system-lock\`, \`test-system-lock*\` and \`native-ai-job\` to the §5 local list. |
-| K-3 | Fixture limits | C3 §7.5 unchecked item: fixture guards `syscall_calls < 2_000_000` (`fpu.rs:230`, display and memory fixtures) under a higher call rate. | Part of K-1 | Check during C3 verification. |
-| K-4 | SMP CI time | `m3-ipc-four` hosted timeout: IPC phase about one round per tick behind CPU-bound canaries; no kernel defect shown; the timeout is an owner decision (Graphify note, 11 Nov 2026). | Parked | None unless a new failure appears. |
-| K-5 | SMP locks | A CPU that dies while waiting on a ticket lock is not detected (K06 F19, open point 4). SMP only; no consumer report. | Parked | Only on a reported failure. |
-| K-6 | SMP quarantine | `held_by` coverage for ASPACE/FRAMES/SHOOTDOWN: moot, only `KERNEL` is a global `IrqLock` on `main` (`lock.rs:111`). | Closed | None. |
-| K-7 | SMP timing | `wait_us` (`kernel/src/m2/smp.rs:761-782`) returns `false` after 2,000,000 polls of port 0x61, but `within_ms` (`:1583`) and `within_progress` (`:1638`) ignore that result, so a capped poll silently shortens every PIT-based deadline. Low risk under TCG and KVM; unmeasured (survey of 27 Nov 2026 at `20d9089f`). | Open, after K-1 | Make a capped `wait_us` fatal or retried; SMP native gates. |
+| K-1 | Scheduler | R02 baseline: about 40–50 kernel entries per changed tile, each a switch (`docs/verification/r02-window-baseline-20261126`). | Delivered by #602 (ADR-K-SCHED-CONTINUE-20261126) | None; a regression in the K03 gates reopens it. |
+| K-2 | Memory, switches | Every M3 kernel entry loads the kernel root and `select()` loads the user root; PCID and PGE are off, so each system call flushes the TLB twice, also for a continued caller. Validated in source; cost not measured. | Open | Measure CR3 loads and phase times; then a design note with owner escalation. |
+| K-3 | Fixture limits | Fixture guards `syscall_calls < 2_000_000` (FPU, display, memory) under a higher call rate. | Checked in the K-1 native list | None unless a guard trips. |
+| K-4 | SMP CI time | `m3-ipc-four` hosted timeout: IPC phase about one round per tick behind CPU-bound canaries; no kernel defect shown; the timeout is an owner decision. | Parked | Only on a new failure. |
+| K-5 | SMP locks | A CPU that dies while waiting on a ticket lock is not detected (K06 F19, open point 4). | Parked | Only on a reported failure. |
+| K-7 | SMP timing | `wait_us` (`kernel/src/m2/smp.rs`) returns `false` after 2,000,000 polls of port 0x61, but `within_ms` and `within_progress` ignore it, so a capped poll silently shortens a PIT deadline. Unmeasured. | Open | Make a capped `wait_us` fatal or retried; SMP native gates. |
 
-Not K: #545 (window-session reporter, UI-U, fix PR #586) and R's #578
-follow-ups 1 and 3 (ingress batch time versus the 200-tick budget, userspace).
+## Acceptance commands and evidence limits
 
-## Next action (27 Nov 2026 ~10:35Z)
+- Scheduler: `python3 -B tools/test_milestones.py --through m4`,
+  `python3 -B tools/test_smp.py` (at least `m3-single-regression`),
+  `python3 -B tools/test_supervisor.py` (and `--smp`), plus the native list in
+  the verification directory. Only actual kernel markers plus raw exit 33
+  substantiate a pass; lock cases pass on runner exit 0 with their documented
+  raw codes.
+- Several runners refuse a reused build directory (for example
+  `tools/test_resource_pressure.py`); give every gate a fresh
+  `NOS_BUILD_DIR`. `tools/test_smp.py` writes an untracked JSON file into the
+  protected `docs/verification/sm-smp/` directory; move it out and never
+  commit it.
+- Performance claims need the 5+5 A/B on one host with the spread reported,
+  labelled "local KVM, not hosted".
+- Local results are not hosted acceptance; hosted CI on the final head is
+  required before enqueueing.
 
-1. C3 is implemented on the branch: probe pin fix, `test-m3-syscall-spin`
-   fixture and gate, and the scheduler change. The red control fails at the
-   new assert; the green case passes both mode-0 rounds.
-2. Remaining local evidence: the design §5 native list (ipc-wait, fpu,
-   memory, qsim, qsim-job, sdk-app, system-lock and its `test-system-lock*`
-   cases, window session scale 1 and 2, NAS probe, Materiaal), then the
-   5+5 A/B against `main` at the landing SHA. Announce QEMU runs and the A/B
-   to R first.
-3. ADR-K-SCHED-CONTINUE-20261126 on top of `docs/DECISIONS.md` (#582 has
-   landed), CI D2 delta review of the `native-smp.yml` and `tools/test_smp.py`
-   hunks, then ready and enqueue.
-4. Then K-2 measurement.
+## Cloud agent limits (GitHub Copilot cloud agent)
+
+Hosted CI also runs QEMU under TCG, so single native gates are reproducible in
+the cloud agent; the limits are wall time, KVM and parallel load.
+
+- **Suitable:** host-side Rust and Python work (`crates/`, `tools/tests/`,
+  unit tests, clippy, fmt), kernel builds, and one or a few native QEMU gates
+  per task. Measured on a local TCG host on 27 November 2026: a kernel build
+  takes 2–11 s with a warm cache, most native gates take 2–60 s, window
+  session scale 1 about 1 min 51 s and scale 2 about 4–5 min.
+- **Tight:** the full scheduler verification list (45 steps, including
+  `tools/test_smp.py` with 16 profiles, `tools/test_supervisor.py` and
+  `tools/test_milestones.py --through m4`) took 16 min 16 s sequentially
+  under TCG with warm build caches. One pass fits; the cold-cache duration
+  was not measured, and a fix-and-rerun cycle may not fit.
+- **Not suitable within 59 minutes on one branch:** the SMP repetition
+  suites (`SMP 50/50`, the 74×50 aggregate: thousands of QEMU runs that hosted
+  CI spreads over matrix jobs) and any performance A/B, which needs KVM and
+  one quiet host and is labelled "local KVM, not hosted". TCG timings are not
+  performance evidence.
+- **Not available:** KVM, physical hardware, Graphify (OAuth), local scratch
+  notes, and pausing other specialists' native runs on a shared host.
+
+## Local additions (optional)
+
+- Local session notes: `~/projects/BaryonOS-scratch/k/RESUME.md` (newest
+  section wins), design note `C3-DESIGN.md`, batch logs under `s5/` and `s6/`.
+- Worktree used locally: `~/projects/BaryonOS-worktrees/k-sched`.

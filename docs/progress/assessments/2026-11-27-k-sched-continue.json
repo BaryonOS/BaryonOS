@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "478b4ba3877291a3c045a94248ccefffb743fbb4",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/k-sched-continue-20261126",
+  "task": "R02-C3 (K): the single-CPU M3 scheduler continues the caller after an ordinary system call within its quantum (ADR-K-SCHED-CONTINUE-20261126), with the new regression case test-m3-syscall-spin",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. K03 stays accepted under its regression gates (milestone-m3, all test-m3-* cases including test-m3-syscall-spin, m3-single-regression); this is a performance change with local QEMU TCG and local KVM evidence only, so no criterion is opened or accepted."
+}

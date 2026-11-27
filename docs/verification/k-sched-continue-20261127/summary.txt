@@ -1,0 +1,41 @@
+A commit be1fd9ac kernel.elf 3f46542a8fe2391c
+A raw_qemu_exit [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+A duration_s [17.02, 17.49, 17.0, 17.0, 17.11] median 17.02; qemu_host_cpu_s [11.95, 12.0, 11.79, 11.77, 11.79] median 11.79
+B commit ddbb7c13 kernel.elf 51079a87cf621bef
+B raw_qemu_exit [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+B duration_s [16.58, 16.5, 16.1, 16.61, 15.9] median 16.5; qemu_host_cpu_s [10.78, 10.88, 10.4, 10.93, 10.1] median 10.78
+phase: A median (min-max) | B median (min-max) | B-A median, last_input_to_verified_app_image_s
+reopened: 0.42 (0.42-0.44) | 0.42 (0.39-0.44) | -0.00
+editor: 0.40 (0.40-0.45) | 0.40 (0.40-0.45) | +0.00
+list: 0.36 (0.36-0.42) | 0.42 (0.36-0.42) | +0.05
+clipboard-numeric: 0.29 (0.12-0.32) | 0.14 (0.12-0.33) | -0.15
+clipboard-reset: 0.29 (0.10-0.31) | 0.31 (0.05-0.31) | +0.02
+clipboard-recovered-empty: 0.28 (0.10-0.28) | 0.26 (0.07-0.28) | -0.02
+clipboard-empty: 0.28 (0.28-0.28) | 0.28 (0.07-0.28) | -0.00
+clipboard-copied: 0.27 (0.27-0.30) | 0.29 (0.11-0.30) | +0.02
+restored-editor: 0.26 (0.08-0.26) | 0.26 (0.26-0.26) | +0.00
+read-tool: 0.25 (0.25-0.25) | 0.25 (0.25-0.25) | -0.00
+document-menu-write: 0.25 (0.25-0.25) | 0.25 (0.25-0.27) | +0.00
+document-menu-cancelled: 0.25 (0.23-0.25) | 0.25 (0.05-0.25) | +0.00
+document-menu-read: 0.25 (0.25-0.25) | 0.25 (0.25-0.25) | +0.00
+document-menu-next: 0.25 (0.25-0.25) | 0.25 (0.25-0.25) | +0.00
+document-menu: 0.25 (0.23-0.25) | 0.25 (0.25-0.25) | +0.00
+write-tool-restored: 0.25 (0.25-0.25) | 0.25 (0.25-0.25) | +0.00
+saved: 0.13 (0.13-0.18) | 0.13 (0.13-0.15) | -0.00
+clipboard-back: 0.12 (0.12-0.12) | 0.12 (0.12-0.18) | +0.00
+clipboard-pasted: 0.12 (0.12-0.12) | 0.12 (0.10-0.12) | -0.00
+dirty: 0.10 (0.07-0.10) | 0.07 (0.07-0.10) | -0.03
+clipboard-calculator-copied: 0.09 (0.09-0.25) | 0.09 (0.07-0.09) | -0.00
+rebound-editor: 0.07 (0.07-0.08) | 0.07 (0.07-0.07) | -0.00
+clipboard-rejected: 0.07 (0.07-0.27) | 0.07 (0.07-0.07) | +0.00
+initial: 0.05 (0.05-0.07) | 0.07 (0.05-0.07) | +0.02
+document-menu-blocked: 0.05 (0.05-0.05) | 0.05 (0.05-0.05) | -0.00
+read-tool-blocked: 0.05 (0.05-0.05) | 0.05 (0.05-0.05) | +0.00
+frame_sha256 phases compared 31, differing none
+oracle files_sha256 distinct sets 1; paint_isolation_baseline distinct 1
+workspace runs A1: raw 33 passed True hc_gate True dur 37.41 B1: raw 33 passed True hc_gate True dur 37.10 B2: raw 33 passed True hc_gate True dur 36.47 A2: raw 33 passed True hc_gate True dur 37.83
+hc document-menu-high-contrast: A1:25009318 B1:25009318 B2:25009318 A2:25009318
+hc document-menu-contrast-restored: A1:568d3c32 B1:568d3c32 B2:568d3c32 A2:568d3c32
+hc calculator-high-contrast: A1:213945d6 B1:213945d6 B2:213945d6 A2:213945d6
+hc calculator-contrast-restored: A1:031b78fc B1:031b78fc B2:031b78fc A2:031b78fc
+workspace frame_sha256 phases 66, differing ['workspace-work', 'workspace-search', 'workspace-window-menu', 'lock-veld-overlay-open', 'lock-unlocked']
