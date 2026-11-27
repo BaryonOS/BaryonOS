@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "3009755beedc3cd98605d3a8a2e2f6441ba2ae5b",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/r02-output-path-20261127",
+  "task": "Correct the R02 diagnostic runner relative output path",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. A shell path regression test does not provide physical, endurance or product-latency acceptance evidence."
+}
