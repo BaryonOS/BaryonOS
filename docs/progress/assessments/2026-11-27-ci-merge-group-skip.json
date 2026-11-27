@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "d83c475b524c5d696246468f1b1cf91afffe6e92",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "ci/merge-group-skip-20261126",
+  "task": "CI merge flow (#494, PR B of ADR-CI-MERGE-GROUP-SELECT-20261126): on merge_group, a gate job in each counted workflow (.github/actions/merge-group-gate) asks the trusted-base copy of merge_hold.merge_group_skip whether merge-hold leaves the workflow out of the queue commit. Only an explicit True skips that workflow's suites; any doubt runs every job, and merge-hold still judges independently (a skipped expected gate blocks). Catalogue revision 23 with the needs/condition wiring (including task-grant-volume), contract tests, the notice-escaping test and the ADR amendment.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI tooling, workflow wiring, tests and decision text only; no product criterion, native acceptance evidence or human audit changes. A merge is not acceptance. The skip itself is hosted-unverified until the first merge_group run after this change lands."
+}
