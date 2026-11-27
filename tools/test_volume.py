@@ -29,6 +29,10 @@ o13-latch (a labelled, injected WRITE device error must latch the broker and
 leave disk 1 untouched) and o13-latch-0x44 (syscall 0x44 calls and disk-1
 WRITEs must match the expected event sequence; disk 1 holds only the
 admitted WRITEs).
+S09 K5 on a fresh image with a fresh, read-only disk 1 of canaries: k5 (a
+disk-1 READ admitted and completed while a disk-0 WRITE is held, disk-0
+progress while a disk-1 READ is held until its timeout, and no disk-1
+request admitted between that timeout and the acknowledged reset).
 Every stage is bound to one frozen source fingerprint. The host test inputs
 under tests/ fall outside that fingerprint, so they are frozen separately and
 re-checked before the verdict. Only the final summary with passed=true counts
@@ -75,7 +79,7 @@ PLAN = [("normal", None), ("recover", "normal"), ("archive-export", "recover"),
         ("recover-cut", "install-cut"),
         ("l2-export", "archive-export"), ("l2-restore", "l2-export"), ("l2-corrupt", "l2-export"),
         ("l2-used", "l2-restore"), ("l2-restore-cut", "l2-export"), ("recover-l2-cut", "l2-restore-cut"),
-        ("o13-latch", None), ("o13-latch-0x44", None)]
+        ("o13-latch", None), ("o13-latch-0x44", None), ("k5", None)]
 
 
 def main() -> int:
