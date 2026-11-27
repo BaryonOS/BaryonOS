@@ -5,6 +5,37 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
+
+**Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the
+P0 performance contract (owner, 26 November 2026 about 21:15 UTC). Proposed by the CI
+specialist for issue #494 on 27 November 2026, with an independent D2 review (GO, 27 November 2026; two minor findings recorded as follow-ups on #494:
+keep containment binding while `acceptance-pending` is set, and echo the rules-read warning in the step summary). It changes
+no required check name, workflow, trigger, permission or ruleset.
+
+**Problem:** on `pull_request`, merge-hold failed a head that did not contain the base tip. Since
+main lands only through the merge queue, whose `merge_group` run judges the merged tree and
+refuses a queue commit without its base, that rule only forced every open pull request into a
+main merge, a push and a full check round after each landing. From 25 November 09:37Z to
+26 November 22:27Z, 24 of 85 failed `pull_request` merge-hold runs failed on containment alone.
+
+**Decision:** on `pull_request`, missing base-tip containment emits a `::notice::` and the gate
+judgement continues unchanged, but only when all three hold: git positively reports a
+non-descendant (exit 1), the policy enforces, and
+`GET /repos/{repo}/rules/branches/{base ref}` lists an active `merge_queue` rule. Any error, a
+malformed answer or a missing rule keeps the binding error. `merge_group` containment and all
+member checks are unchanged. It takes effect only once on main, because merge-hold runs the
+base copy of `tools/merge_hold.py`.
+The code proves an active `merge_queue` rule, not that nobody can bypass it. On 27 November ruleset
+25967588 on `~DEFAULT_BRANCH` has no bypass actors. Adding a bypass actor to a ruleset with a
+merge queue requires revisiting this decision.
+
+**Source:** branch `ci/containment-advisory-20261126`; `tools/merge_hold.py`
+(`merge_queue_required`, `pull_request_gates`), `tools/tests/test_merge_hold.py`,
+`docs/CI-CONTRACT.md` (containment paragraph).
+
+**Rollback:** revert the commit; containment is binding again from the next main landing.
+
 ## ADR-CI-MERGE-GROUP-SELECT-20261126 — merge-hold judges a merge group by the gates selected from its trusted main base
 
 **Status:** accepted (binding acceptance contract). The project owner
