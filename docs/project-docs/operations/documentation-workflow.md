@@ -7,7 +7,7 @@ sources:
   - code: AGENTS.md
   - code: docs/AGENTS.md
   - code: .claude/scripts/docs-lint.py
-verified_at: 934e140b
+verified_at: 4bfbbc78
 ---
 
 # Model-independent documentation workflow
