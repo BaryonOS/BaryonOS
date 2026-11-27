@@ -39,9 +39,16 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 - **Open PRs:** none besides this handoff refresh. Copilot review quota is
   exhausted until 3 December 2026; Codex review quota is exhausted; use an
   independent subagent review.
-- **Communication:** the GitHub threads #564 (post-wake remount, with the H
-  track) and #569 (catalog v2) and the S PR itself carry the canonical state;
-  this file is the resume pointer. No local path is needed to resume.
+- **Live handoff:** the newest comment starting with `HANDOFF S` on the
+  coordination issue #610; currently
+  https://github.com/BaryonOS/BaryonOS/issues/610#issuecomment-7217110093
+  (task, invariants, write set, branch and HEAD, decisions, commands with
+  exit codes, not run, risks, next safe action). This file plus that comment
+  are the canonical S state; no chat history, memory or specific tool is
+  needed. A resuming agent first verifies branch, HEAD, `git status`,
+  ownership and freshness against both.
+- **Communication:** #610 (handoff), #564 (post-wake remount, with the H
+  track), #569 (catalog v2) and the open S PR.
 
 ### Local work
 
