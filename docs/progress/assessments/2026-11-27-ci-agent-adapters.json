@@ -1,6 +1,6 @@
 {
   "date": "2026-11-27",
-  "source_commit": "5141b98bdb1e2c49c6ef3f4dea363ad96e64b4f5",
+  "source_commit": "3009755beedc3cd98605d3a8a2e2f6441ba2ae5b",
   "assessment_basis": "parent_commit",
   "branch": "ci/agent-adapters-20261127",
   "task": "CI-C1..C3 and X-C1 (#494): tools/agent_adapters.py generates the Claude, Codex and Copilot adapters of the thirteen specialist role contracts of #611 with a fail-closed tool-class mapping (builder: Copilot read/search/edit/execute plus read-only Graphify without remember; coordinator: no Copilot profile; any other or missing class is an error); drift, protection and fail-closed tests in tools/tests/test_agent_governance.py; copilot-setup-steps.yml installs the toolchain once; docs/handoffs/CI/CURRENT.md refresh.",
