@@ -26,32 +26,41 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Gap: neither the local gh token (no `read:project`) nor the cloud session (repository-scoped) can reach project 5, so membership and
   fields are not set; owner action needed.
 
-## Current cycle
+## Current cycle — 2026-11-27T21:15:04Z
 
-- Active B PR: [#649](https://github.com/BaryonOS/BaryonOS/pull/649),
-  `codex/b03-s7-anchor-20261127` in
-  `~/projects/BaryonOS-worktrees/b03-s7-anchor`. It is the host-tested
-  REL-05 S7 TEST anchor authority, private completion and mutation-fence
-  foundation. The latest HANDOFF comment on #649 and its newer comments carry
-  the live head, checks and next step. This bounded PR may enter the merge
-  queue after exact-head checks and review pass; its landing does not accept
-  REL-05 or N04. The native CRB hook, authenticated ENROLL/BootInfo handoff
-  and joint N04 evidence remain follow-up work. N04 stays on option 5A;
-  score remains 43/100. #608 and #631 have landed.
-- Session: local "BaryonOS - Specialist B" (27 Nov, resumed from the #590 HANDOFF comment 7213772692). Merge queue
-  autonomy (ADR-MERGE-QUEUE-AUTONOMY-20261126): B enqueues its own merge-ready PRs; the PR guard coordinates and
-  does not approve.
-- Landed: #524 (B03-REL05, ADR-B03-REL05-TPM-20261125 with C665 and the §7.9 fail-closed decision) as ce562ddc;
-  #573 (B01-LOCK L1, issue #564) as 40c10d3a; #590 (S3 LOCK noscrub red-control profile for H05-T5d) as 9fe65ba9
-  on 27 Nov. H adds the `power-s3-noscrub` case after #597 (pitfall reported: `S3_SYSTEM_FEATURES` must include
-  the profile).
-- Previous cycle: REL-05 §7.9 M1-HAUTH halt, landed PR #608. Historical checks
-  and evidence: the PR body and the newest "HANDOFF — specialist B" comment on #608 (plus its addendum). The
-  verify-only TEST loader halts `TPM_UNENROLLED` with `RECOVERY:REQUIRED` on an unset ownerAuth (never-provisioned or
-  cleared); the enrollment build is the unauthenticated TEST stand-in for S3b.
-- Canonical state (portability rule, 27 Nov): this file plus the newest B HANDOFF comment. Any agent resumes from
-  them alone after checking branch, HEAD, `git status --short`, ownership and freshness; Graphify and client memory
-  are optional context, and local paths are optional additions.
+- Active primary B PR: #649, branch codex/b03-s7-anchor-20261127,
+  worktree /home/simon/projects/BaryonOS-worktrees/b03-s7-anchor.
+  The source baseline before this handoff refresh is
+  7d7e8d6f3f8156bc1879e157b80b334483c8b8aa; it merged
+  origin/main dc29612c before push. The only dirty file at this
+  checkpoint is this handoff. Fetch and recheck the live head and status
+  before acting. The newest B HANDOFF comment on #649 gives
+  detailed exact-head evidence and review state.
+- #649 is a bounded host-only REL-05 S7 foundation: ANCHOR capability,
+  nondelegable authority model, private completion mailbox, one-way
+  Running-to-Writing fence and four attempted extends per domain per boot.
+  The planned syscall ABI is documented; native syscalls, CRB operations,
+  authenticated ENROLL/BootInfo handoff and joint N04 evidence remain open.
+  N04 stays option 5A. No REL-05 or N04 criterion is accepted by #649.
+  The score stays 43/100.
+- Source-bound checks on the last S7 code change: capability-core tests
+  exit 0 (96 unit pass, one ignored, 11 integration pass), clippy exit 0,
+  cargo fmt check exit 0, progress.py --check exit 0, git diff --check
+  exit 0. Raw logs: ignored build/s7-evidence/anchor-completion-test-fix.log,
+  capability-clippy-fix.log, fmt-check-fix.log, and
+  progress-handoff-refresh.log. The handoff-only progress check and diff
+  check both exit 0. Hosted exact-head CI is pending after the main merge.
+  Native S7 syscalls/CRB/joint N04, hardware and human audit: NOT RUN.
+- The owner approved the U13c TEST route on #529: stage a signed ENROLL
+  or recovery record at a second ESP path, validate both records, choose
+  the newest accepted one, and promote primary only after TPM and UEFI
+  accepted-serial copies advance. Loss of both copies stays fail closed
+  until independently authorized recovery. Production keys and anchors
+  remain out of scope.
+- Landed B PRs: #524 REL-05 base (ce562ddc), #573 LOCK L1 (40c10d3a),
+  #590 S3 LOCK noscrub (9fe65ba9), #608 M1-HAUTH unenrolled halt
+  (29735929), and #631 owner ADRs (ee29246b). Their handoffs are
+  historical; #649 is the active source.
 
 ## Standing owner rules for B (27 Nov, relayed by the PR guard)
 
@@ -131,36 +140,35 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Blockers (external)
 
-- B02-T3 cold rollback anchor: owner ADR required.
+- B02-T3 cold rollback anchor: owner ADR approved in #631; implementation and independent evidence remain open.
 - B05 external human audit: not commissioned.
 - B06 native local AI / model loader rows: missing L/P/A components.
 - B04 hosted Secure Boot job: protected `.github/**` request
   (docs/implementation/B04-SECURE-BOOT-CI-INTEGRATION-REQUEST.md).
 
-## Queued B work (no PR yet)
-
-- Next after #608 lands: REL-05 S7, the kernel cold-freshness anchor service for N04
-  (`docs/implementation/COLD-FRESHNESS-ANCHOR.md`; promised to N on #529, issuecomment-7217115559). A thin adapter
-  implements N's `FreshnessAnchor` over a capability for `AnchorDomain::Network` only; the syscall number, the
-  capability kind and the TEST extend budget are fixed in that PR and posted on #529 before N wires its S5 run. In the
-  same PR: refresh the B `delivery_review` rows with the #608 landing SHA.
-- Later: B02-T3 cold rollback anchor consumers and B04 production custody (both need owner decisions); SUSPEND and
-  UNLOCK for B01-LOCK (UNLOCK blocked on O2, O5 and O8; no production LOCK before O5).
-
-## Lessons
-
-1. `tools.tests.test_roadmap_runner` has 5 pre-existing failures while build/roadmap-pipeline/STOP exists.
-2. With `GIT_EDITOR=true` in the environment, git-driven `tools/tests` fail (2 failures, 9 errors); run them with it unset.
-3. `tools/run_system.py` requires `NOS_BUILD_DIR` inside the checkout (`private_path`).
-
 ## Next executable task
 
-- #608: after the hosted gates are green on the current head, 0 unresolved threads, `mergeStateStatus`
-  CLEAN/HAS_HOOKS/BEHIND, `autoMergeRequest` null and the open-run check `[]`, enqueue with GraphQL
-  `enqueuePullRequest` and `expectedHeadOid` (never `gh pr merge` while BLOCKED). The required `merge-hold` check
-  fails when the head lacked the base tip at push time (`BASE_SHA` of the push event); fetch and merge `main`
-  immediately before every push and let the gates run again. Report the
-  landing SHA to the PR guard.
-- Then the queued items above, one PR at a time. TEST/QEMU/swtpm only; the progress score stays 43/100.
-- The detailed #524 slice history (M1-HAUTH provisioning, seeded cases, PCR 13 banks, event log) is in the #524
-  HANDOFF/CHECKPOINT comments and the `docs/verification/b03-rel05-*` directories.
+1. On #649, wait for all exact-head hosted workflows to finish. If
+   merge-hold failed solely because checks were pending, rerun its
+   failed job once after the other applicable jobs finish. Repair
+   substantive failures before queueing.
+2. Recheck the exact head, all required and applicable checks, open
+   run list [], zero unresolved review threads, mergeStateStatus in
+   CLEAN/HAS_HOOKS/BEHIND, and autoMergeRequest null. Enqueue via
+   GraphQL enqueuePullRequest(expectedHeadOid). Wait for and verify
+   its landing; report it to PR guard, N, K and CI.
+3. Then take a new B PR for the native S7 path and owner-approved
+   U13c TEST record flow, with disjoint ownership on shared files.
+   Keep REL-05 section 7.9 fail closed. No score increase until
+   every acceptance condition is met.
+
+## External dependencies and limits
+
+- B02-T3 cold rollback anchor consumers require independent evidence;
+  B05 external human audit is not commissioned; B06 depends on L/P/A
+  native components. B04 hosted Secure Boot integration needs the
+  protected CI workflow owner.
+- B01 LOCK/UNLOCK order is #563, then #573, then SUSPEND/UNLOCK;
+  O2/O5/O8 binding remains. No production LOCK before O5.
+- Project #5 fields remain inaccessible to B's current token; the
+  PR guard owns that metadata update. B does not issue D1-D3 verdicts.
