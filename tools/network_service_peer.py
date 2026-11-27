@@ -67,8 +67,8 @@ SWEEP_ARP_MAX = 240
 # the kernel independently fails a post sweep that starts before both apps wait.
 SWEEP_POST_DELAY = 2.0
 # Host watchdog and transcript time bound for the sweep, in seconds; the runner
-# uses this value, which stays 40 s above the kernel's 320-second deadline.
-SWEEP_LIFETIME = 360
+# uses this value, which stays 40 s above the kernel's 480-second deadline.
+SWEEP_LIFETIME = 520
 MAX_SWEEP_FRAMES = 2 * (SWEEP_PORTS + len(UDP_PROBE_PORTS)) + MAX_FRAMES + SWEEP_ARP_MAX
 MAX_SWEEP_ACTIONS = MAX_SWEEP_FRAMES + MAX_EVENTS
 MAX_SWEEP_BYTES = 128 * 1024 * 1024

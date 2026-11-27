@@ -57,7 +57,8 @@ FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
                "archive-disk-export", "archive-disk-restore", "archive-disk-absent", "archive-disk-small",
                "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify",
                "install", "install-recover", "install-cut",
-               "l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")}}
+               "l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut",
+               "o13-latch", "o13-latch-0x44")}}
 CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN",
               "archive-disk-cut": "VOLUME:CUT:ARCHIVE", "install-cut": "VOLUME:CUT:INSTALL",
               "l2-restore-cut": "VOLUME:CUT:L2_RESTORE"}
@@ -70,11 +71,13 @@ CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER
                "archive-disk-small": "ARCHIVE_DISK_SMALL", "archive-disk-wrong": "ARCHIVE_DISK_WRONG",
                "archive-disk-verify": "ARCHIVE_DISK_VERIFY", "install": "INSTALL",
                "install-recover": "INSTALL_RECOVER", "l2-export": "L2_EXPORT", "l2-restore": "L2_RESTORE",
-               "l2-corrupt": "L2_CORRUPT", "l2-used": "L2_USED", "recover-l2-cut": "RECOVER_L2_CUT"}
+               "l2-corrupt": "L2_CORRUPT", "l2-used": "L2_USED", "recover-l2-cut": "RECOVER_L2_CUT",
+               "o13-latch": "O13_LATCH", "o13-latch-0x44": "O13_LATCH_0X44"}
 READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign", "install-recover", "l2-used", "recover-l2-cut")
 # Cases that always start from a fresh image; every other case needs the image
 # its allowed parent left.
-FRESH = ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign", "install", "install-cut")
+FRESH = ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign", "install", "install-cut",
+         "o13-latch", "o13-latch-0x44")
 ALLOWED_PARENTS = frozenset({
     ("recover", "normal"), ("recover-cut", "cut-data"),
     ("recover-cut", "cut-table"), ("recover-cut", "cut-txn"),
@@ -195,6 +198,53 @@ L2_WORDS = ("RESTORED", "COLLECTIONS", "COMMITTED", "SKIPPED", "PROVENANCE_MISMA
 L2_CUT_COMMITS = 6
 # Sectors of that torn copy the kernel lets land before it stops the guest.
 L2_CUT_TORN = 4
+# S09 O13 N38 slice 1 (cases a, b, c, e; M6e PLAN stage o13-latch): a fresh disk 0
+# and a fresh canary disk 1 whose whole portal scope is one kernel latch entry.
+# Sector bytes of the portal flow (ARCHIVE_LATCH in sdk/examples/volume-docs/src/app.rs):
+# sector 1 WRITE Ok (a); sector 2 WRITE with the injected device error (b); the
+# refused WRITEs carry LATCH_REFUSED to sectors 3 and 4 and must never land.
+LATCH_WRITTEN, LATCH_REFUSED = b"\xa5" * SECTOR, b"\x5a" * SECTOR
+LATCH_INJECTED = "VOLUME:FAULT_INJECTED:ARCHIVE_DISK_WRITE_ERROR"
+LATCH_EVIDENCE = {
+    # (b) read at the injected completion, before any 0x41 poll of the device.
+    "VOLUME:LATCH:LATCHED_AT_COMPLETION:": 1, "VOLUME:LATCH:POLLS_BEFORE_MARKER:": 0,
+    "VOLUME:LATCH:INJECTED:": 1, "VOLUME:LATCH:ENTRIES:": 1, "VOLUME:LATCH:LATCHED:": 1,
+    # (b) two WRITEs refused -5 at the latch; the disk-1 WRITE publications
+    # (a and b) were 2 at the first refusal and are still 2 at the end.
+    "VOLUME:LATCH:REFUSALS:": 2, "VOLUME:LATCH:WRITES_AT_REFUSAL:": 2,
+    "VOLUME:BROKER:ARCHIVE_DISK_WRITES:": 2, "VOLUME:ARCHIVE:WRITES:": 2,
+    # (c) one READ and one FLUSH published after the latch (completion is the
+    # kernel's IO_ACCOUNTING check plus the portal's own result).
+    "VOLUME:LATCH:ARCHIVE_READS_AFTER:": 1, "VOLUME:LATCH:ARCHIVE_FLUSHES_AFTER:": 1,
+    "VOLUME:BROKER:ARCHIVE_DISK_READS:": 1, "VOLUME:BROKER:ARCHIVE_DISK_FLUSHES:": 1,
+    "VOLUME:ARCHIVE:DEVICE:": 1, "VOLUME:ARCHIVE:DISK_FOUND:": 1, "VOLUME:ARCHIVE:DISK_OFFLINE:": 0,
+}
+# S09 O13 N38 slice 2, case (f) (M6e PLAN stage o13-latch-0x44): syscall 0x44 on the
+# test-scripted disk-1 entries [0, 10) and [10, 20), no injected fault. The
+# portal's archive handle is [0, 15); the kernel adds READ|WRITE handles on
+# [15, 25) and [25, 35) and a READ-only node of [0, 15) (ARCHIVE_LATCH_0X44).
+# The kernel prints one line per 0x44 call (scope and WRITE right as the
+# engine sees them, raw return, latch mask after it; bit i = entry i) and per
+# disk-1 WRITE; the whole sequence must match exactly, in this order.
+LATCH_LAST = b"\x3c" * SECTOR
+LATCH44_EVENTS = (
+    ("f3 no entry", "VOLUME:LATCH_CALL:DEVICE=1:FIRST=25:COUNT=10:WRITE=1:RET=-5:MASK=0"),
+    ("f3 part of one entry", "VOLUME:LATCH_CALL:DEVICE=1:FIRST=15:COUNT=10:WRITE=1:RET=-5:MASK=0"),
+    ("f2 READ-only holder", "VOLUME:LATCH_CALL:DEVICE=1:FIRST=0:COUNT=15:WRITE=0:RET=-5:MASK=0"),
+    ("f3 nothing latched", "VOLUME:LATCH_WRITE:SECTOR=3:PUBLISHED"),
+    ("f3 nothing latched", "VOLUME:LATCH_WRITE:SECTOR=12:PUBLISHED"),
+    ("f1/f4 latch call", "VOLUME:LATCH_CALL:DEVICE=1:FIRST=0:COUNT=15:WRITE=1:RET=0:MASK=1"),
+    ("f1 WRITE refused", "VOLUME:LATCH_WRITE:SECTOR=3:REFUSED"),
+    ("f4 WRITE admitted", "VOLUME:LATCH_WRITE:SECTOR=12:PUBLISHED"),
+)
+LATCH44_EVIDENCE = {
+    "VOLUME:LATCH:ENTRIES:": 2, "VOLUME:LATCH:LATCHED_MASK:": 1,
+    # Three WRITEs reached device 1, all through the archive object; no READ
+    # or FLUSH, and the 0x44 calls touched no device.
+    "VOLUME:BROKER:ARCHIVE_DISK_WRITES:": 3, "VOLUME:ARCHIVE:WRITES:": 3,
+    "VOLUME:BROKER:ARCHIVE_DISK_READS:": 0, "VOLUME:BROKER:ARCHIVE_DISK_FLUSHES:": 0,
+    "VOLUME:ARCHIVE:DEVICE:": 1, "VOLUME:ARCHIVE:DISK_FOUND:": 1, "VOLUME:ARCHIVE:DISK_OFFLINE:": 0,
+}
 
 
 def numbers(stdout: str) -> dict[str, int]:
@@ -342,6 +392,10 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         (volume_dir / "volume.img").write_bytes(fresh)
         info = dict(info, variant=case, sha256=hashlib.sha256(fresh).hexdigest())
         (volume_dir / "volume.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
+    elif case in ("o13-latch", "o13-latch-0x44"):
+        # Disk 0 is the fresh image above; disk 1 a fresh disk of canaries.
+        disk1 = disk1_image(DISK1_SECTORS)
+        (volume_dir / "archive.img").write_bytes(disk1)
     elif case in RESTORED:
         # Source loss: a fresh image that holds only the exported archive range.
         exported = (volume_dir / "volume.img").read_bytes()
@@ -440,6 +494,12 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         elif case in INSTALL_CASES or (case, parent) == ("recover-cut", "install-cut"):
             oracle = analyse_v3(image.read_bytes())
             check_install(case, oracle, evidence)
+        elif case == "o13-latch":
+            oracle = check_latch(out, evidence, disk1, archive_image.read_bytes())
+            oracle["volume"] = volume_disk.analyse(image.read_bytes())
+        elif case == "o13-latch-0x44":
+            oracle = check_latch_0x44(out, evidence, disk1, archive_image.read_bytes())
+            oracle["volume"] = volume_disk.analyse(image.read_bytes())
         elif case.startswith("archive-"):
             oracle = check_archive(case, before_bytes, image.read_bytes(), evidence, archive_reference)
         else:
@@ -458,6 +518,74 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     if "error" in report:
         print(report["error"])
     return report, volume_dir
+
+
+def check_latch(stdout: str, evidence: dict[str, int], disk1_before: bytes, disk1_after: bytes) -> dict:
+    """N38 slice 1 oracle (S09 O13; the device error is a labelled, simulated
+    fault). Every kernel latch marker must have its exact value, the latch
+    marker must directly follow the one injection, and the refused WRITEs must
+    have left device 1 untouched."""
+    lines = stdout.splitlines()
+    if lines.count(LATCH_INJECTED) != 1:
+        raise ValueError("the WRITE device error was not injected exactly once")
+    at = lines.index(LATCH_INJECTED)
+    if not (lines[at + 1:at + 3] and lines[at + 1].startswith("VOLUME:LATCH:LATCHED_AT_COMPLETION:")
+            and lines[at + 2].startswith("VOLUME:LATCH:POLLS_BEFORE_MARKER:")
+            and "VOLUME:READY" in lines[at + 3:]):
+        raise ValueError("the latch marker does not follow the injected completion")
+    for label, value in LATCH_EVIDENCE.items():
+        if evidence.get(label) != value:
+            raise ValueError(f"{label} is {evidence.get(label)}, expected {value}")
+    # (e) the service's device-0 WRITEs after the latch were admitted.
+    if evidence.get("VOLUME:LATCH:VOLUME_WRITES_AFTER:", 0) < 1:
+        raise ValueError("no device-0 WRITE after the latch")
+    if len(disk1_after) != len(disk1_before):
+        raise ValueError("device 1 changed size")
+    sector = lambda data, index: data[index * SECTOR:(index + 1) * SECTOR]
+    if sector(disk1_after, 1) != LATCH_WRITTEN:
+        raise ValueError("the WRITE answered Ok is not on device 1")
+    # Sector 2 is the injected WRITE: the device may have stored it.
+    changed = [index for index in range(len(disk1_after) // SECTOR)
+               if index != 2 and sector(disk1_after, index) != sector(disk1_before, index)]
+    if changed != [1] or LATCH_REFUSED in disk1_after:
+        raise ValueError(f"device 1 changed outside the admitted WRITEs: sectors {changed[:8]}")
+    return {"latch": {label: evidence[label] for label in LATCH_EVIDENCE},
+            "volume_writes_after_latch": evidence["VOLUME:LATCH:VOLUME_WRITES_AFTER:"],
+            "injected_sector_stored": sector(disk1_after, 2) == LATCH_WRITTEN}
+
+
+def check_latch_0x44(stdout: str, evidence: dict[str, int], disk1_before: bytes,
+                     disk1_after: bytes) -> dict:
+    """N38 slice 2 oracle, case (f) (S09 O13 syscall 0x44; test-scripted
+    entries and handle shapes, no fault). The kernel's 0x44 and disk-1 WRITE
+    event lines must be exactly LATCH44_EVENTS, before VOLUME:READY; device 1
+    holds the admitted WRITEs only."""
+    lines = stdout.splitlines()
+    at = [index for index, line in enumerate(lines)
+          if line.startswith(("VOLUME:LATCH_CALL:", "VOLUME:LATCH_WRITE:"))]
+    events = [lines[index] for index in at]
+    expected = [line for _, line in LATCH44_EVENTS]
+    for index, (label, line) in enumerate(LATCH44_EVENTS):
+        if index >= len(events) or events[index] != line:
+            raise ValueError(f"{label}: event {index} is {events[index] if index < len(events) else None!r}, "
+                             f"expected {line!r}")
+    if events != expected:
+        raise ValueError(f"unexpected 0x44 or disk-1 WRITE events after the script: {events[len(expected):]}")
+    if "VOLUME:READY" not in lines or at[-1] > lines.index("VOLUME:READY"):
+        raise ValueError("the 0x44 events do not precede VOLUME:READY")
+    for label, value in LATCH44_EVIDENCE.items():
+        if evidence.get(label) != value:
+            raise ValueError(f"{label} is {evidence.get(label)}, expected {value}")
+    if len(disk1_after) != len(disk1_before):
+        raise ValueError("device 1 changed size")
+    sector = lambda data, index: data[index * SECTOR:(index + 1) * SECTOR]
+    if sector(disk1_after, 3) != LATCH_WRITTEN or sector(disk1_after, 12) != LATCH_LAST:
+        raise ValueError("an admitted WRITE is not on device 1 (sectors 3, 12)")
+    changed = [index for index in range(len(disk1_after) // SECTOR)
+               if sector(disk1_after, index) != sector(disk1_before, index)]
+    if changed != [3, 12] or LATCH_REFUSED in disk1_after:
+        raise ValueError(f"device 1 changed outside the admitted WRITEs: sectors {changed[:8]}")
+    return {"events": expected, "latch": {label: evidence[label] for label in LATCH44_EVIDENCE}}
 
 
 def outside_archive(image: bytes) -> bytes:

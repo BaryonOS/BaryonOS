@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "4be08f489aaa5667b4abac0d85e152e1e159eb97",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 U26: LREC codec in update-core (trial::LoaderRecord strict encode/decode, AcceptedPair, hauth_binding) with a frozen-layout host test (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Host codec and one unit test only (update-core lib 11 tests); no loader TPM I/O reads or writes LREC, no HAUTH provisioning, no native run; the SHA-256 stack remnant of hauth_binding is a recorded loader-slice wipe item. 5A stays in force, no criterion accepted."
+}

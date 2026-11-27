@@ -1630,7 +1630,7 @@ class EnforcementPrerequisiteTests(FixtureTestCase):
     def test_budgets_are_required_and_bounded(self):
         for change, fragment in (
             (lambda b: b.clear(), "policy.budgets.pull_request_wait_minutes"),
-            (lambda b: b.update(merge_group_wait_minutes=46), "merge_group_wait_minutes must be"),
+            (lambda b: b.update(merge_group_wait_minutes=81), "merge_group_wait_minutes must be"),
             (lambda b: b.update(pull_request_wait_minutes=True), "pull_request_wait_minutes must be"),
             (lambda b: b.update(pull_request_wait_minutes=-1), "pull_request_wait_minutes must be"),
             (lambda b: b.update(extra=1), "policy.budgets: unknown key: extra"),

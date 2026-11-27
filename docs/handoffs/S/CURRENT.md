@@ -20,34 +20,54 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Current cycle
 
-- **cycle_id:** S-20261125-3. Cycle S-20261125-2 landed on `main` as
-  `77dd864e` (PR #521: O13 kernel write latch specification, S09 2.7, N38).
-- **Owner (25 November 2026):** S is held by the local S session that the PR
-  guard started and registered as route S (handoff comment 7158653076 on
-  PR #522). Earlier holders: [7279be] (`local_ccd5edd7`) and `local_55c5182e`.
-- **This branch:** `claude/s09-o13-virtio-latch-20261125`, draft PR #522:
-  O13 step 1, an add-only latch table (4 entries) inside each device
-  `Policy` in `crates/virtio-core/src/lib.rs`; the L1 hook where `Unknown` is
-  set (`complete`, `start_reset`, `exit`); `latch_operation` (L1b refusal
-  rule), `write_latched` (enforcement query) and `latch_scope` (0x44
-  whole-entry rule, `Range` when no whole entry; step 2 maps it to -5).
-  15 `o13_*` host tests. Independent AI review O13-STEP1-REVIEW-1: APPROVE
-  with one should-fix (FLUSH at the `start_reset`/`timeout`/`exit` sites
-  untested), applied; the WRITE-only `start_reset` mutant is now killed.
-  Executed with toolchain 1.100.0, exit 0: on source `fc38cd11` (the
-  current implementation; later commits change only docs and progress),
-  virtio-core and the virtio-blk/-net/-rng drivers test and clippy
-  `-D warnings` and `fmt --all --check`; on the earlier source `741103a9`
-  (before the review fixes), `tools/build.py --kernel-feature
-  native-volume`. That build is not evidence for `fc38cd11`; the hosted
-  native gates on the PR head are.
-- **Coordinator requests:** C1–C5 in `COORDINATOR-REQUEST-20261124.md` are
-  still open. The assessment-block conflict is decided by the coordinator
-  (D3: per-PR assessment files, CI PR #519; then D1 merge queue); until #519
-  lands, the single assessment block stays.
-- **Process note:** `main` enforces strict up-to-date required checks; a PR
-  that falls behind needs `main` merged, its gates re-run and a `merge-hold`
-  re-run before the expected-head squash merge.
+- **cycle_id:** S-20261126-3. Landed on `main` on 26 November 2026: N38
+  slices 1 and 2 with the 34-stage M6e gate (PR #555, `2289a271`), the
+  `seeded-read` image variant for A03-T2c (PR #561, `fb4a40fa`), the
+  catalog v2 specification revision 1 (PR #572, `9508ebfa`, tracking #569)
+  and the post-wake remount design revision 0 (PR #580, `54c9f462`,
+  tracking #564). None of them accepts S09.
+- **Owner:** the local S session ("BaryonOS - Specialist S"). Lane order and
+  push permission come from the PR guard; the merge lane protocol applies.
+  Immediately before `gh pr merge` (PR guard, 26 November 2026):
+  `gh run list -R BaryonOS/BaryonOS --commit <full head SHA> --limit 200
+  --json databaseId,workflowName,status --jq '[.[] | select(.status !=
+  "completed" and .workflowName != "Merge hold")]'` must print exactly `[]`;
+  any other output, including empty output on an API error, means wait.
+- **Open PRs:** the S PR from `claude/s09-quarantine-status-20261126`:
+  `Status::Quarantined` -24 and revision 1 of the post-wake remount design
+  (Refs #564). Copilot review quota is exhausted until
+  3 December 2026; Codex review quota is exhausted; use subagent review.
+
+### Local work
+
+None besides the open S PR.
+
+### Owner questions
+
+V1–V9 in `docs/implementation/S09-CATALOG-V2.md` section 9 (catalog v2 for
+O3 controlled deletion and O5 backup time), tracked in #569 with the
+zero-time RTC follow-up. No catalog v2 code before the answers.
+
+### Agreements and debts
+
+- A03-T2c (Specialist A): the read-only volume path is the existing
+  whole-volume read-only mount plus a BLOCK_READ-only grant; A grants
+  object 1 of `seeded-read`. A per-ingress read-only right is a possible
+  later S task with its own design; it is not planned.
+- With H: the -24 mapping is in the open S PR, in `services/volume` and
+  its clients only (no kernel, SUSPEND or T5d file). The post-wake remount
+  check is specified in `VOLUME-POST-WAKE-REMOUNT.md` revision 1 (one
+  read-only grant to the same instance, R1; `RemountRefused` as its own
+  service status, R2; both H's proposals on #564, binding only after the
+  ADR amendment). `RemountRefused` is not built before that amendment; the
+  native PW cases need H's T5d-T, T5e and UNLOCK first and H's agreement
+  for `tools/run_system.py`, `tests/test_system_harness.py` and `init.rs`.
+- Landing order with H05-T5c (agreed with H, 26 November 2026; both change
+  `kernel/Cargo.toml`, `tools/build.py` and `kernel/src/m2/m3/volume.rs`):
+  the first branch with a green local gate and the lane lands first; the
+  second merges `main` (no rebase or force-push) and reruns its native gates.
+  N38 registers latches only in the `test-volume-o13-latch*` profiles, never
+  combined with `test-system-s3-blk-reinit`.
 
 ## Lessons
 
@@ -86,6 +106,10 @@ in `docs/progress.json`, the S09 specifications and GitHub.
    rustfmt-split `.request()` line reads as a device call. Run it locally
    after any change to `kernel/src/m2/m3/volume.rs`.
 
+11. `tools/run_volume.py --case <c>` needs `tools/build.py --kernel-feature
+   test-volume-<c>` with the same `NOS_BUILD_DIR` first; it checks the
+   manifest's feature and source hash.
+
 9. The reverse differential is two-step: the Python test writes the corpus
    (`DEST_REVERSE_OUT=build/<dir>`), then the Rust test reads it
    (`DEST_REVERSE_IN`, absolute path). Without the variable the Rust test
@@ -93,19 +117,19 @@ in `docs/progress.json`, the S09 specifications and GitHub.
 
 ## Next executable task
 
-1. O13 step 1 (PR #522, see above): hosted checks, merge-hold, progress
-   assessment, squash merge. Specification: the add-only latch table beside `Policy` in
-   `crates/virtio-core` (open-to-latched only; WRITE intersection; a FLUSH
-   with an `Unknown` completion or a device-side refused submission latches
-   the whole device, full trigger list in S09 2.7; `Unknown` hook in `complete`, `start_reset` and
-   `exit`), with host tests and the killing mutations of N38.
-2. O13 step 2: `volume.rs` enforcement before the input copy, syscall `0x44`
-   routed only under `native-volume`, and the native N38 stage (new stage and
-   pins by the CI owner).
-3. Native K5 fixtures (new stage; pins by the CI owner, C4/C5).
+1. Land the open S PR (-24 and design revision 1).
+2. `RemountRefused` and the post-wake remount code after the ADR amendment.
+3. Native K5 fixtures (new stage; S moves its own pins).
 4. O12 owner-binding design with B and the user/session owner; O1
-   remembered-VERIFY store; O3/O5 catalog extension.
+   remembered-VERIFY store; catalog v2 implementation after V1–V9 (#569).
 5. R5: destination service binary in the test profile on disk 1 with
    `DEST:ID:TEST-ONLY` and a scripted dialog.
+
+Merge procedure (owner decision of 26 November 2026, confirmed in the S
+session): S enqueues its own merge-ready PRs in the merge queue without a
+per-PR lane grant (open-run check exactly `[]`, all merge conditions, then
+`gh pr merge <N> --squash --match-head-commit <sha>`); the PR guard
+coordinates order and dependencies. Non-blocking review comments on a pushed
+PR are answered, resolved and recorded on the tracking issue, not pushed.
 
 Owner decisions D1–D5 and a human audit remain outside S's authority.

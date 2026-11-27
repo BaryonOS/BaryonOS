@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "c1356a83c412ff7e7a1ad7a72360443e4eb35641",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1 protected anchor slot: extend-chain contract, threat model and host model (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Host model, S2 constants and contract only (TPM_NT_EXTEND anchor chain, 12 host tests, golden vectors); no swtpm or native evidence, 5A stays in force, no criterion accepted."
+}

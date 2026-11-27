@@ -10,11 +10,14 @@ compile_error!("native NAS probe requires Nieuw OS, never host int80");
 #[path = "../../../../sdk/examples/system/src/support.rs"]
 mod support;
 
+use core::sync::atomic::{AtomicUsize, Ordering};
+use nieuw_os_nas_client::{Client as SyncClient, State};
 use nieuw_os_nas_core::{
     Entropy, Error as NasError, NamespaceStatus, Service, Session, Upload, Workspace, TOKEN_BYTES,
 };
 use nieuw_os_nas_probe::{
-    dispatch, volume_transport, Frame, Ingress, LocalBinding, Op, RequestContext, SIZE, TAG,
+    dispatch, volume_transport, Delivery, Frame, Ingress, LocalBinding, NaspRemote, Op,
+    RequestContext, SIZE, TAG,
 };
 use nieuw_os_nas_volume::VolumeStorage;
 use nieuw_os_sdk_runtime::{
@@ -29,6 +32,24 @@ const LIMIT: usize = 500_000;
 const STACK_BASE: u64 = 0x7ffef000;
 const STACK_END: u64 = 0x7ffff000;
 const CANARY: u64 = 0xa55ac33ca55ac33c;
+// Startup word 112: the fixture stage chosen by the kernel manifest.
+const COLD: u64 = 1;
+const INTERRUPT: u64 = 2;
+const REPAIR: u64 = 3;
+/// P02-T3: boot 1 commits, then edits offline after the NAS exits; boot 2
+/// recovers the NAS on the same disk and reconciles through Head.
+const OFFLINE: u64 = 4;
+const RESUME: u64 = 5;
+// Guest word 216 = 1 only after the fixture kernel observed the NAS exit.
+const NAS_EXITED: u64 = 216;
+// NAS word 208 = 1 only after the repair boot saw `ReopenRequired`, purged the
+// retained history and recovered. Word 40 = 2 marks the fixture interruption.
+const REPAIRED: u64 = 208;
+const INTERRUPTED: u64 = 2;
+/// P04-T1 interrupt stage only: PURGE requests left before the NAS process
+/// dies. Armed to 2 by an Evict on an Active namespace (revoke's PURGE, then
+/// evict's), so the process exits after evict's WRITE ACK and before its PURGE.
+static PURGES_BEFORE_EXIT: AtomicUsize = AtomicUsize::new(0);
 
 // SAFETY: This acceptance manifest maps exactly this private 64-KiB RW/NX
 // stack before entry, with no arguments on it. No Rust frame exists yet.
@@ -50,6 +71,20 @@ _start:
 );
 
 fn finish() -> ! {
+    stack_mark();
+    support::put(40, 1);
+    native::exit(0)
+}
+
+/// Fixture crash point: the NAS process exits with a distinct code and word
+/// 40 = 2, never 1, so the kernel cannot mistake it for success or failure.
+fn interrupted() -> ! {
+    stack_mark();
+    support::put(40, INTERRUPTED);
+    native::exit(3)
+}
+
+fn stack_mark() {
     let stack: u64;
     // SAFETY: Read the current stack register only; no memory or flags changed.
     unsafe {
@@ -68,8 +103,6 @@ fn finish() -> ! {
         at += 8;
     }
     support::put(448, STACK_END - at);
-    support::put(40, 1);
-    native::exit(0)
 }
 
 fn fail(step: u64) -> ! {
@@ -191,6 +224,13 @@ impl Rpc {
 }
 impl Transport for Rpc {
     fn call(&mut self, bytes: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
+        if wire::header(bytes).operation == wire::PURGE {
+            match PURGES_BEFORE_EXIT.load(Ordering::Relaxed) {
+                0 => {}
+                1 => interrupted(),
+                left => PURGES_BEFORE_EXIT.store(left - 1, Ordering::Relaxed),
+            }
+        }
         volume_transport::exchange(
             || send(self.send, wire::TAG, bytes),
             || receive(self.receive, self.peer, wire::TAG),
@@ -206,7 +246,13 @@ impl Entropy for NativeEntropy {
     }
 }
 
-fn server(recover: bool) -> ! {
+fn volume_storage(first_request: u64) -> VolumeStorage<Rpc> {
+    VolumeStorage::new(Client::new(Rpc::new(88, 96, 184), 1, first_request), 0)
+        .unwrap_or_else(|_| fail(3))
+}
+
+fn server(mode: u64) -> ! {
+    let recover = matches!(mode, COLD | REPAIR | RESUME);
     let binding =
         LocalBinding::new(support::word(160), support::word(168)).unwrap_or_else(|_| fail(1));
     check(
@@ -223,10 +269,24 @@ fn server(recover: bool) -> ! {
         pointer.write(Workspace::new());
         &mut *pointer
     };
-    let storage =
-        VolumeStorage::new(Client::new(Rpc::new(88, 96, 184), 1, 1), 0).unwrap_or_else(|_| fail(3));
+    let storage = volume_storage(1);
     let mut entropy = NativeEntropy(EntropySource::from_handle(handle(48)));
-    let mut service = if recover {
+    let mut service = if mode == REPAIR {
+        // Explicit startup repair, never an implicit retry: plain recovery
+        // must refuse the retained history first. Cleanup validates the
+        // current snapshot before purging, so it cannot pick older authority.
+        if !matches!(
+            Service::recover(storage, &mut entropy, &mut *work),
+            Err(NasError::ReopenRequired)
+        ) {
+            fail(11);
+        }
+        volume_storage(1 << 20)
+            .finish_cleanup()
+            .unwrap_or_else(|_| fail(12));
+        support::put(REPAIRED, 1);
+        Service::recover(volume_storage(2 << 20), &mut entropy, work)
+    } else if recover {
         Service::recover(storage, &mut entropy, work)
     } else {
         Service::initialize(
@@ -257,6 +317,9 @@ fn server(recover: bool) -> ! {
             }
             let mut bytes = [0; SIZE];
             bytes.copy_from_slice(message.payload());
+            if mode == INTERRUPT && bytes[6..8] == (Op::Evict as u16).to_le_bytes() {
+                PURGES_BEFORE_EXIT.store(2, Ordering::Relaxed);
+            }
             let now = native::monotonic_ticks().unwrap_or_else(|_| fail(7));
             let context = RequestContext {
                 binding: &binding,
@@ -434,6 +497,8 @@ fn guest(recover: bool) -> ! {
     bump(416);
     if recover {
         rpc.call(named(Op::Open, namespace), Some(NasError::Denied));
+    }
+    if recover && support::word(112) == COLD {
         // Exact boot-1 handles from the kernel's private handoff; absent, zero
         // or non-canonical input fails here before any replay request.
         let session = cold_replay_token(REPLAY_SESSION);
@@ -448,6 +513,10 @@ fn guest(recover: bool) -> ! {
         replay.session = session;
         replay.upload = upload;
         rpc.call(replay, Some(NasError::Stale));
+    } else if recover {
+        // Repair boot: no token handoff exists for this image.
+        check(cold_replay_token(REPLAY_SESSION) == [0; TOKEN_BYTES], 106);
+        check(cold_replay_token(REPLAY_UPLOAD) == [0; TOKEN_BYTES], 107);
     } else {
         check(cold_replay_token(REPLAY_SESSION) == [0; TOKEN_BYTES], 103);
         check(cold_replay_token(REPLAY_UPLOAD) == [0; TOKEN_BYTES], 104);
@@ -553,18 +622,261 @@ fn guest(recover: bool) -> ! {
     finish()
 }
 
+/// P04-T1 interrupt stage: one guest commits synthetic opaque bytes and
+/// exits; the administrator evicts the Active namespace, whose reply never
+/// comes because the NAS dies before evict's history PURGE.
+fn admin_interrupt() -> ! {
+    let mut rpc = Rpc::new(56, 64, 160);
+    let mut create = Frame::new(Op::Invite, 1);
+    create.value = 128;
+    let invitation = rpc.call(create, None);
+    let namespace = invitation.namespace;
+    send(
+        SendEndpoint::from_handle(handle(72)),
+        COORD,
+        &invitation.encode(true).unwrap_or_else(|_| fail(31)),
+    )
+    .unwrap_or_else(|_| fail(32));
+    wait(1);
+    let usage = rpc.call(named(Op::Usage, namespace), None);
+    check(
+        usage.data[0] == NamespaceStatus::Active as u8
+            && usage.data[4..12] == [96, 0, 0, 0, 0, 0, 0, 0],
+        60,
+    );
+    let mut evict = named(Op::Evict, namespace);
+    evict.request = rpc.next;
+    let bytes = evict.encode(false).unwrap_or_else(|_| fail(61));
+    // Publish the waiting marker before Evict: the NAS may exit, and the
+    // kernel check word 40, before this process runs again after the send.
+    stack_mark();
+    support::put(40, INTERRUPTED);
+    send(rpc.send, TAG, &bytes).unwrap_or_else(|_| fail(62));
+    // No reply is expected. The kernel closes the case on the NAS exit and
+    // reaps this process; it never reaches the bounded failure below.
+    for _ in 0..LIMIT {
+        native::yield_now().unwrap_or_else(|_| fail(63));
+    }
+    fail(64)
+}
+
+fn guest_interrupt() -> ! {
+    let mut rpc = Rpc::new(56, 64, 160);
+    let bytes = receive(
+        ReceiveEndpoint::from_handle(handle(80)),
+        support::word(168),
+        COORD,
+    )
+    .unwrap_or_else(|_| fail(40));
+    let invitation = Frame::decode(&bytes, true).unwrap_or_else(|_| fail(41));
+    check(invitation.op == Op::Invite, 42);
+    let namespace = invitation.namespace;
+    rpc.call(Frame::new(Op::UsageAt, 1), Some(NasError::Denied));
+    rpc.call(named(Op::Revoke, namespace), Some(NasError::Denied));
+    check(
+        matches!(
+            native::receive(ReceiveEndpoint::from_handle(handle(56))),
+            Err(Error::Kernel(-5))
+        ),
+        44,
+    );
+    bump(416);
+    check(cold_replay_token(REPLAY_SESSION) == [0; TOKEN_BYTES], 103);
+    check(cold_replay_token(REPLAY_UPLOAD) == [0; TOKEN_BYTES], 104);
+    let mut accept = named(Op::Accept, namespace);
+    accept.value = invitation.value;
+    accept.length = 32;
+    accept.data[..32].copy_from_slice(&invitation.data[..32]);
+    rpc.call(accept, None);
+    let session = rpc.call(named(Op::Open, namespace), None).session;
+    let mut stage = Frame::new(Op::Stage, 1);
+    stage.session = session;
+    stage.length = 96;
+    for (i, byte) in stage.data[..96].iter_mut().enumerate() {
+        *byte = (i * 17 + 9) as u8; // Synthetic opaque bytes, not E2EE proof.
+    }
+    let upload = rpc.call(stage, None).upload;
+    let mut commit = Frame::new(Op::Commit, 1);
+    commit.session = session;
+    commit.upload = upload;
+    check(rpc.call(commit, None).revision == 1, 45);
+    notify(1);
+    finish()
+}
+
+/// Synthetic opaque bytes, not E2EE proof: revision 1 (boot 1), the edit
+/// queued while the NAS is down, and a stale edit from an older base.
+fn synthetic<const N: usize>(mul: usize, add: usize) -> [u8; N] {
+    core::array::from_fn(|i| (i * mul + add) as u8)
+}
+const FIRST: (usize, usize) = (17, 9);
+const EDIT: (usize, usize) = (29, 3);
+
+/// The guest's `native-client` over NASP. A send that queued nothing is
+/// `NotSent`; once queued, a missing or bad reply is `Sent` (`Unknown`).
+fn client_remote(
+    rpc: &Rpc,
+) -> NaspRemote<impl FnMut(&[u8; SIZE]) -> Result<[u8; SIZE], Delivery> + '_> {
+    NaspRemote::new(LocalBinding::principal(support::word(176)), move |bytes| {
+        send(rpc.send, TAG, bytes).map_err(|_| Delivery::NotSent(NasError::Io))?;
+        let reply: [u8; SIZE] = receive(rpc.receive, rpc.peer, TAG).map_err(|_| Delivery::Sent)?;
+        bump(if reply[16..20] == [0; 4] { 400 } else { 408 });
+        Ok(reply)
+    })
+}
+
+/// P02-T3 administrator. Boot 1 creates the namespace and stops the NAS
+/// after the guest's first commit; boot 2 finds the namespace through the
+/// recovered core and checks the guest's reconciled commit.
+fn admin_resume(resume: bool) -> ! {
+    let mut rpc = Rpc::new(56, 64, 160);
+    let announce = if resume {
+        let usage = rpc.call(Frame::new(Op::UsageAt, 1), None);
+        check(
+            usage.data[0] == NamespaceStatus::Active as u8
+                && usage.data[4..12] == [96, 0, 0, 0, 0, 0, 0, 0]
+                && usage.revision == 1,
+            70,
+        );
+        usage
+    } else {
+        let mut create = Frame::new(Op::Invite, 1);
+        create.value = 128;
+        rpc.call(create, None)
+    };
+    let namespace = announce.namespace;
+    send(
+        SendEndpoint::from_handle(handle(72)),
+        COORD,
+        &announce.encode(true).unwrap_or_else(|_| fail(71)),
+    )
+    .unwrap_or_else(|_| fail(72));
+    wait(1);
+    let usage = rpc.call(named(Op::Usage, namespace), None);
+    let used: u8 = if resume { 32 } else { 96 };
+    check(
+        usage.data[0] == NamespaceStatus::Active as u8
+            && usage.data[4..12] == [used, 0, 0, 0, 0, 0, 0, 0],
+        73,
+    );
+    rpc.call(Frame::new(Op::Shutdown, 1), None);
+    finish()
+}
+
+fn guest_resume(resume: bool) -> ! {
+    let rpc = Rpc::new(56, 64, 160);
+    let bytes = receive(
+        ReceiveEndpoint::from_handle(handle(80)),
+        support::word(168),
+        COORD,
+    )
+    .unwrap_or_else(|_| fail(40));
+    let announce = Frame::decode(&bytes, true).unwrap_or_else(|_| fail(41));
+    check(
+        announce.op == if resume { Op::UsageAt } else { Op::Invite },
+        42,
+    );
+    let namespace = announce.namespace;
+    let mut rights = Rpc::new(56, 64, 160);
+    rights.call(Frame::new(Op::UsageAt, 1), Some(NasError::Denied));
+    rights.call(named(Op::Revoke, namespace), Some(NasError::Denied));
+    check(
+        matches!(
+            native::receive(ReceiveEndpoint::from_handle(handle(56))),
+            Err(Error::Kernel(-5))
+        ),
+        44,
+    );
+    bump(416);
+    let mut client = SyncClient::new();
+    let mut remote = client_remote(&rpc);
+    // 32 bytes: the core's copy-on-write reservation counts the old 96-byte
+    // revision too, and 96 + 32 is exactly the 128-byte quota.
+    let edit: [u8; 32] = synthetic(EDIT.0, EDIT.1);
+    if resume {
+        // An edit from an older base meets revision 1: a conflict, no write.
+        let stale = client
+            .enqueue(namespace, 0, 0, &[0x77; 40])
+            .unwrap_or_else(|_| fail(80));
+        check(
+            client.reconcile_latest_via(stale, &mut remote) == Ok(State::Conflict),
+            81,
+        );
+        client.take(stale).unwrap_or_else(|_| fail(82));
+        // The edit queued in boot 1, re-created from the probe constants:
+        // this probe has no client persistence (an OWNER question).
+        let slot = client
+            .enqueue(namespace, 0, 1, &edit)
+            .unwrap_or_else(|_| fail(83));
+        check(
+            client.reconcile_latest_via(slot, &mut remote) == Ok(State::Ready),
+            84,
+        );
+        client
+            .prepare_via(slot, &mut remote)
+            .unwrap_or_else(|_| fail(85));
+        check(client.commit_via(slot, &mut remote) == Ok(2), 86);
+        notify(1);
+        finish()
+    }
+    let mut accept = named(Op::Accept, namespace);
+    accept.value = announce.value;
+    accept.length = 32;
+    accept.data[..32].copy_from_slice(&announce.data[..32]);
+    rights.call(accept, None);
+    let first: [u8; 96] = synthetic(FIRST.0, FIRST.1);
+    let slot = client
+        .enqueue(namespace, 0, 0, &first)
+        .unwrap_or_else(|_| fail(87));
+    client
+        .prepare_via(slot, &mut remote)
+        .unwrap_or_else(|_| fail(88));
+    check(client.commit_via(slot, &mut remote) == Ok(1), 89);
+    client.take(slot).unwrap_or_else(|_| fail(110));
+    notify(1);
+    // Only the kernel's exit observation proves the NAS is down.
+    let mut exited = false;
+    for _ in 0..LIMIT {
+        if support::word(NAS_EXITED) == 1 {
+            exited = true;
+            break;
+        }
+        native::yield_now().unwrap_or_else(|_| fail(111));
+    }
+    check(exited, 111);
+    let slot = client
+        .enqueue(namespace, 0, 1, &edit)
+        .unwrap_or_else(|_| fail(112));
+    check(
+        client
+            .prepare_via(slot, &mut remote)
+            .map_err(|f| f.operation)
+            == Err(NasError::Io),
+        113,
+    );
+    check(
+        client.edit(slot).map(|e| e.state()) == Ok(State::NeedsReconcile),
+        114,
+    );
+    finish()
+}
+
 #[no_mangle]
 pub extern "C" fn nas_main() -> ! {
     native::check_abi().unwrap_or_else(|_| fail(97));
-    let recover = match support::word(112) {
-        0 => false,
-        1 => true,
-        _ => fail(98),
-    };
-    match support::word(120) {
-        0 => admin(recover),
-        1 => server(recover),
-        3 => guest(recover),
+    let mode = support::word(112);
+    if mode > RESUME {
+        fail(98);
+    }
+    let recover = matches!(mode, COLD | REPAIR);
+    match (support::word(120), mode) {
+        (0, INTERRUPT) => admin_interrupt(),
+        (3, INTERRUPT) => guest_interrupt(),
+        (0, OFFLINE | RESUME) => admin_resume(mode == RESUME),
+        (3, OFFLINE | RESUME) => guest_resume(mode == RESUME),
+        (0, _) => admin(recover),
+        (1, _) => server(mode),
+        (3, _) => guest(recover),
         _ => fail(99),
     }
 }

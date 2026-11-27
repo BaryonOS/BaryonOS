@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "3b9a94c52bb4d3ada5a9c6499817560b71d0e4d0",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/p04-t1-interrupted-purge-20261125",
+  "task": "P04-T1 native LP-25 interrupted evict-purge and explicit repair stages",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The native NAS gate adds an interrupt stage (the NAS exits between evict's volume WRITE and its history PURGE; one Revoked 96-byte copy is retained) and a repair stage (ReopenRequired, then finish_cleanup, then recovery to history 0). Both pass with raw QEMU exit 33 and an independent disk oracle. P04 stays open: this is a controlled process exit, not power loss, torn writes, physical erasure, remote guests, the product administrator identity or LP-21 UI."
+}

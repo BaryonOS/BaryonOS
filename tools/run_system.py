@@ -34,8 +34,31 @@ POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-syst
                  # Review R1: SUSPEND refuses a held completion (-8); one labelled
                  # gate-defect injection then sleeps, and only the post-wake latch
                  # keeps the held request's teardown reset off the device.
-                 "power-s3-held-completion": "test-system-s3-held-completion"}
+                 "power-s3-held-completion": "test-system-s3-held-completion",
+                 # H05-T5c: then virtio-blk 00:05.0 re-initialised and self-tested
+                 # (no capability issued), and four labelled injections that must
+                 # quarantine lane 0 while the system continues to S5.
+                 "power-s3-blk-reinit": "test-system-s3-blk-reinit",
+                 "power-s3-blk-reinit-busy": "test-system-s3-blk-reinit-busy",
+                 "power-s3-blk-reinit-identity": "test-system-s3-blk-reinit-identity",
+                 "power-s3-blk-reinit-capacity": "test-system-s3-blk-reinit-capacity",
+                 "power-s3-blk-reinit-no-ack": "test-system-s3-blk-reinit-no-reset-ack",
+                 # B01-LOCK (ADR-KEYRING-LOCK-20261126): the labelled LOCK fixture
+                 # (A2-A4, A6, A9, A10) while init's S5 grant waits, then S5.
+                 "power-lock": "test-system-lock"}
 POWER_CASES = tuple(POWER_FEATURE)
+# B01-LOCK red controls: (kernel feature, the one expected kernel refusal, LOCKED
+# markers). Without the stack scrub the canary survives LOCK (A10) and LOCKED
+# never latches (F1, owner decision 26 November 2026); an own exit
+# of the instance is never LOCKED (A5).
+LOCK_RED = {"power-lock-noscrub": ("test-system-lock-noscrub", "LOCK_CANARY_RESIDUE", 0),
+            "power-lock-exit": ("test-system-lock-exit", "UNEXPECTED_EXIT", 0)}
+# Exact LOCK evidence: one LOCK, the fixture's six refusals (-1, -6, -4, -8, -8,
+# -14), one verified whole-stack scrub, no canary after it; the minimums prove
+# that the canary and the instance's frames were there to be erased.
+LOCK_EXACT = {"LOCK_COUNT": 1, "LOCK_REFUSALS": 6, "LOCK_STACK_SCRUBS": 1, "LOCK_STACK_RESIDUE": 0,
+              "LOCK_CANARY_AFTER": 0, "LOCK_APP_SEND": 10, "LOCK_APP_RECEIVE": 8}
+LOCK_MINIMUM = {"LOCK_CANARY_BEFORE": 1, "LOCK_FRAMES_ZEROED": 1, "LOCK_GRANT_HOLDS": 1}
 # B02-T4 (ADR-B02-KEY1-RELAY-20261123): the Key Service commits key state through
 # init's commit ingress. Kept out of FEATURE (capture/gate iterate it as FR-I01).
 RELAY_FEATURE = {"relay": "test-system-keystate-relay",
@@ -44,9 +67,18 @@ RELAY_FEATURE = {"relay": "test-system-keystate-relay",
 # Red manifest case: the app also holds a commit SEND; the boot must stop.
 RELAY_RED = {"relay-leak": "test-system-keystate-relay-leak"}
 RELAY_CASES = (*RELAY_FEATURE, *RELAY_RED)
-S3_CASES = ("power-s3", "power-s3-reinit", "power-s3-held-completion")
+# H05-T5c: case -> (injection label, quarantine reason); None = validated re-init.
+BLK_CASES = {"power-s3-blk-reinit": None, "power-s3-blk-reinit-busy": ("BUSY", "BROKER_BUSY"),
+             "power-s3-blk-reinit-identity": ("IDENTITY", "REDISCOVER"),
+             "power-s3-blk-reinit-capacity": ("CAPACITY", "CAPACITY"),
+             "power-s3-blk-reinit-no-ack": ("NO_RESET_ACK", "RESET_ACK")}
+S3_CASES = ("power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
+# Cases with the virtio-rng re-init (the blk re-init builds on it).
+RNG_REINIT_CASES = ("power-s3-reinit", *BLK_CASES)
 # The single re-init marker; CI's QEMU 8.2.2 may keep the BARs that 10.2.1 clears.
 REINIT = re.compile(r"KEYRING:S3:REINIT:BARS=(KEPT|RESTORED):STATUS=15:SELFTEST=32")
+BLK_REINIT = re.compile(r"VOLUME:S3:REINIT:BARS=(KEPT|RESTORED):STATUS=15:CAPACITY=[0-9]{20}:SELFTEST=READ")
+QUARANTINED = 24  # volume::QUARANTINED, the post-wake refusal of a quarantined lane
 S5_TAIL = ("POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE")
 # B02 persistence objects: the app's sealed record (domain 0) and init's
 # encrypted key-state snapshot (domain 1). Both are ciphertext, never fixtures.
@@ -216,10 +248,12 @@ def s3_machine() -> str:
     return MACHINE
 
 
-def check_suspend(lines: list[str], reinit: bool = False) -> None:
+def check_suspend(lines: list[str], reinit: bool = False, blk: str | None = None) -> None:
     """One resolved plan at bootstrap, then exactly one ENTER/RESUMED pair
     inside init's run: after the manifest, before the broker evidence. With
-    re-init, exactly one re-init marker between RESUMED and the brokers."""
+    re-init, exactly one re-init marker between RESUMED and the brokers; with
+    the blk re-init (H05-T5c) then its one success marker, or its one injection
+    label followed by its one quarantine marker."""
     from run_sleep import ENTER, PLAN, RESUMED  # lazy, see run_system
     s3 = [line for line in lines if line.startswith("POWER:S3:")]
     if (len(s3) != 3 or not PLAN.fullmatch(s3[0]) or s3[1] != ENTER.format(1)
@@ -231,6 +265,19 @@ def check_suspend(lines: list[str], reinit: bool = False) -> None:
         if len(marker) != 1 or not REINIT.fullmatch(marker[0]):
             raise ValueError(f"power-s3-reinit lacks exactly one re-init marker: {marker}")
         order.insert(3, marker[0])
+    if blk is not None:
+        volume = [line for line in lines if line.startswith("VOLUME:S3:")]
+        injected = [line for line in lines if line.startswith("SYSTEM:FAULT_INJECTED:S3_BLK_")]
+        if BLK_CASES[blk] is None:
+            if len(volume) != 1 or not BLK_REINIT.fullmatch(volume[0]) or injected:
+                raise ValueError(f"{blk} lacks exactly one blk re-init marker: {volume} {injected}")
+        else:
+            label, reason = BLK_CASES[blk]
+            if (volume != [f"VOLUME:S3:REINIT:QUARANTINE:{reason}"]
+                    or injected != [f"SYSTEM:FAULT_INJECTED:S3_BLK_{label}"]):
+                raise ValueError(f"{blk} lacks exactly one injection and quarantine marker: {volume} {injected}")
+            order.insert(4, injected[0])
+        order.insert(len(order) - 1, volume[0])
     positions = [lines.index(marker) for marker in order]
     if positions != sorted(positions) or lines.index(s3[0]) > positions[0]:
         raise ValueError("power-s3 S3 markers are out of order")
@@ -241,8 +288,11 @@ def refuse_stray_suspend(case: str, stdout: str) -> None:
     lines = stdout.splitlines()
     if case not in S3_CASES and any(line.startswith("SYSTEM:SUSPEND") for line in lines):
         raise ValueError("suspend evidence outside the power-s3 profile")
-    if case != "power-s3-reinit" and any(line.startswith("KEYRING:S3:") for line in lines):
+    if case not in RNG_REINIT_CASES and any(line.startswith("KEYRING:S3:") for line in lines):
         raise ValueError("re-init evidence outside the power-s3-reinit profile")
+    if case not in BLK_CASES and any(line.startswith(("VOLUME:S3:", "SYSTEM:FAULT_INJECTED:S3_BLK_",
+                                                      "SYSTEM:SUSPEND_BLK_")) for line in lines):
+        raise ValueError("blk re-init evidence outside the power-s3-blk-reinit profiles")
 
 
 # Review R3: after CLEANUP, each broker's device accesses at the wake (live
@@ -256,19 +306,48 @@ SUSPEND_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "LOS
 # init's POWER handle refused by authority (-6), block still lost (-14).
 REINIT_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "REINIT_ENTROPY",
                 "REINIT_STALE_TICKET", "REINIT_ENTROPY_AUTH", "LOST_BLOCK", *DEVICE_ORDER)
+# H05-T5c: the blk outcome, the pre-sleep ticket refused (-1), the 8259 masks and
+# INTx line seen after the wake, then block at authority (-6) or quarantined (-24);
+# last the volume re-init's accounted device accesses.
+BLK_ORDER = (*REINIT_ORDER[:7], "BLK_QUARANTINED", "BLK_STALE_TICKET", "BLK_PIC_MASTER", "BLK_PIC_SLAVE",
+             "BLK_INTX_LINE", "BLK_LATCH_CARRIED", "LOST_BLOCK", *DEVICE_ORDER, "DEVICE_IO_ACCOUNTED_VOLUME")
+
+
+def check_lock(case: str, stdout: str, found: dict) -> None:
+    """B01-LOCK: one LOCKED marker before finish, exact refusals, canary scrubbed."""
+    lines = stdout.splitlines()
+    if case != "power-lock":
+        if any(line.startswith("SYSTEM:LOCK") for line in lines):
+            raise ValueError("LOCK evidence outside the power-lock profile")
+        return
+    if lines.count("SYSTEM:LOCK:LOCKED") != 1 or lines.count("SYSTEM:LOCK:PASS") != 1:
+        raise ValueError("power-lock needs exactly one LOCKED and one LOCK:PASS marker")
+    if not (lines.index("SYSTEM:MANIFEST:PASS") < lines.index("SYSTEM:LOCK:LOCKED")
+            < lines.index("SYSTEM:BROKERS:PASS") < lines.index("SYSTEM:LOCK:PASS")
+            < lines.index("SYSTEM:CLEANUP:PASS")):
+        raise ValueError("power-lock markers out of order")
+    for key, value in LOCK_EXACT.items():
+        if found.get(key) != value:
+            raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
+    for key, value in LOCK_MINIMUM.items():
+        if found.get(key, -1) < value:
+            raise ValueError(f"{key}: expected at least {value}, found {found.get(key)}")
+    if not found.get("LOCK_ENTROPY_OBJECTS_AFTER", 1 << 64) < found.get("LOCK_ENTROPY_OBJECTS_BEFORE", 0):
+        raise ValueError("LOCK did not reclaim the instance's entropy object")
 
 
 def check_power(case: str, stdout: str, found: dict) -> None:
     """Exact S5 tail after M1:PASS, or a refusal without any PM1 write."""
     lines = stdout.splitlines()
-    if case in ("power", *S3_CASES):
+    if case in ("power", "power-lock", *S3_CASES):
         if tuple(lines[-3:]) != ("M1:PASS", *S5_TAIL) or "SYSTEM:POWER:GATE:PASS" not in lines:
             raise ValueError("power case did not end with the gated S5 write")
         expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
         if case in S3_CASES:
-            reinit = case == "power-s3-reinit"
+            reinit = case in RNG_REINIT_CASES
+            blk = case if case in BLK_CASES else None
             held = int(case == "power-s3-held-completion")
-            check_suspend(lines, reinit)
+            check_suspend(lines, reinit, blk)
             # -8 before SHUTDOWN, -6, -4, -1, [the held-completion -8,] then the
             # grant and the one-shot -14; after the wake init's entropy and block
             # requests each return -14. No broker device access after the wake
@@ -282,8 +361,24 @@ def check_power(case: str, stdout: str, found: dict) -> None:
                                 SUSPEND_REINIT_ENTROPY_AUTH=6)
             else:
                 expected.update(SUSPEND_LOST_ENTROPY=14)
+            if blk is not None:
+                quarantined = BLK_CASES[blk] is not None
+                # The PIC masks and the line are recorded only on the validated path.
+                expected.update(SUSPEND_BLK_QUARANTINED=int(quarantined),
+                                SUSPEND_BLK_STALE_TICKET=0 if quarantined else 1,
+                                SUSPEND_BLK_PIC_MASTER=0 if quarantined else 0xfe,
+                                SUSPEND_BLK_PIC_SLAVE=0 if quarantined else 0xff,
+                                SUSPEND_BLK_LATCH_CARRIED=1,
+                                SUSPEND_LOST_BLOCK=QUARANTINED if quarantined else 6)
+                if quarantined:
+                    expected.update(SUSPEND_BLK_INTX_LINE=0)
+                busy = blk == "power-s3-blk-reinit-busy"
+                if (found.get("SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME", -1) == 0) != busy:
+                    raise ValueError("SUSPEND_DEVICE_IO_ACCOUNTED_VOLUME: the volume re-init must be "
+                                     "accounted, and the busy refusal must touch no device")
+            order = BLK_ORDER if blk else REINIT_ORDER if reinit else SUSPEND_ORDER
             suspend = [line.split(":")[1] for line in lines if line.startswith("SYSTEM:SUSPEND")]
-            if suspend != [f"SUSPEND_{key}" for key in (REINIT_ORDER if reinit else SUSPEND_ORDER)]:
+            if suspend != [f"SUSPEND_{key}" for key in order]:
                 raise ValueError(f"{case} suspend evidence out of order: {suspend}")
             # The kernel's real order: the wake evidence (ending in LOST_BLOCK)
             # before CLEANUP, the device evidence after every owner's teardown
@@ -310,7 +405,7 @@ def check_power(case: str, stdout: str, found: dict) -> None:
         if found.get(key) != value:
             raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
     # The kernel fixture's 32 post-wake bytes cannot pad the pre-sleep bound.
-    if case == "power-s3-reinit" and found["ENTROPY_BYTES"] - found["SUSPEND_REINIT_ENTROPY"] < 256:
+    if case in RNG_REINIT_CASES and found["ENTROPY_BYTES"] - found["SUSPEND_REINIT_ENTROPY"] < 256:
         raise ValueError("ENTROPY_BYTES: fewer than 256 bytes delivered before the sleep")
 
 
@@ -323,7 +418,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if controlled != list(expected):
         raise ValueError(f"system marker sequence mismatch: {controlled}")
     # Only a guest poweroff exits 0: the power runs override -no-reboot.
-    if timed_out or raw_exit != (0 if case in ("power", *S3_CASES) else 33):
+    if timed_out or raw_exit != (0 if case in ("power", "power-lock", *S3_CASES) else 33):
         raise ValueError(f"raw exit {raw_exit}, timed_out {timed_out}")
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
@@ -348,7 +443,9 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
              "RECORD_SEAL": 1, "RECORD_UNSEAL": 1,
              "RECORD_CONTEXT_DENIED": 10, "RECORD_REVOKED_DENIED": 2,
              **PERSIST_EXACT["recover" if case == "recover" else "relay" if relay else "normal"],
-             **RELAY_EXACT.get(case, {})}
+             **RELAY_EXACT.get(case, {}),
+             # B01-LOCK: the canary request is one more refused admin request.
+             **({"ADMIN_REQUESTS": 6, "ADMIN_DENIED": 4} if case == "power-lock" else {})}
     minimum = {"APP_DENIED": 3, "DISK_READS": 1, "ENTROPY_BYTES": 256,
                "CRYPTO_SEAL": 1, "CRYPTO_UNSEAL": 1, "CRYPTO_TAMPER_DENIED": 1}
     for key, value in exact.items():
@@ -367,6 +464,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         raise ValueError("wrong durability/readonly flush evidence")
     if case in POWER_CASES:
         check_power(case, stdout, found)
+    check_lock(case, stdout, found)
     if relay:
         relay_keys = {key for key in found if key.startswith(RELAY)}
         if relay_keys != {*RELAY_EXACT[case], RELAY + "MAX_COMMIT_TICKS", RELAY + "SUM"}:
@@ -494,6 +592,24 @@ def evaluate_red(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
     return {"fail": fails[0], "raw_exit": raw_exit}
 
 
+def evaluate_lock_red(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
+    """B01-LOCK red controls: exactly the expected kernel refusal, never LOCKED, no S5."""
+    lines = stdout.splitlines()
+    fails = [line for line in lines if line.startswith("SYSTEM:FAIL:")]
+    if fails != [f"SYSTEM:FAIL:{LOCK_RED[case][1]}"]:
+        raise ValueError(f"red lock case stopped for another reason: {fails}")
+    if lines.count("SYSTEM:LOCK:LOCKED") != LOCK_RED[case][2]:
+        raise ValueError("red lock case has the wrong number of LOCKED markers")
+    if any(line.startswith(("SYSTEM:LOCK_", "SYSTEM:LOCK:PASS", "POWER:")) or line == "M1:PASS"
+           for line in lines):
+        raise ValueError("red lock case produced LOCK evidence, a PM1 write or M1:PASS")
+    if [line for line in lines if line in BOOT] != list(BOOT):
+        raise ValueError("red lock case lacks the boot markers")
+    if timed_out or raw_exit != 35:
+        raise ValueError(f"red lock case raw exit {raw_exit}, timed_out {timed_out}")
+    return {"fail": fails[0], "raw_exit": raw_exit}
+
+
 def cold_image(raw: bytes, case: str) -> bytes:
     """Mutate AEAD bytes while repairing the noncryptographic volume checksums.
 
@@ -578,7 +694,8 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
                kernel_feature: str | None = None, network_port: int | None = None,
                rtc_base: str | None = None, cold_case: str | None = None,
                nic_status: bool = True, qmp_hook=None):
-    cases = {**FEATURE, **POWER_FEATURE, **RELAY_FEATURE, **RELAY_RED}
+    cases = {**FEATURE, **POWER_FEATURE, **RELAY_FEATURE, **RELAY_RED,
+             **{name: feature for name, (feature, _, _) in LOCK_RED.items()}}
     if case not in cases or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
     if cold_case is not None and (case != "recover" or cold_case not in COLD_CASES or kernel_feature is not None):
@@ -687,6 +804,10 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         # Private QMP socket inside this run directory (relative to QEMU's
         # cwd). The link harness is its only client and permits nothing but
         # qmp_capabilities and set_link; no HMP, TAP or other listener.
+        # AF_UNIX paths stop at 107 bytes; case names stay short enough for
+        # build/power-system-gate (capture_system pins the 32-hex suffix).
+        if len(f"{rel}/qmp.sock".encode()) >= 108:
+            raise ValueError("Private QMP socket path too long; choose a shorter NOS_BUILD_DIR")
         command += ["-qmp", f"unix:{rel}/qmp.sock,server=on,wait=off"]
     started = datetime.now(timezone.utc).isoformat()
     begin = time.monotonic()
@@ -741,6 +862,9 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
         if case in RELAY_RED:
             report["evidence"] = evaluate_red(case, stdout, rc, timed_out, before, after)
             report["expected_fail"] = True
+        elif case in LOCK_RED:
+            report["evidence"] = evaluate_lock_red(case, stdout, rc, timed_out)
+            report["expected_fail"] = True
         else:
             report["evidence"] = (evaluate_cold(cold_case, stdout, rc, timed_out) if cold_case is not None
                                   else evaluate(case, stdout, rc, timed_out))
@@ -753,6 +877,8 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
             check_disk_relay(oracle, report["evidence"][RELAY + "SUM"])
         elif case in RELAY_RED:
             pass  # unchanged empty image, compared byte-for-byte above
+        elif case in LOCK_RED:
+            pass  # stopped mid-flow by design; its disk is not acceptance evidence
         elif cold_case is None:
             check_disk(oracle)
         report["oracle"] = oracle
@@ -772,7 +898,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--case", choices=(*FEATURE, *POWER_FEATURE, *RELAY_CASES), required=True)
+    parser.add_argument("--case", choices=(*FEATURE, *POWER_FEATURE, *RELAY_CASES, *LOCK_RED), required=True)
     parser.add_argument("--volume", type=Path)
     parser.add_argument("--cold-case", choices=COLD_CASES)
     parser.add_argument("--timeout", type=int, default=MAX_TIMEOUT)

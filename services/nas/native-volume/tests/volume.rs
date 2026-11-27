@@ -34,6 +34,9 @@ struct Engine {
     volume: Volume,
     disk: SimDisk,
     lose_reply: Option<u16>,
+    /// Countdown of PURGE requests; reaching 1 models the NAS process dying
+    /// before it sends that PURGE (the request never reaches the volume).
+    crash_on_purge: usize,
 }
 
 #[derive(Clone)]
@@ -45,6 +48,12 @@ struct Local {
 impl Transport for Local {
     fn call(&mut self, request: &[u8; wire::SIZE]) -> Result<[u8; wire::SIZE], Status> {
         let mut engine = self.engine.borrow_mut();
+        if wire::header(request).operation == wire::PURGE && engine.crash_on_purge != 0 {
+            engine.crash_on_purge -= 1;
+            if engine.crash_on_purge == 0 {
+                return Err(Status::NoDevice);
+            }
+        }
         let Engine { volume, disk, .. } = &mut *engine;
         let reply = volume.handle(self.domain, request, disk);
         if engine.lose_reply == Some(wire::header(request).operation) {
@@ -62,6 +71,7 @@ impl Local {
                 volume: Volume::new(EPOCH, Table::EMPTY, false),
                 disk: SimDisk::new(),
                 lose_reply: None,
+                crash_on_purge: 0,
             })),
             domain: 0,
         }
@@ -76,6 +86,7 @@ impl Local {
                 volume: Volume::new(EPOCH, table, false),
                 disk,
                 lose_reply: None,
+                crash_on_purge: 0,
             })),
             domain: 0,
         }
@@ -225,6 +236,102 @@ fn actual_core_volume_outcome_matches_independent_python_probe_oracle() {
         "independent host oracle failed: {}",
         String::from_utf8_lossy(&output.stderr)
     );
+}
+
+fn run_oracle(image: &[[u8; SECTOR]], stage: &str) {
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let directory = std::env::temp_dir().join(format!(
+        "nieuw-os-nas-oracle-{stage}-{}-{unique}",
+        std::process::id()
+    ));
+    std::fs::create_dir(&directory).unwrap();
+    let raw = directory.join("volume.raw");
+    let bytes: Vec<u8> = image.iter().flatten().copied().collect();
+    std::fs::write(&raw, bytes).unwrap();
+    let output = std::process::Command::new("python3")
+        .arg("-B")
+        .arg(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../native-probe/tests/check_volume_fixture.py"
+        ))
+        .arg(&raw)
+        .arg(stage)
+        .output()
+        .unwrap();
+    std::fs::remove_dir_all(directory).unwrap();
+    assert!(
+        output.status.success(),
+        "independent host oracle failed for {stage}: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+/// Host mirror of the native P04-T1 interrupt/repair stages: the NAS dies
+/// after evict's WRITE and before its history PURGE. A plain recovery refuses
+/// (`ReopenRequired`) without writing; only the explicit cleanup purges the
+/// retained revoked copy, and the recovered state stays Evicted.
+#[test]
+fn interrupted_evict_purge_matches_native_oracle_before_and_after_repair() {
+    let principal = |pid: u64| {
+        let mut bytes = [0; 32];
+        bytes[..8].copy_from_slice(b"NOSPROC1");
+        bytes[8..16].copy_from_slice(&pid.to_le_bytes());
+        Principal(bytes)
+    };
+    let (admin, guest) = (principal(11), principal(12));
+    let local = Local::fresh();
+    let mut work = Box::new(Workspace::new());
+    let mut entropy = TestEntropy(20);
+    let mut nas = Nas::initialize(local.storage(), admin, &mut entropy, &mut work).unwrap();
+    let invite = nas
+        .invite(admin, guest, 128, 100, 6000, &mut entropy)
+        .unwrap();
+    nas.accept(guest, &invite, 100).unwrap();
+    let session = nas.open(guest, &invite.namespace).unwrap();
+    let content: Vec<u8> = (0..96).map(|i| (i * 17 + 9) as u8).collect();
+    let upload = nas.stage(guest, session, 0, 0, &content).unwrap();
+    nas.commit(guest, session, upload).unwrap();
+    // Evict on an Active namespace: revoke's PURGE succeeds, evict's is lost.
+    local.engine.borrow_mut().crash_on_purge = 2;
+    assert_eq!(nas.evict(admin, &invite.namespace), Err(Error::Unknown));
+    assert_eq!(local.history(), 1);
+    drop(nas);
+    let interrupted = local.image();
+    run_oracle(&interrupted, "interrupt");
+
+    let repair = Local::recover(interrupted);
+    let before = repair.mutations();
+    assert!(matches!(
+        Nas::recover(repair.storage(), &mut entropy, &mut work),
+        Err(Error::ReopenRequired)
+    ));
+    assert_eq!(
+        repair.mutations(),
+        before,
+        "refused recovery must not write"
+    );
+    repair.storage().finish_cleanup().unwrap();
+    assert_eq!(repair.history(), 0);
+    let mut nas = Nas::recover(repair.storage(), &mut entropy, &mut work).unwrap();
+    let usage = nas.usage(admin, &invite.namespace).unwrap();
+    assert_eq!(usage.status, NamespaceStatus::Evicted);
+    assert_eq!((usage.used, usage.reserved), (0, 0));
+    assert!(matches!(
+        nas.open(guest, &invite.namespace),
+        Err(Error::Denied)
+    ));
+    let settled = repair.mutations();
+    nas.evict(admin, &invite.namespace).unwrap();
+    assert_eq!(
+        repair.mutations(),
+        settled,
+        "idempotent evict writes nothing"
+    );
+    drop(nas);
+    run_oracle(&repair.image(), "repair");
 }
 
 #[test]
