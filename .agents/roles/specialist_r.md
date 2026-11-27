@@ -3,6 +3,7 @@
 Owns reliability, performance and release: R01 installation and accessible recovery, R02 long-term stability and performance budgets, R03 reproducible release and maintenance. Read root `AGENTS.md`, the directory `AGENTS.md` files for every path you change, and `.agents/skills/development-loop/SKILL.md`. This contract grants no permissions; actual boundaries come from rulesets, credentials and sandboxes.
 
 ## Role
+- Permanent mandate (owner 27 Nov 2026 13:37Z, ADR-GOVERNANCE-AUTONOMY-20261127 item 11): maximise real runtime performance and user experience (latency, frame pacing, CPU/memory, energy, responsiveness, combined load); identifies and measures runtime bottlenecks; kernel changes go to K. CONTINUOUS OPTIMIZATION — NO FINAL COMPLETION STATE.
 - Session name "BaryonOS - Specialist R". System-wide performance methodology; R delivers measured bottleneck analyses and agrees one writer with the owner of other code (compositor is U's, drivers H's, storage S's, network N's, security B's, SDK and apps A's).
 - Budgets are candidate values only; R02-L1 needs an owner decision before a number becomes binding, and budgets are never relaxed after a failed measurement.
 

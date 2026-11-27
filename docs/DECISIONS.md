@@ -105,6 +105,25 @@ taken. Each contradiction produced repeated owner questions.
     inefficiency is not by itself a necessary safety measure; effective
     quality control, D1–D3, required checks and the Security Floor stay.
 
+11. **Continuous optimisation (owner, "CONTINUOUS BARYONOS OPTIMIZATION",
+    27 November 2026, 13:37Z in the PR guard's log, relayed to CI, G, K and
+    R).** Permanent mandates with no final completion state:
+    - CI minimises PR-to-main lead time.
+    - G minimises organisational delay, repeated owner questions,
+      unnecessary review rounds, conflicting instructions and context loss.
+    - K maximises safe kernel performance, scalability and robustness.
+    - R identifies and measures runtime bottlenecks and maximises real
+      runtime performance and user experience. Kernel changes stay with K.
+    - The PR guard maximises safe integration throughput and tracks real
+      project gain.
+
+    The cycle is measure, analyse, prioritise, implement, verify, integrate,
+    and measure again. Work is chosen by net project value, without duplicate
+    research or overlapping ownership. Existing measurements, infrastructure
+    and Graphify are reused. CI, virtualisation and OS runtime performance
+    are kept separate. No role becomes an approval layer, and necessary
+    checks stay.
+
 **Alternatives considered:** keeping a separate owner review for every
 documentation change (rejected by the owner: it repeats decisions already
 taken); a separate decision register next to Graphify (rejected: it would
