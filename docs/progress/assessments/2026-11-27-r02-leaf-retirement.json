@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "e78814adf70494ee48546a2f7a4689b5c1f4633f",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/r02-leaf-fallback-20261127",
+  "task": "Add bounded compositor leaf-retirement observation and local fallback",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Host tests and interim local native runs do not establish end-to-end leaf recovery, physical performance, endurance, accessibility or human review; R02 remains open."
+}

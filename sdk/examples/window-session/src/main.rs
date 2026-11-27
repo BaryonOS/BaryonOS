@@ -23,6 +23,7 @@ use nieuw_os_window_session::{
     },
     idle::{CompositorState, Idle, NativeIdle},
     input::Queue,
+    retirement,
     scene::{Damage, Scene, MAX_PIXELS},
     shell::Command as ShellCommand,
     surface::TrackedReceiver as Receiver,
@@ -204,6 +205,11 @@ fn flush_reply(
         queue.retire();
         let _ = native::close(context.boot.apps[index].surface_reply.handle());
         let _ = native::close(context.boot.apps[index].input_reply.handle());
+        // The private startup page is zero-initialized and has one writer.
+        // This mask is observational only and confers no recovery authority.
+        let mask = retirement::record(support::word(retirement::MASK_OFFSET), index)
+            .unwrap_or_else(|| fail(40));
+        support::put(retirement::MASK_OFFSET, mask);
     }
     failed
 }
@@ -682,6 +688,15 @@ fn run() -> ! {
                 },
             ) {
                 rejected += 1;
+                if app_pointer_capture == Some(index) {
+                    app_pointer_capture = None;
+                }
+                if app_pointer_hover == Some(index) {
+                    app_pointer_hover = None;
+                }
+                scene
+                    .retire_leaf(index, &mut damage)
+                    .unwrap_or_else(|_| fail(40));
             }
         }
         for _ in 0..16 {
@@ -752,6 +767,15 @@ fn run() -> ! {
                     },
                 ) {
                     rejected += 1;
+                    if app_pointer_capture == Some(index) {
+                        app_pointer_capture = None;
+                    }
+                    if app_pointer_hover == Some(index) {
+                        app_pointer_hover = None;
+                    }
+                    scene
+                        .retire_leaf(index, &mut damage)
+                        .unwrap_or_else(|_| fail(40));
                 }
                 continue;
             }
@@ -836,6 +860,15 @@ fn run() -> ! {
                 },
             ) {
                 rejected += 1;
+                if app_pointer_capture == Some(index) {
+                    app_pointer_capture = None;
+                }
+                if app_pointer_hover == Some(index) {
+                    app_pointer_hover = None;
+                }
+                scene
+                    .retire_leaf(index, &mut damage)
+                    .unwrap_or_else(|_| fail(40));
             }
         }
         if scene.set_clipboard_notice(clipboard.notice()) {
