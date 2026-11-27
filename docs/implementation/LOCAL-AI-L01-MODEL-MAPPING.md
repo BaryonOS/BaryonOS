@@ -1,8 +1,16 @@
 # L01 model mapping: read-only verified weights for the native AI process
 
 **Status:** design proposal (task L01-MAP-D1). Nothing is implemented, built or run
-by this document. **Baseline:** `origin/main` `7c32e6c7`. **Owner of L01:** Specialist L;
-decisions marked as owner questions belong to the project owner.
+by this document. **Baseline:** `origin/main` `af7415df` (drafted at `7c32e6c7`; no file
+cited below changed in between except `docs/DECISIONS.md`, whose references were
+re-anchored). **Owner of L01:** Specialist L; decisions marked as owner questions belong
+to the project owner. Interface owners for the first slice: K (kernel paging, process
+lifecycle, syscall numbers) and B (Security Floor review of the new right).
+**Review:** drafted by a delegated agent; reviewed by Specialist L on 27 November 2026,
+who re-read at `af7415df` the limits L1–L9, the paging walk, `Paging::new_user`,
+`Paging::destroy`, `Paging::audit`, `audit_process`, every syscall path that translates
+a user pointer, the capability-right pattern and the toolchain pin, and corrected
+sections 2, 4.1, 4.2, 4.4, 6 and 7 accordingly.
 **Evidence boundary:** every code statement below carries a `path:line` reference
 read at the baseline. Byte counts derived from the pinned configuration are
 arithmetic, marked *derived*; no memory, latency or throughput was measured.
@@ -47,7 +55,7 @@ the same layout: ELF segments in `0x40000000..0x60000000`
 
 | # | Limit | Value and enforcement |
 |---|---|---|
-| L1 | Per-process frame quota | `USER_QUOTA = 2048` pages, 8 MiB (`crates/kernel-core/src/lib.rs:5`); counted per PID in `allocate` (`crates/kernel-core/src/lib.rs:180-193`) and `allocate_many` (`crates/kernel-core/src/lib.rs:228-238`); ELF images at most `USER_QUOTA - 32` pages (`crates/kernel-core/src/user.rs:123`); heap ends at `HEAP + USER_QUOTA` pages (`kernel/src/m2/m3/heap.rs:13`, `kernel/src/m2/m3/heap.rs:87-92`); ADR-047 keeps 2048 frames including program and stack (`docs/DECISIONS.md:5569-5570`) |
+| L1 | Per-process frame quota | `USER_QUOTA = 2048` pages, 8 MiB (`crates/kernel-core/src/lib.rs:5`); counted per PID in `allocate` (`crates/kernel-core/src/lib.rs:180-193`) and `allocate_many` (`crates/kernel-core/src/lib.rs:228-238`); ELF images at most `USER_QUOTA - 32` pages (`crates/kernel-core/src/user.rs:123`); heap ends at `HEAP + USER_QUOTA` pages (`kernel/src/m2/m3/heap.rs:13`, `kernel/src/m2/m3/heap.rs:87-92`); ADR-047 keeps 2048 frames including program and stack (`docs/DECISIONS.md`, ADR-047, line 5601 at the baseline) |
 | L2 | Physical frame pool | `FRAME_COUNT = 65536`, 256 MiB (`kernel/src/m2.rs:34`); frames above it are never admitted (`crates/kernel-core/src/lib.rs:124-125`); QEMU runs accept only 128 or 256 MiB (`tools/run.py:106-107`); kernel scratch access asserts `pa` inside the pool (`kernel/src/m2/paging.rs:1102-1104`) |
 | L3 | User virtual window | user leaves only in `0x40000000..0x80000000`, 1 GiB, shared with ELF, heap and stack (`kernel/src/m2/paging.rs:632`, `kernel/src/m2/paging.rs:644`) |
 | L4 | Page tables | 4-KiB leaves only (`kernel/src/m2/paging.rs:1`); large-page bit rejected on walks (`kernel/src/m2/paging.rs:213`, `kernel/src/m2/paging.rs:658`); at most `MAX_TABLES = 256` tables per address space (`kernel/src/m2/paging.rs:14`). 241,235 leaves need 472 page tables plus one directory (*derived*) |
@@ -55,7 +63,7 @@ the same layout: ELF segments in `0x40000000..0x60000000`
 | L6 | Alias and owner policy | a user alias requires an `Owner::User` frame (`crates/kernel-core/src/lib.rs:336-339`); every user frame gets a kernel identity alias (`kernel/src/m2/m3.rs:1304`), writable except for text frames (`kernel/src/m2/m3.rs:1174-1176`); the audit forbids two live processes sharing a frame (`kernel/src/m2/m3.rs:1358-1363`); no shared-memory API exists (`kernel/src/m2/m3/m4.rs:229`) |
 | L7 | Private RW memory | `KvCache` stores f32 (`experiments/ai/reference-forward/src/lib.rs:340-342`): at the proposal's 1,024 tokens, 24 × 2 × 2 × 64 × 1,024 × 4 B = 24 MiB (*derived*), above L1 before any scratch; the proposal's ceilings are 128 MiB KV and 512 MiB scratch (`docs/implementation/LOCAL-AI-L01-PROPOSAL.md:54-55`) |
 | L8 | Byte delivery | `BootInfo` has no module/ramdisk field (`crates/boot-protocol/src/stable.rs:15-35`); virtio-blk reads one 512-byte sector per request into DMA below `RAM_END = 256 MiB` (`drivers/virtio-blk/src/lib.rs:15`, `drivers/virtio-blk/src/lib.rs:510-518`); store reads are at most 4,096 bytes (`crates/artifact-store-core/src/lib.rs:8`) and IPC payloads 256 bytes (`experiments/ai/model-store-contract/README.md:44-49`) |
-| L9 | TLB | the kernel loads its own CR3 on every entry (`kernel/src/m2/m3.rs:2172`) and the process CR3 on every return (`kernel/src/m2/m3.rs:1629`); CR4.PGE and CR4.PCIDE are cleared (`kernel/src/m2/arch.rs:404`; `kernel/src/m2/paging.rs:1041`; `docs/DECISIONS.md:3486`), so each entry flushes all user translations |
+| L9 | TLB | the kernel loads its own CR3 on every entry (`kernel/src/m2/m3.rs:2172`) and the process CR3 on every return (`kernel/src/m2/m3.rs:1629`); CR4.PGE and CR4.PCIDE are cleared (`kernel/src/m2/arch.rs:404`; `kernel/src/m2/paging.rs:1041`; `docs/DECISIONS.md`, ADR-075 item 5, line 3517 at the baseline), so each entry flushes all user translations |
 
 L1 alone blocks the weights, but L2–L5 block any design that simply maps
 942 MiB of private 4-KiB pages, and L7 blocks the real engine even after the
@@ -118,8 +126,10 @@ removed), verified, and then exposed through one prebuilt, immutable page-table
 subtree: one page directory plus 472 page tables whose leaves are `USER|NX`
 without `WRITE`. A holder of the capability gets that directory linked into
 PDPT entry 2 of its own address space, i.e. VA `0x80000000..0xC0000000`. This
-reuses the existing pattern in which every user space shares the kernel half by
-pointer at PDPT entry 0 (`kernel/src/m2/paging.rs:696-703`), and avoids L3 because
+reuses the existing pattern in which every user space has its own PDPT whose entry 0
+points at the kernel's page directory (`kernel/src/m2/paging.rs:689-703`; under
+`native-smp` the kernel half is asserted to be PDPT entry 0 alone,
+`kernel/src/m2/paging.rs:697-701`), and avoids L3 because
 the 1 GiB window holds the whole 942.32 MiB file. The subtree is not in the
 process's own table list, so `Paging::destroy` never frees it
 (`kernel/src/m2/paging.rs:814-828`).
@@ -135,7 +145,7 @@ writable kernel identity alias, so I2 would hold only for the user alias). Every
 slot reuse copies and zeroes 942 MiB again. `Frames::allocate` scans the whole
 pool per page (`crates/kernel-core/src/lib.rs:180-193`), so per-page allocation of
 241k frames over a 2 GiB pool is quadratic. It also widens a global bound that
-ADR-047 fixed for every process (`docs/DECISIONS.md:5569-5570`).
+ADR-047 fixed for every process (`docs/DECISIONS.md`, ADR-047).
 
 ### Option C: stream through a bounded window with re-verification
 
@@ -181,12 +191,22 @@ KV/scratch) need their own owner decisions (section 7).
   all-or-nothing preflight.
 - `Frames::map(user = true)` additionally accepts an `Artifact` frame only with
   `writable = false, executable = false` (today: `crates/kernel-core/src/lib.rs:336-339`).
-  Each frame has exactly one user PTE (the shared leaf), so alias counts record
-  one alias per frame however many processes link the subtree.
+  Each frame has exactly one user PTE (the shared leaf), recorded once when the
+  subtree is built, so its alias is exactly `{writable 0, executable 0, total 1}`
+  however many processes link the subtree; linking and unlinking never change alias
+  counts. No existing audit reconciles alias counts with user tables:
+  `Paging::audit` walks only the kernel root (`kernel/src/m2/paging.rs:874-890`,
+  `kernel/src/m2/paging.rs:912-914`) and `audit_process` checks only W^X on aliases
+  (`kernel/src/m2/m3.rs:1349-1350`). The artifact check above is therefore a new
+  audit rule, and the subtree must never be linked into the kernel root, whose walk
+  asserts that every table it reaches is its own (`kernel/src/m2/paging.rs:912`).
 - Artifact state machine: `Empty → Filling → Sealed → Verified → Released`.
-  `Sealed` requires `writable == 0` for every frame; `Verified` requires an exact
-  32-byte digest equality with the pinned descriptor; links are allowed only in
-  `Verified`; `Released` requires zero links. Every illegal transition is an error.
+  `Sealed` requires `writable == 0` for every frame. In `Sealed`, only a holder of
+  the distinct `ARTIFACT_VERIFY` right (section 4.4, V2) may link; `Sealed →
+  Verified` requires an exact 32-byte digest equality with the pinned descriptor and
+  zero verifier links. `ARTIFACT_MAP` links are allowed only in `Verified`;
+  `Released` requires zero links of either kind. Every illegal transition is an
+  error.
 
 ### 4.2 Paging and process lifecycle
 
@@ -207,9 +227,19 @@ KV/scratch) need their own owner decisions (section 7).
   translations on one CPU (L9).
 - Process cleanup unlinks before `Paging::destroy` and decrements the link count;
   `retire_authority` (`kernel/src/m2/m3.rs:2871`) also revokes the capability.
-- `audit_process` (`kernel/src/m2/m3.rs:1322`) is extended: PDPT entry 2 is zero
-  or exactly the verified artifact directory with the flags above, and the
-  process holds the capability.
+- `audit_process` (`kernel/src/m2/m3.rs:1322`) is extended: PDPT entry 2 is zero,
+  or exactly the artifact directory with the flags above while the process holds
+  `ARTIFACT_MAP` and the artifact is `Verified`, or holds `ARTIFACT_VERIFY` and the
+  artifact is `Sealed`.
+- User pointers (I2a). Today every syscall that translates a user pointer does so
+  through `bounded_copy_plan`, which rejects any range ending above `0x80000000`
+  before any lookup (`crates/kernel-core/src/user.rs:205-216`), and each lookup also
+  requires an `Owner::User` frame: `m4.rs:194-198`, `m6.rs:373-375`,
+  `m6b.rs:253-255`, `m6c.rs:259-261`, `update.rs:267-269`, `volume.rs:1204-1206`
+  and `smp_unmap.rs:116-117` under `kernel/src/m2/m3/`. `Process::physical` is
+  called only with kernel constants (`DATA`, `HEAP`, `STACK_END`). S1 keeps both
+  barriers: the range bound stays `0x80000000` and every new user-pointer path uses
+  these helpers.
 
 ### 4.3 Capability and syscall shape
 
@@ -238,11 +268,14 @@ reader; (V2) a trusted ring-3 verifier holding a distinct, manifest-only
 `ARTIFACT_VERIFY` right maps the sealed frames read-only, hashes them with the
 existing verifier (`experiments/ai/model-store-contract/README.md:25-31`) and
 reports the digest, which the kernel compares byte-for-byte with the pinned
-descriptor; (V3) the AI process hashes its own mapping before first use, which
+descriptor. Because the pinned digest is public, the kernel compare does not detect a
+verifier that reports it without hashing: under V2 the verifier joins the trusted
+computing base for I4; (V3) the AI process hashes its own mapping before first use, which
 violates I4 as stated (a holder gets a translation before the match) and repeats
 the hash on every start. **Lean: V2**, because it satisfies I4 without crypto in
-privileged code, matching the precedent of signature verification in the ring-3
-update service (`kernel/src/m2/m3.rs:372-373`). It is still an owner decision (Q1).
+privileged code, matching the precedent of ML-DSA-65 signature verification in the
+ring-3 update service (`kernel/src/m2/m3.rs:372-373`, B03). It is still an owner
+decision (Q1).
 
 ### 4.5 Byte delivery
 
@@ -293,8 +326,7 @@ Native (QEMU, one CPU):
 
 ## 6. Acceptance commands, evidence limits and first slice
 
-Existing gates (toolchain `1.100.0` per `rust-toolchain.toml:2`; root
-`AGENTS.md` still names 1.90.0 and needs a lead correction):
+Existing gates (toolchain `1.100.0` per `rust-toolchain.toml:2` and root `AGENTS.md`):
 
 ```sh
 cargo +1.100.0 test --locked -p kernel-core
@@ -333,15 +365,21 @@ file is not committed and must be read through `NOS_QWEN_DIR` as in
   `kernel/src/m2/m3/m4.rs:229`), a capability right and a VA region?
 - **Q1.** Where is the SHA-256 computed: kernel (V1, needs an ADR under
   `kernel/AGENTS.md:6`), a trusted ring-3 verifier with a distinct right and a
-  kernel compare (V2, the lean), or the AI process itself (V3, which violates I4
-  as stated)?
+  kernel compare (V2, the lean; the verifier is then part of the trusted base for
+  I4, because the compared digest is public), or the AI process itself (V3, which
+  violates I4 as stated)?
 - **Q2.** How does the 2 GiB budget reach the frame pool: grow `FRAME_COUNT` for
   the AI profile with frames above the current pool admitted only for artifacts
   (so ordinary allocations, identity aliases and the 256-table bound stay as
   they are), or a separate fixed artifact extent? Both also need a new QEMU
   memory profile beyond `tools/run.py:106-107`. Frame metadata grows with the
   pool (about 37 bytes per frame from the field types, about 18.5 MiB at 2 GiB;
-  an estimate, `size_of` not checked).
+  an estimate, `size_of` not checked). Two related constraints: the kernel half,
+  including identity aliases, is PDPT entry 0 (first 1 GiB), so frames above 1 GiB
+  can only be artifact frames reached through the scratch reader; and device setup
+  asserts PCI BARs at or above `0x80000000` (for example
+  `kernel/src/m2/m3/volume.rs:859`), which holds for a 2 GiB q35 guest only if QEMU
+  keeps all RAM below the 32-bit PCI hole (not verified).
 - **Q3.** Which byte source: a ring-3 loader through the block broker, or a
   boot-protocol module (boot ABI change under `boot/AGENTS.md`)?
 - **Q4.** Does S1 run in a new milestone-m4-based profile, or should
@@ -356,5 +394,6 @@ file is not committed and must be read through `NOS_QWEN_DIR` as in
 
 The safetensors header split (section 1.1), the frame-metadata size (Q2), QEMU's
 physical layout at 2 GiB, all throughput and TLB costs, and the behaviour of any
-proposed code. Graphify MCP was not used; all references were read directly
-from the worktree files at `7c32e6c7`.
+proposed code. Graphify MCP was not used; the draft's references were read
+directly from the worktree files at `7c32e6c7` and the review re-read the sections
+listed in the status line at `af7415df`.
