@@ -5,6 +5,110 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-SPECIALIST-MANDATE-20261127 — every appointed specialist enqueues and integrates its own pull requests
+
+**Status:** decided by the project owner on 27 November 2026 at about 11:49 UTC,
+relayed verbatim by the PR guard and recorded by Specialist G at the owner's
+request. It generalises ADR-MERGE-QUEUE-AUTONOMY-20261126 and amends
+ADR-MERGE-DELEGATION-20261123 and ADR-SPECIALIST-TEAM-20261125, whose mandates
+named fixed lists of sessions. ADR-MERGE-HOLD-20261113,
+ADR-CI-MERGE-GROUP-GATES-20261126, ADR-CI-MERGE-GROUP-SELECT-20261126, D1–D3 and
+the Security Floor (ADR-035) stay in force.
+
+**Source quotation (project owner, original wording):**
+
+> Alle formeel aangestelde BaryonOS-specialisten, inclusief K, G en CI, krijgen
+> zelfstandig enqueue- en integratiemandaat voor PR's binnen hun eigen
+> goedgekeurde verantwoordelijkheidsgebied. Maak ADR-MERGE-QUEUE-AUTONOMY
+> generiek van toepassing op alle huidige en toekomstige, door mij aangestelde
+> specialisten. Voorkom dat bij iedere nieuwe specialist opnieuw een afzonderlijke
+> ADR-wijziging noodzakelijk is. Voorwaarden: Respecteer specialistownership en
+> bestaande bevoegdheidsgrenzen. Behoud D1–D3, de Security Floor en alle
+> verplichte CI-checks. Geen eigen onafhankelijke review goedkeuren, checks
+> omzeilen of eigen inhoudelijke bevoegdheden uitbreiden. Respecteer de
+> operationele coördinatie van de PR-bewaker. G legt dit eigenaarbesluit formeel
+> vast in de ADR en Graphify. #604 mag onder deze voorwaarden in de wachtrij
+> blijven. Het doel blijft maximale veilige autonomie en ontwikkelsnelheid,
+> zonder terugkerende administratieve toestemmingsvragen.
+
+*English translation:* All formally appointed BaryonOS specialists, including
+K, G and CI, receive an independent enqueue and integration mandate for pull
+requests within their own approved area of responsibility. Make
+ADR-MERGE-QUEUE-AUTONOMY generally applicable to all current and future
+specialists appointed by the owner. Avoid the need for a separate ADR change for
+every new specialist. Conditions: respect specialist ownership and existing
+limits of authority. Keep D1–D3, the Security Floor and all required CI checks.
+Do not approve one's own independent review, bypass checks or extend one's own
+substantive authority. Respect the operational coordination of the PR guard. G
+records this owner decision formally in the ADR and in Graphify. #604 may stay
+in the queue under these conditions. The goal remains maximum safe autonomy and
+development speed, without recurring administrative permission requests.
+
+**Problem:** the merge mandate was tied to named sessions. Specialists appointed
+later (G and K) had no recorded mandate, so each new appointment needed a
+separate ADR change, and K's queue entry for #604 had no recorded basis.
+
+**Decision:**
+
+- **Scope.** Every specialist formally appointed by the project owner holds the
+  enqueue and integration mandate of ADR-MERGE-QUEUE-AUTONOMY-20261126 for pull
+  requests within its own approved area of responsibility. This covers the
+  current specialists A, B, CI, G, H, K, L, N, P, R, S and U, including the
+  sessions named in the earlier ADRs, and every future specialist the owner
+  appoints. A new appointment needs no ADR change; the owner's appointment
+  decision, recorded in the specialist's handoff or role contract, suffices.
+- **Conditions.**
+  - Specialist ownership and existing limits of authority are respected. A
+    specialist integrates only pull requests within its own area.
+  - D1–D3, the Security Floor and all required CI checks are kept.
+  - No specialist approves its own independent review, bypasses a check or
+    extends its own substantive authority.
+  - The operational coordination of the PR guard (dependencies, priorities,
+    exceptions) is followed. The PR guard is not an approval layer.
+- **Unchanged.**
+  - The merge conditions and command of ADR-MERGE-QUEUE-AUTONOMY-20261126.
+  - The owner reservations listed there.
+  - The PR guard's own role: it coordinates and verifies landings and merges
+    nothing.
+- **#604.** Specialist K's queue entry for #604 may stay in the queue under these
+  conditions.
+
+**Consequence:** integration within an approved area is autonomous for every
+appointed specialist without recurring permission requests. Only owner-reserved
+items and real exceptions reach the project owner.
+
+**Alternatives:** none were recorded with the owner decision. The previous
+state, a named delegation per specialist in separate ADRs and handoffs, is the
+implicit alternative this decision replaces.
+
+**Evidence:** this is a governance decision with no code change. No gate or
+test executes it; its evidence is the owner's quotation above and the merge
+conditions, required checks and gates that already apply to every integration.
+
+**Rollback:** the project owner can withdraw or narrow the mandate by a newer
+decision. Until a superseding ADR is recorded, the per-specialist delegations of
+ADR-MERGE-DELEGATION-20261123, ADR-SPECIALIST-TEAM-20261125 and
+ADR-MERGE-QUEUE-AUTONOMY-20261126 apply as before. From the owner's withdrawal
+decision until it takes effect, the affected specialist enqueues nothing and
+runs no `gh pr merge` outside the remaining mandate. Before a narrowed or
+withdrawn mandate takes effect, the affected specialist removes from the merge
+queue (or holds) each of its queued pull requests that falls outside the
+remaining mandate, and disables any armed auto-merge as before; if the
+specialist cannot act, the project owner, or a session the owner names, does
+so. The PR guard confirms both steps from GitHub: no merge-queue entry and `autoMergeRequest`
+null for each affected pull request. Pull requests already integrated are not
+reverted by the rollback alone.
+
+**Review criteria:** a pull request integrated under this ADR lies within the
+approved area of both its author and the integrating specialist, passed every
+required check and the applicable gates, and was not approved by its own author
+as an independent review. A pull request that changes a file on the Protected
+files list in `AGENTS.md` was also reviewed by someone outside the integrating
+workstream (ADR-MERGE-DELEGATION-20261123), except for the two cases that ADR
+delegates: a new child directory for new evidence and the workstream's own
+progress assessment; a specialist that both reviews and
+integrates another specialist's protected-file pull request does not meet this.
+
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
 **Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the
@@ -232,7 +336,8 @@ queue down and conflicts with the delegated merge mandate.
 **Decision:**
 
 - Workstreams with a merge mandate under ADR-MERGE-DELEGATION-20261123, as
-  extended by ADR-SPECIALIST-TEAM-20261125, add their own merge-ready pull
+  extended by ADR-SPECIALIST-TEAM-20261125 and generalised to every appointed
+  specialist by ADR-SPECIALIST-MANDATE-20261127, add their own merge-ready pull
   requests to the merge queue themselves. They ask no approval per pull request,
   push, queue entry or regular merge. The command is
   `gh pr merge <N> --squash --match-head-commit <sha>`, run only after no
