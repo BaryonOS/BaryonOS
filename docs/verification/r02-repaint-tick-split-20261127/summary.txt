@@ -1,0 +1,21 @@
+D1 exit 0 raw 33 passed True duration 43.04 qemu_cpu 30.28
+  full frames 7, wall 342 ticks = 489 ms/frame; blits 10994, rendered 12765, retains 221, replies 11215, loops 2798
+  frame buckets: AWAY 0 (0%), LOOP 13 (4%), INPUT 29 (8%), RENDER 25 (7%), SEND 42 (12%), REPLY 224 (65%), TAIL 9 (3%) sum 342 vs wall 342
+  run totals: AWAY 3042, LOOP 159, INPUT 220, RENDER 184, SEND 68, REPLY 463, TAIL 14
+  compositor full spans 1: away 29 top 27 ingress 38 tail 1 ticks; commits 1221 turns 1497
+  compositor run totals: away 1540 top 567 ingress 327 tail 18 turns 18890
+M1 exit 0 raw 33 passed True duration 37.44 qemu_cpu 24.72
+M2 exit 0 raw 33 passed True duration 36.55 qemu_cpu 24.1
+D2 exit 0 raw 33 passed True duration 43.81 qemu_cpu 30.44
+  full frames 7, wall 336 ticks = 480 ms/frame; blits 10975, rendered 12771, retains 227, replies 11202, loops 2795
+  frame buckets: AWAY 6 (2%), LOOP 20 (6%), INPUT 25 (7%), RENDER 30 (9%), SEND 38 (11%), REPLY 208 (62%), TAIL 9 (3%) sum 336 vs wall 336
+  run totals: AWAY 3191, LOOP 168, INPUT 187, RENDER 169, SEND 53, REPLY 443, TAIL 12
+  compositor full spans 1: away 29 top 30 ingress 31 tail 0 ticks; commits 1221 turns 1491
+  compositor run totals: away 1602 top 586 ingress 280 tail 18 turns 18750
+D3 exit 0 raw 33 passed True duration 42.57 qemu_cpu 29.51
+  full frames 7, wall 331 ticks = 473 ms/frame; blits 10864, rendered 12784, retains 240, replies 11104, loops 2770
+  frame buckets: AWAY 5 (2%), LOOP 13 (4%), INPUT 40 (12%), RENDER 21 (6%), SEND 28 (8%), REPLY 210 (63%), TAIL 14 (4%) sum 331 vs wall 331
+  run totals: AWAY 3078, LOOP 151, INPUT 195, RENDER 181, SEND 41, REPLY 446, TAIL 19
+  compositor full spans 1: away 31 top 26 ingress 34 tail 0 ticks; commits 1221 turns 1494
+  compositor run totals: away 1559 top 565 ingress 314 tail 22 turns 18850
+M3 exit 0 raw 33 passed True duration 36.3 qemu_cpu 23.81
