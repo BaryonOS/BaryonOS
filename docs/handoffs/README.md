@@ -82,6 +82,14 @@ These duties add no new labels, systems, AI review rounds or merge blocks, and
 leave D1–D3, P0, the Security Floor, ownership and enqueue autonomy unchanged.
 Every live handoff and clear prompt restates them.
 
+Owner decision of 27 November 2026 at about 12:46Z ("Ja, eigen rijen"): as an
+explicit exception to lead ownership, the owner of a criterion may refresh the
+rows of that criterion in the `delivery_review` object of `docs/progress.json`.
+Only the row text, the date and the `source_commit` may change; never a score,
+a status, a weight or another criterion. The refresh goes into the owner's next
+pull request that touches progress anyway, runs `python3 -B tools/progress.py
+--write` and `--check`, falls under D2 review and cites this decision.
+
 ## Rules
 
 - Graphify memory is optional context. Every binding fact must be reproducible
