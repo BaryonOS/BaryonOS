@@ -5,6 +5,111 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-B02-T3-ANCHOR-20261127 — B02 cold rollback anchor as storage domain 1 of the B anchor service
+
+**Status:** project-owner decision of 27 November 2026, given directly to
+workstream B. B's English rendering is recorded in the B handoff on #608
+(issuecomment-7219408868, 13:22Z, item 1(b)); it is not a verbatim quotation.
+Scope: TEST profiles on QEMU/swtpm only. Nothing is implemented yet.
+Specification: [COLD-FRESHNESS-ANCHOR](implementation/COLD-FRESHNESS-ANCHOR.md),
+[B02-SECURE-RECORDS](implementation/B02-SECURE-RECORDS.md).
+
+**Context.** B02 secure records need rollback protection for state that lives
+on disk across a cold boot. The B-owned anchor architecture already defines one
+TPM 2.0 infrastructure with capability-bound domains. Domain 0
+(`0x0100B310`) serves the N04 network policy process. Domain 1
+(`0x0100B311`) is reserved for storage "until a separate decision". The
+kernel anchor service that exposes the domains (REL-05 step S7) is not built.
+
+**Decision.**
+1. B02 receives its own capability-bound anchor domain: storage domain 1,
+   NV handle `0x0100B311`, with the interface and error set of the anchor
+   contract (`read`, compare-and-extend `extend`, `instance`; Unavailable,
+   Corrupt, Conflict, RateLimited). This ADR allocates domain 1 only.
+2. There is no shared unbounded TPM access and no per-service trust root. The
+   kernel anchor service is the only path to the domain indices. A domain-1
+   capability reaches no other domain's index and no other TPM command, and
+   the reverse holds for domain 0.
+3. The implementation shall prevent, each with a native negative test:
+   - capability escape: a domain-1 capability cannot read or extend domain 0,
+     and the reverse; each direction is its own native negative test;
+   - rollback: an older chain value is never accepted as current;
+   - replay: a recorded earlier read or extend result is not accepted again;
+   - cross-domain substitution: the extend value is domain-separated (the same
+     `D(S)` yields a different `E` per domain), and `instance()` gives a
+     per-domain identity, so a value moved between domains is detected;
+   - lost revocations: a revocation is acknowledged only after its durable
+     commit and the corresponding anchor advance, so a crash cut never loses
+     an acknowledged revocation;
+   - unsafe re-initialisation: a missing, undefined or foreign domain-1 index
+     after enrollment fails closed; redefinition happens only through
+     authenticated recovery, never automatically.
+4. REL-05 §7.9 stays in force: a cleared TPM that keeps its endorsement key
+   proves identity, not continuity. Domain 1 is never re-initialised on the
+   strength of a matching EK.
+5. Each domain has its own per-boot extend budget and its own serialisation.
+   Exhausting one domain's budget never denies an extend in the other; a
+   native test shows this.
+6. Domain allocation stays extensible. Domains 2–7 remain reserved; any further
+   holder (for example a NAS lineage domain) needs its own decision and
+   allocation with separate domain authority.
+7. Order: S7 lands the network domain first, built so that domain 1 follows
+   without a contract change. Domain 1 is then wired in the B02-T3
+   implementation.
+
+**Consequences.**
+- B02 gains rollback detection for cold state in TEST profiles only. There is
+  no product or physical-TPM claim.
+- Domain 0 and domain 1 share the TPM infrastructure and its availability: a
+  TPM fault fails both closed.
+- B02 stays open; the score is unchanged.
+
+**Falsified if:** a domain-1 capability reads or extends domain 0, or the
+reverse; the same `D(S)` yields the same `E` in both domains; a domain-1
+rollback or replay is accepted; exhausting one domain's budget denies an
+extend in the other; an acknowledged revocation is lost after a crash cut; or
+domain 1 is re-initialised without authenticated recovery.
+
+## ADR-B04-POLICY-DIRECTION-20261127 — Production signing-policy direction D1–D7 approved for design and synthetic implementation
+
+**Status:** project-owner decision of 27 November 2026, given directly to
+workstream B. B's English rendering is recorded in the B handoff on #608
+(issuecomment-7219408868, 13:22Z, item 1(b)); it is not a verbatim quotation.
+Specification: [B03-PRODUCTION-POLICY-PROPOSAL](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md).
+
+**Context.** The proposal lists D1–D7 as production prerequisites. Until now
+none of them was approved; ADR-B03K3 covers TEST keys and disposable QEMU only.
+
+**Decision.** The architectural direction of D1–D7 is approved:
+- D1: separate offline root and release-signing authorities;
+- D2: root-authenticated, bounded policy packages;
+- D3: demonstrable persistent rollback protection;
+- D4: explicit revocation and controlled recovery, without lowering security
+  floors;
+- D5: an authenticated firmware-to-loader chain;
+- D6: authenticated version windows, with no implicit trust in RTC time;
+- D7: design, synthetic tests and production activation stay separate.
+
+The approval covers design and bounded synthetic implementation and
+verification only. Real production keys, signing ceremonies, physical TPM
+changes, production release publication and a paid external audit each need
+separate, concrete project-owner permission. Synthetic keys are labelled as
+TEST material, as `tools/update-keys/TEST-*` are.
+
+**Consequences.**
+- B04 work may proceed to specification and synthetic-key tests without
+  further approval of the direction.
+- B coordinates the dependencies with A, H, K, N, P and S. Generic
+  domain-separated primitives that D3 and D6 need (a monotonic floor per
+  named domain, authenticated version windows) are designed so that other
+  workstreams can reuse them; app-source anchors stay separate from the
+  system root.
+- B04 stays open; the score is unchanged.
+
+**Falsified if:** a production key, signing ceremony, physical TPM change,
+release publication or paid audit takes place under this ADR alone, or a
+synthetic key is not labelled as TEST material.
+
 ## ADR-PROGRESS-OWN-ROWS-20261127 — criterion owners maintain their own implementation and verification snapshot rows
 
 **Status:** decided by the project owner on 27 November 2026 (given in the PR
@@ -91,6 +196,36 @@ stay as evidence-bound history.
 **Review criteria:** a routine refresh changes only the author's own criterion
 rows, leaves the shared header, score, status, rubric and weights unchanged, carries
 the date and commit in the row text, and passes `progress.py --check`.
+
+<!-- ADR slots (interim procedure, Specialist G, 27 November 2026, under the
+     owner directive "remove merge queue bottlenecks" of about 15:40Z).
+     A pull request that adds a new ADR replaces only its own slot line below
+     with the ADR block, and keeps the blank line around the slot unchanged.
+     Slots in different pull requests then merge without conflict, so several
+     ADR pull requests can be in the merge queue at once. A spare slot is
+     claimed by naming it in the pull request body; the PR guard keeps the
+     list. Amendments inside an existing ADR need no slot. This comment and
+     unused slots go away with the move to one file per ADR. -->
+
+<!-- adr-slot: 636 -->
+
+<!-- adr-slot: 631 -->
+
+<!-- adr-slot: 629 -->
+
+<!-- adr-slot: 632 -->
+
+<!-- adr-slot: 624 -->
+
+<!-- adr-slot: 634 -->
+
+<!-- adr-slot: spare-1 -->
+
+<!-- adr-slot: spare-2 -->
+
+<!-- adr-slot: spare-3 -->
+
+<!-- adr-slot: spare-4 -->
 
 ## ADR-SPECIALIST-MANDATE-20261127 — every appointed specialist enqueues and integrates its own pull requests
 
@@ -460,7 +595,10 @@ project owner; regular integration within the mandate is autonomous.
   25 November 2026 (amendment H05-T5c of ADR-H05-S3-SYSTEM-20261123), which
   requires key erasure before S3 through the B keyring architecture.
 
-UNLOCK and questions O2, O5 and O8 remain open. Nothing is implemented yet.
+Questions O2, O5, O7, O8 and OQ1 were decided by the project owner on
+27 November 2026; see the amendment at the end of this ADR. LOCK (#573) and
+the SUSPEND check KL2 (#597) are on main for TEST profiles only; UNLOCK is
+not implemented.
 Specification: [B01-KEYRING-LOCK](implementation/B01-KEYRING-LOCK.md).
 
 **Context.** RAM stays powered during S3. The SUSPEND storage gate proves an
@@ -505,6 +643,69 @@ payloads.
 **Falsified if:** SUSPEND passes while the state is not LOCKED; a frame of the
 ended instance is not zero after LOCK; a Key Service exit or fault yields
 LOCKED; or a TEST-profile S3 pass lacks the label.
+
+**Amendment, 27 November 2026 — project-owner decisions O2, O5, O7, O8 and
+OQ1.** The owner gave these decisions directly to workstream B. B's English
+rendering is recorded on #564 (issuecomment-7219397369, 13:22:23Z); it is not
+a verbatim quotation.
+- **O2, unwrap secret:** TPM-protected and high-entropy, with mandatory user
+  authentication and binding to the trusted boot chain. No key is derived only
+  from a password. Access and lifetime are limited to the necessary authorised
+  components; temporary copies are erased.
+- **O5, mutation freeze:** a fail-closed freeze of key mutations before export,
+  lasting until the durable commit and LOCK are complete. No allocation or
+  revocation is lost. The existing write-ahead infrastructure
+  (ADR-B02-KEY1-RELAY) is reused where needed; no second mechanism is added
+  without need.
+- **O8, order:** authentication → T5f-1 → UNLOCK → T5f-2. Authentication works
+  independently of the locked user data. No user or write rights are restored
+  before the required authentication and verification succeed.
+- **O7, volume metadata:** GO for a joint design with S of cryptographically
+  authenticated volume metadata. The authentication key is not derived only
+  from the data being verified. FNV-64 is not an authenticity guarantee.
+- **OQ1, product S3 lifecycle:** before a product S3, sensitive plaintext,
+  derived keys and recovery secrets are demonstrably removed from the relevant
+  processes and services. B works out a bounded lifecycle with H, K and U.
+  Where removal cannot be guaranteed, S3 refuses in a controlled way.
+- **O1 is unchanged:** F1 without F2 suffices only in explicitly labelled TEST
+  profiles, with no product confidentiality claim.
+
+Effect on this ADR: decision 5 now follows the O8 order and the O2 secret
+source. The consequence "key state that is not durable at LOCK is lost" is
+replaced by the O5 freeze, and the consequence on volume authenticity by the
+O7 design. Independent verification and the acceptance conditions stay in
+force.
+
+Workstream agreements of 27 November 2026 (technical, not owner decisions):
+- Authentication ownership, proposed by U and accepted by B: B owns the
+  authentication step (session-service core, secret and TPM path, the state
+  machine authentication → T5f-1 → UNLOCK → T5f-2, rate limiting, fail
+  closed); U owns its user surface (lock, sign-in, verifying and error
+  states). The interface is a state enumeration plus events, drafted by B and
+  reviewed by U; one writer per file.
+- Refusal value -28 `NOT_AUTHENTICATED` (T5f-1 refused: no valid
+  authentication signal), proposed by H and B and agreed by S, who keeps only
+  -26. H defines the constant in the T5f-1 change after this ADR is on main.
+- OQ1: U accepts the U part (UI and session plaintext; S3 refuses with a
+  visible reason when a component does not report "clean" in time).
+
+Open, not decided by this amendment:
+- the kernel-checkable authentication signal: H requires that the kernel
+  learns the result from a designated principal, never from the grantee; O8
+  excludes material from volume domain 1. The interface is not chosen;
+- the OQ1 split that H proposes (H: the single kernel S3 refusal point; K:
+  process scrub or termination; B: Key Service plaintext and keys; U: UI and
+  session plaintext), pending K's agreement;
+- the O7 key availability: S reports (#564, issuecomment-7219627534) that the
+  post-wake remount runs before UNLOCK, so a metadata key released only by
+  UNLOCK cannot verify the table then; the key must come earlier (for example
+  TPM-bound under O2), or the reads before the tag check must be bounded.
+
+H's T5f constraints (#564, issuecomment-7219429976) are design input, not
+decisions. LOCK and UNLOCK remain B's implementation under this ADR; H05
+depends on them only for its acceptance. Already on main, TEST profiles only:
+KL2 (#597) and the noscrub red control (#613). Open in H05: T5c slices 2–4,
+T5e (with B and S) and T5d-P, whose O5 blocker is now decided.
 
 ## ADR-CI-MERGE-GROUP-GATES-20261126 — merge-hold judges the applicable gates on the merge-queue commit
 
