@@ -38,10 +38,13 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
   K confirmed the existing gate exercises compositor slot 4. Accessibility
   semantics, any compositor high-contrast palette, hardware and human review
   remain unproven. No R01–R03 criterion is newly accepted.
-- Next: integrate current main without rebase, validate the exact source, open
-  a reviewable PR with these evidence limits, request exact-head U/K reviews,
-  and complete a separate opt-in native leaf-fault fixture before acceptance.
-  Coordinate the shared QEMU slot before any native run.
+- Source commit `f45717f8` has been merged with main `fc6bc085` locally.
+  The integrated source passed targeted host tests, Clippy, formatting and the
+  progress consistency check; the full suite and native checks must be run on
+  the current head. Next: open the reviewable PR with these evidence limits,
+  request exact-head U/K reviews, and complete a separate opt-in native
+  leaf-fault fixture before acceptance. Coordinate the shared QEMU slot before
+  any native run.
 
 ## Output-path follow-up (27 November 2026, 20:26Z UTC)
 
