@@ -42,14 +42,20 @@ that no longer holds. A single owner cannot keep every row current.
   - A routine snapshot refresh leaves rubric, weights, acceptance conditions,
     status and score unchanged.
   - Formal acceptance is separate (owner clarification, 27 November 2026, no
-    later than 13:12:47 UTC by the PR guard's `date -u` log): once every
-    existing acceptance condition is demonstrably met and the required
-    independent verification is complete, the criterion owner initiates and
-    runs the existing acceptance procedure itself, which may change status and
-    score. No extra owner approval is needed unless that procedure explicitly
-    requires it. The PR guard checks that achieved criteria reach the formal
-    score without unnecessary delay; rubric, weights and acceptance conditions
-    stay unchanged.
+    later than 13:14:07 UTC by the PR guard's `date -u` log, relayed by the
+    guard; it supersedes the guard's message of 13:12:47 UTC on who performs
+    acceptance). Each specialist is the technical owner of its own criteria:
+    implementation, snapshot refresh, verification and delivering acceptance
+    evidence. The PR guard holds the mandate and responsibility for formal
+    criterion acceptance and for processing it into the official progress
+    score: once every existing acceptance condition is demonstrably met and the
+    required independent verification is complete, the guard processes the
+    acceptance and the score increase without extra owner approval, unless the
+    existing conditions explicitly require human acceptance or an owner
+    decision. The guard does not replace an independent reviewer and does not
+    change acceptance conditions, rubric, weights or safety conditions. The
+    formal score continuously matches the criteria actually achieved and
+    verified. This adds no review round or approval layer.
   - The shared `date` and `source_commit` of `delivery_review` stay unchanged,
     because they date every row. The refresh date and commit go into the row
     text itself (`updated YYYY-MM-DD @<sha>: …`).
