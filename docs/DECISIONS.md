@@ -197,6 +197,36 @@ stay as evidence-bound history.
 rows, leaves the shared header, score, status, rubric and weights unchanged, carries
 the date and commit in the row text, and passes `progress.py --check`.
 
+<!-- ADR slots (interim procedure, Specialist G, 27 November 2026, under the
+     owner directive "remove merge queue bottlenecks" of about 15:40Z).
+     A pull request that adds a new ADR replaces only its own slot line below
+     with the ADR block, and keeps the blank line around the slot unchanged.
+     Slots in different pull requests then merge without conflict, so several
+     ADR pull requests can be in the merge queue at once. A spare slot is
+     claimed by naming it in the pull request body; the PR guard keeps the
+     list. Amendments inside an existing ADR need no slot. This comment and
+     unused slots go away with the move to one file per ADR. -->
+
+<!-- adr-slot: 636 -->
+
+<!-- adr-slot: 631 -->
+
+<!-- adr-slot: 629 -->
+
+<!-- adr-slot: 632 -->
+
+<!-- adr-slot: 624 -->
+
+<!-- adr-slot: 634 -->
+
+<!-- adr-slot: spare-1 -->
+
+<!-- adr-slot: spare-2 -->
+
+<!-- adr-slot: spare-3 -->
+
+<!-- adr-slot: spare-4 -->
+
 ## ADR-SPECIALIST-MANDATE-20261127 — every appointed specialist enqueues and integrates its own pull requests
 
 **Status:** decided by the project owner on 27 November 2026 at about 11:49 UTC,
