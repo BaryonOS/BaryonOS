@@ -59,6 +59,10 @@ that no longer holds. A single owner cannot keep every row current.
   - The shared `date` and `source_commit` of `delivery_review` stay unchanged,
     because they date every row. The refresh date and commit go into the row
     text itself (`updated YYYY-MM-DD @<sha>: …`).
+  - A refreshed row cites its evidence as commit-pinned links
+    (`https://github.com/BaryonOS/BaryonOS/blob/<40-character sha>/<path>`),
+    because the generator resolves relative paths against the shared
+    `source_commit`, not against the refresh commit.
   - Derived views are regenerated with `python3 tools/progress.py --write` and
     checked with `--check`; generated files are never edited by hand.
   - Conflicts are avoided: one owner per row, and D3 task assessment files
@@ -73,7 +77,11 @@ progress (the superseded narrower decision); per-row dates in the generator
 
 **Evidence:** a governance decision with no code change. `python3 -B
 tools/progress.py --check` validates every refresh; it does not authenticate the
-content of a claim.
+content of a claim. Known limit: the generated README and PROGRESS summary
+still label all requirement counts with the shared `date` and `source_commit`,
+although refreshed rows describe a later revision; each such row carries its
+own date and commit. Changing that label belongs to the lead-owned
+`tools/progress.py` and is left to a separate change.
 
 **Rollback:** the project owner can withdraw or narrow the permission by a newer
 decision; lead ownership of the rows then applies again. Rows already refreshed
