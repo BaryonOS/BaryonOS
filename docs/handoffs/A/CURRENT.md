@@ -233,3 +233,29 @@ source rotation during install, power-cut behavior and native domain capability
 escape remain unverified. Review by B and the remaining contract tests are
 needed before a source-management adapter or product claim. A03 ownership-source
 question is issuecomment-7227046940; do not assume its answer.
+
+
+## A handoff — 2026-11-27T21:12:27Z
+
+- PR #650 is draft/BEHIND at remote `d5f580bcb66986fad288d4dd1de3535cf7484fc4`.
+  Local worktree `~/projects/BaryonOS-worktrees/a02-t2-source-anchor`, branch
+  `codex/a02-t2-source-anchor`, contains `611aaf66b2c45f7d8f2baae2bf4513040b6c7b66`
+  on top: a tested fixture-nonce repair not yet pushed or CodeQL-verified.
+- B reviewed the single-source model at d5f580bc (issuecomment-7227351536).
+  Exact authenticated intent, multi-source revoke settlement and install-time
+  reauthorization remain open (issuecomment-7227360867). A02 is not accepted.
+- Host tests, clippy and fmt on 611aaf66: exit 0, local logs
+  `build/a02-t2/all-tests-codeql.log`, `clippy-codeql.log`, `fmt-codeql.log`.
+  Serial/soft freestanding build on the prior source: exit 0; initial build
+  without CI flags failed (101, LLVM SIGILL). Progress check: 43/100, exit 0.
+- Remote CodeQL flags a test fixture nonce critical; do not dismiss it.
+  `host-quality` fails strict impact coverage; CI owns the repair (#494
+  issuecomment-7228001908). `merge-hold` failed; no queue preconditions met.
+- Next: after CI supplies its reviewed fix, fetch and inspect the board,
+  merge current main once, retain 611aaf66, validate, push once, then verify
+  exact-head CodeQL, review threads and all required gates before enqueue.
+- A02-T3: K's source review is issuecomment-7227735977; B's review is
+  pending. A03 session identity proposal is issuecomment-7227628903; exact
+  lifecycle hooks and object scope remain open. No native TPM, hardware or
+  independent human audit is claimed. Local resume record:
+  `~/projects/BaryonOS-scratch/BaryonOS-Codex-Handoff/01-SPECIALIST-A.md`.
