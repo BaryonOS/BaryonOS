@@ -16,11 +16,12 @@ claim. No criterion or progress point changes.
   `20d9089fe78a400143272aa34aa73cfb19f2e992` (after #586, worktree
   `r-base`). Both trees clean. Profile `native-window-session-probe`; kernel
   ELF A `95d22379…`, B `a5005cbc…` (the kernel embeds the changed app ELFs).
-- `main` later moved to `bbf4df38`. Its kernel change (`ac495b2f`) is limited
-  to `cfg(feature = "native-ai-job")`, which `compile_error!` excludes
-  together with `ipc-wait` and `framebuffer`, so B represents the
-  window-session kernel on current `main`; `git merge-tree` with `bbf4df38`
-  is clean.
+- `main` later moved to `9fe65ba9`. Its kernel changes are limited to
+  `cfg(feature = "native-ai-job")` (`ac495b2f`), which `compile_error!`
+  excludes together with `ipc-wait` and `framebuffer`, and to
+  `test-system-s3-lock-noscrub` (#590), so B represents the window-session
+  kernel on current `main`. The branch merges `9fe65ba9` without conflicts;
+  the measured head is `16071bdc`.
 - [`ab7.sh`](ab7.sh): one build per side, then five window sessions per side
   with the CI flags `tools/run_window_session.py --clipboard --workspace
   --timeout 1800` (scale 1), SeaBIOS ROMs, `NOS_QEMU_ACCEL=kvm`, interleaved
