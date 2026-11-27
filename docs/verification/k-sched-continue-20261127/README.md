@@ -18,7 +18,9 @@ same on all three.
 | Native verification list (45 steps) | `0623ddf1` | `20c7e18a` | local QEMU TCG |
 | `JOB_IRQS` re-measure, `qsim-k07` re-run, supervisor gates, host tests | `478b4ba3` | `7c32e6c7` | local QEMU TCG |
 
-Commits after `478b4ba3` on the pull request change documentation only.
+Commits after `478b4ba3` on the pull request add documentation and merge
+`main` `3de6c87e` (#606: `tools/merge_hold.py`, its tests and CI
+documentation only); none of them changes kernel, userspace or gate code.
 
 ## Window-session A/B (D3 kill criterion)
 

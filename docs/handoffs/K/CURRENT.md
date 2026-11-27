@@ -49,8 +49,10 @@ context; client-specific notes are adapters and hold no state.
   `main` once (no rebase) and push; `Failed:` means repair.
 - **Gate preserved:** K03 (isolated preempted processes) covers the
   single-CPU scheduler; its regression gates are the `milestone-m3` smoke,
-  the `test-m3-*` cases (`tools/gate_contract.py` `M3_CASES`, including
-  `test-m3-syscall-spin`) and `m3-single-regression` (`tools/test_smp.py`).
+  the `test-m3-*` fault cases (`tools/gate_contract.py` `M3_CASES`),
+  `test-m3-syscall-spin` (its own gate group
+  `syscall-spin-continues-within-quantum`, not part of `M3_CASES`) and
+  `m3-single-regression` (`tools/test_smp.py`).
 
 ## Invariants and security boundaries
 
@@ -76,7 +78,7 @@ context; client-specific notes are adapters and hold no state.
 | Pull request | #602, branch `claude/k-sched-continue-20261126`; this file lands with it |
 | Write set | `kernel/src/m2/m3.rs`, `kernel/Cargo.toml`, `userspace/probe.rs`, `userspace/tests/test_probe.py`, `tools/gate_contract.py`, `tools/test_milestones.py`, `tools/test_smp.py`, `tools/tests/test_smp_host.py`, `tests/test_capture_gate.py`, `tools/build.py`, `.github/workflows/native-smp.yml` (step name only, D2), `docs/DECISIONS.md` (ADR), contract §3 sentence, `docs/verification/k-sched-continue-20261127/`, `docs/progress/assessments/2026-11-27-k-sched-continue.json`, this file |
 | Evidence | `docs/verification/k-sched-continue-20261127/` (local QEMU TCG native list and local KVM A/B; not hosted acceptance). Hosted CI, the D2 review and the hosted-duration comparison are recorded on #602 |
-| Coordination | L: #598 landed before #602, so K re-measured `JOB_IRQS` on #602 (28–41 per run locally, inside the documented range; no code change). R: QEMU batches announced. CI: D2 delta review of the `native-smp.yml` and `tools/test_smp.py` hunks |
+| Coordination | L: #598 landed before #602, so K re-measured `JOB_IRQS` on #602 (28–41 per run locally, inside the documented range; no code change). R: QEMU batches announced. CI: D2 delta review GO on 27 November 2026 (on `c1af50f8`; the CI-file hunks are unchanged since) |
 | Score | 43/100 unchanged; K03 stays accepted under its regression gates |
 
 ## Candidates (prioritised)
