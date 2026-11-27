@@ -686,8 +686,20 @@ matrix (`id = "*"`) needs at least one matching job, all successful. Then:
   own conclusion, and merge-hold's own earlier runs are ignored.
 
 The pull request also fails when its head does not contain the base tip: the
-gates then did not test the tree that would merge. GitHub's strict
-required-check rule forces such an update anyway.
+gates then did not test the tree that would merge. The exception is a target
+branch that lands only through a merge queue. When git reports that the head
+is not a descendant (exit 1, not an error), the policy enforces and GitHub's
+`GET /repos/{repo}/rules/branches/{branch}` lists an active `merge_queue`
+rule, merge-hold prints a `::notice::` and judges the gates as usual. That read
+is made only in this case and needs only the Metadata read permission. The
+`merge_group` run then judges the merged tree and refuses a queue commit that
+does not contain its base, and every member check there still applies: an
+acceptance-held member must land its released head tree, and an unheld member
+may land another tree only under an enforced, clean queue-commit report. Any
+read error, malformed answer or missing rule keeps the failure. GitHub's
+merge-queue documentation states that the queue gives the benefit of the
+strict "up to date" rule without a branch update, so the update is not a
+queue prerequisite there (documented, not yet observed on this repository).
 
 **Waiting.** With `pull_request_wait_minutes = 0` (the current value, #494
 B9) merge-hold makes one full decision as soon as it starts and holds no runner
