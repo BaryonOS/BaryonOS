@@ -9,6 +9,7 @@ use nieuw_os_net_client::{
     Connection, ConnectionState, Error, Read, Session, Status, DATA, MAX_RESOLVED,
 };
 use nieuw_os_network_service::wire::{self, HeaderFields, Operation, Packet};
+use nieuw_os_network_service::DNS_TIMEOUT_TICKS;
 use nieuw_os_sdk_runtime::{
     native, Error as RuntimeError, Handle, NetworkSource, Outgoing, ReceiveEndpoint, Received,
     SendEndpoint, Transport, WaitCondition,
@@ -833,10 +834,11 @@ const SLIRP_MISSING: &str = "missing.invalid";
 /// N02-T6: the lease comes from QEMU's libslirp DHCP server. App A resolves a
 /// public name through the lease DNS server (forwarded by libslirp to the
 /// host's real resolver), records the first answer and the answer count and
-/// gets NotFound for a reserved .invalid name;
+/// expects NotFound or Timeout for a reserved .invalid name, according to the
+/// fixture selected by the manifest;
 /// app B, without a UDP/53 grant, is refused and fetches over HTTP from the
 /// host alias 192.0.2.1, which libslirp translates to the harness oracle.
-fn slirp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
+fn slirp(session: &mut Session<NativeTransport>, slot: usize, first: u16, silent: bool) -> ! {
     let wait = 3000;
     if slot == 0 {
         let start = tick();
@@ -852,10 +854,22 @@ fn slirp(session: &mut Session<NativeTransport>, slot: usize, first: u16) -> ! {
         support::put(624, tick());
         support::put(656, u64::from(u32::from_be_bytes(out[0])));
         support::put(664, count as u64);
-        check(
-            resolve(session, SLIRP_MISSING, wait) == Err(Error::Service(Status::NotFound)),
-            163,
-        );
+        if silent {
+            let budget = 700;
+            let start = tick();
+            check(
+                resolve(session, SLIRP_MISSING, budget) == Err(Error::Service(Status::Timeout)),
+                164,
+            );
+            let elapsed = tick().checked_sub(start).unwrap_or_else(|| fail(165));
+            check((DNS_TIMEOUT_TICKS..budget).contains(&elapsed), 165);
+            support::put(632, elapsed); // Reserved for the elapsed ticks in mode 8.
+        } else {
+            check(
+                resolve(session, SLIRP_MISSING, wait) == Err(Error::Service(Status::NotFound)),
+                163,
+            );
+        }
     } else {
         check(
             resolve(session, SLIRP_NAME, wait) == Err(Error::Service(Status::Access)),
@@ -932,8 +946,9 @@ fn run() -> ! {
     if support::word(104) == 6 {
         dhcp(&mut session, slot, first)
     }
-    if support::word(104) == 7 {
-        slirp(&mut session, slot, first)
+    let mode = support::word(104);
+    if matches!(mode, 7 | 8) {
+        slirp(&mut session, slot, first, mode == 8)
     }
     if support::word(104) == 2 {
         check(slot == 0, 60);

@@ -22,6 +22,10 @@ lease, no NAK; app A resolves a public name, app B fetches over HTTP. The
 filter-dump pcap of the netdev is bound to the broker counters and to app A's
 DNS answer (tools/network_slirp_oracle.py).
 
+`--case slirp-timeout` runs libslirp, the HTTP oracle and a local resolver
+inside a private loopback-only namespace. The resolver forwards the
+negative query to a silent endpoint. The guest must report Timeout.
+
 `--case route` (N02-T5) runs the dhcp case with the leases as /26 behind
 router 192.0.2.65, so the unchanged grant 192.0.2.1 is off-link: DNS and TCP
 must leave through the lease's router MAC and 192.0.2.1 is never ARPed.
@@ -32,6 +36,7 @@ in between is not detected.
 """
 from __future__ import annotations
 import argparse
+from contextlib import ExitStack
 import hashlib
 import ipaddress
 from datetime import datetime, timezone
@@ -42,6 +47,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import time
 import uuid
 from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
@@ -55,9 +61,13 @@ from run_net_link import NETDEV, LinkControl, check_qmp
 import network_slirp_oracle as slirp
 
 FEATURE = "test-net-service-dhcp"
-CASES = {"dhcp": FEATURE, "link": "test-net-service-link", "route": FEATURE, "slirp": "test-net-service-slirp"}
+SLIRP_TIMEOUT = "slirp-timeout"
+SLIRP_CASES = ("slirp", SLIRP_TIMEOUT)
+CASES = {"dhcp": FEATURE, "link": "test-net-service-link", "route": FEATURE, "slirp": "test-net-service-slirp",
+         SLIRP_TIMEOUT: "test-net-service-slirp-timeout"}
 SUMMARIES = {"dhcp": "network-dhcp-report.json", "link": "network-dhcp-link-report.json",
-             "route": "network-dhcp-route-report.json", "slirp": "network-dhcp-slirp-report.json"}
+             "route": "network-dhcp-route-report.json", "slirp": "network-dhcp-slirp-report.json",
+             SLIRP_TIMEOUT: "network-dhcp-slirp-timeout-report.json"}
 LAST_TICK = 6000
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528,
            536, 544, 552, 560, 568, 576, 584, 592, 600, 608, 616, 624, 632, 640, 648, 656, 664)
@@ -207,10 +217,10 @@ def sequence(stdout, case="dhcp"):
         raise ValueError("Incomplete native process, broker, exit or entropy evidence")
     service = found["SERVICE"]
     # libslirp leases once and never withdraws; the other cases lease twice.
-    leases, withdrawals = (1, 0) if case == "slirp" else (2, 1)
+    leases, withdrawals = (1, 0) if case in SLIRP_CASES else (2, 1)
     if (service[560] != leases or service[568] != withdrawals or service[608] != 0
             or entropy != 8 + 4 * service[600] or not 0 < service[616] <= LAST_TICK
-            or not (service[592] == 0 if case == "slirp" else 0 < service[592] <= service[616])):
+            or not (service[592] == 0 if case in SLIRP_CASES else 0 < service[592] <= service[616])):
         raise ValueError("Native DHCP lease/withdrawal/entropy evidence differs")
     observed = {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()},
                 "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks}
@@ -257,8 +267,8 @@ def evaluate(report, peer, case="dhcp", control=None):
             or not 0 <= report["duration_s"] <= report["timeout_s"] + 5):
         raise ValueError("Native QEMU exit/lifetime/profile evidence failed")
     observed = sequence(report["stdout"], case)
-    if case == "slirp":
-        return evaluate_slirp(report, peer, observed)
+    if case in SLIRP_CASES:
+        return evaluate_slirp(report, peer, observed, silent=case == SLIRP_TIMEOUT)
     if (peer.get("case") != case or peer.get("passed") is not True or peer.get("connected") is not True
             or peer.get("error") is not None or peer.get("rejected_frame") is not None):
         raise ValueError("Actual synthetic DHCP peer failed: " + str(peer.get("error")))
@@ -290,7 +300,7 @@ def evaluate(report, peer, case="dhcp", control=None):
     return observed
 
 
-def evaluate_slirp(report, oracle, observed):
+def evaluate_slirp(report, oracle, observed, *, silent=False):
     """Bind the native evidence to the libslirp wire capture and the oracle."""
     command = report.get("command", [])
     netdevs = [command[i + 1] for i, item in enumerate(command[:-1]) if item in ("-netdev", "-nic", "-net")]
@@ -320,18 +330,25 @@ def evaluate_slirp(report, oracle, observed):
     if len(positive) != 1 or not any(r.get("rcode") == 0 and r.get("addresses", [None])[:1] == [first]
                                      and app_a["664"] == min(len(r["addresses"]), 8) for r in positive):
         raise ValueError("App A's resolved address/count is not a DNS answer seen on the wire")
-    # App A asserted NotFound in-guest; only the wire separates NXDOMAIN from an empty NOERROR.
-    if negative != [dict(name=slirp.NEGATIVE, rcode=3, addresses=[])]:
-        raise ValueError("The .invalid query did not get exactly one NXDOMAIN without addresses on the wire")
-    if len(responses) != 2 or service["448"] != 2:
-        raise ValueError("DNS answers on the wire differ from the service's two UDP queries")
+    if service["448"] != 2:
+        raise ValueError("The service did not send exactly two UDP queries")
+    if silent:
+        if (wire.get("dns_queries") != [slirp.NAME, slirp.NEGATIVE] or wire.get("dns_reply_packets") != 1
+                or len(responses) != 1 or positive[0]["addresses"] != [slirp.FIXTURE_ADDRESS]
+                or oracle.get("silent_upstream_queries") != [slirp.NEGATIVE]
+                or not 300 <= app_a["632"] < 700):
+            raise ValueError("Missing isolated unanswered query or in-guest Timeout deadline evidence")
+    else:
+        # NotFound also covers an empty NOERROR; check the actual wire response.
+        if negative != [dict(name=slirp.NEGATIVE, rcode=3, addresses=[])] or len(responses) != 2:
+            raise ValueError("The .invalid query did not get exactly one NXDOMAIN without addresses on the wire")
     address = ipaddress.ip_address(first)
     if not address.is_global or address.is_multicast:
         raise ValueError("App A's resolved address is not a public unicast address")
     return observed
 
 
-def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
+def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp", parent_namespaces=None):
     if type(timeout) is not int or not 1 <= timeout <= 180:
         raise ValueError("Native timeout must be bounded 1..180 seconds")
     feature = CASES[case]
@@ -389,6 +406,9 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
                    "resolver, one HTTP exchange; no DNS timeout, truncation or stale-response case; "
                    "NAT and resolver are the host's, no physical NIC, Wi-Fi, TLS or internet HTTP claim")
     scopes = {"dhcp": dhcp_scope, "link": link_scope, "slirp": slirp_scope,
+              SLIRP_TIMEOUT: ("three actual ring-3 processes; loopback-only private namespace; libslirp DHCP,"
+                              " local dnsmasq forwarding, a silent UDP endpoint and the host-loopback HTTP"
+                              " oracle; no WAN, physical NIC, DNSSEC or authenticated transport evidence"),
               "route": dhcp_scope + "; one default route via the DHCP router on a synthetic L2 peer (one Python "
                        "process plays router, host and server): no forwarding, TTL, ICMP, static or multiple routes"}
     report = dict(schema_version=1, passed=False, case=case, kernel_feature=feature,
@@ -399,8 +419,11 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
                   qemu_sha256=qemu_hash, firmware_sha256=original_firmware, snapshot_sha256=snapshots,
                   qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip())
     control = None
-    with (slirp.SlirpOracle(timeout) if case == "slirp" else Peer(timeout=timeout, case=case)) as peer:
-        command += slirp.arguments(f"{rel}/slirp.pcap") if case == "slirp" else network_arguments(peer.port)
+    with ExitStack() as stack:
+        upstream = (stack.enter_context(slirp.silent_resolver(directory, parent_namespaces))
+                    if case == SLIRP_TIMEOUT else None)
+        peer = stack.enter_context(slirp.SlirpOracle(timeout) if case in SLIRP_CASES else Peer(timeout=timeout, case=case))
+        command += slirp.arguments(f"{rel}/slirp.pcap") if case in SLIRP_CASES else network_arguments(peer.port)
         begin = time.monotonic()
         if case == "link":
             control = LinkHandshake(peer.machine, directory, begin + timeout)
@@ -414,10 +437,13 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
                       timed_out=timed_out, output_overflow=output_overflow,
                       stdout_sha256=hashlib.sha256(stdout_raw).hexdigest(), stderr_sha256=hashlib.sha256(stderr_raw).hexdigest(),
                       stdout_bytes=len(stdout_raw), stderr_bytes=len(stderr_raw))
+        upstream_queries = slirp.upstream_queries(upstream) if upstream is not None else None
     evidence = peer.finish()
+    if upstream_queries is not None:
+        evidence["silent_upstream_queries"] = upstream_queries
     publish_json(directory / "network-peer.json", evidence)
     report["peer"] = evidence
-    if case == "slirp":
+    if case in SLIRP_CASES:
         try:
             capture = private_path(directory / "slirp.pcap", regular=True)
             report.update(wire=slirp.parse_pcap(capture), pcap_sha256=sha256(capture))
@@ -451,6 +477,20 @@ def run_network_dhcp(*, timeout=90, frozen=None, case="dhcp"):
     return report
 
 
+def run_isolated_timeout(timeout, frozen):
+    # The child becomes PID 1. Killing the child also removes its resolver and
+    # QEMU if the outer deadline or a signal interrupts the harness.
+    command = [
+        "unshare", "--user", "--map-root-user", "--net", "--mount", "--propagation", "private",
+        "--pid", "--fork", "--kill-child", "--", sys.executable, "-B", "-c",
+        "import sys\nfrom run_network_dhcp import SLIRP_TIMEOUT, run_network_dhcp\n"
+        "result = run_network_dhcp(timeout=int(sys.argv[1]), frozen=sys.argv[2], "
+        "case=SLIRP_TIMEOUT, parent_namespaces=sys.argv[3:])\nsys.exit(0 if result['passed'] else 1)",
+        str(timeout), frozen, *slirp.namespace_ids(),
+    ]
+    return subprocess.run(command, cwd=Path(__file__).parent, timeout=timeout + 20, check=False).returncode
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--timeout", type=int, default=90, help="host timeout seconds (default 90)")
@@ -458,7 +498,8 @@ def main(argv=None):
     parser.add_argument("--case", choices=tuple(CASES), default="dhcp",
                         help="dhcp: DHCPNAK withdrawal (default); link: QMP link down/up withdrawal; "
                              "route: dhcp with 192.0.2.1 off-link behind the DHCP router; "
-                             "slirp: one lease, real DNS and HTTP through QEMU's libslirp router")
+                             "slirp: one lease, real DNS and HTTP through QEMU's libslirp router; "
+                             "slirp-timeout: isolated DNS timeout with a live positive answer and HTTP control")
     args = parser.parse_args(argv)
     feature = CASES[args.case]
     # The stable summary never outlives a newer attempt; each run keeps its own run directory.
@@ -475,6 +516,8 @@ def main(argv=None):
         frozen = source_hash()
         if not args.no_build:
             build(None, feature, feature)
+        if args.case == SLIRP_TIMEOUT:
+            return run_isolated_timeout(args.timeout, frozen)
         # The dhcp call keeps its original signature.
         extra = {"case": args.case} if args.case != "dhcp" else {}
         return 0 if run_network_dhcp(timeout=args.timeout, frozen=frozen, **extra)["passed"] else 1

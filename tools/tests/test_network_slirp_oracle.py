@@ -104,6 +104,15 @@ class PcapTest(unittest.TestCase):
         self.assertEqual(summary["dns_responses"], [dict(name=slirp.NAME, rcode=0, addresses=["1.2.3.4"]),
                                                     dict(name=slirp.NEGATIVE, rcode=3, addresses=[])])
 
+    def test_unanswered_query_and_even_unparseable_reply_are_distinct(self):
+        frames = [query(), response([slirp.FIXTURE_ADDRESS]), query(ident=8, name=slirp.NEGATIVE)]
+        silent = self.parse(pcap(frames))
+        self.assertEqual(silent["dns_queries"], [slirp.NAME, slirp.NEGATIVE])
+        self.assertEqual(silent["dns_reply_packets"], 1)
+        unbound = self.parse(pcap([*frames, response([], name=slirp.NEGATIVE, rcode=3)]))
+        self.assertEqual(unbound["dns_responses"], silent["dns_responses"])
+        self.assertEqual(unbound["dns_reply_packets"], 2)
+
     def test_answers_must_match_the_question_of_their_query(self):
         for name, frames in (("negative answer to positive query", [query(), response([], name=slirp.NEGATIVE, rcode=3)]),
                              ("unbound negative", [response([], name=slirp.NEGATIVE, rcode=3)]),
@@ -174,6 +183,12 @@ class PcapTest(unittest.TestCase):
 
 
 class OracleTest(unittest.TestCase):
+    def test_silent_resolver_refuses_without_a_private_namespace(self):
+        with patch.object(slirp.subprocess, "run") as setup, self.assertRaises(RuntimeError):
+            with slirp.silent_resolver(Path("."), slirp.namespace_ids()):
+                self.fail("resolver setup escaped its namespace check")
+        setup.assert_not_called()
+
     def test_exactly_app_b_request_gets_app_b_response(self):
         with patch.object(slirp, "HTTP_PORT", 0):
             with slirp.SlirpOracle(2) as oracle:
@@ -224,18 +239,37 @@ class SlirpRunnerTest(unittest.TestCase):
         command = ["qemu", "-nic", "none", "-object", "rng-random,id=rng0"] + slirp.arguments(pcap_rel)
         return dict(command=command, run_directory=str(self.RUN), wire=dict(good, **wire))
 
-    def evaluate(self, report, oracle=None, a656=None, a664=2, address=None, queries=2):
+    def evaluate(self, report, oracle=None, a656=None, a664=2, address=None, queries=2, elapsed=0, silent=False):
         lease = int.from_bytes(LEASE, "big") if address is None else address
         observed = dict(network=dict(NET_TX_COMPLETED=20, NET_RX_DELIVERED=18),
                         processes=dict(SERVICE={"576": lease, "584": lease, "448": queries},
                                        APP_A={"656": int.from_bytes(socket.inet_aton("93.184.215.14"), "big")
-                                              if a656 is None else a656, "664": a664}))
+                                              if a656 is None else a656, "664": a664, "632": elapsed}))
         oracle = dict(connections=1, request_ok=True, response_sent=True, error=None) if oracle is None else oracle
-        return runner.evaluate_slirp(report, oracle, observed)
+        return runner.evaluate_slirp(report, oracle, observed, silent=silent)
 
     def test_good_report_passes_and_case_is_registered(self):
         self.assertEqual(runner.CASES["slirp"], "test-net-service-slirp")
         self.evaluate(self.report())
+
+    def test_silent_case_requires_guest_deadline_and_actual_upstream_and_wire_evidence(self):
+        self.assertEqual(runner.CASES["slirp-timeout"], "test-net-service-slirp-timeout")
+        wire = dict(dns_queries=[slirp.NAME, slirp.NEGATIVE], dns_reply_packets=1,
+                    dns_responses=[dict(POSITIVE, addresses=[slirp.FIXTURE_ADDRESS])])
+        oracle = dict(connections=1, request_ok=True, response_sent=True, error=None,
+                      silent_upstream_queries=[slirp.NEGATIVE])
+        expected = dict(oracle=oracle, a656=int.from_bytes(socket.inet_aton(slirp.FIXTURE_ADDRESS), "big"),
+                        a664=1, elapsed=300, silent=True)
+        self.evaluate(self.report(**wire), **expected)
+        for name, wire_change, change in (
+                ("early", {}, {"elapsed": 299}),
+                ("late", {}, {"elapsed": 700}),
+                ("missing upstream", {}, {"oracle": dict(oracle, silent_upstream_queries=[])}),
+                ("unseen query", {"dns_queries": [slirp.NAME]}, {}),
+                ("extra reply", {"dns_reply_packets": 2}, {}),
+                ("NXDOMAIN", {"dns_responses": [*wire["dns_responses"], NEGATIVE]}, {})):
+            with self.subTest(name), self.assertRaises(ValueError):
+                self.evaluate(self.report(**dict(wire, **wire_change)), **dict(expected, **change))
 
     def test_mutants_are_refused(self):
         first_ack = self.report()["wire"]["dhcp_acks"][0]
