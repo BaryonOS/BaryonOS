@@ -150,6 +150,11 @@ impl Artifact {
     /// this exact binding, after a complete read, and on an exact digest match;
     /// any mismatch fails closed to `Rejected`. The reference digest is public,
     /// so a plain comparison leaks nothing.
+    ///
+    /// The digest is trusted only because the caller holds the exclusive,
+    /// manifest-only `ARTIFACT_VERIFY` right: the verifier is part of the
+    /// trusted base for integrity (ADR Q1). The cursor never rewinds; a verifier
+    /// that dies mid-read means release and refill.
     pub fn verify(&mut self, binding: Binding, digest: &[u8; 32]) -> Result<(), ArtifactError> {
         self.expect(binding, State::Sealed)?;
         if self.cursor != self.binding.length {
@@ -178,7 +183,8 @@ impl Artifact {
     }
 
     /// Any state with zero links `→ Released`. The kernel then frees every
-    /// frame through [`Frames::free`], which zeroes it before reuse.
+    /// frame through [`Frames::free`], which zeroes it before reuse; an id may
+    /// be reused for a new artifact only after all its frames are free (S1b).
     pub fn release(&mut self) -> Result<(), ArtifactError> {
         if self.state == State::Released {
             return Err(ArtifactError::State);
@@ -277,6 +283,15 @@ mod tests {
         for &pa in &pages {
             assert_eq!(f.map(pa, true, false, false), Err(Error::Permission));
         }
+        // A sealed artifact never gains a fresh, writable-aliasable frame.
+        let free = f.availability();
+        assert_eq!(f.allocate(owner(false), |_| {}), Err(Error::Owner));
+        let mut more = [0u64; 2];
+        assert_eq!(
+            f.allocate_many(owner(false), &mut more, |_| {}),
+            Err(Error::Owner)
+        );
+        assert_eq!(f.availability(), free);
         // Read-only kernel scratch reads stay possible.
         f.map(pages[0], false, false, false).unwrap();
         assert_eq!(a.seal(&mut f), Err(ArtifactError::State));

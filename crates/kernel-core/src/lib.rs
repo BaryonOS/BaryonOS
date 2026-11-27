@@ -318,6 +318,11 @@ impl<const N: usize> Frames<N> {
         if id == 0 || sealed {
             return Err(Error::Owner);
         }
+        // A sealed artifact never grows: a new frame of the same id could
+        // otherwise receive a writable alias after sealing.
+        if self.owners.contains(&Owner::Artifact { id, sealed: true }) {
+            return Err(Error::Owner);
+        }
         let owned = self
             .owners
             .iter()
