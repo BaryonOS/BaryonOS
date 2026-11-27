@@ -2,11 +2,12 @@
 use nieuw_os_nas_client::{
     host_store::{
         self, Authorization, Backend, Binding, Coordinator, IndependentAuthority, Manifest,
-        StoreError, CHUNKS,
+        StoreError, TrustedPeerConnection, CHUNKS,
     },
     Checkpoint, Client, Remote, State, CHECKPOINT_BYTES,
 };
 use nieuw_os_nas_core::{Error, Principal, Session, Upload};
+use std::{cell::Cell, rc::Rc};
 
 fn binding() -> Binding {
     Binding {
@@ -251,42 +252,42 @@ impl Backend for Fake {
         Ok(())
     }
 }
-#[derive(Default)]
+#[derive(Clone, Default)]
 struct CountingRemote {
-    opened: usize,
-    heads: usize,
-    reads: usize,
-    closes: usize,
-    stages: usize,
-    commits: usize,
+    opened: Rc<Cell<usize>>,
+    heads: Rc<Cell<usize>>,
+    reads: Rc<Cell<usize>>,
+    closes: Rc<Cell<usize>>,
+    stages: Rc<Cell<usize>>,
+    commits: Rc<Cell<usize>>,
 }
 impl Remote for CountingRemote {
     fn caller(&self) -> Principal {
-        Principal([2; 32])
+        Principal([37; 32])
     }
     fn open(&mut self, namespace: &[u8; 32]) -> Result<Session, Error> {
         assert_eq!(namespace, &[3; 32]);
-        self.opened += 1;
+        self.opened.set(self.opened.get() + 1);
         Session::from_bytes(&[1; 40])
     }
     fn stage(&mut self, _: Session, _: usize, _: u64, _: &[u8]) -> Result<Upload, Error> {
-        self.stages += 1;
+        self.stages.set(self.stages.get() + 1);
         Err(Error::Invalid)
     }
     fn commit(&mut self, _: Session, _: Upload) -> Result<u64, Error> {
-        self.commits += 1;
+        self.commits.set(self.commits.get() + 1);
         Err(Error::Invalid)
     }
     fn cancel(&mut self, _: Session, _: Upload) -> Result<(), Error> {
         Err(Error::Invalid)
     }
     fn close(&mut self, _: Session) -> Result<(), Error> {
-        self.closes += 1;
+        self.closes.set(self.closes.get() + 1);
         Ok(())
     }
     fn head(&mut self, _: Session, object: usize) -> Result<u64, Error> {
         assert_eq!(object, 0);
-        self.heads += 1;
+        self.heads.set(self.heads.get() + 1);
         Ok(1)
     }
     fn read(
@@ -297,7 +298,7 @@ impl Remote for CountingRemote {
         out: &mut [u8],
     ) -> Result<usize, Error> {
         assert_eq!((object, revision), (0, 1));
-        self.reads += 1;
+        self.reads.set(self.reads.get() + 1);
         let bytes = b"encrypted object";
         out[..bytes.len()].copy_from_slice(bytes);
         Ok(bytes.len())
@@ -312,6 +313,28 @@ impl IndependentAuthority for UnreachableAuthority {
         _: &Manifest,
     ) -> Result<Option<Manifest>, StoreError> {
         panic!("authority must not be read when fencing fails")
+    }
+}
+/// Test-only trusted fixture: identity is held outside the Remote.
+struct Connection {
+    route: Option<Binding>,
+    remote: CountingRemote,
+}
+impl TrustedPeerConnection for Connection {
+    type Remote = CountingRemote;
+    fn verified_remote(&mut self, expected: &Binding) -> Result<&mut Self::Remote, StoreError> {
+        match &self.route {
+            Some(route) if route == expected => Ok(&mut self.remote),
+            Some(_) => Err(StoreError::Unauthorized),
+            None => Err(StoreError::Backend),
+        }
+    }
+}
+
+fn valid_connection() -> Connection {
+    Connection {
+        route: Some(binding()),
+        remote: CountingRemote::default(),
     }
 }
 struct Independent {
@@ -333,7 +356,7 @@ fn client() -> Client {
     client
 }
 fn stage(
-    coordinator: &Coordinator,
+    coordinator: &Coordinator<Connection>,
     fake: &mut Fake,
     publication: u64,
     attempt: u8,
@@ -348,8 +371,8 @@ fn stage(
         )
         .unwrap()
 }
-fn setup() -> (Coordinator, Fake) {
-    let mut coordinator = Coordinator::new(binding(), [11; 32]);
+fn setup() -> (Coordinator<Connection>, Fake) {
+    let mut coordinator = Coordinator::new(binding(), [11; 32], valid_connection());
     let mut fake = Fake::default();
     let candidate = stage(&coordinator, &mut fake, 1, 1);
     coordinator
@@ -357,7 +380,7 @@ fn setup() -> (Coordinator, Fake) {
         .unwrap();
     (coordinator, fake)
 }
-fn prepared(coordinator: &Coordinator, fake: &mut Fake) -> host_store::Prepared {
+fn prepared(coordinator: &Coordinator<Connection>, fake: &mut Fake) -> host_store::Prepared {
     coordinator
         .prepare(&mut Auth { allowed: true }, fake)
         .unwrap()
@@ -365,21 +388,35 @@ fn prepared(coordinator: &Coordinator, fake: &mut Fake) -> host_store::Prepared 
 
 #[test]
 fn restored_queue_reconciles_via_head_without_implicit_commit() {
-    let (mut coordinator, mut fake) = setup();
-    let prepared = prepared(&coordinator, &mut fake);
-    let handle = coordinator
-        .handoff(prepared, &mut Auth { allowed: true })
-        .unwrap();
-    let mut remote = CountingRemote::default();
-    assert_eq!(
-        coordinator.reconcile(handle, 0, &mut remote),
-        Ok(Ok(State::Observed(1)))
+    let remote = CountingRemote::default();
+    let mut coordinator = Coordinator::new(
+        binding(),
+        [11; 32],
+        Connection {
+            route: Some(binding()),
+            remote: remote.clone(),
+        },
     );
+    let mut fake = Fake::default();
+    let candidate = stage(&coordinator, &mut fake, 1, 1);
+    coordinator
+        .publish(candidate, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
+    let prep = prepared(&coordinator, &mut fake);
+    let handle = coordinator
+        .handoff(prep, &mut Auth { allowed: true })
+        .unwrap();
+    assert_eq!(coordinator.reconcile(handle, 0), Ok(Ok(State::Observed(1))));
     assert_eq!(
-        (remote.opened, remote.heads, remote.reads, remote.closes),
+        (
+            remote.opened.get(),
+            remote.heads.get(),
+            remote.reads.get(),
+            remote.closes.get()
+        ),
         (1, 1, 1, 1)
     );
-    assert_eq!((remote.stages, remote.commits), (0, 0));
+    assert_eq!((remote.stages.get(), remote.commits.get()), (0, 0));
 }
 
 #[test]
@@ -426,12 +463,10 @@ fn restore_handoff_races_revoke_and_invalidates_stale_handles() {
         coordinator.read(handle, 0, &mut out),
         Err(StoreError::Unauthorized)
     ));
-    let mut remote = CountingRemote::default();
     assert!(matches!(
-        coordinator.reconcile(handle, 0, &mut remote),
+        coordinator.reconcile(handle, 0),
         Err(StoreError::Unauthorized)
     ));
-    assert_eq!((remote.opened, remote.commits), (0, 0));
 }
 
 #[test]
@@ -475,7 +510,7 @@ fn restore_handoff_rechecks_exact_anchor_and_full_object_mapping() {
     ));
     let mut other = binding();
     other.objects[0][31] ^= 1;
-    let foreign = Coordinator::new(other, [12; 32]);
+    let foreign = Coordinator::new(other, [12; 32], valid_connection());
     assert!(matches!(
         foreign.stage(
             &client(),
@@ -675,7 +710,7 @@ fn foreign_coordinator_handle_is_not_accepted() {
     let (mut a, mut fake_a) = setup();
     let prep_a = prepared(&a, &mut fake_a);
     let handle_a = a.handoff(prep_a, &mut Auth { allowed: true }).unwrap();
-    let mut b = Coordinator::new(binding(), [12; 32]);
+    let mut b = Coordinator::new(binding(), [12; 32], valid_connection());
     let mut fake_b = Fake::default();
     let staged = stage(&b, &mut fake_b, 1, 1);
     b.publish(staged, &mut Auth { allowed: true }, &mut fake_b)
@@ -705,8 +740,8 @@ fn changed_candidate_after_flush_cannot_replace_previous_checkpoint() {
 
 #[test]
 fn foreign_candidate_cannot_cross_coordinator_after_revoke() {
-    let mut a = Coordinator::new(binding(), [11; 32]);
-    let mut b = Coordinator::new(binding(), [12; 32]);
+    let mut a = Coordinator::new(binding(), [11; 32], valid_connection());
+    let mut b = Coordinator::new(binding(), [12; 32], valid_connection());
     let mut fake = Fake::default();
     let candidate = stage(&a, &mut fake, 1, 1);
     a.revoke(&mut fake).unwrap();
@@ -761,7 +796,7 @@ fn uncertain_attempt_must_be_fenced_before_prior_resolution_and_later_publish() 
 fn prepared_restore_cannot_cross_coordinator_after_revoke() {
     let (mut a, mut fake_a) = setup();
     let prepared_a = prepared(&a, &mut fake_a);
-    let mut b = Coordinator::new(binding(), [12; 32]);
+    let mut b = Coordinator::new(binding(), [12; 32], valid_connection());
     let mut fake_b = Fake::default();
     let candidate_b = stage(&b, &mut fake_b, 1, 1);
     b.publish(candidate_b, &mut Auth { allowed: true }, &mut fake_b)
@@ -862,7 +897,7 @@ fn revoke_fences_unknown_attempt_and_retries_without_restoring_access() {
 #[test]
 fn revoked_uncertain_checkpoint_never_releases_gate_after_fence() {
     for applied in [false, true] {
-        let mut original = Coordinator::new(binding(), [11; 32]);
+        let mut original = Coordinator::new(binding(), [11; 32], valid_connection());
         let mut fake = Fake::default();
         let mut prior_client = Client::new();
         prior_client.enqueue([3; 32], 0, 0, b"prior bytes").unwrap();
@@ -906,7 +941,7 @@ fn revoked_uncertain_checkpoint_never_releases_gate_after_fence() {
             original.revoke(&mut fake),
             Err(StoreError::Backend)
         ));
-        let replacement = Coordinator::new(binding(), [12; 32]);
+        let replacement = Coordinator::new(binding(), [12; 32], valid_connection());
         let mut replacement_client = Client::new();
         replacement_client
             .enqueue([3; 32], 0, 0, b"distinct replacement bytes")
@@ -960,7 +995,7 @@ fn revoked_uncertain_checkpoint_never_releases_gate_after_fence() {
 #[test]
 fn live_unknown_finalization_retains_exact_selected_bytes_before_gate_release() {
     for applied in [false, true] {
-        let mut coordinator = Coordinator::new(binding(), [11; 32]);
+        let mut coordinator = Coordinator::new(binding(), [11; 32], valid_connection());
         let mut fake = Fake::default();
         let mut prior_client = Client::new();
         prior_client.enqueue([3; 32], 0, 0, b"prior bytes").unwrap();
@@ -1029,7 +1064,7 @@ fn live_unknown_finalization_retains_exact_selected_bytes_before_gate_release() 
 
 #[test]
 fn prior_resolution_retains_unapplied_candidate_after_client_is_dropped_and_new_publish() {
-    let mut coordinator = Coordinator::new(binding(), [11; 32]);
+    let mut coordinator = Coordinator::new(binding(), [11; 32], valid_connection());
     let mut fake = Fake::default();
     let mut prior_client = Client::new();
     prior_client.enqueue([3; 32], 0, 0, b"prior bytes").unwrap();
@@ -1138,4 +1173,62 @@ fn missing_or_damaged_candidate_keeps_gate_closed_even_when_prior_was_selected()
         coordinator.prepare(&mut Auth { allowed: true }, &mut fake),
         Err(StoreError::Unknown)
     ));
+}
+
+#[test]
+fn foreign_or_unavailable_peer_fails_before_any_remote_operation() {
+    let mut wrong_peer = binding();
+    wrong_peer.peer = [99; 32];
+    let mut wrong_namespace = binding();
+    wrong_namespace.namespace = [99; 32];
+    let mut wrong_generation = binding();
+    wrong_generation.grant_generation += 1;
+    let mut wrong_scope = binding();
+    wrong_scope.grant_scope = [99; 32];
+    for route in [
+        Some(wrong_peer),
+        Some(wrong_namespace),
+        Some(wrong_generation),
+        Some(wrong_scope),
+        None,
+    ] {
+        let remote = CountingRemote::default();
+        let mut coordinator = Coordinator::new(
+            binding(),
+            [11; 32],
+            Connection {
+                route,
+                remote: remote.clone(),
+            },
+        );
+        let mut fake = Fake::default();
+        let candidate = stage(&coordinator, &mut fake, 1, 1);
+        coordinator
+            .publish(candidate, &mut Auth { allowed: true }, &mut fake)
+            .unwrap();
+        let prep = prepared(&coordinator, &mut fake);
+        let handle = coordinator
+            .handoff(prep, &mut Auth { allowed: true })
+            .unwrap();
+        let mut before = [0; 32];
+        let len = coordinator.read(handle, 0, &mut before).unwrap();
+        assert!(matches!(
+            coordinator.reconcile(handle, 0),
+            Err(StoreError::Unauthorized | StoreError::Backend)
+        ));
+        assert_eq!(
+            (
+                remote.opened.get(),
+                remote.heads.get(),
+                remote.reads.get(),
+                remote.stages.get(),
+                remote.commits.get()
+            ),
+            (0, 0, 0, 0, 0)
+        );
+        let mut after = [0; 32];
+        assert_eq!(coordinator.read(handle, 0, &mut after), Ok(len));
+        assert_eq!(after, before);
+        assert_eq!(coordinator.state(handle, 0), Ok(State::NeedsReconcile));
+    }
 }

@@ -97,6 +97,18 @@ pub trait Backend {
     fn check_chunk_count(&mut self, manifest: &Manifest) -> Result<(), StoreError>;
 }
 
+/// Coordinator-owned trusted host-model route factory: it must bind the returned
+/// connection to the authorized full peer, namespace, grant, scope and current
+/// grant generation, independently of Remote::caller (local ingress principal).
+/// It must keep this route stable for the entire exchange and fail closed when
+/// verification is unavailable. No native authentication or transport is
+/// implemented here. Only trusted setup may construct or supply the factory;
+/// a request or handle holder may not choose or replace it.
+pub trait TrustedPeerConnection {
+    type Remote: Remote;
+    fn verified_remote(&mut self, expected: &Binding) -> Result<&mut Self::Remote, StoreError>;
+}
+
 /// This authority models separately trusted state; a real independent anchor is
 /// not implemented here. An unavailable authoritative read returns an error.
 /// Observe only after a successful backend fence; return the current exact
@@ -131,7 +143,8 @@ pub struct Handle {
 /// A single mutable coordinator serializes model decisions. Independent anchor
 /// state is represented by `anchor`; production must implement it independently
 /// of the rewindable backend. The model assumes attempts are globally unique.
-pub struct Coordinator {
+pub struct Coordinator<C: TrustedPeerConnection> {
+    connection: C,
     instance: [u8; 32],
     binding: Binding,
     active: bool,
@@ -140,11 +153,12 @@ pub struct Coordinator {
     pending: Option<Manifest>,
     client: Option<Client>,
 }
-impl Coordinator {
+impl<C: TrustedPeerConnection> Coordinator<C> {
     /// Instance must be unique and allocated by the trusted local supervisor.
     /// Predictable bytes do not provide cryptographic unforgeability.
-    pub fn new(binding: Binding, instance: [u8; 32]) -> Self {
+    pub fn new(binding: Binding, instance: [u8; 32], connection: C) -> Self {
         Self {
+            connection,
             instance,
             binding,
             active: true,
@@ -343,6 +357,14 @@ impl Coordinator {
         }
         self.client.as_mut().ok_or(StoreError::Unauthorized)
     }
+    /// Observe a queue state only while the handle is valid.
+    pub fn state(&mut self, handle: Handle, slot: usize) -> Result<State, StoreError> {
+        Ok(self
+            .client(handle)?
+            .edit(slot)
+            .map_err(|_| StoreError::Invalid)?
+            .state())
+    }
     /// Copy locally held ciphertext only while the handle is valid.
     pub fn read(
         &mut self,
@@ -367,8 +389,19 @@ impl Coordinator {
         &mut self,
         handle: Handle,
         slot: usize,
-        remote: &mut impl Remote,
     ) -> Result<Result<State, Failure>, StoreError> {
-        Ok(self.client(handle)?.reconcile_latest_via(slot, remote))
+        self.live(&self.binding)?;
+        if self.instance != handle.instance
+            || self.generation != handle.generation
+            || self.client.is_none()
+        {
+            return Err(StoreError::Unauthorized);
+        }
+        let remote = self.connection.verified_remote(&self.binding)?;
+        Ok(self
+            .client
+            .as_mut()
+            .ok_or(StoreError::Unauthorized)?
+            .reconcile_latest_via(slot, remote))
     }
 }
