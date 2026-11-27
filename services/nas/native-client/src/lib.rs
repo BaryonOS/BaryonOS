@@ -5,6 +5,7 @@
 #![forbid(unsafe_code)]
 
 mod checkpoint;
+pub mod host_store;
 pub use checkpoint::CHECKPOINT_BYTES;
 
 use core::fmt;
