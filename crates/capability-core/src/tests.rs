@@ -581,6 +581,63 @@ fn ks16_last_receive_close_tombstone_and_revoked_before_closed() {
     });
 }
 
+/// A03-T2c-3 product contract (owner decision A, 25 Nov 2026): an endpoint
+/// closes no later than its owner's exit. The task-grant broker detects client
+/// exit by its reply SEND failing, so this pins the task_grant.rs topology:
+/// client-owned root, SEND delegated to the broker, client keeps a derived
+/// RECV and closes the root. Fault, kill and orphan exits reach the same
+/// `Engine::exit` in the kernel; only the engine half is tested here.
+#[test]
+fn a03_owned_reply_endpoint_closes_no_later_than_owner_exit() {
+    run(|e| {
+        let (broker, client, other, third) = (1, 2, 3, 4);
+        setup(e, 4);
+        let reply = |e: &mut Engine, owner: u64| {
+            let root = e.create_endpoint(owner).unwrap();
+            let send = e.bootstrap_delegate(owner, root, broker, SEND).unwrap();
+            let recv = e.derive(owner, root, RECV).unwrap();
+            e.close(owner, root).unwrap();
+            (send, recv)
+        };
+        let (to_client, client_recv) = reply(e, client);
+        let (to_other, other_recv) = reply(e, other);
+        e.send(broker, to_client, &Message::new()).unwrap();
+        e.check_endpoint(client, client_recv, RECV).unwrap();
+        assert_eq!(e.stats().queued_messages, 1);
+
+        e.exit(client).unwrap();
+        // Revoked, not Closed: exit revokes before it closes. Atomic, nothing queued.
+        assert_eq!(e.stats().queued_messages, 0);
+        assert_atomic(e, Error::Revoked, |e| {
+            e.send(broker, to_client, &Message::new())
+        });
+        assert_atomic(e, Error::Revoked, |e| {
+            e.check_endpoint(broker, to_client, SEND)
+        });
+        // Another client's reply path is untouched, so only its grants retire.
+        e.send(broker, to_other, &Message::new()).unwrap();
+        e.receive(other, other_recv).unwrap();
+
+        // Only the owner can ever receive: RECV is never delegated or transferred,
+        // so no client can listen on an endpoint that outlives it. An endpoint
+        // owned by anyone else survives a client's exit, so T2c-3 must keep the
+        // reply endpoint client-owned.
+        let root = e.create_endpoint(third).unwrap();
+        let to_third = e.bootstrap_delegate(third, root, broker, SEND).unwrap();
+        assert_atomic(e, Error::Access, |e| {
+            e.bootstrap_delegate(third, root, other, RECV)
+        });
+        assert_atomic(e, Error::Access, |e| {
+            e.send(third, root, &cap_message(root, RECV))
+        });
+        e.exit(other).unwrap();
+        assert_atomic(e, Error::Revoked, |e| {
+            e.check_endpoint(broker, to_other, SEND)
+        });
+        e.send(broker, to_third, &Message::new()).unwrap();
+    });
+}
+
 #[test]
 fn ks16_exit_revokes_received_and_issued_descendants_and_queued_caps() {
     run(|e| {

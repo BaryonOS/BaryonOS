@@ -10,6 +10,7 @@ native = ["dep:nieuw-os-sdk-runtime"]
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime", optional = true }
 nieuw-os-task-grant-core = { path = "../../task-grant-core" }
+volume-core = { path = "../../../services/volume" }
 
 [[bin]]
 name = "task-grant-broker"

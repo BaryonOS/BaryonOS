@@ -1,0 +1,14 @@
+20:24:58Z A ffea3883870d0aa0f26170d8676015ae31067f53 B 5aedee77896060b80603e3d44c8ee25aad66be66 B_dirty 
+20:24:58Z ws-A1 load_before 3.39 3.88 3.86 12/7825 2348195
+20:25:58Z ws-A1 exit 0 load_after 5.22 4.21 3.97 4/8053 2362078
+20:25:58Z ws-B1 load_before 5.22 4.21 3.97 5/8054 2362083
+20:26:56Z ws-B1 exit 0 load_after 3.49 3.92 3.88 4/8039 2369602
+20:26:56Z ws-B2 load_before 3.49 3.92 3.88 5/8040 2369607
+20:27:53Z ws-B2 exit 0 load_after 3.30 3.83 3.86 12/8035 2376952
+20:27:53Z ws-A2 load_before 3.30 3.83 3.86 7/8036 2376957
+20:28:53Z ws-A2 exit 0 load_after 3.70 3.89 3.88 4/8076 2387494
+20:28:53Z B kernel.elf before nit: 1aaca1444a964b97a66a7e2884bc6d2d79afec8b1344875a3759e1b1d5c14d2b  $HOME/projects/BaryonOS-worktrees/r-turn/build/r-win/esp/kernel.elf
+20:28:53Z nit diff:  1 file changed, 1 insertion(+), 1 deletion(-)
+20:28:57Z build-B-nit exit 0
+20:28:57Z B kernel.elf after nit: 1aaca1444a964b97a66a7e2884bc6d2d79afec8b1344875a3759e1b1d5c14d2b  $HOME/projects/BaryonOS-worktrees/r-turn/build/r-win/esp/kernel.elf
+20:28:57Z done

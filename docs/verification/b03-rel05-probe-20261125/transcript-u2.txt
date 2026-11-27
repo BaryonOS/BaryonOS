@@ -1,0 +1,184 @@
+# U2 transcript (feasibility probe, not acceptance evidence)
+## u2.py stdout
+key b'\x1b[B' -> new serial bytes 98
+key b'\r' -> new serial bytes 660
+shell prompt reached: True
+swtpm ctrl shutdown: [Errno 2] No such file or directory
+Shell> dh -p 607F766-745andle dump by protocol 'Tcg2'
+
+40: Tcg2 
+
+Shell> ver
+
+UEFI Interactive Shell v2.2
+
+EDK II
+
+UEFI v2.70 (Ubuntu distribution of EDK II, 0x00010000)
+
+Shell> 
+
+[exited with code 0]
+## serial console (ANSI escapes stripped)
+[=3hBdsDxe: No bootable option or device was found.
+BdsDxe: Press any key to enter the Boot Manager Menu.
+BdsDxe: loading Boot0000 "BootManagerMenuApp" from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)/FvFile(EEC25BDC-67F2-4D95-B1D5-F81B2039D11D)
+BdsDxe: starting Boot0000 "BootManagerMenuApp" from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)/FvFile(EEC25BDC-67F2-4D95-B1D5-F81B2039D11D)
+┌─────────────────────────────────┐│                                 │├─────────────────────────────────┤│                                 ││                                 │├─────────────────────────────────┤│                                 ││                                 ││                                 │└─────────────────────────────────┘Please select boot device:EFI Firmware SetupEFI Internal Shell↑ and ↓ to move selectionENTER to select boot deviceESC to exitEFI Firmware SetupEFI Firmware SetupEFI Internal ShellUEFI Interactive Shell v2.2
+EDK II
+UEFI v2.70 (Ubuntu distribution of EDK II, 0x00010000)
+Mapping table
+map: No mapping found.
+Press ESC in 5 seconds to skip startup.nsh or any other key to continue.Press ESC in 4 seconds to skip startup.nsh or any other key to continue.Press ESC in 3 seconds to skip startup.nsh or any other key to continue.Press ESC in 2 seconds to skip startup.nsh or any other key to continue.Press ESC in 1 seconds to skip startup.nsh or any other key to continue.
+Shell> dh -p 607F766-745andle dump by protocol 'Tcg2'
+40: Tcg2 
+Shell> ver
+UEFI Interactive Shell v2.2
+EDK II
+UEFI v2.70 (Ubuntu distribution of EDK II, 0x00010000)
+Shell> 
+## swtpm command stream extract (swtpm_log_extract.py swtpm-u2.log)
+0x181 HierarchyChangeAuth?   rc=0x101
+0x144 Startup                rc=0x000
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x143 SelfTest               rc=0x000
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=0 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=0 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=0 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x17A GetCapability          rc=0x000 cap=0x6 prop=0x105
+0x17A GetCapability          rc=0x000 cap=0x6 prop=0x10B
+0x17A GetCapability          rc=0x000 cap=0x6 prop=0x10C
+0x17A GetCapability          rc=0x000 cap=0x6 prop=0x11E
+0x17A GetCapability          rc=0x000 cap=0x6 prop=0x11F
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x182 PCR_Extend             rc=0x000 pcr=7 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=7 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=7 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=7 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=7 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=7 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x2 prop=0x124
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x129 HierarchyChangeAuth    rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=4 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=0 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=1 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=2 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=3 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=4 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=5 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=6 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=4 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=4 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=4 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+0x182 PCR_Extend             rc=0x000 pcr=4 banks=sha1,sha256,sha384,sha512
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17A GetCapability          rc=0x000 cap=0x5 prop=0x0 -> banks sha1:on sha256:on sha384:on sha512:on
+0x17E PCR_Read               rc=0x000
+PCR extend count per index: {0: 4, 1: 10, 2: 1, 3: 1, 4: 6, 5: 1, 6: 1, 7: 6}
+PCR 13 extended by firmware: False
+## raw logs retained locally (not committed)
+75a48e74790473fbbf0c1b3802e4cf2dbd6b18dcb9ed1f2311cd5d1942c83273  swtpm-u2.log
+2e87ea262069f4594cdb6f3085f43e65657201358f5017f5c4796ce82a1b0583  serial-u2.txt
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ovmf-debug.log
+98d437da2dea2d71094ee27bd6063bf42ee52549a918eaec32e5d81be3f034dc  swtpm-u1u7.log
