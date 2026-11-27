@@ -5,6 +5,76 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-H-AUDIO-HW-OWNER-20261127 — owner decisions on H03 audio (B1, B2, B4) and on physical hardware (OD-HW-*)
+
+**Status:** project-owner decisions of 27 November 2026, given directly to
+Specialist H and recorded by H. They amend the open items of
+ADR-H03-SND-FIXTURE-20261119 and the `owner_decisions` of
+`docs/drivers/hardware-matrix.json`. They give a GO for design,
+implementation and preparation. They accept no criterion, change no
+acceptance condition, rubric or weight, and leave D1–D3 and the Security
+Floor unchanged. H coordinates with K, B, N and S.
+
+**H03-T3b native audio.**
+
+- **B1:** a separate, manifest-only, non-delegable AUDIO output capability,
+  held only by the authorised ring-3 audio broker. Applications reach the
+  broker only through controlled IPC and receive no direct DMA, MMIO or
+  device rights.
+- **B2:** K and H choose a demonstrably free syscall number and matching ABI
+  version themselves, record the choice and verify that no existing number
+  conflicts, including `0x73`.
+  - On `main` `52e4430a` the dispatch tables already use `0x70`–`0x74`,
+    `0x80`–`0x84` and `0x90`–`0x92`. The number is chosen in the
+    implementation PR after a full survey and K's confirmation (#530).
+- **B4:** `00:08.0` is reserved for virtio-snd in the controlled VM-FR
+  profile only. It is not a physical hardware assumption.
+  - The QEMU runners on `52e4430a` place devices at `0x5`, `0x6`, `0x7` and
+    `0xc`; only `tools/run_virtio_snd.py` uses `08.0`. The auto-placed
+    `qemu-xhci` runs in profiles that are exclusive with the snd profile.
+  - A future VM-FR profile that combines both must place every device
+    explicitly. No other device may claim `00:08.0`.
+- **Scope of the first implementation:**
+  - output only; microphone access needs a separate, explicit owner
+    authorisation later;
+  - the exact PCM/WAV oracle (`drivers/virtio-snd/TRANSPORT.md` §7) is kept;
+  - bounded audio buffers, controlled scheduling, revocation, cleanup and
+    crash recovery are designed in;
+  - latency is optimised without weakening isolation.
+
+**Physical hardware (`OD-HW-*`).**
+
+| Decision | Owner answer | Matrix status |
+| --- | --- | --- |
+| OD-HW-TARGETS | Work toward at least two distinct x86-64 reference configurations for full hardware acceptance. Start with one actually available, controlled test machine. Invent no hardware identity and buy nothing without permission. | open: no target identity exists yet, and `tools/hw_matrix.py` refuses a decided entry while the HW-FR target is null |
+| OD-HW-BOOT | Use a separate removable test medium through the one-time firmware boot menu. Never change Secure Boot, firmware keys or permanent boot settings automatically. | decided |
+| OD-HW-DISKS | Prefer physically isolated test storage. Protect every internal user disk against reading, writing and formatting. The owner performs any necessary physical action. | decided |
+| OD-HW-CAPTURE | Use reliable serial capture when available, otherwise a validated screen-based route. | decided |
+| OD-HW-SIGNERS | Only explicitly authorised operators and signing identities. Generate or register no production keys without separate permission. | open: the policy is decided, but no operator or signing identity is named yet |
+| OD-HW-FAMILIES | Priority: USB HID, storage, wired Ethernet, basic graphics output, audio and power management. Wi-Fi, Bluetooth and GPU acceleration remain part of later product development; no acceptance condition is removed. | open: the R03-INSTALL install-target transport is not answered yet |
+| OD-HW-PUBLISH | Publish sanitised hardware data only. Remove MAC addresses, serial numbers and other unique device identifiers from public logs. | decided |
+| OD-HW-INV-ROUTE | Native hardware inventory becomes the primary route once it is reliably demonstrated. An independent Linux inventory serves as the completeness reference. | decided |
+| OD-HW-POWER | Prioritise physical S5, S3 where supported, controlled wake, and safe storage and network recovery. Battery and thermal tests stay profile-dependent. | open: the physical wake source is not chosen yet |
+
+Physical boot, firmware, disk and signing actions that need the owner are
+presented to the owner concretely and as one bundle. The four entries that
+stay open are answered in part; the open part goes into that bundle.
+
+**Consequences.**
+
+- H03-T3b (ring-3 audio broker, AUDIO right, syscall) is no longer blocked
+  on an owner decision. It still needs the syscall choice with K, a Security
+  Floor review by B of the right's issue, check, non-delegation and
+  revocation paths, and its own native evidence.
+- Every physical protocol stays blocked by `OD-HW-TARGETS` until a real
+  target machine is recorded.
+
+**Source:** the owner's message in the H session of 27 November 2026;
+`docs/drivers/hardware-matrix.json`; `drivers/virtio-snd/TRANSPORT.md`
+(decisions B1, B2 and B4).
+
+**Rollback:** revert the commit. The five matrix entries return to `open`.
+
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
 **Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the

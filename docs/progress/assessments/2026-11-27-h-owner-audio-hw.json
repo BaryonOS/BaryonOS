@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "52e4430a959bd058693579488c907e83682e56e9",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "docs/h-owner-audio-hw",
+  "task": "Record the project-owner decisions of 27 November 2026 on H03 audio (B1 AUDIO right, B2 syscall choice by K and H, B4 00:08.0 reserved in VM-FR) and on physical hardware (OD-HW-*) in ADR-H-AUDIO-HW-OWNER-20261127, docs/drivers/hardware-matrix.json, drivers/virtio-snd/TRANSPORT.md and the H03-T3 ledger entries",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: decision record only. OD-HW-BOOT, -DISKS, -CAPTURE, -PUBLISH and -INV-ROUTE are decided in the hardware matrix with the ADR as reference; OD-HW-TARGETS (no target identity), -SIGNERS (no named identity), -FAMILIES (R03 install transport) and -POWER (wake source) stay open with the partial answer in the ADR, so every physical protocol stays blocked. H03-T3b is no longer blocked on an owner decision but has no implementation, syscall number, capability or native evidence; H02, H03, H04, H05 and H06 stay open."
+}
