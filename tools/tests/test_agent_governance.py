@@ -1,6 +1,8 @@
 """Shared role adapters resolve, retain tool limits and cannot edit their policy."""
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import re
 import sys
@@ -54,7 +56,7 @@ class AgentGovernanceTests(unittest.TestCase):
                 self.assertIn(f"`{contract}`", adapter.read_text())
 
     def test_workers_cannot_authorize_edits_to_shared_policy(self):
-        paths = ["tools/tests/test_agent_governance.py"]
+        paths = ["tools/tests/test_agent_governance.py", "tools/agent_adapters.py"]
         for role in ROLES:
             slug = role.replace("_", "-")
             paths.extend((f".agents/roles/{role}.md", f".codex/agents/{role}.toml",
@@ -80,7 +82,11 @@ class AgentGovernanceTests(unittest.TestCase):
             with self.subTest(role=role):
                 codex = tomllib.loads((ROOT / f".codex/agents/{role}.toml").read_text())
                 self.assertEqual((codex["name"], codex["description"]), (role, description))
+                # No tool, sandbox or approval keys: the session's existing limits apply unchanged.
+                self.assertEqual(set(codex), {"name", "description", "developer_instructions"})
                 claude = (ROOT / f".claude/agents/{slug}.md").read_text()
+                self.assertEqual(re.findall(r"^(\w[\w-]*):", claude.split("---")[1], re.M),
+                                 ["name", "description"])
                 self.assertEqual(json.loads(re.search(r"^description: (.+)$", claude, re.M)[1]),
                                  description)
                 copilot = ROOT / f".github/agents/{slug}.agent.md"
@@ -106,6 +112,8 @@ class AgentGovernanceTests(unittest.TestCase):
             for text in (body, body + "Tool class: `read-only`\n", body + "Tool class: `admin`\n",
                          body + "Tool class: builder\n",
                          body + "Tool class: `builder`\nTool class: `coordinator`\n",
+                         body + "Tool class: `builder`\n**Tool class:** coordinator\n",
+                         body + "Tool class: `builder`\ntool-class: `admin`\n",
                          "# specialist_y\n\nOwns x.\nTool class: `builder`\n"):
                 role.write_text(text)
                 with self.subTest(text=text), self.assertRaises(ValueError):
@@ -117,6 +125,45 @@ class AgentGovernanceTests(unittest.TestCase):
             orphan.parent.mkdir(parents=True)
             orphan.write_text("hand-written\n")
             self.assertIn("orphan: .github/agents/specialist-x.agent.md", agent_adapters.drift(root))
+
+    def test_specialist_role_names_are_strict(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            roles = Path(tmp) / ".agents/roles"
+            roles.mkdir(parents=True)
+            for role in ("specialist_X", "specialist_x-y", "specialist_", "specialist_x y"):
+                path = roles / f"{role}.md"
+                path.write_text(f"# {role}\n\nOwns x.\n\nTool class: `builder`\n")
+                with self.subTest(role=role), self.assertRaisesRegex(ValueError, "role name"):
+                    agent_adapters.expected(Path(tmp))
+                path.unlink()
+
+    def test_adapter_cli_checks_writes_and_removes_orphans(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".agents/roles").mkdir(parents=True)
+            contract = root / ".agents/roles/specialist_x.md"
+            contract.write_text("# specialist_x\n\nOwns x.\n\nTool class: `builder`\n")
+            orphan = root / ".codex/agents/specialist_gone.toml"
+            orphan.parent.mkdir(parents=True)
+            orphan.write_text("hand-written\n")
+            run = lambda *argv: agent_adapters.main(list(argv), root=root)
+            with contextlib.redirect_stderr(io.StringIO()) as err:
+                self.assertEqual(run(), 1)  # --check is the default and never writes
+                self.assertEqual(run("--check"), 1)
+            self.assertIn("stale: .github/agents/specialist-x.agent.md", err.getvalue())
+            self.assertIn("orphan: .codex/agents/specialist_gone.toml", err.getvalue())
+            self.assertFalse((root / ".claude/agents/specialist-x.md").exists())
+            self.assertEqual(run("--write"), 0)
+            self.assertFalse(orphan.exists())
+            self.assertEqual(sorted(p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()),
+                             sorted([".agents/roles/specialist_x.md", *agent_adapters.expected(root)]))
+            self.assertEqual(run("--check"), 0)
+            (root / ".claude/agents/specialist-x.md").write_text("edited by hand\n")
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(run("--check"), 1)
+                contract.write_text("# specialist_x\n\nOwns x.\n\nTool class: `admin`\n")
+                self.assertEqual(run("--write"), 2)  # a contract error writes nothing
+            self.assertEqual((root / ".claude/agents/specialist-x.md").read_text(), "edited by hand\n")
 
 
 if __name__ == "__main__":

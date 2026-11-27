@@ -37,6 +37,8 @@ PATTERNS = (".claude/agents/specialist-*.md", ".codex/agents/specialist_*.toml",
 def parse(path: Path) -> tuple[str, str, str]:
     """Return (role, description, tool class) of one contract, or raise ValueError."""
     role = path.stem
+    if not re.fullmatch(r"specialist_[a-z][a-z0-9]*", role):
+        raise ValueError(f"{path.name}: role name must match specialist_[a-z][a-z0-9]*")
     lines = path.read_text(encoding="utf-8").splitlines()
     if not lines or lines[0] != f"# {role}":
         raise ValueError(f"{path.name}: first line must be '# {role}'")
@@ -49,9 +51,12 @@ def parse(path: Path) -> tuple[str, str, str]:
     sentence = re.match(r"(.+?\.)(?:\s|$)", " ".join(paragraph))
     if not sentence:
         raise ValueError(f"{path.name}: no first intro sentence")
-    classes = re.findall(r"^Tool class: `([^`]*)`\s*$", "\n".join(lines), re.M)
-    if len(classes) != 1:
-        raise ValueError(f"{path.name}: needs exactly one 'Tool class:' line, found {len(classes)}")
+    # Any line that starts like a class declaration counts, so a second lenient
+    # form (`**Tool class:** x`, `tool-class: x`) makes the contract ambiguous.
+    declared = [line for line in lines if re.match(r"\W*tool[\s_-]*class\b", line, re.I)]
+    classes = re.findall(r"^Tool class: `([^`]*)`\s*$", "\n".join(declared), re.M)
+    if len(declared) != 1 or len(classes) != 1:
+        raise ValueError(f"{path.name}: needs exactly one 'Tool class: `<class>`' line, found {len(declared)}")
     if classes[0] not in COPILOT_TOOLS:
         raise ValueError(f"{path.name}: tool class {classes[0]!r} has no adapter mapping")
     return role, sentence[1], classes[0]
@@ -107,22 +112,22 @@ def drift(root: Path = ROOT) -> list[str]:
     return problems + [f"orphan: {p}" for p in sorted(have - want.keys())]
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, root: Path = ROOT) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="list drift and exit 1 on drift (default)")
     mode.add_argument("--write", action="store_true", help="regenerate the adapters")
     args = parser.parse_args(argv)
     try:
-        problems = drift()
+        problems = drift(root)
         if args.write:
-            want = expected()
-            for path, text in want.items():
-                (ROOT / path).write_text(text, encoding="utf-8")
+            for path, text in expected(root).items():
+                (root / path).parent.mkdir(parents=True, exist_ok=True)
+                (root / path).write_text(text, encoding="utf-8")
             for problem in problems:
                 if problem.startswith("orphan: "):
-                    (ROOT / problem.removeprefix("orphan: ")).unlink()
-            problems = drift()
+                    (root / problem.removeprefix("orphan: ")).unlink()
+            problems = drift(root)
     except ValueError as error:
         print(f"agent-adapters: {error}", file=sys.stderr)
         return 2
