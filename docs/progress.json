@@ -2320,8 +2320,8 @@
             "verification": [
               "source"
             ],
-            "observation": "FR-R02 prescribes 100 cold starts and 24 hours of combined product use; workload/p50/p95/energy/memory/latency values still require a release decision (R02-L1).",
-            "remaining": "Freeze the complete numerical budgets and final workload before measuring.",
+            "observation": "FR-R02 prescribes 100 cold starts and 24 hours of combined product use. ADR-R02-L1-BUDGETS-20261127 (project owner, 2026-11-27, recorded in #530 issuecomment-7219541052) fixes the tier 1 product targets: first visible feedback p50 50 ms, p95 100 ms and p99 200 ms at most; light-interaction completion p95 250 ms at most; at least 60 Hz with no 60 Hz cap; idle CPU at most 1 % of one core on physical reference hardware; no persistent memory growth after warm-up. It also fixes the physical, KVM, WHPX and TCG profile rules, metric and percentile definitions and freeze-before-measuring. Per-profile hardware, resolution, methods, final workload, and memory and energy budgets remain open cells.",
+            "remaining": "Freeze the open per-profile cells (reference hardware, input-to-display and energy method, a 1 ms guest timestamp, a present timestamp, final workload and memory budget) before each acceptance measurement.",
             "evidence": [
               "docs/FULL-TEST-RELEASE.md",
               "docs/roadmap-pipeline/ledger.json"
