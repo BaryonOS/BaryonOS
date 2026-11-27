@@ -2,13 +2,13 @@
 
 //! Private ticket lifetime for the S7 TEST profile. The caller supplies
 //! authority resolved by the capability engine. No user pointer reaches here.
-use capability_core::{Error, MAX_ANCHOR_DOMAINS};
+use crate::{Error, MAX_ANCHOR_DOMAINS};
 
-pub(super) const LIFETIME_TICKS: u64 = 1_000;
+pub const LIFETIME_TICKS: u64 = 1_000;
 type Digest = [u8; 32];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) struct Authority {
+pub struct Authority {
     pub pid: u64,
     pub handle: u64,
     pub domain: u8,
@@ -16,14 +16,14 @@ pub(super) struct Authority {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum Operation {
+pub enum Operation {
     Read,
     Extend,
     Instance,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum Request {
+pub enum Request {
     Read,
     Extend { expected: Digest, store: Digest },
     Instance,
@@ -41,7 +41,7 @@ impl Request {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
-pub(super) enum Failure {
+pub enum Failure {
     Unavailable = 1,
     Corrupt = 2,
     Conflict = 3,
@@ -49,7 +49,7 @@ pub(super) enum Failure {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) enum Completion {
+pub enum Completion {
     Value(Digest),
     Extended,
     Failed(Failure),
@@ -82,7 +82,7 @@ struct Delivery {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(super) struct Work {
+pub struct Work {
     pub authority: Authority,
     pub ticket: u64,
     pub request: Request,
@@ -97,20 +97,26 @@ enum Entry {
     Ready(Delivery, Completion),
 }
 
-pub(super) struct Mailboxes {
+pub struct Mailboxes {
     entries: [Entry; MAX_ANCHOR_DOMAINS],
     last_ticket: u64,
 }
 
+impl Default for Mailboxes {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Mailboxes {
-    pub(super) const fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             entries: [Entry::Empty; MAX_ANCHOR_DOMAINS],
             last_ticket: 0,
         }
     }
 
-    pub(super) fn submit(
+    pub fn submit(
         &mut self,
         authority: Authority,
         request: Request,
@@ -140,7 +146,7 @@ impl Mailboxes {
 
     /// Run under the kernel lock before starting queued work or delivering
     /// results. Dropping a delivery must never drop an in-flight CRB command.
-    pub(super) fn reap(&mut self, now: u64, mut is_live: impl FnMut(Authority) -> bool) {
+    pub fn reap(&mut self, now: u64, mut is_live: impl FnMut(Authority) -> bool) {
         for entry in &mut self.entries {
             let (delivery, expired) = match *entry {
                 Entry::Pending(delivery, _) | Entry::Ready(delivery, _) => (delivery, Entry::Empty),
@@ -153,7 +159,7 @@ impl Mailboxes {
         }
     }
 
-    pub(super) fn begin(
+    pub fn begin(
         &mut self,
         domain: u8,
         now: u64,
@@ -177,7 +183,7 @@ impl Mailboxes {
 
     /// Called once the CRB owner has settled the operation, including a
     /// failed or cancelled operation. A draining operation has no recipient.
-    pub(super) fn complete(
+    pub fn complete(
         &mut self,
         domain: u8,
         ticket: u64,
@@ -204,7 +210,7 @@ impl Mailboxes {
 
     /// The copy validates the entire destination before writing any bytes.
     /// Commit the consumption only after that copy succeeds.
-    pub(super) fn collect(
+    pub fn collect(
         &mut self,
         authority: Authority,
         operation: Operation,

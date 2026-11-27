@@ -3,6 +3,8 @@
 //! Fixed-capacity M4 authority engine. Callers serialize operations and validate
 //! user output before receive; this crate never sees pointers or user memory.
 
+pub mod anchor_completion;
+
 pub const SEND: u64 = 1;
 pub const RECV: u64 = 2;
 pub const DERIVE: u64 = 4;
@@ -56,6 +58,7 @@ pub const ARTIFACT_VERIFY: u64 = 65536;
 pub const ARTIFACT_VERIFY_RIGHTS: u64 = ARTIFACT_VERIFY;
 /// Cold-freshness operations on one manifest-bound domain.
 pub const ANCHOR: u64 = 1 << 17;
+
 pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS
     | BLOCK_RIGHTS
     | LAUNCH_RIGHTS

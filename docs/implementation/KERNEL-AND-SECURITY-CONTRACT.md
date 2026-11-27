@@ -119,7 +119,7 @@ S7 uses the current `m2` kernel with a dedicated TEST profile. The three
 calls below return `-2 ENOSYS` in other profiles. A combined S7 and
 `native-smp-legacy` build must fail. The existing ABI version applies.
 `0xB3`–`0xBF` remain reserved. These rows specify the planned native dispatch.
-The [private completion state](../../kernel/src/m2/m3/anchor_completion.rs)
+The [private completion state](../../crates/capability-core/src/anchor_completion.rs)
 is exercised by a host test in the current checkpoint.
 
 | No. | Name | Submit operands (phase 0) | Collect operands (phase 1) |
