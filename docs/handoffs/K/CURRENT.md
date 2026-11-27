@@ -35,9 +35,7 @@ context; client-specific notes are adapters and hold no state.
 - **Continuous optimisation (project owner, 27 November 2026, relayed by the
   PR guard):** K keeps maximising safe kernel performance, scalability and
   robustness without new permission requests inside the mandate; the
-  Security Floor and D1–D3 stay unchanged. Kernel performance changes are
-  measured against the R02-L1 budgets once ADR-R02-L1-BUDGETS-20261127
-  (#632) lands.
+  Security Floor and D1–D3 stay unchanged.
 - **Rules:** root `AGENTS.md`, `kernel/AGENTS.md`, the Security Floor, D1–D3
   review policy (CI files need a D2 delta review by CI), GR-12 for Graphify
   review findings.

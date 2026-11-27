@@ -152,6 +152,12 @@ runners refuse directories outside it):
 | B | C3 `6a74ad67d5f56ba4e256ae792f9c6e670ac52f4f` |
 | C | B plus the again amendment, committed unchanged as `8b580497` |
 
+C ran as an uncommitted tree on B, so the scripts and summaries label it
+with B's head `6a74ad67`. The SHA-256 of its `git diff -- kernel` against
+B, `52e93f8edc16b410…`, was recorded with the pre-registered criteria
+(#602 issuecomment-7219897682) and equals that of
+`git diff 6a74ad67 8b580497 -- kernel`.
+
 ### `tools/test_net_system.py`
 
 [`net-ab-run.sh`](net-ab-run.sh): one discarded warm-up per side, then three
@@ -207,15 +213,20 @@ ranges overlap.
 ### Again gate, red control and native list on `d71dc04f`
 
 QEMU TCG with `NOS_QEMU_MACHINE=pc-q35-8.2`, fresh build and target
-directories inside the checkout.
+directories inside the checkout. The list, the first `native-ai-job` passes
+and the network-service cases ran on `d71dc04f`, before `main` `917d3406`
+was merged; after the merge only the spin gate, its red control, the
+`native-ai-job` passes and the host tests ran locally.
 
 - `test-m3-syscall-spin` (`tools/build.py --kernel-feature
   test-m3-syscall-spin`, then the gate case
   `syscall-spin-continues-within-quantum`): raw QEMU exit 33 and
   `M3:SYSCALL_SPIN:PASS` in both rounds.
-- Red control: the same fixture on a tree without the `-8` condition in the
-  single-CPU candidate stops at the poller assertion
-  (`M2:PANIC_LINE:0000002709`, `M1:FAIL:KERNEL_PANIC`) with raw QEMU exit 35.
+- Red control: head `503148ff` (after the merge of `main` `917d3406`) with
+  only the `-8` condition removed from the single-CPU candidate stops at
+  the poller assertion (`M2:PANIC_LINE:0000002713`, which is
+  `kernel/src/m2/m3.rs:2713` in that tree, `M1:FAIL:KERNEL_PANIC`) with raw
+  QEMU exit 35.
 - [`native-d71dc04f.txt`](native-d71dc04f.txt): the 45-step list of the
   section on `0623ddf1`, with fresh build directories. All 45 steps exit 0,
   including `qsim-k07-gate`, `tools/test_smp.py` (16 profiles; the spin row
@@ -223,7 +234,12 @@ directories inside the checkout.
 - `native-ai-job`, five passes with fresh directories: raw QEMU exit 33 and
   `AIJOB:PASS` each; timer IRQs that landed on the job per run 43/40, 41/46,
   50/46, 36/41, 35/40, inside the documented local range of 20–81.
-- `net-broker-quality.yml#native-network-service`: the six
+- After the merge of `main` `917d3406` (which brings `c6e8cb5c`, a change
+  to the AI-job test), `native-ai-job` again five passes on `503148ff`:
+  raw QEMU exit 33 and `AIJOB:PASS` each; job timer IRQs per run 34/41,
+  33/34, 34/38, 35/34, 33/31. The spin gate on `503148ff` also passes
+  (raw 33, both markers).
+- `net-broker-quality.yml#native-network-service` on `d71dc04f`: the six
   `tools/run_network_service.py` cases (`normal`, `client-exit`, `revoke`,
   `helper`, `device-reset`, `exhaustion`) each pass with raw QEMU exit 33.
 
@@ -241,4 +257,7 @@ directories inside the checkout.
 - Hosted CI on the final head, including the hosted `native-window-session`
   durations and the hosted `JOB_IRQS` range.
 - A cold-cache TCG timing of the full verification list.
+- Locally against this branch, the gates that `main` `917d3406` brought
+  in: the K5 per-disk volume fixtures (#623), the loader `TPM_UNENROLLED`
+  halt and the `tools/run_window_session.py` change; hosted CI runs them.
 - Physical hardware.
