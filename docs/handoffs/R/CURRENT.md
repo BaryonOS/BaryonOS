@@ -92,8 +92,8 @@ resume.
   QEMU slot (K posts on #530 or #602), announce R's slot on #530, re-baseline
   five KVM window sessions on the new `main` in a new
   `docs/verification/r02-*-<date>/` directory and rank the next bottleneck.
-- **Acceptance commands and evidence limits:** host suites and native steps of
-  the `native-window-session` job in `.github/workflows/ci.yml`;
+- **Acceptance commands and evidence limits:** the `host-checks` and
+  `native-window-session` jobs in `.github/workflows/native-window-session.yml`;
   `python3 -B tools/run_window_session.py --clipboard --workspace --timeout
   1800` (scale 1 and 2; `NOS_QEMU_ACCEL=kvm` only for local A/B);
   `python3 -B tools/run_materiaal_probe.py --case normal|keyboard|recover`
