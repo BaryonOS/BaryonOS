@@ -378,6 +378,8 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         || word(state, 0, 448) != REVOKED
         || word(state, 0, 456) != owner
         || word(state, 0, 440) != 0
+        // At least one probe saw the live helper, so the live branch ran.
+        || word(state, 0, 464) == 0
     {
         fail(b"EXIT_RETIREMENT");
     }

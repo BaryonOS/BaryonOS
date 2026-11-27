@@ -22,7 +22,8 @@
 //! differed from sender, 224 bad requests, 232/240/248 owner grants before
 //! retirement, grants retired, owner grants after, 256.. decision log,
 //! 440 retirements caused by a failed reply send, 448 kernel code that
-//! revealed the exit (two's complement), 456 PID retired on that code.
+//! revealed the exit (two's complement), 456 PID retired on that code, 464
+//! probe results that showed a live client.
 //! A03-T2c-2 volume mode (word 80 non-zero): 80 volume ingress send handle,
 //! 88 volume reply receive handle, 408 volume service PID; the broker is the
 //! sole domain-0 client. Evidence: 48 set after the startup STATs, then the
@@ -49,6 +50,7 @@ const LOG: u64 = 256;
 const SEND_RETIRED: u64 = 440;
 const EXIT_CODE: u64 = 448;
 const EXIT_PID: u64 = 456;
+const LIVE_PROBES: u64 = 464;
 const VOLUME_CALLS: u64 = 432;
 const VOLUME_LOG: u64 = 520;
 const LIMIT: usize = 400_000;
@@ -155,7 +157,8 @@ fn wait_client_gone(clients: [(u64, SendEndpoint); 2]) -> Result<(u64, i64), ()>
         support::tick();
         for (pid, reply) in clients {
             match native::ipc_wait(&[WaitCondition::send(reply)], 0) {
-                Ok(_) => {}
+                // Ready or full (mask 0): the client is alive.
+                Ok(_) => bump(LIVE_PROBES),
                 Err(error) => {
                     match code(error).and_then(|c| client_gone(c).map(|gone| (c, gone))) {
                         Some((c, true)) => return Ok((pid, c)),
@@ -165,7 +168,10 @@ fn wait_client_gone(clients: [(u64, SendEndpoint); 2]) -> Result<(u64, i64), ()>
                 }
             }
         }
-        native::yield_now().map_err(|_| ())?;
+        // Sleep one PIT tick between rounds instead of spinning (a SEND
+        // condition on a live client is always ready, so it cannot block).
+        let now = native::monotonic_ticks().map_err(|_| ())?;
+        native::ipc_wait(&[], now + 1).map_err(|_| ())?;
     }
     Err(())
 }
@@ -317,9 +323,10 @@ fn serve<T: Transport>(mut broker: Broker<T>, owner: u64, helper: u64) -> Result
                 )?;
             }
             11 => {
-                // Both clients are probed; the script expects the owner to end.
+                // Both clients are probed, the still-live helper first, so the
+                // live branch runs natively; the script expects the owner to end.
                 let (exited, code) =
-                    wait_client_gone([(owner, owner_reply), (helper, helper_reply)])?;
+                    wait_client_gone([(helper, helper_reply), (owner, owner_reply)])?;
                 if exited != owner {
                     return Err(());
                 }

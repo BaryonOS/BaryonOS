@@ -170,6 +170,8 @@ Evidence limits:
   - The broker retired nothing before the owner's end (word 152 is 0 at that
     point).
   - The probe saw -10 for the owner PID (words 448 and 456).
+  - At least one probe saw the still-live helper (word 464), so the live
+    branch runs natively; the broker sleeps one PIT tick between rounds (K).
   - No reply-send retirement occurred (word 440 is 0).
 - **Profiles.** `native-task-grant` gains `ipc-wait`. Both task-grant profiles
   are `milestone-m4` without `native-smp-m3-ipc`, so `retire_authority` always

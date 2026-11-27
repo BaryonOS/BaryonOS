@@ -432,7 +432,9 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
             // The owner's reply endpoint reported Revoked after its exit.
             && word(s, BROKER, 448) == -10i64 as u64
             && word(s, BROKER, 456) == owner
-            && word(s, BROKER, 440) == 0,
+            && word(s, BROKER, 440) == 0
+            // At least one probe saw the live helper, so the live branch ran.
+            && word(s, BROKER, 464) != 0,
         b"EXIT_RETIREMENT",
     );
     require(

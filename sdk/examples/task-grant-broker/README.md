@@ -51,7 +51,8 @@ whose `Engine::exit` revokes every node the client owns before closing its
 endpoints. The broker's SEND handle then resolves `Revoked` (-10); `Closed`
 (-9) arises if a live client drops its last RECV. The broker probes its reply
 handles with `ipc_wait` and a SEND condition at deadline 0, an immediate query
-that reserves and delivers nothing, and calls `retire_process` for the client
+that reserves and delivers nothing (a full live queue answers mask 0, still
+alive), sleeps one PIT tick between rounds, and calls `retire_process` for the client
 whose handle reports either code (`client_gone`). A reply SEND that fails with
 those codes retires the same way instead of aborting the broker. Any other
 error is a broker fault, never an exit. No kernel-written notice, syscall or
@@ -87,7 +88,9 @@ python3 -B tools/run_task_grant.py --case fault
 
 The `fault` case ends the owner with a ring-3 #UD instead of `exit`. The kernel
 accepts only that one recorded fault and requires the same retirement, the
-`Revoked` code and the owner PID in the broker's evidence (words 448 and 456).
+`Revoked` code and the owner PID in the broker's evidence (words 448 and 456),
+and at least one probe that saw the still-live helper (word 464), so the
+live branch is exercised natively.
 At the owner's end the broker must not yet have retired anything (word 152 is
 0), so the retirement is caused by the kernel's revocation.
 
