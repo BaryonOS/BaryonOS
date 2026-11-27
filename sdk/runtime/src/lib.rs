@@ -281,7 +281,9 @@ impl Rights {
     pub const ARTIFACT_MAP: Self = Self(32768);
     /// L01: read sealed artifact bytes and report a digest; manifest-only.
     pub const ARTIFACT_VERIFY: Self = Self(65536);
-    pub const KNOWN_MASK: u64 = 131071;
+    /// One manifest-bound cold-freshness domain. This bit grants no authority.
+    pub const ANCHOR: Self = Self(1 << 17);
+    pub const KNOWN_MASK: u64 = 262143;
 
     pub const fn from_bits(bits: u64) -> Result<Self, Error> {
         if bits & !Self::KNOWN_MASK != 0 {

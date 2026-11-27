@@ -151,6 +151,7 @@ fn every_authority_field_and_inactive_message_is_compared_exactly() {
         source!(display);
         source!(input);
         source!(power);
+        source!(anchors);
     });
 }
 #[test]
