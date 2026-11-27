@@ -122,6 +122,29 @@ impl Client {
         fail(23)
     }
 
+    /// Block (bounded) until the supervisor confirms it received HELLO.
+    fn wait_receipt(&mut self) {
+        for _ in 0..LIMIT {
+            tick();
+            match native::receive(self.reply) {
+                Ok(message) => {
+                    let _ = native::close_received_caps(&message);
+                    if message.tag() == TAG
+                        && message.sender() == self.supervisor
+                        && Frame::decode(message.payload()).is_some_and(|f| f.op == DONE)
+                    {
+                        return;
+                    }
+                }
+                Err(error) if error.is_again() => {
+                    let _ = native::yield_now();
+                }
+                Err(_) => fail(29),
+            }
+        }
+        fail(30)
+    }
+
     fn progress(&mut self, op: u64) {
         let report = frame(Frame::new(op, self.replies, self.closed, self.instances));
         if send_bounded(self.registry, &report).is_err() {
@@ -288,6 +311,8 @@ pub extern "C" fn _start() -> ! {
             fail(7);
         }
         client.progress(DONE);
+        // Exit revokes the HELLO cap; a HELLO still queued would be dropped.
+        client.wait_receipt();
         support::put(40, 1);
         native::exit(0);
     }
