@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "c0212f6f21936288ab29725d5df02507e4abfe35",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/l01-native-job-hardening-20261126",
+  "task": "L01: native AI job hardening follow-up to #538 (int3/no-return-call gate, symlink rejection, MaybeUninit memmove, run_ai_job failure report, const assert, corrected preemption-margin comments)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. L01 stays open: this PR hardens the build gate and runner of the existing tiny decoder fixture only; no Qwen inference, tokenizer, network-denial probe, task quality, SMP or sleep/wake acceptance."
+}
