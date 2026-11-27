@@ -209,9 +209,9 @@ LATCH_EVIDENCE = {
     # (b) read at the injected completion, before any 0x41 poll of the device.
     "VOLUME:LATCH:LATCHED_AT_COMPLETION:": 1, "VOLUME:LATCH:POLLS_BEFORE_MARKER:": 0,
     "VOLUME:LATCH:INJECTED:": 1, "VOLUME:LATCH:ENTRIES:": 1, "VOLUME:LATCH:LATCHED:": 1,
-    # (b) two WRITEs refused -5 at the latch; the disk-1 WRITE publications
+    # (b, i) three WRITEs refused -5 at the latch; the disk-1 WRITE publications
     # (a and b) were 2 at the first refusal and are still 2 at the end.
-    "VOLUME:LATCH:REFUSALS:": 2, "VOLUME:LATCH:WRITES_AT_REFUSAL:": 2,
+    "VOLUME:LATCH:REFUSALS:": 3, "VOLUME:LATCH:WRITES_AT_REFUSAL:": 2,
     "VOLUME:BROKER:ARCHIVE_DISK_WRITES:": 2, "VOLUME:ARCHIVE:WRITES:": 2,
     # (c) one READ and one FLUSH published after the latch (completion is the
     # kernel's IO_ACCOUNTING check plus the portal's own result).

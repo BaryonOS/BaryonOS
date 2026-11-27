@@ -1152,6 +1152,31 @@ fn submit(
     Err(nieuw_os_sdk_runtime::Error::Kernel(-13))
 }
 
+/// Test-only raw WRITE with an unmapped input address. The kernel must reject
+/// it before reading user memory, so no Rust reference is formed for the address.
+#[cfg(feature = "archive-portal")]
+fn write_with_invalid_input(device: BlockDevice, sector: u64) -> i64 {
+    let mut result = 0x42_u64;
+    let mut input = 0_u64;
+    // SAFETY: This invokes the checked Nieuw OS syscall gate with scalar values.
+    // Address zero is deliberately invalid and is never dereferenced in Rust.
+    unsafe {
+        core::arch::asm!(
+            "int 0x80",
+            inout("rax") result,
+            in("rdi") device.handle().raw(),
+            in("rsi") sector,
+            inout("rdx") input,
+            in("r10") SECTOR as u64,
+            in("r8") 0_u64,
+            in("r9") 0_u64,
+            options(nostack),
+        );
+    }
+    let _ = input;
+    result as i64
+}
+
 /// S09 backup portal: the only process with a capability on the archive
 /// range, plus a volume client bound to domain 0 like any app.
 #[cfg(feature = "archive-portal")]
@@ -1403,6 +1428,9 @@ fn portal(app: &mut App, case: u64) {
             check(app.list(0, 880).1 == 0, 881);
             let written = [0xa5; SECTOR];
             let refused = [0x5a; SECTOR];
+            // N38(i) control: the same invalid pointer fails usercopy before
+            // the entry is latched, without publishing a device request.
+            check(write_with_invalid_input(device, 3) == -3, 895);
             // (a) A device-1 WRITE answered Ok.
             check(disk.write(1, &written).is_ok(), 882);
             // (b) The kernel fails this WRITE's completion. Without any poll,
@@ -1413,6 +1441,9 @@ fn portal(app: &mut App, case: u64) {
                 submit(|| native::block_write(device, 3, &refused)) == Err(Kernel(-5)),
                 884,
             );
+            // N38(i): after the fault latches the range, latch refusal takes
+            // precedence over the invalid input pointer and publication.
+            check(write_with_invalid_input(device, 3) == -5, 896);
             check(
                 native::block_wait(device, ticket, &mut [], disk::POLL_LIMIT) == Err(Kernel(-16)),
                 885,
