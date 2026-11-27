@@ -31,6 +31,15 @@ GitHub alone. Local paths below are optional additions for a local session.
   the existing eager FXSAVE64 context; no AVX/FMA, no kernel FP, SMP and
   sleep/wake only after their own verification. CI coverage is coordinated with
   specialist CI.
+- Owner decision, 27 November 2026 (relayed by the PR guard): every criterion
+  owner keeps the implementation and verification snapshot rows of its own
+  criteria (L01, L02) in `docs/progress.json` (`delivery_review`) current without
+  asking per update. Only own rows, with current source-bound evidence; rubric,
+  weights and acceptance conditions unchanged; the score rises only on full
+  acceptance plus completed independent verification; the global snapshot date and
+  `source_commit` stay untouched (date and SHA go in the row text); regenerate with
+  `python3 tools/progress.py --write` and `--check`; use D3 assessment files. The
+  PR guard checks this at every relevant landing.
 
 ## Current cycle
 
