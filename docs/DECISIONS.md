@@ -1799,14 +1799,17 @@ above applies: kernel features `test-system-net-link*` only, `abi_info` stays
 must keep its `.text` and `.data` byte-identical.
 
 1. **Trigger, defined on kernel state.** At publication (`0x70` accepted) the
-   kernel records the kernel link epoch next to the pending ticket. When
+   kernel records the kernel link-state epoch (`r.link.state`) next to the
+   pending ticket. Without `VIRTIO_NET_F_STATUS` the state is `None`, no epoch
+   is recorded and -27 never occurs. When
    `broker_tick` later collects the device completion through `poll_tx` and
    the result is `Ok(length)`, the TX result is -27 `TX_EDGE` if the kernel
    epoch then differs from the recorded one, and `Ok(length)` otherwise.
    "Collection" means this `poll_tx` observation, not the caller's `0x71`
    read: a result fixed before an edge stays as it was. `link::poll` runs
    before `poll_tx` in the same tick, so a completion first seen in the tick
-   of an edge is classified -27.
+   of an edge is classified -27. The synthetic down/up pair produced by a
+   generation-only change (decision 3) is an edge and also gives -27.
 2. **Meaning.** -27 says only that the kernel observed at least one link edge
    between publication and collection. The device did complete the descriptor,
    but the frame may or may not have left it: QEMU completes dropped TX with
@@ -1818,11 +1821,21 @@ must keep its `.text` and `.data` byte-identical.
    the post-wake remount proposal (`docs/implementation/VOLUME-POST-WAKE-REMOUNT.md`)
    are taken or reserved. The check covered `kernel/src`, `sdk/runtime`, `docs`
    and the diffs of open PRs #590, #593–#596 and #598 at main `bbf4df38`. `sdk/runtime`
-   gets the matching test-profile constant.
+   gets the matching test-profile constant. A -27 result carries no length:
+   it must not be read as a length-0 success.
+   -27 is a completion, not a refusal. `syscall()` exempts it from `denied`
+   as it exempts -8, and the only counter it changes is `tx_edge_completed`.
+   Without this exemption, N's invariant `denied == 2 + revoke + helper +
+   link_refused` in the `native-net-service` profiles would break at the
+   first -27. A later re-read of the consumed ticket returns -1 and is
+   counted in `denied` as today. End-of-boot assertion:
+   `tx_edge_completed <= tx_completed`.
 3. **Mapping for the network broker** (N's answers of 26 November 2026; the adapter
    is N's): -23 on `0x70` means NotPublished; -27 on `0x71` means Completed and the
    adapter increments its "completed across a down edge" counter; `Ok` means
-   Completed. -27 is never Unknown, because Unknown quarantines and would
+   Completed. `0x71` never returns -23, and -27 comes only from `0x71`,
+   never from `0x70` or `0x72`. Any other unexpected `0x71` code stays
+   outside this mapping. -27 is never Unknown, because Unknown quarantines and would
    fire on every link flap. Unknown stays reserved for "no completion
    within the deadline", which is the stop path in item 4.
 4. **Precedence; deadline unchanged (option A).** -27 applies only to an
@@ -1837,7 +1850,8 @@ must keep its `.text` and `.data` byte-identical.
    That is the device completion of a TX published before the down edge,
    which increments `tx_completed` and the new `tx_edge_completed` by one each.
    A down window still allows no publication, doorbell, RX delivery or
-   other counter change.
+   other counter change. Further revisit triggers: a -27 outside
+   `test-system-net-link*`, and a -27 counted in `denied`.
 6. **Epoch leak, recorded residual (G3).** A physical device that holds TX
    across down and then up could emit an epoch-N frame on the link of epoch N+1,
    which may be a different network. That frame crosses network N's
@@ -1857,13 +1871,19 @@ first accepted TX). The hold lasts until the kernel epoch has advanced by
 the case's fixed depth (1 or 2) or the TX deadline tick arrives, whichever is
 first. A missed edge therefore ends in the existing -13 stop and fails the
 case; it can never pass by mistake. The TX deadline is `a[3]` = 500 ticks. All values
-are deltas from the snapshot taken just before the `0x70`.
+are deltas from the snapshot taken just before the `0x70`. In both TXDOWN cases
+the second `0x70` is issued after publication and before the off edge (epoch
+unchanged, link up, `pending` set) and returns -8. After the off edge the
+broker is never both up and still held: the hold ends in the `broker_tick`
+whose `link::poll` applies the final edge, and `poll_tx` collects in that
+same tick. Every case re-reads `t` once after its first result. -8 results
+are not counted in `denied`.
 
-| Case | Profile | Link sequence | `0x71(t)` while held | `0x71(t)` after collection | Then | `tx_submitted` | `tx_completed` | `tx_edge_completed` | `timeouts` | offline / quarantined / `reset_acks` |
-|---|---|---|---|---|---|---|---|---|---|---|
-| TXDOWN-1 | txdown, depth 1 | up, `0x70`→t, off | -8 | -27 once, then -1 | `0x70` while down → -23, `denied` +1 | +1 | +1 | +1 | 0 | 0 / no / 0 |
-| TXDOWN-2 | txdown, depth 2 | up, `0x70`→t, off, on | -8; `0x70` while up → -8 | -27 once, then -1 | `0x70` while up → t+1; `0x71(t+1)` → 0 | +2 | +2 | +1 | 0 | 0 / no / 0 |
-| Control | `test-system-net-link` (no hold) | up, `0x70`→t, completed and collected, then off | n/a | 0 | `0x70` while down → -23 | +1 | +1 | 0 | 0 | 0 / no / 0 |
+| Case | Profile | Link sequence | Before collection | `0x71(t)` after collection | Then | `tx_submitted` | `tx_completed` | `tx_edge_completed` | `denied` | `tx_refused` | `timeouts` | offline / quarantined / `reset_acks` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| TXDOWN-1 | txdown, depth 1 | up, `0x70`→t, second `0x70`→-8, off | `0x71(t)` → -8 | -27 once, then -1 | `0x70` while down → -23 | +1 | +1 | +1 | +2 | +1 | 0 | 0 / no / 0 |
+| TXDOWN-2 | txdown, depth 2 | up, `0x70`→t, second `0x70`→-8, off, on | `0x71(t)` → -8 | -27 once, then -1 | `0x70` while up → t+1; `0x71(t+1)` → -8 until completed, then 0 | +2 | +2 | +1 | +1 | 0 | 0 | 0 / no / 0 |
+| Control | `test-system-net-link` (no hold) | up, `0x70`→t, completed and collected, then off | `0x71(t)` → -8 until completed | 0 once, then -1 | `0x70` while down → -23 | +1 | +1 | 0 | +2 | +1 | 0 | 0 / no / 0 |
 
 The broker stays online and not quarantined in every row. The pending slot
 is freed only by the device completion: `0x71(t)` returns -8 until then, and
