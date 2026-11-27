@@ -439,11 +439,12 @@ class HygieneTests(unittest.TestCase):
         out = io.StringIO()
         with mock.patch.object(pc, "graphql", fake), contextlib.redirect_stdout(out):
             pc.report_hygiene("token", "BaryonOS/BaryonOS")
+        summary = ("::warning::PR hygiene: 1 of 3 open pull requests miss a per-PR duty "
+                   "(report only; docs/handoffs/README.md).")
         self.assertEqual(out.getvalue().splitlines(), [
             "PR hygiene #3: unknown assessment",
             "PR hygiene #9 (draft): missing labels, link",
-            "::warning::PR hygiene: 1 of 3 open pull requests miss a per-PR duty "
-            "(report only; docs/handoffs/README.md).",
+            summary,
         ])
         self.assertEqual(fake.mutations, [])
 
