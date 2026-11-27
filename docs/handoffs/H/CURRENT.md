@@ -8,7 +8,7 @@ path or specific tool is needed to resume.
 
 ## Scope and mandate (recorded once)
 
-- **Scope:** hardware and power lifecycle: H04 virtio-net TX and link edges,
+- **Scope:** the H01 guard and hardware and power lifecycle: H04 virtio-net TX and link edges,
   H05 ACPI S3/S5 suspend and resume (including virtio-blk re-initialisation
   and the KL2 keyring LOCK coupling), the power-system native gate, and
   H02–H06 inventory and support-matrix preparation. Network-service
@@ -41,9 +41,17 @@ path or specific tool is needed to resume.
 - **Landed on `main` (27 November 2026):** H05-T5d-T, S3 SUSPEND requires a
   LOCKED, erased keyring (KL2 -25; PR #597, `8b00a9c0`); the H04-TXDOWN ADR
   amendment, -27 TX_EDGE, documentation only (PR #601, `8ee0d501`);
-  the S3 noscrub red control, where `test-system-s3-lock-noscrub` now gets the S3 TEST init and the power gate case `power-s3-noscrub` expects `LOCK_STACK_RESIDUE` (PR #613, `af7415df`; ledger H05-T5d-T `verified`). Earlier: H05-T5c slice 1, virtio-blk re-initialisation
-  after S3 with quarantine -24 (PR #556, `945847d8`), and H02-T5 (PR #515,
-  `744f1b75`).
+  the S3 noscrub red control, where `test-system-s3-lock-noscrub` now gets
+  the S3 TEST init and the power gate case `power-s3-noscrub` expects
+  `LOCK_STACK_RESIDUE` (PR #613, `af7415df`; ledger H05-T5d-T `verified`;
+  evidence [h05-s3-noscrub-20261127](../../verification/h05-s3-noscrub-20261127/README.md)).
+- **Earlier:** H05-T5c slice 1, virtio-blk re-initialisation after S3 with
+  quarantine -24 and O13 latch carryover (PR #556, `945847d8`; ledger
+  `verified`, hosted gates green on `0e9e1b91`; evidence
+  [h05-s3-blk-reinit-20261125](../../verification/h05-s3-blk-reinit-20261125/README.md)),
+  and H02-T5 (PR #515, `744f1b75`; ledger `verified`, native evidence bound
+  to `f8662109`; evidence
+  [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md)).
 - **Open PRs:** this handoff refresh only.
 - **Live handoff:** the newest comment starting with `HANDOFF — Specialist H`
   on issue #564 (task, invariants, write set, branch and HEAD, decisions,
@@ -83,7 +91,7 @@ None outside the open PRs listed above.
 
 ### Agreements
 
-- With N (27 November 2026, on #529): the H04-TXDOWN implementation PR adds
+- With N (27 November 2026; N's handoff on #529, issuecomment-7217112158): the H04-TXDOWN implementation PR adds
   `NET_TX_EDGE: i64 = -27` next to `NET_LINK_DOWN` in
   `sdk/runtime/src/native.rs` (H is the only writer of that constant). N
   reviews the `syscall()` exemption and the assertion
@@ -114,7 +122,8 @@ None outside the open PRs listed above.
 7. HMP `info cpus` no longer reports `(halted)` in current QEMU;
    `info registers` still prints `HLT=1`.
 8. A bash gate helper that sets a global `name` clobbers the caller's
-   variable: use `local` in step and mutant functions.
+   variable: use `local` in step and mutant functions, or mutant runs
+   silently target the wrong build directory.
 9. `evaluate_fixture` markers that end in `:` are value markers (prefix plus
    non-empty value); every other fixture marker must be the whole line.
 10. QEMU routes QMP input to a USB HID device only after the guest's first
@@ -125,7 +134,8 @@ None outside the open PRs listed above.
     accepts only recorded machines (`pc-q35-8.2`), not `q35`.
 12. `run_system.py` puts the QMP socket at
     `build/<gate>/run/system-<case>-<32 hex>/qmp.sock`; it must stay below
-    108 bytes. Keep case names short; never shorten the 32-hex suffix.
+    108 bytes. Keep case names short; never shorten the 32-hex suffix, which
+    `capture_system.py` and the RANDOM/images validators pin.
 13. The kernel embeds user ELFs with `include_bytes!` and Cargo freshness is
     mtime-based: switching the init variant for the same kernel feature in
     one target directory can leave a stale init. Touch the
@@ -141,7 +151,10 @@ None outside the open PRs listed above.
 1. H04-TXDOWN implementation PR (#600): -27 `syscall()` exemption, txdown
    hold, TXDOWN-1/2 and control cases, `NET_TX_EDGE` in
    `sdk/runtime/src/native.rs`; N review on #529.
-2. H05-T5c slices 2–4 and T5e/UNLOCK with B and S; H05-T5d-P after O5.
+2. H05-T5c slices 2–4: slice 2 needs B's LOCK/UNLOCK key erasure
+   (`ADR-KEYRING-LOCK-20261126`, UNLOCK still open); slice 3 is S's
+   post-wake remount; slice 4 is the ring-3 re-grant. Also T5e with B and S,
+   and H05-T5d-P after O5.
 3. Physical H02–H06 work after the owner decisions above.
 
 Merge procedure: when every applicable gate is green and no review thread is
