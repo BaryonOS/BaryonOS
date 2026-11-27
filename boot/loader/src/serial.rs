@@ -58,7 +58,7 @@ pub fn hex(value: u64) {
 }
 
 /// Lowercase hex of public bytes such as PCR digests; never secrets.
-#[cfg_attr(not(feature = "tpm-hauth-provision-test"), allow(dead_code))]
+#[cfg_attr(not(feature = "tpm-hauth-verify-test"), allow(dead_code))]
 pub fn bytes_hex(bytes: &[u8]) {
     for byte in bytes {
         let pair = [byte >> 4, byte & 15].map(|digit| if digit < 10 { b'0' + digit } else { b'a' + digit - 10 });

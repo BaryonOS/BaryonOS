@@ -26,7 +26,7 @@ SCRATCH = 0x0100B3DA
 RH_OWNER, RH_NULL, RS_PW, RH_PLATFORM = 0x40000001, 0x40000007, 0x40000009, 0x4000000C
 CC = {"NV_UndefineSpace": 0x122, "HierarchyChangeAuth": 0x129, "NV_DefineSpace": 0x12A,
       "NV_Write": 0x137, "NV_Read": 0x14E, "NV_ReadPublic": 0x169, "PolicyCommandCode": 0x16C,
-      "StartAuthSession": 0x176, "GetCapability": 0x17A, "PolicyPCR": 0x17F}
+      "StartAuthSession": 0x176, "GetCapability": 0x17A, "PolicyPCR": 0x17F, "Clear": 0x126}
 # TPM_PT_PERMANENT and TPM_PT_LOCKOUT_COUNTER, as the loader reads them.
 PT_PERMANENT, PT_LOCKOUT_COUNTER = 0x200, 0x20E
 # TPM_RC_AUTH_FAIL on session 1: a wrong authValue on a DA-protected entity.
@@ -198,10 +198,21 @@ def lockout_cut(tpm):
     tpm.ok("HierarchyChangeAuth", struct.pack(">I", RH_OWNER), password(), b2(secret[:32]))
 
 
+def fresh(tpm):
+    """No change: a never-provisioned TPM, recorded for the state check."""
+
+
+def clear(tpm):
+    """TPM2_Clear through the platform hierarchy (empty platformAuth before firmware): ownerAuth,
+    lockoutAuth and the owner indices go; TPM2_Clear leaves the endorsement seed (not read here)."""
+    tpm.ok("Clear", struct.pack(">I", RH_PLATFORM), password())
+
+
 SEEDS = {"squat": squat, "foreign-owner": foreign_owner, "owner-squat": owner_squat,
          "owner-squat-empty": owner_squat_empty, "da-counted": da_counted,
          "unbound": unbound, "hauth-defined": hauth_defined, "hauth-written": hauth_written,
-         "cut": cut, "lrec-written": lrec_written, "lockout-cut": lockout_cut}
+         "cut": cut, "lrec-written": lrec_written, "lockout-cut": lockout_cut,
+         "fresh": fresh, "clear": clear}
 
 
 def observe(tpm):

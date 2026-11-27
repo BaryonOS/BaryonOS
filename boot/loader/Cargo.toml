@@ -23,9 +23,12 @@ signed-policy-probe-test = ["signed-boot-test", "update-core/test-policy-envelop
 hw-inventory = []
 # B03 REL-05 S6 step 1: read-only TCG2 SubmitCommand and EFI_RNG_PROTOCOL probe.
 tpm-loader-probe-test = ["dep:nieuw-os-tpm-crb"]
-# B03 REL-05 M1-HAUTH: TEST-only BOUND provisioning on QEMU/swtpm after the probe;
-# writes TPM NV and hierarchy auth, then extends PCR 13 (no release keys or anchors).
-tpm-hauth-provision-test = ["tpm-loader-probe-test", "dep:update-core"]
+# B03 REL-05 M1-HAUTH: TEST-only verify-only loader on QEMU/swtpm after the probe;
+# halts TPM_UNENROLLED when ownerAuth is unset (REL-05 §7.9), then extends PCR 13.
+tpm-hauth-verify-test = ["tpm-loader-probe-test", "dep:update-core"]
+# The TEST enrollment step (stand-in for S3b): BOUND provisioning; writes TPM NV
+# and hierarchy auth (no release keys or anchors).
+tpm-hauth-provision-test = ["tpm-hauth-verify-test"]
 
 [dependencies]
 r-efi = { version = "=7.2.0", default-features = false }
