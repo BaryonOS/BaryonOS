@@ -505,21 +505,33 @@ impl<'a, T: Transport> Controller<'a, T> {
     /// the adapter passes only actual source changed/down bits, never clamped
     /// outside coordinates or a synthetic press.
     pub fn cancel_pointer(&mut self) -> Result<(), Error> {
+        if self.clear_pointer() {
+            self.invalidate()
+        } else {
+            Ok(())
+        }
+    }
+    /// The input service stopped. Clears pointer state like `cancel_pointer`,
+    /// but always starts a new frame so the caller's InputLost banner also
+    /// appears on an idle view (#537). Focus, selection and draft are unchanged.
+    pub fn input_lost(&mut self) -> Result<(), Error> {
+        self.clear_pointer();
+        self.invalidate()
+    }
+    /// Drops press, drag, cursor and menu press; true when any was active.
+    fn clear_pointer(&mut self) -> bool {
         if let Some(desktop) = &mut self.desktop {
             desktop.cancel_pointer();
         }
-        if !self.dragging
-            && self.pressed.is_none()
-            && self.cursor.is_none()
-            && self.menu_pressed.is_none()
-        {
-            return Ok(());
-        }
+        let active = self.dragging
+            || self.pressed.is_some()
+            || self.cursor.is_some()
+            || self.menu_pressed.is_some();
         self.menu_pressed = None;
         self.dragging = false;
         self.pressed = None;
         self.cursor = None;
-        self.invalidate()
+        active
     }
     pub fn refresh(&mut self) -> Result<(), Error> {
         let mut objects = [ListEntry::EMPTY; PER_DOMAIN];
