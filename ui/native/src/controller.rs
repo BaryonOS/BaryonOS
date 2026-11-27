@@ -19,7 +19,7 @@ use nieuw_os_document_session::{
     },
     EditMode, SaveOutcome,
 };
-use nieuw_os_input_core::Event;
+use nieuw_os_input_core::{CancelReason, Event};
 use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 use volume_core::PER_DOMAIN;
 
@@ -2122,7 +2122,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             return Err(Error::StaleInput);
         }
         self.last_input = envelope.sequence;
-        if let Event::Cancel(_) = envelope.event {
+        if let Event::Cancel(reason) = envelope.event {
             self.cancelled_through = self.cancelled_through.max(envelope.generation);
             if envelope.generation >= self.focus_generation {
                 if let Some(desktop) = &mut self.desktop {
@@ -2132,7 +2132,11 @@ impl<'a, T: Transport> Controller<'a, T> {
                 self.pressed = None;
                 self.cursor = None;
                 self.dismiss_document_menu();
-                if !self.document.is_uncertain()
+                // A window switch (FocusLost) or a compositor resync (shell overlay,
+                // window move, source Sync) is normal desktop behaviour, not an input
+                // failure (#541); like Calculator, only lost input shows the banner.
+                if !matches!(reason, CancelReason::FocusLost | CancelReason::Resync)
+                    && !self.document.is_uncertain()
                     && !self.document.is_conflicted()
                     && !self.document.is_closed()
                 {
