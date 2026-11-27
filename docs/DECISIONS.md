@@ -1735,6 +1735,33 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    or capacity change is provoked by the emulator; no physical S3; the
    ticket floor is checked natively on a Policy copy and by a host test
    (docs/verification/h05-s3-blk-reinit-20261125/).
+   Amendment H05-T5c Q2, S side (27 November 2026; project-owner decision
+   given in the S session at about 13:20Z and recorded by S on #564,
+   issuecomment-7219366917): the post-wake remount check of
+   [VOLUME-POST-WAKE-REMOUNT.md](implementation/VOLUME-POST-WAKE-REMOUNT.md)
+   is approved with these binding rules:
+   - **R1, grant recipient:** the one T5f-1 read-only block grant goes only to
+     the original volume service instance that ran SHUTDOWN before SUSPEND and
+     survived the sleep (same slot and pid, no exit or restart since). A
+     restarted instance never receives it automatically; the volume then stays
+     unavailable until the next cold boot. The kernel keeps no copy of the
+     generation or digest that the service reports.
+   - **R2, outcome:** a kernel lane quarantine reaches clients one-to-one as
+     `Quarantined` -24. A remount that differs from the pre-sleep reference,
+     reports `Corrupt` or meets a read error is the separate volume service
+     status `RemountRefused` -26.
+   - **-26:** approved on the condition that the value is still unused when
+     the status is integrated; it stays distinct from -24, from KL2 -25 and
+     from TX_EDGE -27. `RemountRefused` is terminal until a cold reboot: no
+     automatic repair, write or retry.
+   - **Order:** the runtime order of authentication, T5f-1, the remount,
+     UNLOCK and T5f-2 is not fixed here. It follows the owner's B01-LOCK
+     decision O8 (authentication → T5f-1 → UNLOCK → T5f-2), which B records in
+     ADR-KEYRING-LOCK-20261126 and agrees with H and S.
+   This amendment builds nothing. The native post-wake cases still need H's
+   T5d-T, T5e and UNLOCK, and the remount runs only in TEST profiles until a
+   product claim is separately allowed. Integrity, not authenticity: FNV-64 is
+   no MAC (B's O7).
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
    pause across S3. This is recorded, not hidden.
 
@@ -2226,6 +2253,23 @@ ADR decided nothing about D1–D5; those are decided separately by
 (D1 (b), D2 (a), D3, D4 (a), D5 (a)), which keeps this grant a fixture. S09
 stays open.
 
+**Amendment, 24 November 2026 (project-owner decision O4 (b); recorded by S
+on 27 November 2026).** The owner decided O4 (b) of
+[S09-DESTINATION-SERVICE.md](implementation/S09-DESTINATION-SERVICE.md)
+section 8.1 on 24 November 2026; this records it here. For the R5 route only:
+- B3: the destination service may hold the second virtual disk (device 1)
+  exclusively, with READ, WRITE and FLUSH over the whole device; the volume
+  service still receives nothing on device 1.
+- B5: a scripted, test-only dialog driver for the destination control lane is
+  permitted.
+- B4 and B6 are unchanged: isolated, disposable images only, no product
+  activation and no access to real host disks.
+
+The catalog v2 decisions of 27 November 2026 (amendment of
+ADR-S09-DESTINATION-20261119) need no further change to B3 or B5: controlled
+deletion writes only inside the destination region of device 1 under this
+grant, and no new device, capability or product authority follows.
+
 ## Project-owner decision package of 19 November 2026 — scope and limits
 
 The six ADRs below record one decision package issued by the project owner on
@@ -2269,6 +2313,54 @@ review, negative tests and verified enforcement before activation. The
 existing test-fixture grant in [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md)
 remains a fixture. S09 stays open until its full acceptance passes; Claude S09
 ownership of the implementation is unchanged.
+
+**Amendment, 27 November 2026 (project-owner decisions V1–V9 on the
+destination catalog v2; given in the S session at about 13:20Z, recorded by
+S on #569, issuecomment-7219366565).** The owner answered the nine questions
+of section 9 of [S09-CATALOG-V2.md](implementation/S09-CATALOG-V2.md)
+(revision 1). They refine the O3 (retention and deletion), O5 (backup time)
+and O12 (owner binding) directions of 24 November 2026, recorded in section
+8.1 of [S09-DESTINATION-SERVICE.md](implementation/S09-DESTINATION-SERVICE.md).
+Catalog v1 stays append-only.
+- **V1, one migration:** a single catalog migration to v2 covers backup time,
+  controlled deletion and O12 owner binding; there is no separate v3.
+  Independent parts may proceed meanwhile; the v2 codec waits until the
+  meaning of the owner field is agreed with the B and U tracks.
+- **V2, downgrade:** fail-closed. A v1-only build does not interpret, change or
+  repair a v2 catalog. v2 keeps the v1 magic and is told apart by an explicit
+  version check.
+- **V3, time:** the trusted portal supplies the backup time and its source; the
+  destination service reads no clock. Source 0 is unknown time, including an
+  RTC reading of zero. Source 1 is the unauthenticated system clock. Source 2
+  is only demonstrably synchronised time from a trusted source. No stored or
+  reported value claims trusted time when it is absent. Time stays
+  information and never authority.
+- **V4, erase:** controlled deletion overwrites the entry's data range before
+  the final release, crash-consistent and safely resumable. Only what the
+  device can verify is claimed: the range reads back as zero through the
+  device. There is no physical erase guarantee, in particular for SSDs.
+- **V5, proof:** a successful, source-bound VERIFY inside the destination
+  service suffices for retention protection. It is not evidence of a
+  completed restore.
+- **V6, guard:** the destination service itself protects the last verified
+  backup of each owner against policy deletion; the portal alone is not
+  sufficient.
+- **V7, retention rules:** explicitly configured retention rules run through
+  the existing trusted dialog component on the control lane. No new privileged
+  service and no new control right are created.
+- **V8, bound entries:** a DELETE of an entry that is actively bound on any
+  lane returns `Busy`; DELETE revokes no binding implicitly. A remembered
+  VERIFY consent for a deleted entry identity is revoked.
+- **V9, reuse:** CREATE initially reuses only free ranges of at least 1027
+  sectors (one largest archive). Needless fragmentation is avoided, and safer
+  allocation optimisations remain possible later.
+
+This amendment changes no code, capability or acceptance condition. It
+authorises the host implementation route of section 10 of S09-CATALOG-V2.md
+after an independent verification of the design, with the v2 codec held for
+the O12 agreement as stated under V1. The Security Floor, the existing
+acceptance conditions of S09 and the CI decisions D1–D3 are unchanged; S09
+stays open.
 
 ## ADR-B03-B04-TARGET-20261119 — Target architecture for update authenticity and recovery
 

@@ -1,6 +1,6 @@
 # Volume post-wake remount check (H05 Q2, S side) (design specification)
 
-**Status: design specification, revision 2 (27 November 2026). Apart from the
+**Status: design specification, revision 3 (27 November 2026). Apart from the
 `Quarantined` -24 pass-through in `services/volume` (section 2, step 4),
 nothing in this document is implemented, native or active.** It specifies the
 S side of the mandatory remount after an S3 wake (owner decision Q2 of
@@ -23,6 +23,17 @@ CodeRabbit points (the two scopes of the closed-storage gate, the extent of the
 cache invalidation, and the scope of the chunk-sum limit). It changes no
 outcome, status value or planned test result; `RemountRefused` stays open
 until the ADR amendment.
+
+Revision 3 records the project owner's decision of 27 November 2026 (#564,
+issuecomment-7219366917), now the amendment "H05-T5c Q2, S side" of
+`ADR-H05-S3-SYSTEM-20261123`: R1 and R2 are binding, `RemountRefused` is -26
+(on condition that the value is still unused at integration) and terminal
+until a cold reboot. It also moves the check behind authentication: the
+owner's B01-LOCK decision O8 (#564, issuecomment-7219397369) puts
+authentication before T5f-1, and H's T5f constraints
+(issuecomment-7219429976) make T5f-1 wait for a kernel-checkable
+authentication signal from a designated principal, which does not exist yet.
+The check itself, its outcomes and the planned tests are unchanged.
 
 Markers: *[main]* is a fact checked on `main` `8033e2dd` and rechecked on
 `main` `20d9089f` (the cited kernel and volume service paths are unchanged
@@ -76,12 +87,13 @@ this project shows.
    That the same instance survives the sleep with its RAM intact is
    *[unproven]*: no native S3 fixture runs the volume service across a wake.
 2. **Grant (R1).** After H's re-init and the latch lift, the kernel issues one
-   read-only block grant (T5f-1, proposed by H on #564; binding after the ADR
-   amendment): READ over the whole
+   read-only block grant (T5f-1; R1 binding by the ADR amendment), and only
+   after authentication succeeded (O8): READ over the whole
    volume scope, because the table sectors are shared by all domains; the
    domain-1 limit for init's key-state read is enforced by the service, not
-   the grant *[design]*. This scope wording is S's; H has not confirmed it
-   and it is settled only by the ADR amendment. The kernel issues this grant only to the volume
+   the grant *[design]*. H's T5f constraints on #564 confirm a kernel-enforced
+   read-only grant on the whole volume, with the domain-1 limit enforced by
+   the service until T5f-2. The kernel issues this grant only to the volume
    service instance that ran SHUTDOWN before SUSPEND: the same slot and pid,
    with no exit or restart since. A restarted instance gets no grant and no
    remount until the next cold boot. The kernel keeps no (*g*, *D*) pair
@@ -107,10 +119,11 @@ this project shows.
    - Not equal, `Corrupt`, or a read error during the remount: the service
      refuses every request with `RemountRefused`, serves nothing and writes or
      repairs nothing *[design]*. `RemountRefused` is a service status of its
-     own, latched in the service and terminal until reboot; it needs no
-     kernel change. Its value is fixed in the ADR amendment; -26 is proposed
-     (no kernel or service status uses it on `main` `20d9089f`; -25 is kept
-     for H's planned KL2 SUSPEND code).
+     own, latched in the service and terminal until a cold reboot (no
+     automatic repair, write or retry); it needs no kernel change. Its value
+     is -26 (ADR amendment of 27 November 2026), on condition that no other
+     status uses -26 when it is integrated; -25 is H's KL2 SUSPEND code and
+     -27 H's TX_EDGE code.
    - A kernel lane quarantine after H's device re-validation (Q4) reaches the
      service as -24 and is passed through one-to-one as `Status::Quarantined`
      -24, terminal until reboot and never retried *[main]*. Before revision 1
@@ -126,15 +139,18 @@ this project shows.
    instance: recovery runs again, then the barrier FLUSH, as on every boot
    *[design]*. No step writes before UNLOCK.
 
-The check needs no Key Service keys (B's O4), so the order is: H re-init and
-latch lift → read-only grant and this remount → init reads the key-state blob
-through the volume service → RESTORE_PERSISTENT and UNLOCK → writable
-re-grant.
+The check needs no Key Service keys (B's O4). The runtime order follows the
+owner's B01-LOCK decision O8, which B records in ADR-KEYRING-LOCK-20261126:
+H re-init and latch lift → authentication, independent of the locked user
+data → read-only grant (T5f-1) and this remount → init reads the key-state
+blob through the volume service → RESTORE_PERSISTENT and UNLOCK → writable
+re-grant (T5f-2), after the T5f-1 grant is revoked.
 
 That is the runtime order. The implementation order differs: the T5f-1 kernel
 path (the grant and its same-instance check) is built only after H's T5d-T,
-T5e and UNLOCK exist, because its native cases need them. At runtime the grant
-and this remount still run before UNLOCK.
+T5e and UNLOCK exist, because its native cases need them, and after a
+kernel-checkable authentication signal exists. At runtime the grant and this
+remount still run after authentication and before UNLOCK.
 
 ## 3. Limits
 
@@ -168,8 +184,12 @@ and this remount still run before UNLOCK.
 - **R2 answered (proposal by H, #564):** `Quarantined` -24 is the one-to-one
   pass-through of the kernel lane quarantine; a content mismatch is the
   separate `RemountRefused` (section 2, step 4).
-- **Open:** the value of `RemountRefused`, the binding text of R1 and R2 and
-  the grant scope wording of section 2, step 2, all in the ADR amendment. `RemountRefused` is not built before then.
+- **Decided (owner, 27 November 2026):** `RemountRefused` -26, terminal until
+  a cold reboot, and the binding text of R1 and R2, in the amendment
+  "H05-T5c Q2, S side" of `ADR-H05-S3-SYSTEM-20261123`.
+- **Open:** the authentication signal that T5f-1 waits for (B and U design,
+  H's kernel interface), and a refusal value for "authentication absent" if
+  one is needed; both are outside this check.
 
 ## 5. Negative tests (planned)
 

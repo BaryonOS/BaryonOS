@@ -1,6 +1,6 @@
 # S09 — Destination catalog v2: backup time (O5) and controlled deletion (O3) (design specification)
 
-**Status: design specification, revision 1 (25 November 2026). Nothing in this
+**Status: design specification, revision 2 (27 November 2026). Nothing in this
 document is implemented, native or active.** It specifies the "separate,
 versioned extension" that the project owner's package-2 decisions on O3 and O5
 (24 November 2026) require. The decisions are recorded in section 8.1 of
@@ -10,6 +10,15 @@ it. Rules that need an owner decision are marked *[proposed; owner question
 Vn]* and are listed in section 9. Revision 1 answers the independent AI
 review CATALOG-V2-REVIEW-1 (REQUEST_CHANGES); section 11 records each item.
 An AI review is not a human audit. S09 stays open.
+
+Revision 2 records the project owner's answers of 27 November 2026 to V1–V9
+(#569, issuecomment-7219366565), now the amendment of
+`ADR-S09-DESTINATION-20261119` in `docs/DECISIONS.md`. Every proposal was
+accepted; the former *[proposed; owner question Vn]* markers now read
+*[decided, Vn]*, and section 9 lists the answers. Two points go beyond the
+proposals: under V1 the owner binding of O12 is part of v2 (section 7), and
+under V3 an RTC reading of zero is stored as source 0 (4.2). No rule,
+transition or test of revision 1 changes otherwise.
 
 Markers follow the v1 specification: *[main]* is a fact checked on `main`
 `c04ea98d`; *[design]* is specified here and not built; *[unproven]* is an
@@ -24,10 +33,12 @@ deletion, the write-path rules that deletion changes, and the negative tests.
 
 Not in scope:
 
-- The owner principal of O12. O12 is decided in direction (owner binding per
-  backup registration; catalog version, trusted identity and access checks to
-  be designed with the profile, key and encryption contracts). The identity
-  belongs to the B track and the user/session owner. Section 7 reserves space
+- The meaning of the O12 owner principal. O12 is decided in direction (owner
+  binding per backup registration; catalog version, trusted identity and
+  access checks to be designed with the profile, key and encryption
+  contracts), and V1 puts the owner field into this v2 migration. The identity
+  belongs to the B track and the user/session owner (U); S agrees the field's
+  meaning with both before the v2 codec is built. Section 7 reserves space
   and states the hook; it does not define the identity (V1).
 - Time-zone conversion and the display of dates. They belong to the UI track.
   This document fixes only what the catalog stores and what the service
@@ -83,7 +94,7 @@ The v1 invariants stay. v2 adds or restates these:
 A v2 copy has the v1 magic `NOSDST\0\x01` and version u16 = 2 at bytes 8..10.
 The magic is unchanged, so every tool that recognises a destination still
 recognises it; the version tells them apart. A v1 service treats a v2 copy as
-invalid (I1). *[proposed; owner question V2]* The alternative is a new magic.
+invalid (I1). *[decided, V2]* A new magic was the rejected alternative.
 It gives the same v1 behaviour, because v1 also checks the magic first, and it
 loses the shared recognition, so it is not proposed.
 
@@ -124,7 +135,7 @@ kills the combined commit.
 After barrier U3 both copies are v2, and a v1 service mounts `Corrupt` and
 writes nothing (I1). That downgrade costs availability, not data. A rollback
 to an older OS build that only knows v1 therefore cannot use a destination
-that a v2 service has written to. *[proposed; owner question V2]*
+that a v2 service has written to. *[decided, V2]*
 
 ### 3.4 Wire compatibility
 
@@ -165,9 +176,10 @@ service that the portal, which already talks to the user, is the natural
 client of. Keeping the service clock-free keeps its ABI surface and its rule
 set unchanged for information it never uses (I6). The trusted portal reads the
 clock and passes time and source in SEAL (5.4). The service checks only the
-encoding rules of 4.1. *[proposed; owner question V3]* The stored value is
+encoding rules of 4.1. *[decided, V3]* The stored value is
 therefore the portal's claim: a portal with no clock reading passes source 0
-(time unknown), a reading of the `UnauthenticatedRtc` clock is stored as
+(time unknown), an `UnauthenticatedRtc` reading of zero is passed and stored
+as time 0 with source 0 (V3), any other reading of that clock is stored as
 source 1 and never reported as trusted, and a crafted image can hold any valid
 time (5.4 of the v1 specification applies: FNV-64 detects only accidental
 damage).
@@ -328,7 +340,7 @@ other request; no record with that ID (`NotFound` -19); a different record is
 -21); *[pending V1]* the owner check. A DELETE of the entry that is already
 `deleting` resumes at phase 2. BIND of a `deleting` entry returns `NotFound`
 -19, as for an unsealed ID. An export lane in the state *sealed* for *E*
-counts as bound to *E*. *[proposed; owner question V8]*
+counts as bound to *E*. *[decided, V8]*
 
 **Safe path and mount states.** In the mounted safe path (2.2 check 7; 2.7),
 DELETE and RECORD-VERIFY return `Access` -5 after checks 1–6 and issue no
@@ -348,7 +360,7 @@ proposed, the trusted dialog component itself runs an explicitly configured
 retention rule and issues it on the control lane, so no new component gains a
 control right.
 
-**Ownership and revocation.** *[proposed; owner question V8]* A DELETE of a
+**Ownership and revocation.** *[decided, V8]* A DELETE of a
 bound entry is refused with `Busy`; the dialog unbinds first, which revokes
 the lane grant (2.3 UNBIND), and the user sees which operation is cancelled.
 A remembered VERIFY permission (3.3, O1) that names a removed entry ID becomes
@@ -356,7 +368,7 @@ void: BIND with that ID returns `NotFound` -19, and because a removed ID is
 never issued again (I7) it can never address another entry; the dialog removes
 the stale permission. Owner rules wait for V1.
 
-**FORMAT.** *[proposed; owner question V2]* A v2 service formats a v1 copy,
+**FORMAT.** *[decided, V2]* A v2 service formats a v1 copy,
 exactly as 2.6, so that an empty destination stays usable by a v1 build; the
 first content commit then upgrades it (3.3).
 
@@ -381,7 +393,7 @@ and replies `Full` -17 at `region_end`, as v1 does at the scope end (2.7 step
 sectors that is not at the scope end is reused only once an adjacent removal
 merges it into a larger region. This is user-visible: deleting small,
 non-adjacent entries frees no space that CREATE can use, although INFO
-reports it as free (5.6). The threshold is *[proposed; owner question V9]*;
+reports it as free (5.6). The threshold is *[decided, V9]*;
 the fragmentation cost is stated, not measured.
 
 Freed regions may hold stale bytes: zero after an erase, or a valid old
@@ -400,7 +412,7 @@ v1):
    (the LIST record has no state field), and BIND refuses it. LIST and the
    INFO `count` keep counting *E* until REMOVE. A crash leaves *E* `sealed` (not reached) or
    `deleting` (reached), never half.
-2. **Erase.** *[proposed; owner question V4]* Only when every valid copy on
+2. **Erase.** *[decided, V4]* Only when every valid copy on
    the device lists *E* as `deleting`: if the other slot's valid copy still
    lists *E* as `sealed` (a reboot between MARK's barriers 2 and 3), first
    commit SYNC, so that no single surviving copy can show *E* `sealed` over
@@ -442,7 +454,7 @@ complete list restarts at cursor 0 after a DELETE.
 
 The decision says a retention policy must never silently delete a user's last
 proven restorable backup. The catalog stores no verify result, and VERIFY
-writes nothing (2.3). *[proposed; owner questions V5 and V6]*
+writes nothing (2.3). *[decided, V5 and V6]*
 
 - **Proof.** A successful VERIFY of entry *E* in the current service instance
   allows one RECORD-VERIFY (op 14) for *E* on the control lane. RECORD-VERIFY
@@ -454,7 +466,8 @@ writes nothing (2.3). *[proposed; owner questions V5 and V6]*
 - **Guard.** DELETE carries an origin in `count`: 1 = the user confirmed this
   entry in the trusted dialog, 2 = a retention policy; other values are
   `Invalid` -1 at check 2. A policy DELETE of the only `sealed` record with a
-  verified sequence ≠ 0 (in the owner's scope, once V1 is decided) returns
+  verified sequence ≠ 0 of the same owner (V6; the owner field's meaning is
+agreed under V1) returns
   `Access` -5 and changes nothing; a `deleting` record does not count as a
   remaining proven backup. A user DELETE is not
   refused by this guard; the dialog warns. The service holds no policy and
@@ -470,7 +483,7 @@ The owner table (5.1) reserves 16 bytes per entry for the O12 owner
 principal. In this revision it must be zero and no operation reads it. One
 catalog version change should carry time, deletion and owner together, so
 that destinations do not pass through a v2 without owners and a v3 with them.
-*[proposed; owner question V1]*: implement the v2 codec only when the owner
+*[decided, V1]*: implement the v2 codec only when the owner
 field's meaning is fixed; until then, host-level work on allocation (5.5) and
 the transitions (5.3) may use a zero owner field.
 
@@ -546,9 +559,29 @@ owner's stage-count pins (O6).
   archive), or any gap with `Full` at its end, at the cost of failed exports
   that a larger region would have taken?
 
+**Answers (project owner, 27 November 2026; #569,
+issuecomment-7219366565).** V1: one migration to v2 covers time, deletion and
+O12 owner binding; no v3; independent parts may proceed. V2: fail-closed
+downgrade; same magic, explicit version check. V3: the trusted portal
+supplies time and source; unknown time, including an RTC value of zero, is
+source 0; source 1 is the unauthenticated system clock; source 2 only
+demonstrably synchronised time from a trusted source; trusted time is never
+claimed when absent. V4: the data range is overwritten before the final
+release, crash-consistent and resumable; only what the device can verify is
+claimed, no physical erase guarantee for SSDs. V5: a successful, source-bound
+in-service VERIFY suffices for retention protection and is not evidence of a
+completed restore. V6: the destination service enforces the protection of the
+last verified backup per owner. V7: retention rules run through the existing
+trusted dialog component; no new privileged service. V8: DELETE of an actively
+bound entry returns `Busy`; no implicit revocation of bindings; a remembered
+VERIFY consent for a deleted identity is revoked. V9: free ranges of at least
+1027 sectors may be reused initially; avoid needless fragmentation and keep
+safer allocation optimisations possible.
+
 ## 10. Route and evidence
 
-1. Owner answers V1–V9.
+1. Owner answers V1–V9 (done, 27 November 2026), and agreement of the O12
+   owner field's meaning with the B and U tracks (open).
 2. Independent AI re-review of revision 1, then a revision if needed.
 3. Host implementation in `services/destination`: v2 codec and validator,
    transitions and pre-write check, v2 mount rule, allocation, DELETE, META,
