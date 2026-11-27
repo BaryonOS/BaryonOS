@@ -52,6 +52,19 @@ currently open criterion has a row, references resolve locally or name an allowe
 GitHub source/run/PR, and evidence claims carry references. It does not fetch
 remote evidence, run the OS or authenticate the technical content of a claim.
 
+Under ADR-PROGRESS-OWN-ROWS-20261127 the owner of a criterion keeps that
+criterion's `delivery_review` rows current without asking permission for each
+update. Only its own rows change; the shared date and source commit above stay
+unchanged and the row text carries `updated YYYY-MM-DD @<sha>: …`. Repository files cited in a refreshed row use commit-pinned links
+(`https://github.com/BaryonOS/BaryonOS/blob/<sha>/<path>`); Actions, pull
+request and review URLs stay absolute as they are. A routine
+refresh leaves score, status, rubric, weights and acceptance conditions
+untouched, and the views are regenerated with `python3 tools/progress.py
+--write` and `--check`. Formal acceptance and the score increase stay the
+existing procedure; the PR guard processes them once every condition is
+demonstrably met and the required independent verification is complete, with
+the criterion owner delivering the acceptance evidence.
+
 ## Fixed criteria register
 
 <!-- OS-RUBRIC:BEGIN -->
