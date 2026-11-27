@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "325a1b0d94c0e92d0ff6242b5430a81d378918a8",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/b03-s7-anchor-20261127",
+  "task": "REL-05 S7 TEST anchor mutation fence and per-domain budget",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The host-only private completion model now rechecks live authority, exact work identity and expiry at the deferred NV_Extend boundary; an operation can enter the write state only once. It charges at most four attempted extends per domain per boot and returns RateLimited for the fifth without mutation. Capability-core tests, clippy and formatting pass locally. Native kernel/CRB submission, signed ENROLL and authenticated BootInfo provenance, per-boot TPM identity, swtpm power cuts, joint N04 tests and hosted exact-head gates are NOT RUN for this new source, so REL-05 and N04 remain open and N04 stays on 5A."
+}
