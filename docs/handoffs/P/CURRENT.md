@@ -7,10 +7,11 @@ conveniences and never the source of truth. Tasks come from
 `docs/progress.json`, the roadmap ledger, issues and pull requests; newer ADRs
 and live evidence take precedence.
 
-State as of 27 Nov 2026 14:05Z (main 10091f5b).
+State as of 2026-11-27T21:13:08Z. The live issue handoff takes precedence over
+this pointer when its branch, review or check state is newer.
 
 **Live handoff:** the newest "HANDOFF" comment on issue #592, currently
-https://github.com/BaryonOS/BaryonOS/issues/592#issuecomment-7217363475
+https://github.com/BaryonOS/BaryonOS/issues/592#issuecomment-7228184027
 (HEADs, commands and exit codes, not-run list, next safe action). Graphify is
 optional context only; every fact here and in that comment can be reproduced
 from the repository and GitHub. On resume, first verify branch, HEAD,
@@ -113,6 +114,15 @@ worktree status, ownership and freshness against that comment.
 
 ## Open and blocked
 
+- P02-T3 host coordinator: draft #653. The latest source and verification
+  status are in the live handoff. B approved the host coordinator direction
+  on #628; the subsequent replacement-recovery review requires preserving
+  both prior and uncertain candidate data. After revocation with an unknown
+  publication, the host model keeps replacement writes blocked; an authorized
+  recovery and transfer route remains future work. The host model does not
+  implement native persistence, cryptography, an independent anchor or a
+  durable pre-send checkpoint.
+
 - Owner decisions of 27 Nov 2026 (record:
   https://github.com/BaryonOS/BaryonOS/issues/592#issuecomment-7219530664).
   They grant GO for ADRs, implementation and verification within their
@@ -136,14 +146,13 @@ worktree status, ownership and freshness against that comment.
 - In-boot NAS restart: parked by G (27 Nov, routing C). Restart stays across
   boots; in-boot recovery follows with the process-supervision track. Raise
   it again only if a P02 or P04 acceptance condition requires it.
-- P02-T3 slice 3 status: design. The host invariant already exists
+- P02-T3 slice 3 native status: design. The host invariant already exists
   (`restore` turns every unfinished edit into `NeedsReconcile`). The native
   store needs a guest volume grant (changes `CLIENT_AUTHORITY` in
   `kernel/src/m2/m3/nas.rs` and `CONTRACT.md`, so an ADR first) and a
-  keyring in the NAS probe. Open questions to B on #628: record size (the
-  8464-byte checkpoint against the 128-byte seal limit), the holder of the
-  key-state export secret (slot 0 is the NAS administrator, who holds no user
-  keys) and full NAS identifiers in `RecordContext`.
+  keyring in the NAS probe. B's scoped answers on record sizing, user-side
+  custody and full identifiers are on #628; the native recovery principal,
+  bounded storage layout and durable fence still require integration design.
 - Waiting on dependencies:
   - B02-T3 cold rollback anchor (ADR on #631): the NAS lineage/epoch anchor
     gets its own anchor domain with separate authority (confirmed by P);
@@ -165,8 +174,8 @@ worktree status, ownership and freshness against that comment.
 
 ## Next
 
-1. P02-T3 slice 3 (#628): after B answers, write the ADR for the guest
-   store, then the native wiring.
+1. P02-T3 slice 3 (#628): complete #653 review and exact-head gates. The
+   guest-store ADR and authorized native wiring follow separately.
 2. P01-T2 and P03: design and ADRs with B and N within the owner decisions.
 
 Handoff threads: #592 (live HANDOFF), #554 (P02-T3). Update
