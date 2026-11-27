@@ -1,7 +1,7 @@
 # B03/B04 production signing policy — decision proposal
 
 Date: 14 November 2026. Source baseline: `b8a7e83658bdbcd4970c26f753dda1b342fce0d4`.
-Status: **PRODUCTION PROPOSAL — UNAPPROVED; bounded synthetic experiment approved under ADR-B03K3.**
+Status: **D1–D7 direction approved for design and bounded synthetic implementation. Production activation requires separate authorization.**
 Tracker: [issue #41](https://github.com/BaryonOS/BaryonOS/issues/41).
 
 This document makes the remaining release-policy choices reviewable. It does not
@@ -12,11 +12,10 @@ TEST-feature guards remain binding. B03's existing points are unchanged. [1–4]
 The [transition specification](B03-POLICY-TRANSITION-PROPOSAL.md), prepared on
 `1260de8b5b0bb5330422ab9d5a63a64f5e2603b7`, now makes the canonical envelopes,
 exact operation identity, anchor commit/readback, revocation history and cut
-outcomes concrete for review. Its symbolic model is a specification exercise,
-not a native or production implementation. D1–D7 production prerequisites remain
-unresolved. After the initial review, the project owner explicitly
-approved publication and the TEST/QEMU experiment; ADR-B03K3 records that limited
-authorisation. Native implementation and its evidence are separate checkpoints.
+outcomes concrete for review. ADR-B03K3 authorized the initial TEST/QEMU
+experiment. [ADR-B04-POLICY-DIRECTION-20261127](../DECISIONS.md#adr-b04-policy-direction-20261127--production-signing-policy-direction-d1d7-approved-for-design-and-synthetic-implementation)
+approved the D1–D7 direction on 27 November 2026. The implementation and evidence
+requirements below remain open for production activation.
 
 ## Existing boundary
 
@@ -47,9 +46,9 @@ own successor or replace the policy. An explicit format specification must bind
 the image bundle to its intended policy before implementation; existing manifest
 v1, TEST fixtures and on-disk layouts are not silently reinterpreted.
 
-## Decisions requiring approval
+## Approved direction and remaining prerequisites
 
-| ID | Recommended choice | Required decision or prerequisite |
+| ID | Proposed application of the approved direction | Remaining prerequisite |
 |---|---|---|
 | D1 — roles and custody | A distinct offline root pair authorizes policy; a separate release pair signs images. Private material stays outside the repository, CI, prompts and logs. CI supplies unsigned candidate artifacts and hashes. | Name custodians, approval records, controlled signing environment, backup and loss procedures. Two signature algorithms do not constitute two independent human approvers. |
 | D2 — policy distribution | Accept bounded, root-authenticated policy packages through an explicit update/recovery ingress. Distribution media and network transport confer no trust. An installed policy version identifies one exact policy digest. | Specify canonical bytes, size bounds, target binding, parser failures and the production ingress's existing capability or separately reviewed new contract. |
@@ -110,13 +109,12 @@ follow from drafting this proposal, increasing test counts or passing host tests
 
 ## Review outcome and sources
 
-The D2/D3/D4 transition specification is linked above. ADR-B03K3 records the
-bounded synthetic-experiment approval and separates it from outstanding
-D1–D7 production prerequisites. The exact native backend/encoding/ingress contract
-must precede persistent-transition implementation; the approved bounded codec
-and immutable native probe may precede that contract. Unresolved decisions leave production
-activation disabled. Approval and resulting architecture changes belong in
-`DECISIONS.md`; this proposal is not a second roadmap or an approved contract.
+The [TEST policy envelopes](B03-TEST-POLICY-ENVELOPES.md) have bounded codecs
+and an immutable native authentication probe. A persistent native transition
+requires the exact backend, encoding and ingress contract first. Production
+activation remains disabled. Real keys, signing ceremonies, physical TPM
+changes, release publication and a paid external audit each require separate
+project-owner authorization.
 
 1. Baryon OS. (2026). [Architecture decisions](../DECISIONS.md), ADR-049 decision 6, ADR-B03K1 and ADR-B03K2.
 2. Baryon OS. (2026). [B03 signed updates](B03-SIGNED-UPDATES.md), §2 invariants 7–8, §7 and B03-KEY-POLICY-1 evidence boundary.

@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "7561b38154f23f9199d1256d3db0b8322912af2e",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/b04-evidence-20261127",
+  "task": "Align B04 policy documentation and delivery review with the landed owner decision and same-host reproduction evidence",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The policy documents and the B04 delivery review now cite #631 for design and bounded synthetic approval and #493 for the matching same-host default build at source 0c590f13. The change records existing evidence. Release-chain activation, independent-environment reproduction and complete release provenance and review remain open."
+}

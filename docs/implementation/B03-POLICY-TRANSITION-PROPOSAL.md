@@ -14,8 +14,8 @@ backend's guarantees. ADR-049, ADR-B03K1 and ADR-B03K2 remain unchanged. [1–3]
 
 ## 1. Approval scope and unresolved prerequisites
 
-The received approval is limited to a separate **synthetic-key QEMU
-experiment** with a fixed TEST root role, a distinct TEST release role, the
+ADR-B03K3 approved a separate **synthetic-key QEMU experiment**
+with a fixed TEST root role, a distinct TEST release role, the
 formats and state machine below, and negative native tests. Neither an existing
 TEST seed nor a new experimental seed may acquire production authority.
 
@@ -29,10 +29,12 @@ TEST seed nor a new experimental seed may acquire production authority.
 | D6 | Keep authenticated release-version windows. RTC changes confer no authority. | Any later calendar-expiry or update-freshness mechanism. Offline revocation delivery remains an explicit limitation. |
 | D7 | Approve the synthetic experiment separately. | Separate authorisation for real keys, production signing, release publication or physical-device changes. |
 
-The experimental dispositions are approved under ADR-B03K3. The production
-prerequisites in the last column remain unresolved. Native adapter/anchor
-encoding/ingress details must be fixed before their integration. Approval of
-the synthetic experiment does not approve the outstanding production choices.
+ADR-B03K3 authorized the original experiment.
+[ADR-B04-POLICY-DIRECTION-20261127](../DECISIONS.md#adr-b04-policy-direction-20261127--production-signing-policy-direction-d1d7-approved-for-design-and-synthetic-implementation)
+subsequently approved the architectural direction for design and bounded
+synthetic implementation. The last column records prerequisites that remain
+open. Persistent integration requires a defined native adapter, anchor encoding
+and ingress contract. Production activation requires separate authorization.
 
 ## 2. Proposed canonical messages
 
@@ -274,11 +276,11 @@ experiment must show both an allowed fallback and this refused fallback.
 
 ## 7. Acceptance sequence and evidence boundary
 
-1. Experimental approval is recorded in ADR-B03K3; the unresolved production
-   decisions remain explicit.
-2. Implement the bounded codec and cryptographic checks behind the existing
-   TEST compile guards, with malformed-input, role, target, size, equivocation
-   and revocation tests. Run host tests before the immutable native probe.
+1. Apply the TEST scope in ADR-B03K3 and ADR-B04-POLICY-DIRECTION-20261127.
+2. Retain the bounded codec and cryptographic checks behind the existing TEST
+   guards, with malformed-input, role, target, size, equivocation and revocation
+   tests. Run host tests before rerunning the
+   [immutable native authentication probe](B03-TEST-POLICY-ENVELOPES.md).
 3. Freeze the real native adapter, exact anchor/transition encoding and ingress
    rights before implementing a persistent policy transition.
 4. Preserve all existing 18 native update stages. Add independently inspected
@@ -287,10 +289,10 @@ experiment must show both an allowed fallback and this refused fallback.
 5. Obtain the required independent review. D3 physical persistence, B04 boot
    trust and production custody/ceremony remain separate acceptance gates.
 
-The current symbolic check supplies only a bounded specification exercise.
-It cannot close #41 or award product points. No native transition case,
-real signature for these new formats, physical device or production release
-is accepted by this document.
+The symbolic check exercises persistence rules in a bounded model.
+The immutable native probe verifies synthetic signatures. Persistent native
+transitions, physical devices and the production release chain remain open.
+These results leave #41 open and award no product points.
 
 ## Sources
 

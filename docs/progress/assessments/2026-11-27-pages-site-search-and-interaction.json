@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "df0e82a59617abc97a4f6203d68c65af9b31d0f6",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/pages-progress-orbitaal-20261127",
+  "task": "Add local visitor-site search and functional Orbit interaction states",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Local search, disclosures and interaction feedback improve the public website but add no OS implementation or acceptance evidence."
+}

@@ -1,0 +1,23 @@
+<h2>Why are evidence levels separate?</h2>
+<p>Every result answers a bounded question for a source version, configuration and environment. Combining unlike results into one vague “tested” label would overstate what is known.</p>
+<ul class="status-facts">
+  <li><strong>Host test</strong><span>Checks selected code or a prototype on the development OS; it does not establish execution under the Baryon OS kernel.</span></li>
+  <li><strong>Build check</strong><span>Shows that selected sources compile; it does not establish runtime behavior.</span></li>
+  <li><strong>Native QEMU</strong><span>Checks guest behavior in a recorded virtual profile; it does not establish physical-device support.</span></li>
+  <li><strong>Physical or human</strong><span>Applies to the named hardware or review/task scope and cannot be generalized silently.</span></li>
+</ul>
+
+<h2>What makes evidence traceable?</h2>
+<p>A useful record names the source commit, commands, exit status, profile, expected markers, logs and limitations. Native smoke acceptance requires the documented guest markers and exit behavior, not simply a process that ended without visible errors.</p>
+
+<h2>How does evidence affect the roadmap?</h2>
+<p>A fixed criterion earns points only after every clause and required evidence level is accepted. Partial implementation, more test cases or a second AI review does not award partial points. A regression can reopen a criterion.</p>
+
+<h2>What does review not prove?</h2>
+<p>Automated review can identify defects; it is not an independent human security or accessibility audit. A simulation can inform interaction design but cannot prove native enforcement. Missing evidence remains open rather than being inferred from a similar component.</p>
+
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/TEST-STRATEGY.md">Test strategy <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/tree/main/docs/verification">Verification records <span aria-hidden="true">↗</span></a>
+  <a href="/docs/progress/">Roadmap and evidence <span aria-hidden="true">→</span></a>
+</div>

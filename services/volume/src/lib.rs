@@ -70,6 +70,9 @@ pub enum Status {
     /// kernel's `QUARANTINED`): terminal until reboot, never retried, and
     /// distinct from Timeout (-13) and NoDevice (-14).
     Quarantined = -24,
+    /// The volume service could not confirm the pre-sleep volume state
+    /// during remount. Terminal until a cold reboot.
+    RemountRefused = -26,
 }
 
 impl Status {
@@ -91,6 +94,7 @@ impl Status {
             -20 => Self::Quota,
             -21 => Self::Busy,
             -24 => Self::Quarantined,
+            -26 => Self::RemountRefused,
             _ => Self::Protocol,
         }
     }

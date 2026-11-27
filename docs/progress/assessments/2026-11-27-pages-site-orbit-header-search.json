@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "1f3a92eea35e3e04a6b7e016a1677f7a6e5ef364",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/pages-progress-orbitaal-20261127",
+  "task": "Replace the visitor-site Search navigation link with an editable Orbit header search field",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The shared website header now exposes the existing local site search directly, but this adds no OS implementation or acceptance evidence."
+}
