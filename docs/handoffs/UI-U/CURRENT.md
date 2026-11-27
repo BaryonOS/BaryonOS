@@ -4,9 +4,8 @@ This file is the compact resume pointer for the UI-U workstream. It is not a
 backlog: tasks live in GitHub issues, `docs/progress.json` and the roadmap
 ledger. Newer ADRs and live repository evidence take precedence over this file.
 The canonical live state is the latest `HANDOFF UI-U` comment on the open UI-U
-pull request (as of 27 November 2026:
-[#612 issuecomment-7218112339](https://github.com/BaryonOS/BaryonOS/pull/612#issuecomment-7218112339))
-or, after it lands, on the landed pull request. This file and GitHub are
+pull request or, when none is open, on the most recently landed UI-U pull
+request (as of 27 November 2026: the landing HANDOFF on #612). This file and GitHub are
 sufficient to resume; local paths below are optional additions.
 
 ## Resuming
@@ -30,6 +29,21 @@ context; client-specific start prompts are adapters and hold no state.
   check, or weakened tests. The roadmap runner and merge queue stay disabled.
 - **Coordination:** storage with S, drivers with H, permissions with N/B.
   U06 requires real users; AI review does not replace them.
+- **Progress duties (owner, 27 November 2026):** per own PR, UI-U keeps labels,
+  milestone, Project #5 fields and final status, issue and criterion links
+  (`Refs`/`Part of #N`), a D3 assessment in
+  `docs/progress/assessments/<date>-<slug>.json` (docs and handoff PRs too),
+  this file and Graphify notes; the PR body names the affected criteria and the
+  evidence behind any progress claim. A merge is not an acceptance. UI-U keeps
+  its own criterion rows in `docs/progress.json` `delivery_review` current
+  without asking (date and sha in the row text, no global snapshot bump,
+  `progress.py --write` then `--check`). UI-U never changes the score: when all
+  acceptance conditions of a criterion are met and its independent verification
+  is complete, UI-U reports the criterion ID and evidence links to the PR guard,
+  which performs the formal acceptance (13:14Z owner clarification).
+- **Owner decisions of 27 November 2026 (ADR-U-OWNER-20261127):** compact
+  recovery copy and layout, U02 budgets with R under R02-L1, the native
+  accessibility broker (GO) and the first U06 study (protocol §12 answered).
 - **Working agreements:** one primary open PR per cycle (at most one dependent
   child); own worktree with separate `NOS_BUILD_DIR`/`NOS_TARGET_DIR` inside
   the checkout (`build/` is ignored; the FPU runner rejects a build directory
@@ -39,17 +53,19 @@ context; client-specific start prompts are adapters and hold no state.
 
 | Field | Value |
 |---|---|
-| cycle_id | `UI-U-C11-20261127` |
+| cycle_id | `UI-U-C12-20261127` |
 | Owner | UI-U specialist |
-| Task | #541 (U03 visible status, ADR-058): `Cancel(FocusLost)` and `Cancel(Resync)` cancel press, drag, cursor and the document menu without the Materiaal `Status::InputLost` banner; `SourceLost`, `QueueFull`, `SourceDead` and `CompositorDead` keep it |
-| Branch | `claude/ui-u-541-focuslost-20261127` |
-| PR | #612; tested heads, hosted runs and native evidence are recorded in the PR |
-| Evidence scope | ui-native and materiaal host suites with mutation controls; local native Materiaal `normal` and `recover` and window-session at scale 1 and 2 (raw exit 33). Not hardware evidence or a human audit |
-| Optional local worktree | `~/projects/BaryonOS-worktrees/ui-u-541` |
-| Next | land #612 through the merge queue, confirm #541 closed and Project #5 Done, then #589 (window recovery after lost surface replies with a live compositor) |
+| Task | Record the owner decisions of 27 November 2026: ADR-U-OWNER-20261127, U06 protocol §6 accepted and §12 answered, this file brought up to date |
+| Branch | `claude/ui-u-owner-decisions-20261127` |
+| PR | the open UI-U docs PR for this cycle |
+| Evidence scope | documentation only; `tools/progress.py --check`. No criterion evidence |
+| Optional local worktree | `~/projects/BaryonOS-worktrees/ui-u-adr` |
+| Next | land this PR; then the compact failure layout, save-progress bar and SR11 (ADR-U-OWNER-20261127); the U02 budget agreement with R; #589; the accessibility broker design; the U06 study kit |
 
 ## Previous cycles
 
+- `UI-U-C11-20261127`: #541 no InputLost banner on FocusLost or Resync,
+  merged as #612 (`52e4430a`); landing HANDOFF comment on #612.
 - `UI-U-C10-20261127`: #537 idle InputLost banner, merged as #596
   (`2d0d2d51`); HANDOFF comment on #596.
 - `UI-U-C9-20261126`: #545 window-session reporter sampling and settled
@@ -84,26 +100,26 @@ leaf issues; Target date stays empty without a real deadline. A closing keyword
 only for an issue the PR fully resolves. Merged/completed = Done, any other
 closure = Closed. No schema or permission changes and no artificial issues.
 
-## Open items on 24 November 2026
+## Open items (updated 27 November 2026)
 
-- **OWNER:** at logical height 240 (320x240 @ 100 %, 640x480 @ 200 %) the
-  library screen's single list row leaves no room for a second status line, so
-  a two-line failure label still runs below the viewport there. Options: hide
-  the row while a failure shows, add vertical screen scrolling (the save
-  recovery spec rules out hiding and overlap), or approve shorter compact copy.
-  The SR11 test in `ui/native/tests/recovery_matrix.rs` stays ignored for this.
+- **Decided (ADR-U-OWNER-20261127):** at logical height 240 (320x240 @ 100 %,
+  640x480 @ 200 %) the library screen's single list row leaves no room for a
+  second status line, so a two-line failure label still runs below the
+  viewport. Use shorter, content-equivalent compact copy; where that is not
+  enough, controlled vertical scrolling or an accessible responsive layout;
+  never hide, overlap or clip. Then enable SR11 in
+  `ui/native/tests/recovery_matrix.rs`.
   The same clipping occurs where a long wrapped list name fills the free space
   (for example 320x350 with 32-byte names); the status then keeps its one-line
   rect rather than overlap the name.
 - The compact save-progress bar is drawn at `Layout::status.y + 24`, which is
-  the bottom edge of a 240-high compact viewport; verify and fix it with the
-  owner decision above.
+  the bottom edge of a 240-high compact viewport; restore it inside the
+  viewport together with the item above.
 - Deny copy (`Service(Access)`) stays generic until U03-T3 part 2 proves a real
   deny path; its test stays ignored.
 - #449 is closed (C7 native run). The `recover` readonly-phase timeout found
   there is fixed by C8 (#523).
-- #559 (Orbitaal `progress.svg`, closes #568) touches protected lead files and
-  waits for the project owner's content review.
+- #559 (Orbitaal `progress.svg`) landed as `c6f954f3`; #568 is closed.
 - #448 (Editor 700–783 px compact overlap/collapse): changes frozen frames and
   needs the frame-change list and design approval.
 - U04-K1: no keyboard-only defect remains pinned by an ignored test; held-key
@@ -112,9 +128,13 @@ closure = Closed. No schema or permission changes and no artificial issues.
 - Storage-owner follow-up: the unbounded stat `history_count` decode
   (`services/volume/src/client.rs:483`, `sdk/document-session/src/volume.rs:286`).
 - Open follow-ups named by PROJECT-STATE: Search S3 wiring and native run,
-  read-only refusal part 2, Settings accounts/recovery, U02 interaction budgets
-  (owner decision), native accessibility broker/screen-reader chain (TTS/braille
-  owner decision), U06 human studies.
+  read-only refusal part 2, Settings accounts/recovery. U02 interaction budgets
+  (agree with R under R02-L1), the native accessibility broker design (GO; TTS
+  and audio with H, braille from the start) and the U06 study kit (consent,
+  privacy procedure, Dutch SUS, KVM reference profile; the owner arranges
+  participants) are decided by ADR-U-OWNER-20261127 and now executable.
+- B01-LOCK (#564): U's UX constraints for the lock, sign-in and unlock surface
+  are on #564 (issuecomment-7219441015); B proposes the split after its ADR PR.
 
 ## Lessons
 

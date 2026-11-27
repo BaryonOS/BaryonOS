@@ -5,6 +5,72 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-U-OWNER-20261127 — compact recovery copy, U02 budgets, native accessibility broker and the first U06 study
+
+**Status:** accepted. Project owner decisions given directly in the UI-U session on
+27 November 2026 (about 13:27 UTC), recorded by the UI-U specialist. They answer the
+UI-U open owner items (compact failure layout, U02 interaction budgets, U04 screen-reader
+chain) and the open owner questions in
+[U06-USABILITY-PROTOCOL.md §12](implementation/U06-USABILITY-PROTOCOL.md#12-owner-decisions-27-november-2026).
+Rubric, weights, acceptance conditions, D1–D3 and the Security Floor are unchanged.
+
+**Compact UI and recovery.** Shorter, content-equivalent status and failure copy is
+approved for compact viewports. All necessary information, available actions and
+recovery routes remain. No relevant document, control or failure state is hidden. Where
+shorter copy is not enough, the screen uses controlled vertical scrolling or an
+accessible responsive layout. Overlap and clipping are not allowed. The compact
+save-progress indicator is restored inside the viewport. The related ignored regression
+tests (SR11 in `ui/native/tests/recovery_matrix.rs`) are enabled once the behaviour is
+correct.
+
+**U02 interaction budgets.** UI-U agrees concrete UI latency and frame-pacing budgets
+directly with R under the R02-L1 performance contract. The priorities are fast visible
+feedback, smooth motion, predictable input, HiDPI and responsiveness. Blocking work on
+the UI thread is avoided. The budgets become binding only when R and UI-U record them
+together with their measurement method.
+
+**U04 native accessibility.** GO for a native accessibility broker: one consistent
+semantic interface and event channel for screen readers, local TTS and future braille.
+- It reuses the existing semantic trees. There is no separate accessibility
+  implementation per application.
+- Privacy and capability isolation are kept. Assistive technology receives only
+  explicitly authorised access, as a capability.
+- Maintained, offline components are preferred. Audio dependencies are agreed with H.
+- Braille is supported in the architecture from the start.
+- All existing accessibility acceptance conditions stay in force, and real human
+  evidence is still required.
+
+**U06 first study.** A first study on the tasks that are natively testable now may start.
+It is not a full U06 acceptance claim. The §6 budgets are accepted, with a SUS target of
+75–80 above the floor of 68. The first round runs as a pilot of about five participants,
+followed by a formal round of 12–16 participants with a targeted accessibility subgroup.
+These are practical sizes, not a claim of statistical representativeness. The procedure
+uses:
+- informed consent, a designated human observer and data minimisation;
+- raw data stored locally outside the repository, kept for at most 90 days after the
+  analysis is complete;
+- a check of the applicable privacy requirements before recruitment;
+- no screen recording unless separately and explicitly consented, and never camera or
+  microphone recording;
+- sessions in Dutch with a validated Dutch SUS;
+- one recorded reference profile, preferably hardware-accelerated (Linux/KVM), with
+  results from different accelerators never mixed;
+- voluntary participation, with no compensation or new costs without separate approval.
+
+The project owner arranges participants and observation. An AI-agent review never
+replaces a human user test.
+
+**Consequences:** the compact failure layout, the save-progress bar and SR11 become a UI-U
+implementation task. UI-U opens the U02 budget agreement with R. The broker needs a design
+(interface, capability, event channel, privacy) before code, reviewed under the Security
+Floor. The U06 protocol is updated (§6 accepted, §12 answered) and the study kit is
+prepared: consent text, privacy procedure, Dutch SUS source and reference profile.
+
+**Review criteria:** no compact frame clips or overlaps a failure or progress element; the
+U02 budgets name a measurement method and a host profile; no application can read another
+application's semantic tree without a granted capability; U06 findings and claims cite
+human sessions only.
+
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
 **Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the
