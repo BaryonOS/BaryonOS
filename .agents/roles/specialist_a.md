@@ -31,7 +31,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/A/CURRENT.md` and `docs/handoffs/A/T2C-SPEC.md`; handoff thread issue #536 (step plan and state comments).
-- Live handoff: newest `HANDOFF` comment in the linked PR/issue, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF A` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "A03 task-grant broker"

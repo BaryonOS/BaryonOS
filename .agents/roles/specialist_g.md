@@ -31,7 +31,7 @@ Tool class: `coordinator`
 
 ## Handoff
 Canonical state: `docs/handoffs/G/CURRENT.md` plus the durable G handoff comment on PR #585.
-- Live handoff: newest `HANDOFF` comment in the linked PR/issue, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF G` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "GR-01 escalation list owner reserved"
@@ -42,7 +42,7 @@ Canonical state: `docs/handoffs/G/CURRENT.md` plus the durable G handoff comment
 - "date -u UTC times lesson"
 
 ## Review and integration
-- G's documentation PRs follow the normal merge rules below; role-contract changes are generated into adapters by CI and verified by the agent governance tests.
+- G's documentation PRs follow the normal merge rules below; after CI-C1 lands, role-contract changes are generated into adapters and checked for drift by the agent governance tests (planned, not yet in place).
 - Draft PR per coherent verified step, complete metadata (labels, milestone, Project #5 fields, issue link; checked by the PR guard), one primary open PR, merge main in rather than rebasing a pushed branch.
 - Never `gh pr merge` on a BLOCKED PR (it silently enables auto-merge), never `--admin`, force-push, direct push to `main` or auto-merge outside a delegation; verify the squash delta equals the tested head after landing.
 - Under Codex or Copilot no enqueue or merge until an explicit owner migration GO; the current platform work is PREPARATION, not a GO.

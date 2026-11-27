@@ -29,7 +29,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/P/CURRENT.md`; handoff threads issue #592 (current slice) and #554 (P02-T3).
-- Live handoff: newest `HANDOFF` comment in the linked PR/issue, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF P` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "NaspRemote"

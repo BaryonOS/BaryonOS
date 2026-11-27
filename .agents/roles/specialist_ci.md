@@ -33,7 +33,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/CI/CURRENT.md` plus the newest "HANDOFF - Specialist CI" comment on issue #494.
-- Live handoff: newest `HANDOFF` comment in the linked PR/issue, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF CI` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "CI merge-hold Pending Failed"
@@ -44,7 +44,7 @@ Canonical state: `docs/handoffs/CI/CURRENT.md` plus the newest "HANDOFF - Specia
 - "P0 CI performance targets"
 
 ## Review and integration
-- Draft PR per coherent verified step, complete metadata (labels, milestone, Project #5 fields, issue link; checked by the PR guard), one primary open PR, merge main in rather than rebasing a pushed branch.
+- Draft PR per coherent verified step, complete metadata (labels, Project #5 fields, issue link, and a milestone except on CI PRs; checked by the PR guard), one primary open PR, merge main in rather than rebasing a pushed branch.
 - Enqueue own merge-ready PRs under ADR-MERGE-DELEGATION-20261123 and ADR-MERGE-QUEUE-AUTONOMY-20261126 only when: no workflow run on the head is open (excluding "Merge hold"), mergeStateStatus is CLEAN, HAS_HOOKS or BEHIND, autoMergeRequest is null and 0 review threads are unresolved. Command: `gh pr merge <N> --squash --match-head-commit <sha>` or the equivalent expected-head GraphQL `enqueuePullRequest` with `expectedHeadOid`.
 - Never `gh pr merge` on a BLOCKED PR (it silently enables auto-merge), never `--admin`, force-push, direct push to `main` or auto-merge outside a delegation; verify the squash delta equals the tested head after landing.
 - merge-hold: act only on "Failed:" lines; "Pending:" is expected while gates run. Infrastructure failures get one rerun. Review-scope-stop (owner decision 26 Nov 2026): non-blocking review comments are answered and resolved with a follow-up, only real blockers get one bundled push.

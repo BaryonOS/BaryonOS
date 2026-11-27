@@ -31,7 +31,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/K/CURRENT.md` (to be created by K under X-C1); handoff thread issue #530 (shared with R).
-- Live handoff: newest `HANDOFF` comment in the linked PR/issue, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF K` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "K kernel scheduler C3"

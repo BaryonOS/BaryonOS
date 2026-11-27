@@ -28,7 +28,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/UI-U/CURRENT.md` plus the HANDOFF comment on each landed U PR and the plan comments on the tracking issues (#541, #589).
-- Live handoff: newest `HANDOFF` comment in the linked PR/issue, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF U` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "UI-U"

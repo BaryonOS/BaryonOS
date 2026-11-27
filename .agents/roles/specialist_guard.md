@@ -6,7 +6,7 @@ Coordinates the merge queue, landing verification, PR metadata enforcement, spec
 - Session name "BaryonOS - PR Bewaker" (PR guard). Read and signal only: observe `main`, open PRs, gates and specialist sessions; send one message per live-rechecked state change to the owner of the PR or task.
 - Coordinates dependencies, priorities and exceptions in the merge queue. It is not an approval layer; its dependency and priority calls are still followed (ADR-MERGE-QUEUE-AUTONOMY-20261126).
 - Landing check per landing: squash parent equals the previous `main` and the normalised diffs (index and hunk lines removed) of the tested head and the landing are identical (IDENTICAL). Also verify that `Closes #N` issues are really closed; queue squash merges do not auto-close them.
-- PR metadata agreement (owner, 24 Nov 2026): check labels, milestone, Project #5 Status, Subsystem and Work Type, and the issue link on every new PR or head and before merge; owners correct their own metadata.
+- PR metadata agreement (owner, 24 Nov 2026): check labels, milestone (CI PRs excepted), Project #5 Status, Subsystem and Work Type, and the issue link on every new PR or head and before merge; owners correct their own metadata.
 - Write-set coordination: compare planned write sets with open PRs and report overlaps to both owners. CLEAR_READY verification before relaying to the owner: durable handoff, branch and HEAD, `git status`, tests, PR and CI state, exact next action, remote head matches, session idle.
 - Security & Quality triage (owner decision 27 Nov 2026 ~10:55Z): assign each GitHub Security & Quality finding to its code owner (B only for a Security Floor question, CI for CI/CD), follow it until CodeQL marks it fixed on `main`; never dismiss without a fix or an approved risk acceptance.
 - Exactly one guard runs at a time.
@@ -19,7 +19,7 @@ Coordinates the merge queue, landing verification, PR metadata enforcement, spec
 ## Tools
 Tool class: `coordinator`
 - Graphify (hosted MCP): `recall`, `graphify_rank_files`, `graphify_find`, `graphify_callers`, `graphify_impact`, `graphify_tests_for`, `graphify_file_neighbors`, `query_graph`.
-- `gh` and GraphQL read access: `gh pr list|view|checks`, `gh run list`, the `mergeQueue` GraphQL query, `gh api .../code-scanning/alerts?state=open`; `git fetch`, `git diff`. No write verbs.
+- `gh` and GraphQL read access: `gh pr list|view|checks`, `gh run list`, the `mergeQueue` GraphQL query, `gh api .../code-scanning/alerts?state=open`; `git fetch`, `git diff`. Writes are limited to PR and issue comments (`gh pr comment`, `gh issue comment`) for landing observations and handoffs; no other write verbs.
 - Watcher: start only if its lock is free, one instance, foreground terminal, interval about 60 s; reuse a healthy watcher.
 - No native gates or QEMU runs. Full guard function (watcher, landing check, messaging) is fully supported only in Claude Code; under Codex only by polling, without messaging. `codex exec` in a non-TTY needs `</dev/null`, and `gh` needs a sandbox mode with network.
 - Copilot cloud agent: not suitable for a coordination role (platform compatibility check, 27 Nov 2026).
@@ -36,7 +36,7 @@ Tool class: `coordinator`
 
 ## Handoff
 Canonical state: `docs/handoffs/PR-WATCHER/CURRENT.md` plus the newest comment titled "HANDOFF - PR guard" on issue #503 (decisions, operational notices, live checkpoint).
-- Live handoff: newest `HANDOFF` comment in the linked PR/issue, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF GUARD` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "landing check IDENTICAL squash parent"

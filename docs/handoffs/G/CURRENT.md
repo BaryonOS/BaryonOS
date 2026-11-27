@@ -68,13 +68,17 @@ OBSERVE, RECALL, CLASSIFY, ABSTRACT, VALIDATE, REMEMBER, APPLY, MEASURE, CORRECT
 | Volatile working state (pilot cases, scores, drafts) | local scratch of the G session, never committed; an addition only, never the canonical state |
 
 Live state (branch, HEAD, open items, owner questions) is never kept here
-(ADR-SPECIALIST-TEAM-20261125, item 4). It is in the newest "HANDOFF" comment
+(ADR-SPECIALIST-TEAM-20261125, item 4). It is in the newest `HANDOFF G` comment
 on PR #585, which uses the required fields in `docs/handoffs/README.md`.
 
 ## Resume procedure
 
 1. Read this file.
 2. Run `recall` with the `audit` profile and the query "decision rule GR-".
+   Without Graphify access, work from the binding sources instead: the ADRs in
+   `docs/DECISIONS.md`, the owner decisions linked in the newest `HANDOFF G`
+   comment, and `.agents/roles/specialist_g.md`. GR rules are derived context,
+   never the only source of a binding fact.
 3. Read the newest G handoff comment on PR #585. A local scratch note may add
    detail but never overrides that comment.
 4. Process only the event-driven cases that the PR guard or specialists have
