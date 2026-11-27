@@ -280,6 +280,12 @@ directory. Request U review (UI/a11y); U does not merge. R updates
    `start + 200` on its pass clock, so 150 keeps the client's Delivery error
    50 ticks ahead, assuming the Begin-to-wait gap and pass skew stay below 50
    ticks. A Materiaal host test covers a blocking surface that never replies.
+   Status (27 Nov 2026, 10:33Z): on `16071bdc` the local native runs (TCG
+   scale 1 and 2, Materiaal normal, keyboard and recover) are raw 33 and
+   passed, and a local KVM A/B against `main` `20d9089f` (5+5, CI flags)
+   gave a run median of 36.86 s against 37.60 s with an unchanged recovery
+   path (`docs/verification/r02-sur1-ipc-wait-20261127/`). Next: the project
+   owner's approval for the first push, then a draft PR (Limits: #589).
 2. Candidate (3) (single-CPU scheduler continuation) belongs to Specialist K
    (project-owner decision, 26 Nov 2026, 21:25Z). R does not write `kernel/`
    and supplies window-session A/B measurements on request.

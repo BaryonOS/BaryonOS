@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "20d9089fe78a400143272aa34aa73cfb19f2e992",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/r02-sur1-ipc-wait-20261126",
+  "task": "R02 candidate (1): SUR1 client waits for replies with ipc_wait and a 150-tick deadline instead of spinning on yield_now",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Local native acceptance (TCG scale 1 and 2, Materiaal normal, keyboard and recover) and a local KVM A/B of the reply wait; R02 budgets still need an owner decision (R02-L1) and physical measurements, so no criterion is accepted."
+}
