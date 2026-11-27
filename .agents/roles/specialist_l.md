@@ -28,8 +28,8 @@ Tool class: `builder`
 - Review feedback uses GR-12: `@graphify wrong` (one-line reason, no push), `good`, `suppress`.
 
 ## Handoff
-Canonical state: `docs/handoffs/L/CURRENT.md` plus the newest HANDOFF comment on issue #534.
-- Live handoff: newest comment starting `HANDOFF L` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+Canonical state: `docs/handoffs/L/CURRENT.md` plus the newest `HANDOFF L` comment on issue #534.
+- Live handoff: newest comment starting `HANDOFF L` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "L01 native AI job"

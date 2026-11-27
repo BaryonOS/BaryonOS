@@ -28,7 +28,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/S/CURRENT.md`; handoff threads issue #564 (post-wake remount, with H) and #569 (catalog v2).
-- Live handoff: newest comment starting `HANDOFF S` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF S` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "S09"
@@ -48,5 +48,5 @@ Canonical state: `docs/handoffs/S/CURRENT.md`; handoff threads issue #564 (post-
 - Routing (owner decision 26 Nov 2026 ~21:34Z, recorded in `docs/handoffs/G/CURRENT.md`): A apply a recorded decision; B decide within this role's mandate; C outside the mandate and not owner-reserved: G decides; D owner: reserved items or material risk.
 - Reserved to the owner (ADR-MERGE-QUEUE-AUTONOMY-20261126): protected policy changes, binding acceptance contracts, reserved architecture decisions (ADRs), security exceptions and Security Floor questions, unauthorised cost, ruleset changes. After approval in substance no second approval is needed to enqueue.
 - Relayed owner decisions are accurate; do not ask for re-confirmation (owner decision 26 Nov 2026 ~20:30Z). Interactive: ask one focused question. Unattended: block with a precise `OWNER:` question and continue only disjoint authorised work.
-- Escalate to the owner only for protected policy, binding contracts, reserved ADRs, security exceptions and cost.
+- Escalate to the owner only for protected policy, binding contracts, reserved ADRs, security exceptions cost and material risk.
 - OPEN: `docs/handoffs/S/CURRENT.md` still says lane order and push permission come from the PR guard, which ADR-MERGE-QUEUE-AUTONOMY-20261126 removed.

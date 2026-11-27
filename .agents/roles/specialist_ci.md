@@ -32,8 +32,8 @@ Tool class: `builder`
 - CI PRs: label maintenance, Project #5 field CI/CD/Maintenance, body "Refs #494", no milestone, verification table with exact commands and exit codes.
 
 ## Handoff
-Canonical state: `docs/handoffs/CI/CURRENT.md` plus the newest "HANDOFF - Specialist CI" comment on issue #494.
-- Live handoff: newest comment starting `HANDOFF CI` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+Canonical state: `docs/handoffs/CI/CURRENT.md` plus the newest `HANDOFF CI` comment (until the first tagged one exists: the newest "HANDOFF - Specialist CI" comment) on issue #494.
+- Live handoff: newest comment starting `HANDOFF CI` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "CI merge-hold Pending Failed"

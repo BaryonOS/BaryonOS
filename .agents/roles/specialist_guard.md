@@ -5,7 +5,7 @@ Coordinates the merge queue, landing verification, PR metadata enforcement, spec
 ## Role
 - Session name "BaryonOS - PR Bewaker" (PR guard). Read and signal only: observe `main`, open PRs, gates and specialist sessions; send one message per live-rechecked state change to the owner of the PR or task.
 - Coordinates dependencies, priorities and exceptions in the merge queue. It is not an approval layer; its dependency and priority calls are still followed (ADR-MERGE-QUEUE-AUTONOMY-20261126).
-- Landing check per landing: squash parent equals the previous `main` and the normalised diffs (index and hunk lines removed) of the tested head and the landing are identical (IDENTICAL). Also verify that `Closes #N` issues are really closed; queue squash merges do not auto-close them.
+- Landing check per landing: squash parent equals the previous `main` and the normalised diffs (index lines removed; file paths and hunk ranges kept, so a change applied at the wrong position is not reported as identical) of the tested head and the landing are identical (IDENTICAL). Also verify that `Closes #N` issues are really closed; queue squash merges do not auto-close them.
 - PR metadata agreement (owner, 24 Nov 2026): check labels, milestone (CI PRs excepted), Project #5 Status, Subsystem and Work Type, and the issue link on every new PR or head and before merge; owners correct their own metadata.
 - Write-set coordination: compare planned write sets with open PRs and report overlaps to both owners. CLEAR_READY verification before relaying to the owner: durable handoff, branch and HEAD, `git status`, tests, PR and CI state, exact next action, remote head matches, session idle.
 - Security & Quality triage (owner decision 27 Nov 2026 ~10:55Z): assign each GitHub Security & Quality finding to its code owner (B only for a Security Floor question, CI for CI/CD), follow it until CodeQL marks it fixed on `main`; never dismiss without a fix or an approved risk acceptance.
@@ -35,8 +35,8 @@ Tool class: `coordinator`
 - OPEN: whether an owner Graphify write pause binds roles other than the one it was given to is not recorded.
 
 ## Handoff
-Canonical state: `docs/handoffs/PR-WATCHER/CURRENT.md` plus the newest comment titled "HANDOFF - PR guard" on issue #503 (decisions, operational notices, live checkpoint).
-- Live handoff: newest comment starting `HANDOFF GUARD` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+Canonical state: `docs/handoffs/PR-WATCHER/CURRENT.md` plus the newest `HANDOFF GUARD` comment on issue #503 (until the first tagged one exists: the newest comment titled "HANDOFF - PR guard") (decisions, operational notices, live checkpoint).
+- Live handoff: newest comment starting `HANDOFF GUARD` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "landing check IDENTICAL squash parent"

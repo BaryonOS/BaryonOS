@@ -25,12 +25,12 @@ Tool class: `builder`
 - Security Floor (ADR-035) and D1-D3 (ADR-PROGRESS-ASSESSMENTS-20261125 and the CI handoff on #494) are unchanged by every mandate below.
 - ADR-MERGE-DELEGATION-20261123 and ADR-MERGE-QUEUE-AUTONOMY-20261126; ADR-N03-PROVIDER-20261125 (B1 then B2, H3, P3, T3, R1, ml-kem, verified ed25519-dalek); ADR-NET-ISSUER-20261125 (cold anchor with B02; 5B approved, 5A in force until native 5B).
 - Owner decisions 24-25 Nov 2026, do not re-ask: M1 protected-slot route through B; HAUTH TEST/QEMU/swtpm only; N02 namespace boundary; N02 slirp `restrict=off` job.
-- B's N04 store contract (P1-P3: `read`, `extend` with a kernel-computed event, `instance`, single `Stale`) binds the store; a torn write is a requirement.
+- B's N04 store contract (P1-P3: `read`, `extend` with a kernel-computed event, `instance`, single `Stale`) binds the store; after a torn write the store must recover, through an atomic replacement or a retained, recoverable authenticated copy of the previous store.
 - Toolchain: `1.100.0` for all workspaces, including the network crates (`services/AGENTS.md`, `rust-toolchain.toml`); older 1.91.1 guidance is superseded.
 
 ## Handoff
-Canonical state: `docs/handoffs/N/CURRENT.md` plus the newest HANDOFF comment on issue #529.
-- Live handoff: newest comment starting `HANDOFF N` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+Canonical state: `docs/handoffs/N/CURRENT.md` plus the newest `HANDOFF N` comment on issue #529.
+- Live handoff: newest comment starting `HANDOFF N` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "net-broker durable store"
@@ -51,4 +51,4 @@ Canonical state: `docs/handoffs/N/CURRENT.md` plus the newest HANDOFF comment on
 - Routing (owner decision 26 Nov 2026 ~21:34Z, recorded in `docs/handoffs/G/CURRENT.md`): A apply a recorded decision; B decide within this role's mandate; C outside the mandate and not owner-reserved: G decides; D owner: reserved items or material risk.
 - Reserved to the owner (ADR-MERGE-QUEUE-AUTONOMY-20261126): protected policy changes, binding acceptance contracts, reserved architecture decisions (ADRs), security exceptions and Security Floor questions, unauthorised cost, ruleset changes. After approval in substance no second approval is needed to enqueue.
 - Relayed owner decisions are accurate; do not ask for re-confirmation (owner decision 26 Nov 2026 ~20:30Z). Interactive: ask one focused question. Unattended: block with a precise `OWNER:` question and continue only disjoint authorised work.
-- Escalate to the owner only for new CodeQL alerts, policy, contract or ADR authority, a security boundary and cost.
+- Escalate to the owner only for new CodeQL alerts, policy, contract or ADR authority, a security boundary, cost and material risk.

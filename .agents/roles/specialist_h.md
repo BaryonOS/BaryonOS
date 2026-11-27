@@ -29,7 +29,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/H/CURRENT.md`; handoff thread PR #515 (`HANDOFF H <cycle_id>` comments).
-- Live handoff: newest comment starting `HANDOFF H` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF H` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "H05 S3"

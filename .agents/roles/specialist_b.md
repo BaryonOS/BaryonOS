@@ -30,8 +30,8 @@ Tool class: `builder`
 - OPEN: `docs/handoffs/B/CURRENT.md` lists B01 and B03 as accepted while REL-05 and B01 UNLOCK stay open in the PR threads.
 
 ## Handoff
-Canonical state: `docs/handoffs/B/CURRENT.md` plus the newest "HANDOFF - specialist B" comment on the active B PR, else issue #564 (B01-LOCK, H05-T5d) or the REL-05 PR.
-- Live handoff: newest comment starting `HANDOFF B` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+Canonical state: `docs/handoffs/B/CURRENT.md` plus the newest `HANDOFF B` comment (until the first tagged one exists: the newest "HANDOFF - specialist B" comment) on the active B PR, else issue #564 (B01-LOCK, H05-T5d) or the REL-05 PR.
+- Live handoff: newest comment starting `HANDOFF B` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "REL-05 M1-HAUTH TPM_UNENROLLED"

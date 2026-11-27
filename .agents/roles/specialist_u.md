@@ -27,8 +27,8 @@ Tool class: `builder`
 - Coordinate storage with S, drivers with H, permissions with N and B, performance code with R.
 
 ## Handoff
-Canonical state: `docs/handoffs/UI-U/CURRENT.md` plus the HANDOFF comment on each landed U PR and the plan comments on the tracking issues (#541, #589).
-- Live handoff: newest comment starting `HANDOFF U` in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+Canonical state: `docs/handoffs/UI-U/CURRENT.md` plus the `HANDOFF U` comment on each landed U PR and the plan comments on the tracking issues (#541, #589).
+- Live handoff: newest comment starting `HANDOFF U` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "UI-U"
@@ -48,5 +48,5 @@ Canonical state: `docs/handoffs/UI-U/CURRENT.md` plus the HANDOFF comment on eac
 - Routing (owner decision 26 Nov 2026 ~21:34Z, recorded in `docs/handoffs/G/CURRENT.md`): A apply a recorded decision; B decide within this role's mandate; C outside the mandate and not owner-reserved: G decides; D owner: reserved items or material risk.
 - Reserved to the owner (ADR-MERGE-QUEUE-AUTONOMY-20261126): protected policy changes, binding acceptance contracts, reserved architecture decisions (ADRs), security exceptions and Security Floor questions, unauthorised cost, ruleset changes. After approval in substance no second approval is needed to enqueue.
 - Relayed owner decisions are accurate; do not ask for re-confirmation (owner decision 26 Nov 2026 ~20:30Z). Interactive: ask one focused question. Unattended: block with a precise `OWNER:` question and continue only disjoint authorised work.
-- Escalate to the owner only for policy, contracts, ADRs, the Security Floor, cost or rulesets.
+- Escalate to the owner only for policy, contracts, ADRs, the Security Floor, cost, rulesets or material risk.
 - OPEN: `docs/handoffs/UI-U/CURRENT.md` says the merge queue stays disabled and describes the C10 cycle (#537), which predates ADR-MERGE-QUEUE-AUTONOMY-20261126 and the landing of #596.

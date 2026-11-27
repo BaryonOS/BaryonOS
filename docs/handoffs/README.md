@@ -16,7 +16,10 @@ A handoff has two parts. Both are plain Markdown, with JSON where it helps.
    - It links to the thread that carries the live handoff.
 2. The newest comment starting with `HANDOFF <X>`, where `<X>` is the role (for
    example `HANDOFF G`), in that linked pull request or issue holds the live
-   state. The role tag keeps handoffs on a shared thread apart. The comment uses
+   state. The tag is followed by whitespace or the end of the line, so `HANDOFF G`
+   never matches `HANDOFF GUARD`; the tag keeps handoffs on a shared thread apart.
+   Until a role posts its first tagged comment, its newest legacy-titled handoff
+   comment counts. The comment uses
    the required fields below.
 
 Client-specific files are adapters only: Codex start prompts, Claude or Ollama
