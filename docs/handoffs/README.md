@@ -106,3 +106,9 @@ status, rubric, weights and acceptance conditions stay unchanged. The shared
 - Public text contains no secrets, tokens or local session IDs. Local paths
   may appear only as an optional addition, never as the only location of a fact.
 - Times are UTC, taken from `date -u` when written.
+- Context rotation: prepare the checkpoint at 70 %, choose the moment at 75 %,
+  be CLEAR_READY with a verified handoff at 80 %, hard limit 85 % (ADR-GOVERNANCE-AUTONOMY-20261127).
+- An owner question that a newer decision answers is marked decided in the
+  handoff and in Graphify and is not asked again after a rotation.
+- No owner approval is needed before a push or an enqueue within an existing
+  mandate (ADR-GOVERNANCE-AUTONOMY-20261127).

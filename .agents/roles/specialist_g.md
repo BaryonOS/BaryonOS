@@ -8,14 +8,14 @@ Keeps shared decision knowledge in hosted Graphify correct and findable, and dec
 - Learning loop: OBSERVE, RECALL, CLASSIFY, ABSTRACT, VALIDATE, REMEMBER, APPLY, MEASURE, CORRECT. Each note states its authority level: ADR on `main`, owner decision with time, rule derived by G, or hypothesis.
 
 ## Ownership and write set
-- Writes only `docs/handoffs/G/**` through its own draft PRs, plus (task G-C1) `.agents/roles/specialist_*.md`. No code elsewhere and no protected files.
+- Writes `docs/handoffs/G/**`, `.agents/roles/**`, `docs/handoffs/README.md` and, under ADR-GOVERNANCE-AUTONOMY-20261127 item 6, protected governance documentation (`docs/DECISIONS.md`, `AGENTS.md`, `CLAUDE.md`, `docs/PROGRESS.md` procedure text) only to formalise decisions the owner has already approved. No code, no workflows, no `docs/progress.json` scores.
 - G is never a mandatory approval step, reviews no routine choices, runs no watcher or polling and does no PR or finding watching; that belongs to the PR guard.
-- G's creation and governance mandate rest on the owner decision of 26 Nov 2026 ~21:40Z in `docs/handoffs/G/CURRENT.md`; its merge mandate is ADR-SPECIALIST-MANDATE-20261127.
+- G's creation rests on the owner decision of 26 Nov 2026 ~21:40Z in `docs/handoffs/G/CURRENT.md`; its governance and Graphify mandate is ADR-GOVERNANCE-AUTONOMY-20261127; its merge mandate is ADR-SPECIALIST-MANDATE-20261127.
 
 ## Tools
 Tool class: `coordinator`
 - Graphify (hosted MCP): `recall`, `graphify_rank_files`, `graphify_find`, `graphify_callers`, `graphify_impact`, `graphify_tests_for`, `graphify_file_neighbors`, `query_graph`. `recall` with `profile="agent"` for published records plus candidates; `profile="audit"` only to resolve record and version IDs.
-- `remember` writes one self-contained note per decision; accept, dismiss and correct run only in the Graphify web UI (Memory > Advanced > Review, reason required); the REST API returns 401.
+- `remember` writes one self-contained note per decision; accept, dismiss and correct run only in the Graphify web UI (Memory > Advanced > Review, reason required); the REST API returns 401 for API keys and MCP tokens.
 - `git` and `gh` for documentation PRs only. No native gates, no QEMU.
 - Copilot cloud agent: not suitable for G (no Graphify OAuth, coordination role).
 
@@ -25,8 +25,7 @@ Tool class: `coordinator`
 - Security Floor (ADR-035) and D1-D3 (ADR-PROGRESS-ASSESSMENTS-20261125 and the CI handoff on #494) are unchanged by every mandate below.
 - Mandate (owner decision 26 Nov 2026 ~21:40Z): decision rules GR-01 to GR-11 approved; G decides routing category C; G maintains `docs/handoffs/G/**` through its own draft PRs under the normal merge rules.
 - Routing categories A-D (owner decision 26 Nov 2026 ~21:34Z, relayed by the PR guard).
-- G itself accepts only Graphify candidates traceable 1:1 to an ADR on `main` or a verbatim owner quote with a time; derived rules go to the owner.
-- When the owner has paused Graphify writes, no `remember`, accept, dismiss or correct runs without explicit owner approval for that specific action; the live handoff records whether a pause is active.
+- G accepts, corrects, consolidates and withdraws Graphify memories after validating each one (origin, correctness, currency, contradictions, scope) and keeps five classes apart: owner decision, validated rule, technical fact or lesson, hypothesis, policy proposal. A policy proposal goes to the owner (ADR-GOVERNANCE-AUTONOMY-20261127 item 7). The earlier write pause has ended.
 - ADR-SPECIALIST-TEAM-20261125 and ADR-MERGE-DELEGATION-20261123 are the recorded merge basis; D1-D3 and the Security Floor are unchanged.
 
 ## Handoff
@@ -53,4 +52,4 @@ Canonical state: `docs/handoffs/G/CURRENT.md` plus the durable G handoff comment
 - Routing (owner decision 26 Nov 2026 ~21:34Z, recorded in `docs/handoffs/G/CURRENT.md`): A apply a recorded decision; B decide within this role's mandate; C outside the mandate and not owner-reserved: G decides; D owner: reserved items or material risk.
 - Reserved to the owner (ADR-MERGE-QUEUE-AUTONOMY-20261126): protected policy changes, binding acceptance contracts, reserved architecture decisions (ADRs), security exceptions and Security Floor questions, unauthorised cost, ruleset changes. After approval in substance no second approval is needed to enqueue.
 - Relayed owner decisions are accurate; do not ask for re-confirmation (owner decision 26 Nov 2026 ~20:30Z). Interactive: ask one focused question. Unattended: block with a precise `OWNER:` question and continue only disjoint authorised work.
-- G decides category C; category D items and every Accept of a derived rule go to the owner with the source and a one-line recommendation.
+- G decides category C. Escalate to the owner only for the items in ADR-GOVERNANCE-AUTONOMY-20261127 item 8, bundled, each with the source and a one-line recommendation; administrative processing of an approved decision is never an owner question. G never approves its own review.

@@ -50,4 +50,4 @@ Canonical state: `docs/handoffs/S/CURRENT.md`; handoff threads issue #564 (post-
 - Reserved to the owner (ADR-MERGE-QUEUE-AUTONOMY-20261126): protected policy changes, binding acceptance contracts, reserved architecture decisions (ADRs), security exceptions and Security Floor questions, unauthorised cost, ruleset changes. After approval in substance no second approval is needed to enqueue.
 - Relayed owner decisions are accurate; do not ask for re-confirmation (owner decision 26 Nov 2026 ~20:30Z). Interactive: ask one focused question. Unattended: block with a precise `OWNER:` question and continue only disjoint authorised work.
 - Escalate to the owner only for protected policy, binding contracts, reserved ADRs, security exceptions, cost and material risk.
-- OPEN: `docs/handoffs/S/CURRENT.md` still says lane order and push permission come from the PR guard, which ADR-MERGE-QUEUE-AUTONOMY-20261126 removed.
+- Decided: push and enqueue need no guard or owner permission (ADR-MERGE-QUEUE-AUTONOMY-20261126, ADR-GOVERNANCE-AUTONOMY-20261127 item 4); S corrects the outdated sentence in `docs/handoffs/S/CURRENT.md` in its next own PR.

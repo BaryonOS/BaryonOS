@@ -5,6 +5,93 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-GOVERNANCE-AUTONOMY-20261127 — One governance baseline for all agent clients and G's mandate to formalise approved decisions
+
+**Status:** accepted. It formalises two owner decisions of 27 November 2026,
+both given directly to Specialist G and received between 13:27Z and 13:32Z
+(`date -u`): "OWNER DECISIONS — GOVERNANCE RECONCILIATION" and "OWNER
+DECISION — GOVERNANCE AUTONOMY". The exception to separate owner review in
+item 6 is introduced through the existing procedure for protected files: this
+pull request carries the owner's review. Afterwards the exception applies as
+described below.
+
+**Problem:** role contracts, handoffs and client files held contradictory or
+outdated rules: context-rotation thresholds of 60/65/75/80–85 % next to
+70/75/80/85 %, an older instruction to ask the owner before the first push of
+a branch, no recorded writer for the guard's acceptance processing, and a
+Graphify write pause that blocked recording decisions the owner had already
+taken. Each contradiction produced repeated owner questions.
+
+**Decision:**
+
+1. **Responsibility split (confirmed).** Every formally appointed specialist
+   enqueues its own merge-ready pull requests within its own area
+   (ADR-SPECIALIST-MANDATE-20261127). Every criterion owner keeps its own
+   `delivery_review` rows current (ADR-PROGRESS-OWN-ROWS-20261127). The PR
+   guard performs formal criterion acceptance and processes it into the
+   official score after complete independent verification; for that purpose
+   only, it may commit, push and enqueue its own pull requests that change
+   criterion status and score in `docs/progress.json`, the generated views and
+   the matching assessment file, plus its own `docs/handoffs/PR-WATCHER/**`.
+   It still writes no product code and gives no review verdicts. G stays
+   independent in substance and decides routing category C. No new mandatory
+   approval layer.
+2. **One canonical role architecture.** `.agents/roles/*.md` and
+   `docs/handoffs/` are the single canonical source for Claude Code, Codex and
+   GitHub Copilot. Client files under `.claude`, `.codex` and `.github` are
+   adapters without task state. Compatibility work is preparation, not a
+   migration GO.
+3. **Context rotation.** For every specialist the thresholds are 70 % prepare
+   the checkpoint, 75 % choose the rotation moment, 80 % CLEAR_READY with a
+   verified handoff, 85 % hard limit (owner 26 November 2026 about 21:15Z,
+   confirmed 27 November). They replace the values in item 5 of
+   ADR-SPECIALIST-TEAM-20261125. The guard still rotates only at the owner's
+   request.
+4. **No separate approval per push or enqueue.** Within an existing mandate a
+   specialist pushes and enqueues without asking first. Older instructions to
+   ask the owner before a push, the first push of a branch or an enqueue are
+   void. Required checks, the pre-merge open-run check, D1–D3, rulesets and the
+   Security Floor are unchanged.
+5. **Superseded questions.** An owner question that a newer decision answers
+   is recorded as decided and is not asked again after a context rotation.
+   Hosted Graphify is the decision register; no parallel register exists.
+6. **G's governance mandate.** G may, without a second owner approval:
+   process owner decisions already taken into binding documentation; draft,
+   update and integrate ADRs that only formalise approved decisions; bring
+   `AGENTS.md`, `CLAUDE.md`, role contracts and handoff instructions in line
+   with them; correct outdated or contradictory instructions; record existing
+   authority correctly; apply approved governance decisions equally to Claude
+   Code, Codex and GitHub Copilot; and remove administrative inefficiencies
+   within this mandate. This includes protected documentation files, but only
+   when the change demonstrably stays within an approved decision. Every such
+   pull request names the decision it formalises, keeps the review required
+   for protected files by ADR-SPECIALIST-MANDATE-20261127 (outside G's own
+   workstream), and never bypasses a ruleset or technical GitHub protection.
+   G never approves its own review.
+7. **Graphify.** G manages shared decision knowledge and may accept, correct,
+   consolidate and withdraw memories after validating each one individually:
+   origin, correctness, currency, contradictions and scope. Notes keep five
+   classes apart: explicit owner decision, validated decision rule,
+   demonstrable technical fact or lesson, unconfirmed hypothesis, and new
+   policy proposal. Only validated knowledge within the mandate is published;
+   a policy proposal goes to the owner. This replaces the earlier G write
+   pause and the rule that G accepts only 1:1 traceable candidates.
+8. **Escalation to the owner** only for: a fundamental new architecture
+   choice, a material change to a binding contract not yet approved,
+   relaxation of a safety or acceptance condition, a change of product
+   vision, a new financial commitment, an extension of a role's own
+   authority, or a materially unresolved risk. Administrative processing of a
+   decision already taken is not an owner question.
+
+**Alternatives considered:** keeping a separate owner review for every
+documentation change (rejected by the owner: it repeats decisions already
+taken); a separate decision register next to Graphify (rejected: it would
+duplicate the register).
+
+**Rollback:** the owner withdraws or narrows item 6 or 7 by a later decision;
+G then stops the affected actions, and documentation already integrated stays
+until a correcting pull request lands.
+
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
 **Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the

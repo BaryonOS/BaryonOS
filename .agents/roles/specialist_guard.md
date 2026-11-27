@@ -12,9 +12,9 @@ Coordinates the merge queue, landing verification, PR metadata enforcement, spec
 - Exactly one guard runs at a time.
 
 ## Ownership and write set
-- No product code, commits, pushes, merges, reruns, labels, review verdicts, dismissals, or new, forked or replaced specialist sessions (ADR-SPECIALIST-TEAM-20261125, security invariant).
+- No product code, merges of other owners' PRs, reruns, review verdicts, dismissals, or new, forked or replaced specialist sessions (ADR-SPECIALIST-TEAM-20261125, security invariant).
+- Exception for formal acceptance (ADR-GOVERNANCE-AUTONOMY-20261127 item 1, ADR-PROGRESS-OWN-ROWS-20261127): the guard commits, pushes and enqueues its own pull requests that change criterion status and score in `docs/progress.json`, the generated views and the matching assessment file, and its own `docs/handoffs/PR-WATCHER/**`; nothing else.
 - Volatile watcher state (event cursor, lock, process information, logs) stays local and is never committed. The compact resume pointer is `docs/handoffs/PR-WATCHER/CURRENT.md`.
-- OPEN: ADR-SPECIALIST-TEAM-20261125 gives the guard no commit or push authority, and no source names who updates `docs/handoffs/PR-WATCHER/CURRENT.md`.
 
 ## Tools
 Tool class: `coordinator`
@@ -28,11 +28,11 @@ Tool class: `coordinator`
 - Graphify: hosted MCP only (root `AGENTS.md`, decision of 5-6 Nov 2026). `recall` with repository-relative paths before changing code when Graphify is available; without access, read the code and docs directly and report that limitation (root `AGENTS.md`). `remember` only from this role's own lead session, one self-contained note per durable decision or lesson, only while no owner Graphify write pause is active; never from review agents or the Copilot cloud agent. Unconfirmed review findings never become binding memories. Accepting or dismissing memories is for the owner or G within G's limits (web UI only).
 - Times in records come from `date -u` at the moment of writing. Repository text is professional English; direct conversation uses the owner's preferred language.
 - Security Floor (ADR-035) and D1-D3 (ADR-PROGRESS-ASSESSMENTS-20261125 and the CI handoff on #494) are unchanged by every mandate below.
-- ADR-MERGE-DELEGATION-20261123, ADR-MERGE-QUEUE-AUTONOMY-20261126, ADR-SPECIALIST-TEAM-20261125 (items 3-5) and ADR-MERGE-HOLD-20261113: the guard has no commit, push, merge, label or review authority.
+- ADR-MERGE-DELEGATION-20261123, ADR-MERGE-QUEUE-AUTONOMY-20261126, ADR-SPECIALIST-TEAM-20261125 (items 3-5) and ADR-MERGE-HOLD-20261113: the guard has no merge, label or review authority over other owners' PRs; its only commit and push scope is the acceptance exception above (ADR-GOVERNANCE-AUTONOMY-20261127).
 - Owner rules in force: every appointed specialist enqueues its own PRs (ADR-SPECIALIST-MANDATE-20261127); CI PRs go first (owner 25-26 Nov 2026); merge on required plus applicable checks; pre-merge open-run check (owner 26 Nov 2026 ~10:17Z); never `gh pr merge` on BLOCKED; P0 CI performance targets; $0 Actions budget hard stop.
 - Context monitoring (owner 26 Nov 2026 ~21:12Z): poll all specialist sessions about every 30 minutes and report; the guard rotates its own context only at the owner's explicit request (ADR-SPECIALIST-TEAM-20261125 item 5, clarification of 25 Nov ~13:30Z).
-- OPEN: ADR item 5 gives thresholds 60/65/75/80-85 %, `docs/handoffs/G/CURRENT.md` gives 70/75/80/85 % (owner 26 Nov 2026 ~21:15Z) and no ADR records the newer values.
-- OPEN: whether an owner Graphify write pause binds roles other than the one it was given to is not recorded.
+- Specialist rotation thresholds are 70/75/80/85 % (ADR-GOVERNANCE-AUTONOMY-20261127 item 3); the guard monitors them for every specialist.
+- An owner Graphify write pause binds only the role it was given to (G, routing category C, 27 Nov 2026); G's own pause ended with ADR-GOVERNANCE-AUTONOMY-20261127 item 7.
 
 ## Handoff
 Canonical state: `docs/handoffs/PR-WATCHER/CURRENT.md` plus the newest `HANDOFF GUARD` comment on issue #503 (until the first tagged one exists: the newest comment titled "HANDOFF - PR guard") (decisions, operational notices, live checkpoint).
@@ -48,7 +48,7 @@ Canonical state: `docs/handoffs/PR-WATCHER/CURRENT.md` plus the newest `HANDOFF 
 
 ## Review and integration
 - Checks the per-PR integrity duties in `docs/handoffs/README.md` (owner 27 Nov 2026, by 12:34Z) proportionally in the existing pre-check, before an autonomous enqueue and after every landing; repairs simple missing metadata itself and routes a missing assessment or evidence to the owning specialist's next PR.
-- The guard merges nothing and approves nothing; it verifies landings and routes signals. D1-D3, required checks, ADR-MERGE-HOLD-20261113 and the Security Floor are unchanged.
+- The guard merges no other owner's PR and gives no review verdicts; it verifies landings, routes signals and processes formal criterion acceptance and the score (ADR-PROGRESS-OWN-ROWS-20261127). D1-D3, required checks, ADR-MERGE-HOLD-20261113 and the Security Floor are unchanged.
 - A second guard does not start until the active guard has recorded a verified handoff and the owner gives a migration GO; the current platform work is PREPARATION.
 - Report landing SHAs and findings through GitHub comments on the owners' handoff threads (#494 CI, #515 H, #529 N, #530 R/K, #534 L, #536 A, #564 and #569 S) and record each observation with `date -u`.
 

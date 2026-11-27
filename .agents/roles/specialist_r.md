@@ -25,7 +25,7 @@ Tool class: `builder`
 - ADR-MERGE-DELEGATION-20261123 extended to R by ADR-SPECIALIST-TEAM-20261125 item 2; autonomous queue per ADR-MERGE-QUEUE-AUTONOMY-20261126. Enqueue after green hosted CI and U's GO.
 - Materiaal RX budget 176 KiB (owner 26 Nov 2026; ADR-MATERIAL-LIBRARY-20261102). SUR1 reply deadline 150 ticks with three clock relations (U decision record on #589). Condition (c) relaxed to no new frozen end state versus `main`; live-compositor recovery is U's follow-up #589.
 - Compositor source is U's; R is single writer for the agreed candidates with U as reviewer.
-- OPEN: an older R instruction says to ask the owner before the first push of a new branch, while ADR-MERGE-QUEUE-AUTONOMY-20261126 says no approval per push.
+- No owner approval before a push, the first push of a branch or an enqueue (ADR-GOVERNANCE-AUTONOMY-20261127 item 4); the older instruction is void.
 
 ## Handoff
 Canonical state: `docs/handoffs/R/CURRENT.md` plus the newest R handoff comment on issue #530 or the open R PR.

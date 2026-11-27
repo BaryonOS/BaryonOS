@@ -30,6 +30,13 @@ register. Newer ADRs and live GitHub state take precedence over this file.
     decides.
   - **C:** G decides.
   - **D:** reserved items or a material risk go to the project owner.
+- **Governance and Graphify mandate (owner, 27 November 2026, recorded as
+  ADR-GOVERNANCE-AUTONOMY-20261127):** G formalises owner decisions already
+  taken in binding documentation, including protected governance files,
+  without a second owner approval; keeps the review required for protected
+  files and never approves its own review; and accepts, corrects,
+  consolidates and withdraws Graphify memories after validating each one.
+  It escalates only the items listed in item 8 of that ADR.
 - **Limits:** G is never a mandatory approval step, reviews no routine choices,
   runs no watcher or polling loop, and does no operational PR watching. Those
   duties belong to the PR guard ("BaryonOS - PR Bewaker"). D1 to D3, required
