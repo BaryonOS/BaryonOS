@@ -85,9 +85,9 @@ and any delegable AUDIO right; B4 excludes treating `00:08.0` as a physical
 hardware address.
 
 **Evidence status.** None. This record runs no native or hardware test. The
-matrix change is checked only by `tools/tests/test_hw_matrix.py`, a host
-consistency test. The broker, the syscalls and every physical protocol are
-NOT RUN.
+matrix change is checked only on the host, by `tools/hw_matrix.py --check`
+and `tools/tests/test_hw_matrix.py` (consistency checks, not hardware
+evidence). The broker, the syscalls and every physical protocol are NOT RUN.
 
 **Review triggers.** Revisit this record if any of these occur:
 - a dispatch arm, SDK constant or PR outside the AUDIO path uses `0xC0`–`0xCF`;
