@@ -106,6 +106,7 @@ pub struct Scene {
     pub scale: u32,
     pub windows: [Window; WINDOWS],
     pub focused: usize,
+    retired: [bool; WINDOWS],
     pub pointer: (u32, u32),
     drag: Option<(usize, i32, i32)>,
     pub moves: u64,
@@ -186,6 +187,7 @@ impl Scene {
             scale,
             windows,
             focused: 0,
+            retired: [false; WINDOWS],
             pointer: (width / 2, height / 2),
             drag: None,
             moves: 0,
@@ -236,7 +238,7 @@ impl Scene {
         })
     }
     pub fn focused_visible(&self) -> bool {
-        self.visible(self.focused)
+        !self.retired[self.focused] && self.visible(self.focused)
     }
     fn minimize_state(&mut self, index: usize) -> Result<(), Invalid> {
         if index >= WINDOWS {
@@ -1284,6 +1286,40 @@ impl Scene {
         self.shell.finish_unlock()
     }
 
+    /// Retire one leaf without altering the other leaf's application state.
+    pub fn retire_leaf(&mut self, index: usize, damage: &mut Damage) -> Result<(), Invalid> {
+        if index >= WINDOWS {
+            return Err(Invalid);
+        }
+        if self.retired[index] {
+            return Ok(());
+        }
+        self.retired[index] = true;
+        if self.drag.is_some_and(|(leaf, _, _)| leaf == index) {
+            self.cancel_pointer();
+        }
+        if self.window_menu_is_open() && self.window_menu_target == index {
+            self.close_window_menu(damage);
+        }
+        if self
+            .keyboard_move
+            .is_some_and(|movement| movement.index == index)
+        {
+            self.cancel_keyboard_move(damage);
+        }
+        if self.focused == index && !self.retired[1 - index] && !self.shell.hidden[1 - index] {
+            self.select(1 - index)?;
+        }
+        for leaf in 0..WINDOWS {
+            damage.mark(self.paint_bounds(leaf));
+        }
+        damage.mark(self.dock());
+        if self.switcher_is_open() {
+            damage.mark(self.switcher_bounds());
+        }
+        Ok(())
+    }
+
     /// Focus a valid window and cancel any drag; reject invalid indices.
     pub fn select(&mut self, index: usize) -> Result<(), Invalid> {
         if index >= WINDOWS || self.keyboard_move_is_active() {
@@ -1301,7 +1337,11 @@ impl Scene {
 
     /// Switch focus to the other window.
     pub fn cycle(&mut self) -> Result<(), Invalid> {
-        self.select(1 - self.focused)
+        let other = 1 - self.focused;
+        if self.retired[other] {
+            return Ok(());
+        }
+        self.select(other)
     }
 
     /// Cancel an active window drag.
@@ -1458,6 +1498,10 @@ impl Scene {
                 }
                 let frame = self.frame(index);
                 if frame.contains(x as i32, y as i32) {
+                    if self.retired[index] {
+                        self.select(index)?;
+                        return Ok(None);
+                    }
                     self.select(index)?;
                     if y < self.windows[index].body.y as u32 {
                         if self.window_menu_button(index).contains(x as i32, y as i32) {
@@ -1778,12 +1822,30 @@ impl Scene {
             {
                 return Err(Invalid);
             }
-            for y in top..bottom {
-                for x in left..right {
-                    let at = self.windows[index].offset
-                        + (y - body.y) as usize * body.width as usize
-                        + (x - body.x) as usize;
-                    c.pixel(x, y, backing[at]);
+            if self.retired[index] {
+                let status_font = Font::new(Size::Body, Weight::Semibold, s == 2);
+                let full = "Dit venster reageert niet";
+                let short = "Venster niet beschikbaar";
+                let label = if status_font.measure(full) + 32 * s <= body.width {
+                    full
+                } else {
+                    short
+                };
+                c.text(
+                    body.x + 16 * s as i32,
+                    body.y + 20 * s as i32,
+                    label,
+                    status_font,
+                    palette.text,
+                );
+            } else {
+                for y in top..bottom {
+                    for x in left..right {
+                        let at = self.windows[index].offset
+                            + (y - body.y) as usize * body.width as usize
+                            + (x - body.x) as usize;
+                        c.pixel(x, y, backing[at]);
+                    }
                 }
             }
         }
@@ -1879,22 +1941,33 @@ impl Scene {
             );
             let preview = self.switcher_preview(index)?;
             let body = self.windows[index].body;
-            let bounds = c.bounds();
-            for y in preview.y.max(bounds.y)
-                ..(preview.y + preview.height as i32).min(bounds.y + bounds.height as i32)
-            {
-                for x in preview.x.max(bounds.x)
-                    ..(preview.x + preview.width as i32).min(bounds.x + bounds.width as i32)
+            if self.retired[index] {
+                c.fill_rect(preview, p.background);
+                c.text(
+                    preview.x + 8 * s as i32,
+                    preview.y + 8 * s as i32,
+                    "Niet beschikbaar",
+                    small,
+                    p.text,
+                );
+            } else {
+                let bounds = c.bounds();
+                for y in preview.y.max(bounds.y)
+                    ..(preview.y + preview.height as i32).min(bounds.y + bounds.height as i32)
                 {
-                    let sx = (u64::from((x - preview.x) as u32) * u64::from(body.width)
-                        / u64::from(preview.width)) as usize;
-                    let sy = (u64::from((y - preview.y) as u32) * u64::from(body.height)
-                        / u64::from(preview.height)) as usize;
-                    c.pixel(
-                        x,
-                        y,
-                        backing[self.windows[index].offset + sy * body.width as usize + sx],
-                    );
+                    for x in preview.x.max(bounds.x)
+                        ..(preview.x + preview.width as i32).min(bounds.x + bounds.width as i32)
+                    {
+                        let sx = (u64::from((x - preview.x) as u32) * u64::from(body.width)
+                            / u64::from(preview.width)) as usize;
+                        let sy = (u64::from((y - preview.y) as u32) * u64::from(body.height)
+                            / u64::from(preview.height)) as usize;
+                        c.pixel(
+                            x,
+                            y,
+                            backing[self.windows[index].offset + sy * body.width as usize + sx],
+                        );
+                    }
                 }
             }
             c.text(
@@ -1907,7 +1980,9 @@ impl Scene {
             c.text(
                 card.x + 16 * s as i32,
                 card.y + 152 * s as i32,
-                if selected {
+                if self.retired[index] {
+                    "Niet beschikbaar"
+                } else if selected {
                     "Geselecteerd"
                 } else {
                     "Open venster"

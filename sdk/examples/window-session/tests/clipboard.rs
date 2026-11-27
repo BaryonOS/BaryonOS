@@ -400,3 +400,18 @@ fn exact_utf8_boundary_is_preserved_and_a_fresh_compositor_has_no_history() {
     let pending = fresh.accept(1, 1, PIDS[1], &queues[1], Request { header, text: "" });
     assert_eq!(fresh.reply(&pending, 1, &queues[1]).status, Status::Empty);
 }
+
+#[test]
+fn leaf_retirement_revokes_its_offered_gesture_without_revoking_the_peer() {
+    let mut queues = queues();
+    let dead = offer(&mut queues[0], 0, key(PhysicalKey::C), Operation::Copy, 1);
+    let peer = offer(&mut queues[1], 1, key(PhysicalKey::V), Operation::Paste, 1);
+    assert!(queues[0].authorizes_clipboard(PIDS[0], dead));
+    assert!(queues[1].authorizes_clipboard(PIDS[1], peer));
+    queues[0].retire();
+    queues[0].retire();
+    assert!(!queues[0].has_pending());
+    assert!(!queues[0].authorizes_clipboard(PIDS[0], dead));
+    assert!(queues[1].authorizes_clipboard(PIDS[1], peer));
+    assert!(queues[1].has_pending());
+}

@@ -19,6 +19,35 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
   before any numeric budget becomes binding; budgets are never relaxed after a
   failed measurement.
 
+## R02 leaf-retirement checkpoint (27 November 2026, 21:54:13Z UTC)
+
+- #652 landed as `e78814ad` on parent `22352ba3`; its reviewed tree matched.
+  #589 is a separate compositor change; the K-owned reporter is not implemented
+  here and existing dead-compositor restart authority remains unchanged.
+- Branch `codex/r02-leaf-fallback-20261127`, worktree
+  `~/projects/BaryonOS-worktrees/r02-leaf-fallback`, contains the scoped
+  observational mask and affected-window fallback. U's preliminary guidance is
+  #589 issuecomment-7228803729; K's interface review is issuecomment-7228242267.
+  Neither is an exact-head implementation GO. The mask is single-CPU only and
+  has no authority; bytewise kernel reads do not establish SMP atomicity.
+- Focus, pointer, duplicate retirement, switcher preview, text fit and clipboard
+  isolation have targeted host tests. Earlier WIP passed local KVM workspace and
+  clipboard with `passed=true`, `raw_qemu_exit=33`; the result is not bound to
+  the later focus correction. The smoke-only run has raw exit 0 and is not a
+  native pass. No per-leaf native fault-injection fixture currently exists;
+  K confirmed the existing gate exercises compositor slot 4. Accessibility
+  semantics, any compositor high-contrast palette, hardware and human review
+  remain unproven. No R01–R03 criterion is newly accepted.
+- PR #661 was opened at `0766cfde` with bounded U/K source reviews and an
+  exact-head KVM workspace/clipboard gate (raw 33). Main `7fceb5fd` has since
+  been merged locally as `79d3acd1`; it changes capability-core and runtime,
+  so old-head test evidence and reviews cannot be attributed to this head.
+  The integrated source passed the targeted host suite; full host/native gates,
+  a single push and refreshed U/K reviews remain. The TEST-only cooperative
+  fixture has corrected exploratory reports in #589 issuecomment-7229143767;
+  K's reporter remains necessary to observe byte 536 and incarnation binding.
+  Coordinate the shared QEMU slot before any native run.
+
 ## Output-path follow-up (27 November 2026, 20:26Z UTC)
 
 #632 landed as `3009755b`; the landed tree matched the merge of its parent and

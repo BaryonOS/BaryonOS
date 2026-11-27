@@ -8,6 +8,7 @@ pub mod clipboard;
 pub mod idle;
 pub mod input;
 pub mod recovery;
+pub mod retirement;
 pub mod scene;
 pub mod surface;
 // One interaction contract shared with the existing native preview. This is
