@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "8ee0d50170981fb5dcb68df320e23483d54de8f7",
+  "assessment_basis": "parent_commit",
+  "branch": "h05-s3-noscrub-plumbing",
+  "task": "H05-T5d follow-up: S3_SYSTEM_FEATURES build order, power-s3-noscrub red control, H05-T5d-T ledger verified",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. tools/build.py now includes test-system-s3-lock-noscrub in S3_SYSTEM_FEATURES, so the S3 noscrub kernel is paired with the S3 TEST init; the labelled red control power-s3-noscrub halts with LOCK_STACK_RESIDUE (raw 35, no LOCKED, no SUSPEND) locally, and a build-order mutant is rejected. H05-T5d-T is recorded as verified (#597, 8b00a9c0). H05 stays open: production gate (H05-T5d-P, blocked on O5), remount and ring-3 block re-grant, physical S3, IOMMU and human acceptance are missing; the LOCK red controls have no hosted job."
+}

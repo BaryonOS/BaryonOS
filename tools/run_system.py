@@ -53,9 +53,12 @@ POWER_CASES = tuple(POWER_FEATURE)
 # B01-LOCK red controls: (kernel feature, the one expected kernel refusal, LOCKED
 # markers). Without the stack scrub the canary survives LOCK (A10) and LOCKED
 # never latches (F1, owner decision 26 November 2026); an own exit
-# of the instance is never LOCKED (A5).
+# of the instance is never LOCKED (A5). H05-T5d: the S3 init's LOCK without the
+# scrub request halts at the latch (KL4), before any SUSPEND.
 LOCK_RED = {"power-lock-noscrub": ("test-system-lock-noscrub", "LOCK_CANARY_RESIDUE", 0),
-            "power-lock-exit": ("test-system-lock-exit", "UNEXPECTED_EXIT", 0)}
+            "power-lock-exit": ("test-system-lock-exit", "UNEXPECTED_EXIT", 0),
+            "power-s3-noscrub": ("test-system-s3-lock-noscrub", "LOCK_STACK_RESIDUE", 0)}
+S3_NOSCRUB = "power-s3-noscrub"
 # Exact LOCK evidence: one LOCK, the fixture's six refusals (-1, -6, -4, -8, -8,
 # -14), one verified whole-stack scrub, no canary after it; the minimums prove
 # that the canary and the instance's frames were there to be erased.
@@ -677,8 +680,16 @@ def evaluate_lock_red(case: str, stdout: str, raw_exit: int | None, timed_out: b
         raise ValueError(f"red lock case stopped for another reason: {fails}")
     if lines.count("SYSTEM:LOCK:LOCKED") != LOCK_RED[case][2]:
         raise ValueError("red lock case has the wrong number of LOCKED markers")
-    if any(line.startswith(("SYSTEM:LOCK_", "SYSTEM:LOCK:PASS", "POWER:")) or line == "M1:PASS"
-           for line in lines):
+    if case == S3_NOSCRUB:
+        # The S3 kernel resolves its plan once at bootstrap; it is the only S3
+        # line allowed, and the case stops before any SUSPEND (no sleep, no wake).
+        from run_sleep import PLAN  # lazy, see run_system
+        s3 = [line for line in lines if line.startswith(("POWER:S3:", "KEYRING:S3:", "VOLUME:S3:"))]
+        if len(s3) != 1 or not PLAN.fullmatch(s3[0]):
+            raise ValueError(f"power-s3-noscrub must plan S3 exactly once: {s3}")
+        lines = [line for line in lines if line != s3[0]]
+    if any(line.startswith(("SYSTEM:LOCK_", "SYSTEM:LOCK:PASS", "POWER:", "SYSTEM:SUSPEND", "SYSTEM:S3:"))
+           or line == "M1:PASS" for line in lines):
         raise ValueError("red lock case produced LOCK evidence, a PM1 write or M1:PASS")
     if [line for line in lines if line in BOOT] != list(BOOT):
         raise ValueError("red lock case lacks the boot markers")
@@ -787,7 +798,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if (qmp_hook is not None or nic_status is not True) and not link:
         raise ValueError("QMP link control and a STATUS-less NIC belong to the link profile only")
     wake, machine = None, None
-    if case in S3_LOCK_CASES:
+    if case in (*S3_LOCK_CASES, S3_NOSCRUB):
         # The S3 evidence boundary: the measured QEMU 8.2 q35/OVMF profile under TCG only.
         machine = s3_machine()
     if case in S3_CASES:
