@@ -55,8 +55,9 @@ remote evidence, run the OS or authenticate the technical content of a claim.
 Under ADR-PROGRESS-OWN-ROWS-20261127 the owner of a criterion keeps that
 criterion's `delivery_review` rows current without asking permission for each
 update. Only its own rows change; the shared date and source commit above stay
-unchanged and the row text carries `updated YYYY-MM-DD @<sha>: …`. Evidence in a refreshed row uses commit-pinned links
-(`https://github.com/BaryonOS/BaryonOS/blob/<sha>/<path>`). A routine
+unchanged and the row text carries `updated YYYY-MM-DD @<sha>: …`. Repository files cited in a refreshed row use commit-pinned links
+(`https://github.com/BaryonOS/BaryonOS/blob/<sha>/<path>`); Actions, pull
+request and review URLs stay absolute as they are. A routine
 refresh leaves score, status, rubric, weights and acceptance conditions
 untouched, and the views are regenerated with `python3 tools/progress.py
 --write` and `--check`. Formal acceptance and the score increase stay the
