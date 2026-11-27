@@ -1737,16 +1737,17 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    (docs/verification/h05-s3-blk-reinit-20261125/).
    Amendment H05-T5c Q2, S side (27 November 2026; project-owner decision
    given in the S session at about 13:20Z and recorded by S on #564,
-   issuecomment-7219366917): the post-wake remount check of
-   the owner approved these rules for the post-wake remount check of
+   issuecomment-7219366917): the owner approved these rules for the
+   post-wake remount check of
    [VOLUME-POST-WAKE-REMOUNT.md](implementation/VOLUME-POST-WAKE-REMOUNT.md);
    the rest of that specification remains design:
    - **R1, grant recipient:** the one T5f-1 read-only block grant goes only to
      the original volume service instance that ran SHUTDOWN before SUSPEND and
      survived the sleep (same slot and pid, no exit or restart since). A
      restarted instance never receives it automatically. No other route is
-     designed, so the volume then stays unavailable until the next cold boot. The kernel keeps no copy of the
-     generation or digest that the service reports.
+     designed, so the volume then stays unavailable until the next cold
+     boot. The kernel keeps no copy of the generation or digest that the
+     service reports.
    - **R2, outcome:** a kernel lane quarantine reaches clients one-to-one as
      `Quarantined` -24. A remount that differs from the pre-sleep reference,
      reports `Corrupt` or meets a read error is the separate volume service

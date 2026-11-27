@@ -7,7 +7,8 @@ versioned extension" that the project owner's package-2 decisions on O3 and O5
 [S09-DESTINATION-SERVICE.md](S09-DESTINATION-SERVICE.md), called "the v1
 specification" below, and section numbers without a document name refer to
 it. Rules that needed an owner decision were marked *[proposed; owner
-question Vn]* and are now marked *[decided, Vn]*; section 9 lists them. Revision 1 answers the independent AI
+question Vn]* and are now marked *[decided, Vn]*; section 9 lists them.
+Revision 1 answers the independent AI
 review CATALOG-V2-REVIEW-1 (REQUEST_CHANGES); section 11 records each item.
 An AI review is not a human audit. S09 stays open.
 
@@ -338,7 +339,8 @@ owner-field meaning is agreed (V1).]* The v1 SEAL field rule (`aux` = 0,
 states of 2.2 check 7 (failed-mount, `Corrupt`, blank candidate) as for every
 other request; no record with that ID (`NotFound` -19); a different record is
 `deleting` (`Busy` -21); any operation lane is bound to the entry (`Busy`
--21); *[pending the O12 agreement, V1]* the owner check. A DELETE of the entry that is already
+-21); *[pending the O12 agreement, V1]* the owner check. A DELETE of the
+entry that is already
 `deleting` resumes at phase 2. BIND of a `deleting` entry returns `NotFound`
 -19, as for an unsealed ID. An export lane in the state *sealed* for *E*
 counts as bound to *E*. *[decided, V8]*
@@ -467,7 +469,8 @@ writes nothing (2.3). *[decided, V5 and V6]*
   entry in the trusted dialog, 2 = a retention policy; other values are
   `Invalid` -1 at check 2. A policy DELETE of the only `sealed` record with a
   verified sequence ≠ 0 of the same owner (V6; until the O12 owner field is
-  agreed under V1, all entries count as one owner) returns `Access` -5 and changes nothing; a `deleting` record does not count as a
+  agreed under V1, all entries count as one owner) returns `Access` -5 and
+  changes nothing; a `deleting` record does not count as a
   remaining proven backup. A user DELETE is not
   refused by this guard; the dialog warns. The service holds no policy and
   never issues a deletion itself.

@@ -191,7 +191,8 @@ remount still run after authentication and before UNLOCK.
 - **Open:** the final order of authentication and remount, agreed with B and
   H under O8; the authentication signal that T5f-1 waits for (B and U design,
   H's kernel interface); and a refusal value for "authentication absent"
-  (-28 proposed on #564, H's kernel value). The last two are outside this
+  (-28, proposed by S on #564, issuecomment-7219666624, for H to allocate;
+  recorded as NOT_AUTHENTICATED in B's #631). The last two are outside this
   check.
 
 ## 5. Negative tests (planned)
