@@ -188,6 +188,9 @@ test-sdk-app-denied = ["native-sdk-app"]
 # A03 grant broker; reuses the sdk-app dispatch with a three-process manifest.
 native-task-grant = ["native-sdk-app"]
 test-task-grant-denied = ["native-task-grant"]
+# A03-T2c-2: the task-grant broker as sole client of a read-only volume domain 0.
+native-task-grant-volume = ["native-system", "monotonic-clock", "ipc-wait"]
+test-task-grant-volume-denied = ["native-task-grant-volume"]
 # K05 process management: supervisor/worker/client ELFs, spawn/kill/status.
 native-supervisor = ["milestone-m4"]
 test-supervisor-crash = ["native-supervisor"]

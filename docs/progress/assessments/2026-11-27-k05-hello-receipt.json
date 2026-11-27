@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "2d0d2d517d463c510b29ca69a6dea841606c2b88",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/k05-hello-receipt-20261127",
+  "task": "K-R02-C3 prerequisite / #530: the K05 denied-mode client waits for a HELLO receipt before it exits",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The denied-mode client of the K05 supervisor example sent CLIENT_HELLO with its reply cap and exited at once; Engine::exit revokes that in-flight cap and maintain() drops the queued HELLO, so the supervisor timed out (raw 35) once syscalls continue within the quantum (R02-C3, #602). The race was latent on main in the SMP variant. The supervisor now sends a capless DONE receipt on the reply cap and the client waits for it (bounded, yielding) before exiting. Local evidence on main 2d0d2d51 plus this change: tools/test_supervisor.py gate passed with 6/6 cases raw 33, and the --smp gate passed with 6/6 raw 33. No workflow runs the SMP variant. No criterion changes."
+}
