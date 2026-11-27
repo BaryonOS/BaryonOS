@@ -1,15 +1,8 @@
-# BaryonOS documentation maintenance delegation
+# Claude compatibility adapter for documentation
 
-The repository already contains canonical contracts, current status, decisions,
-version-bound evidence and the reviewable public Wiki source in `docs/wiki/`. Their
-authority and existing structure remain unchanged.
+The model-independent documentation rules are in
+[`docs/project-docs/AGENTS.md`](project-docs/AGENTS.md). Start at
+[`docs/project-docs/index.md`](project-docs/index.md) and load only the relevant pages.
 
-The lightweight LLM-maintained navigation layer lives in
-[`docs/project-docs/`](project-docs/). Its page format, source binding, reading order
-and maintenance workflow are defined in
-[`docs/project-docs/CLAUDE.md`](project-docs/CLAUDE.md). Start at
-[`docs/project-docs/index.md`](project-docs/index.md).
-
-docs-mode: grow
-
-release-commands:
+Canonical contracts, status, decisions, evidence and the public Wiki retain their
+existing authority. This adapter exists only for clients that discover `CLAUDE.md`.

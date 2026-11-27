@@ -50,9 +50,26 @@ resume.
   Lead-owned files (`docs/DECISIONS.md`, `docs/PROJECT-STATE.md`,
   `docs/progress.json`, generated views) change only with the owner-decision
   source in the pull-request body.
-- **Repository state:** `BaryonOS/BaryonOS`, `main` at `ae0fbd5a` (#603).
-  This file changes on branch `claude/r02-handoff-portability-20261127`; no
-  other R branch carries unmerged or uncommitted work.
+- **Repository state:** `BaryonOS/BaryonOS`, `main` at `4c83f304` (#615).
+  This file changes on branch `claude/r02-progress-rows-20261127`; no other R
+  branch carries unmerged or uncommitted work.
+- **Project rules (project owner, 27 November 2026):** every R pull request,
+  documentation and handoff pull requests included, carries its labels,
+  milestone, Project #5 fields, a `Refs #530` link, a D3 assessment in
+  `docs/progress/assessments/<date>-<slug>.json` and, in its body, the
+  criteria it touches and the evidence behind any progress claim; a merge is
+  not acceptance. As criterion owner, R keeps the `delivery_review` rows of
+  R01–R03 in `docs/progress.json` current without separate permission: own
+  rows only, rubric, weights and acceptance unchanged, date and commit in the
+  row text, the global snapshot `date` and `source_commit` untouched, then
+  `python3 tools/progress.py --write` and `--check`. Evidence files that are
+  absent at that `source_commit` are cited as GitHub blob URLs pinned to a
+  `main` commit that contains them; relative paths would render as broken
+  links. Formal criterion acceptance and every score increase belong to the
+  PR guard (project owner, 27 November 2026, 13:14:07Z). Once all acceptance
+  conditions of an R criterion are met and the required independent
+  verification is complete, R reports the criterion ID and evidence links to
+  the guard; R never changes the score itself.
 - **Decisions and sources:**
   - Materiaal RX code budget 176 KiB (`0x2C000`): project owner, 26 November
     2026, recorded in #530 issuecomment-7204938267 and reconfirmed in #603
@@ -87,10 +104,10 @@ resume.
   hosted worst reply latency is an estimate (about 20 ticks). #545 (U): probe
   observation gap behind rare `calculator-restored` timeouts. Owner question:
   R02-L1 budget values. Lead question: ADR in-place edit or amendment.
-- **Next safe action:** confirm that the pull request carrying this file has
-  landed. Then wait until K has finished the #602 A/B and released the shared
-  QEMU slot (K posts on #530 or #602), announce R's slot on #530, re-baseline
-  five KVM window sessions on the new `main` in a new
+- **Next safe action:** #602 is on hold (#602 issuecomment-7218963989), so
+  the re-baseline waits. When #602 lands or is withdrawn and K has released
+  the shared QEMU slot (K posts on #530 or #602), announce R's slot on #530,
+  re-baseline five KVM window sessions on the new `main` in a new
   `docs/verification/r02-*-<date>/` directory and rank the next bottleneck.
 - **Acceptance commands and evidence limits:** the `host-checks` and
   `native-window-session` jobs in `.github/workflows/native-window-session.yml`;

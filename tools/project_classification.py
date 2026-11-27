@@ -16,6 +16,11 @@ Open issues and pull requests of the repository that are missing from the
 project are added (bounded per run). Nothing is added when the project scan was
 truncated, so the dry-run and apply outputs stay exact. No issue, PR, label or
 milestone is modified.
+
+Afterwards a read-only PR hygiene report lists open pull requests that miss a
+per-PR integrity duty of docs/handoffs/README.md (labels, milestone, issue link,
+D3 assessment file). It only reports: it never changes the exit code, and it
+prints pull request numbers and fixed rule names, never PR text.
 """
 
 import argparse
@@ -140,6 +145,27 @@ query($owner: String!, $name: String!, $cursor: String) {
   }
 }
 """
+
+HYGIENE_QUERY = """
+query($owner: String!, $name: String!, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    %s(states: OPEN, first: 50, after: $cursor) {
+      pageInfo { hasNextPage endCursor }
+      nodes {
+        number title isDraft body
+        author { __typename }
+        milestone { number }
+        labels(first: 50) { totalCount nodes { name } }
+        files(first: 100) { totalCount nodes { path } }
+      }
+    }
+  }
+}
+"""
+# Per-PR integrity duties 2, 4 and 7 (docs/handoffs/README.md); Closes/Fixes/Resolves also link.
+LINK_PATTERN = re.compile(
+    r"\b(?:refs|part of|closes|fixes|resolves)\s+(?:[\w.-]+/[\w.-]+)?#\d+", re.IGNORECASE)
+ASSESSMENT_PATTERN = re.compile(r"docs/progress/assessments/[^/]+\.json")
 
 UPDATE_QUERY = """
 mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
@@ -280,6 +306,56 @@ def missing_content(project_content_ids, open_items):
     return missing
 
 
+def pr_hygiene(node):
+    """Per-PR duties an open pull request misses: (missing rule names, unknown rule names).
+
+    Bot pull requests are exempt. CI pull requests (a ``ci`` title type or the CI/CD
+    subsystem) need no milestone. A cut-off file list leaves the assessment unknown.
+    """
+    if (node.get("author") or {}).get("__typename") == "Bot":
+        return [], []
+    title = node.get("title") or ""
+    labels = node.get("labels") or {}
+    names = [n["name"] for n in labels.get("nodes") or [] if n]
+    match = TITLE_PATTERN.match(title)
+    ci = bool(match) and match.group(1).lower() == "ci" or \
+        classify(title, names).get("Subsystem") == "CI/CD"
+    missing, unknown = [], []
+    if not labels.get("totalCount"):
+        missing.append("labels")
+    if not node.get("milestone") and not ci:
+        missing.append("milestone")
+    if not LINK_PATTERN.search(node.get("body") or ""):
+        missing.append("link")
+    files = node.get("files") or {}
+    paths = [f["path"] for f in files.get("nodes") or [] if f]
+    found = any(ASSESSMENT_PATTERN.fullmatch(p) for p in paths)
+    if not found and files and files.get("totalCount") == len(paths):
+        missing.append("assessment")
+    elif not found:  # the file list was cut off or not returned
+        unknown.append("assessment")
+    return missing, unknown
+
+
+def report_hygiene(token, repo):
+    """Print the PR hygiene report; any failure becomes one warning, never an exit code."""
+    try:
+        nodes = list(open_content(token, repo, "pullRequests", HYGIENE_QUERY))
+        flagged = 0
+        for node in sorted(nodes, key=lambda n: n["number"]):
+            missing, unknown = pr_hygiene(node)
+            if missing or unknown:
+                flagged += bool(missing)
+                draft = " (draft)" if node.get("isDraft") else ""
+                parts = [f"missing {', '.join(missing)}"] if missing else []
+                parts += [f"unknown {', '.join(unknown)}"] if unknown else []
+                print(f"PR hygiene #{int(node['number'])}{draft}: {'; '.join(parts)}")
+        print(f"::warning::PR hygiene: {flagged} of {len(nodes)} open pull requests miss a "
+              "per-PR duty (report only; docs/handoffs/README.md).")
+    except Exception as exc:  # report only: never fail the classification run
+        print(f"::warning::PR hygiene report skipped ({type(exc).__name__}).")
+
+
 def graphql(token, query, variables):
     req = request.Request(
         "https://api.github.com/graphql",
@@ -303,12 +379,12 @@ def graphql(token, query, variables):
     return result["data"]
 
 
-def open_content(token, repo, connection):
+def open_content(token, repo, connection, query=OPEN_CONTENT_QUERY):
     """Yield open issues or pull requests of one repository, bounded."""
     owner, name = repo.split("/", 1)
     cursor, count = None, 0
     while True:
-        data = graphql(token, OPEN_CONTENT_QUERY % connection,
+        data = graphql(token, query % connection,
                        {"owner": owner, "name": name, "cursor": cursor})
         repository = data.get("repository")
         if repository is None:
@@ -413,13 +489,15 @@ def main():
                   "Project synchronisation skipped.")
             return 0
         parser.error("BARYON_PROJECTS_TOKEN is required (Projects read/write permission)")
+    code = 0
     try:
         run(token, args.organization, args.repository, args.project, args.limit,
             args.apply, add_missing=not args.no_add_missing)
     except (RuntimeError, error.URLError, KeyError, TypeError) as exc:
         print(f"Project classification failed: {exc}", file=sys.stderr)
-        return 1
-    return 0
+        code = 1
+    report_hygiene(token, args.repository)
+    return code
 
 
 if __name__ == "__main__":
