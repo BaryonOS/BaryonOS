@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "d5022f9b4977044d2b6d4fb12cb0acb1a5b2209d",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "claude/l01-qsim-checkpoint-yield-20261126",
+  "task": "R02-C3 D4: the native qsim job yields on EAGAIN in its checkpoint before C3 lets callers continue after a system call",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The native qsim job's checkpoint now yields when its request endpoint is empty, so under the planned C3 continuation scheduler a client Cancel sent right after Submit can still be received before the job finishes. On the current kernel this only adds one switch per checkpoint; native-qsim-job passes with raw QEMU exit 33. The race was derived from source, not reproduced. No criterion is completed: C3 itself is not implemented."
+}

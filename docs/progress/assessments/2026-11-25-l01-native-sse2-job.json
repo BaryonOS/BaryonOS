@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "ebdbf303d2db6c5a417aa3a52a5c77d5ca5ecb17",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/l01-native-ai-job-20261125",
+  "task": "L01: first native ring-3 SSE2 AI job (tiny two-layer decoder fixture) under the existing eager FXSAVE64 context, with an allowlist instruction gate and Warden review fixes (#538)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. L01 stays open: native evidence covers only a tiny generated decoder fixture in QEMU TCG on one CPU (bit-identical to the host oracle across preemption and slot reuse); no Qwen inference, tokenizer, network-denial probe, task quality, SMP or sleep/wake acceptance."
+}

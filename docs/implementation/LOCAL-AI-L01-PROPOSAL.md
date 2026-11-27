@@ -3,7 +3,9 @@
 **APPROVED by the project owner on 25 November 2026** for the first experiment: the
 task set, the Qwen2.5-0.5B-Instruct pin, the Candle route and the initial 2 GiB VM
 budget. These limits apply to the first experiment only and are not permanent
-product limits. CPU/SIMD features remain outside this approval.
+product limits. On the same day the project owner approved SSE2 hardware floating
+point for the native ring-3 AI process as the initial accelerated baseline (not a
+ceiling); see "Numeric profile" below.
 Baseline main `69d82075`.
 
 ## Preserve the existing candidate and authority path
@@ -38,8 +40,8 @@ The [Candle primary project](https://github.com/huggingface/candle) is a Rust
 reference-engine candidate (MIT OR Apache-2.0), not a demonstrated no_std/Baryon
 port. Pin/review a release, selected features, build scripts, tokenizer and CPU
 requirements before any host reference build. A native route additionally needs
-a bounded allocator and supported numeric/runtime operations; no CPU/SIMD or
-permission expansion is authorized here. Do not replace the OS with a host/Linux
+a bounded allocator and supported numeric/runtime operations; SSE2 is the only
+approved CPU extension and no permission expansion is authorized here. Do not replace the OS with a host/Linux
 runtime or implement an unreviewed model engine merely to obtain a demo.
 
 ## Proposed VM-AI resource bounds
@@ -75,7 +77,28 @@ by the inference process. No prompt or model output creates permissions, invokes
 shell or enrolls a helper. Capability-absence denial must be tested on the native
 kernel; a host boolean or disconnected mock is insufficient.
 
-**OWNER DECISIONS:** approved 25 November 2026 (see top); the supported numeric
-profile (soft-float versus SSE in the AI process) remains open. Native
+## Numeric profile
+
+Owner decision, 25 November 2026: SSE2 hardware floating point is approved for the
+native ring-3 AI process. Conditions:
+
+- Reuse the existing eager FXSAVE64/FXRSTOR64 context management (ADR-045,
+  `fpu-context`), including initialization, register isolation and secure cleanup.
+  No new FPU mechanism, and no floating point in kernel code.
+- Verify state preservation across scheduling, preemption, IPC, blocking, interrupts,
+  process termination and slot reuse. Enable SMP and sleep/wake combinations only
+  after their own verification.
+- Verify CPU feature availability and compiler-generated instructions. AVX, AVX2,
+  AVX-512 and FMA stay disabled until context management supports and verifies them.
+- Measure native performance, numerical correctness, latency, memory and desktop
+  responsiveness. A soft-float comparison is optional, used only when it adds evidence.
+
+Implementation route: `x86_64-unknown-none` is a soft-float target, and enabling
+SSE there is being phased out by rustc. The AI job therefore builds for the
+hard-float `x86_64-unknown-linux-gnu` ABI (x86-64 baseline: SSE/SSE2 only) as a
+freestanding static ELF without libc or Linux syscalls. An allowlist gate inspects
+the linked ELF. See [the native job](../../experiments/ai/native-job/README.md).
+
+**OWNER DECISIONS:** approved 25 November 2026 (see top and the numeric profile). Native
 inference, usability/Dutch-quality tests, hardware and external review are NOT RUN.
 L01 remains open and the roadmap score stays 41/100.

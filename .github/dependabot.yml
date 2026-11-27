@@ -12,6 +12,18 @@ updates:
       - dependencies
     commit-message:
       prefix: "chore(actions)"
+  - package-ecosystem: rust-toolchain
+    directory: /
+    schedule:
+      interval: weekly
+      day: wednesday
+      time: "06:00"
+      timezone: Europe/Amsterdam
+    open-pull-requests-limit: 1
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "chore(toolchain)"
   - package-ecosystem: cargo
     directory: /
     schedule:
@@ -52,6 +64,7 @@ updates:
       - /experiments/ai/candle-oracle
       - /experiments/ai/model-format
       - /experiments/ai/model-store-contract
+      - /experiments/ai/native-job
       - /experiments/ai/reference-forward
       - /experiments/quantum/job-protocol
       - /experiments/quantum/native
