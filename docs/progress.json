@@ -702,7 +702,7 @@
               "kernel/src/m2/iommu.rs",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
               "docs/verification/issue42-native-input-20261114/README.md",
-              "docs/verification/h02-usb-refusal-20261125/README.md"
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h02-usb-refusal-20261125/README.md"
             ]
           }
         ]
@@ -815,7 +815,7 @@
               "docs/verification/h04-native-link-20261119/README.md",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768805",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933",
-              "docs/DECISIONS.md"
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/DECISIONS.md"
             ]
           }
         ]
@@ -870,9 +870,9 @@
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502229",
               "docs/verification/h05-s3-reinit-20261123/README.md",
               "docs/verification/h05-s3-held-completion-20261123/README.md",
-              "docs/verification/h05-s3-blk-reinit-20261125/README.md",
-              "docs/verification/h05-t5d-t-20261127/README.md",
-              "docs/verification/h05-s3-noscrub-20261127/README.md"
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h05-s3-blk-reinit-20261125/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h05-t5d-t-20261127/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h05-s3-noscrub-20261127/README.md"
             ]
           },
           {
@@ -918,7 +918,7 @@
               "docs/drivers/physical-protocols.json",
               "tools/hw_evidence.py",
               "docs/roadmap-pipeline/ledger.json",
-              "docs/verification/h06-exact-markers-20261124/README.md"
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h06-exact-markers-20261124/README.md"
             ]
           },
           {
