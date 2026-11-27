@@ -4,7 +4,7 @@ use nieuw_os_materiaal::{
     controller::{Error as UiError, Focus, Screen, Status, View},
     design,
     desktop::{Desktop, Page, Target},
-    render::{status_label, Frame, Layout, Role, SemanticId, SemanticNode},
+    render::{compact_status_label, status_label, Frame, Layout, Role, SemanticId, SemanticNode},
     Scale, Viewport, TILE_HEIGHT, TILE_PIXELS, TILE_WIDTH,
 };
 
@@ -583,7 +583,12 @@ fn assert_status_fits(state: View<'_>, x: u32, floor: u32) {
         view.status = status;
         let frame = Frame::new(view);
         let area = frame.status_area();
-        let label = status_label(status);
+        let label = frame.status_text();
+        // Compact copy only where the rect cannot grow (ADR-U-OWNER-20261127).
+        assert!(
+            label == status_label(status) || area == base,
+            "{status:?}: compact copy although the status could grow"
+        );
         let lines = wrapped_lines(
             label,
             viewport.logical_width() - x - design::PAD,
@@ -611,6 +616,10 @@ fn assert_status_fits(state: View<'_>, x: u32, floor: u32) {
             .find(|n| n.id == SemanticId::Status)
             .unwrap();
         assert_eq!(node.bounds, area.physical(viewport.scale()), "{at}");
+        assert_eq!(
+            node.label, label,
+            "{at}: announced text differs from painted"
+        );
         let rendered = image(&frame, width, height);
         let top = area.y.min(base.y).saturating_sub(8) * factor;
         for (index, (before, after)) in baseline.iter().zip(&rendered).enumerate() {
@@ -696,5 +705,190 @@ fn sr11_status_keeps_its_rect_where_no_space_is_free() {
             Frame::new(state).status_area(),
             Layout::for_screen(viewport, Screen::Material).status
         );
+    }
+}
+
+fn every_status() -> impl Iterator<Item = Status> {
+    [
+        Status::Ready,
+        Status::ReadOnly,
+        Status::Opened,
+        Status::Dirty,
+        Status::Saving {
+            completed: 1,
+            total: 2,
+        },
+        Status::Saved { revision: 2 },
+        Status::Cancelled,
+        Status::Renamed,
+        Status::Organized { revision: 2 },
+        Status::Restored { revision: 2 },
+        Status::RestoreRefreshFailed { revision: 2 },
+        Status::NeedsSave,
+        Status::PreviewUnavailable,
+        Status::CollectionSavedAssignmentFailed,
+        Status::InputLost,
+        Status::ClipboardCopied,
+        Status::ClipboardEmpty,
+        Status::ClipboardSelection,
+        Status::ClipboardTooLong,
+        Status::ClipboardUnavailable,
+    ]
+    .into_iter()
+    .chain(failures())
+}
+
+/// Logical 320 (100 % and 200 %) is the narrowest status; 700 and 720 cover
+/// the widths just below and at the sidebar break.
+fn compact_viewports() -> impl Iterator<Item = Viewport> {
+    (240..360).flat_map(|h| {
+        [
+            (320, h, Scale::Percent100),
+            (640, 2 * h, Scale::Percent200),
+            (700, h, Scale::Percent100),
+            (720, h, Scale::Percent100),
+        ]
+        .map(|(w, h, s)| Viewport::new(w, h, s, 1).unwrap())
+    })
+}
+
+/// UX-SR11 (ADR-U-OWNER-20261127): on every screen and compact height, every
+/// status is fully painted inside the viewport, and the screen reader gets the
+/// painted text. The full label is kept wherever it fits.
+#[test]
+fn sr11_every_status_fits_on_every_compact_screen() {
+    let objects = [ListEntry::EMPTY; 1];
+    for viewport in compact_viewports() {
+        for screen in [
+            Screen::Material,
+            Screen::Editor,
+            Screen::Rename,
+            Screen::Organize,
+            Screen::History,
+            Screen::Filter,
+        ] {
+            for status in every_status() {
+                let mut state = view(viewport, &objects);
+                state.screen = screen;
+                state.status = status;
+                if screen != Screen::Material {
+                    state.focus = Focus::Document;
+                    state.contents = Some("Tekst");
+                }
+                let frame = Frame::new(state);
+                let (text, area) = (frame.status_text(), frame.status_area());
+                let x = if screen == Screen::Material {
+                    frame.layout().status.x
+                } else {
+                    design::PAD
+                };
+                let width = viewport.logical_width() - x - design::PAD;
+                let lines = wrapped_lines(text, width, viewport.scale());
+                let at = format!(
+                    "{}x{} {:?} {screen:?} {status:?}",
+                    viewport.width(),
+                    viewport.height(),
+                    viewport.scale()
+                );
+                assert!(lines * design::LINE_HEIGHT <= area.height, "{at}: clipped");
+                assert!(area.y + area.height <= viewport.logical_height(), "{at}");
+                assert!(
+                    text == status_label(status) || area == frame.layout().status,
+                    "{at}: compact copy although the status could grow"
+                );
+                if matches!(screen, Screen::Material | Screen::Editor) {
+                    let mut nodes = [SemanticNode::EMPTY; 64];
+                    let count = frame.semantics(&mut nodes).unwrap();
+                    let node = nodes[..count]
+                        .iter()
+                        .find(|n| n.id == SemanticId::Status)
+                        .unwrap();
+                    assert_eq!(node.label, text, "{at}");
+                    assert_eq!(node.bounds, area.physical(viewport.scale()), "{at}");
+                }
+            }
+        }
+    }
+}
+
+/// UX-SR07 holds for the compact copy too, and every compact label fits one
+/// line of the narrowest status width.
+#[test]
+fn sr07_compact_copy_stays_distinct_and_fits_one_line() {
+    use volume_core::Status as V;
+    let compact = |error| compact_status_label(Status::Failed(UiError::Storage(error)));
+    let distinct = [
+        compact(StorageError::Service(V::Full)),
+        compact(StorageError::Service(V::Quota)),
+        compact(StorageError::Service(V::Io)),
+        compact(StorageError::Service(V::Access)),
+        compact(StorageError::Uncertain),
+        compact(StorageError::Conflict),
+    ];
+    for (index, label) in distinct.iter().enumerate() {
+        assert!(!distinct[..index].contains(label), "{label:?} repeats");
+    }
+    for status in every_status() {
+        for scale in [Scale::Percent100, Scale::Percent200] {
+            let label = compact_status_label(status);
+            assert_eq!(wrapped_lines(label, 272, scale), 1, "{status:?}: {label:?}");
+        }
+    }
+}
+
+/// The save-progress bar is drawn inside the viewport and clear of the status
+/// text: only its 4 px band differs between two progress values.
+#[test]
+fn sr11_save_progress_bar_stays_inside_the_viewport() {
+    let objects = [ListEntry::EMPTY; 1];
+    for (width, height, scale) in COMPACT.iter().chain(&[(800, 600, Scale::Percent100)]) {
+        let viewport = Viewport::new(*width, *height, *scale, 1).unwrap();
+        for screen in [Screen::Material, Screen::Editor] {
+            let mut state = view(viewport, &objects);
+            state.screen = screen;
+            if screen == Screen::Editor {
+                state.focus = Focus::Document;
+                state.contents = Some("Tekst");
+            }
+            let saving = |completed| {
+                let mut state = state;
+                state.status = Status::Saving {
+                    completed,
+                    total: 2,
+                };
+                state
+            };
+            let (empty, half) = (Frame::new(saving(0)), Frame::new(saving(1)));
+            let (empty_image, half_image) = (
+                image(&empty, *width, *height),
+                image(&half, *width, *height),
+            );
+            let base = half.layout().status;
+            let area = half.status_area();
+            let bar = if base.height >= design::LINE_HEIGHT + 4 {
+                base.y + design::LINE_HEIGHT
+            } else {
+                area.y - 8
+            };
+            let at = format!("{width}x{height} {screen:?}");
+            assert!(bar + 4 <= viewport.logical_height(), "{at}: bar off screen");
+            let text_lines = wrapped_lines(half.status_text(), area.width, *scale);
+            let text = area.y..area.y + text_lines * design::LINE_HEIGHT;
+            assert!(!text.contains(&bar) && !text.contains(&(bar + 3)), "{at}");
+            let factor = scale.factor();
+            let rows: Vec<u32> = empty_image
+                .iter()
+                .zip(&half_image)
+                .enumerate()
+                .filter(|(_, (a, b))| a != b)
+                .map(|(index, _)| index as u32 / width)
+                .collect();
+            assert!(!rows.is_empty(), "{at}: progress bar not drawn");
+            assert!(
+                rows.iter()
+                    .all(|y| (bar * factor..(bar + 4) * factor).contains(y)),
+                "{at}: progress changed pixels outside its band"
+            );
+        }
     }
 }

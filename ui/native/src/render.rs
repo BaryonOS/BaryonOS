@@ -425,16 +425,38 @@ impl<'a> Frame<'a> {
     /// provably ends above it (UX-SR11); other screens keep the layout rect,
     /// so one-line statuses paint exactly as before.
     pub fn status_area(&self) -> Rect {
+        self.status_area_for(self.status_text())
+    }
+    /// Painted and announced status text: the full label where it fits its
+    /// area, else the one-line compact copy (ADR-U-OWNER-20261127), so a
+    /// status is never clipped below the viewport.
+    pub fn status_text(&self) -> &'static str {
+        let full = status_label(self.view.status);
+        let width = self
+            .view
+            .viewport
+            .logical_width()
+            .saturating_sub(self.status_x() + d::PAD);
+        let needed = wrapped_lines(full, width, self.view.viewport.scale()) * d::LINE_HEIGHT;
+        if needed <= self.status_area_for(full).height {
+            full
+        } else {
+            compact_status_label(self.view.status)
+        }
+    }
+    fn status_x(&self) -> u32 {
+        if self.view.screen == Screen::Material {
+            self.layout.status.x
+        } else {
+            d::PAD
+        }
+    }
+    fn status_area_for(&self, label: &str) -> Rect {
         let (layout, view) = (self.layout, self.view);
         let base = layout.status;
         let width = |x: u32| view.viewport.logical_width().saturating_sub(x + d::PAD);
         let lines = |label, width| wrapped_lines(label, width, view.viewport.scale());
-        let status_x = if view.screen == Screen::Material {
-            base.x
-        } else {
-            d::PAD
-        };
-        let needed = lines(status_label(view.status), width(status_x)) * d::LINE_HEIGHT;
+        let needed = lines(label, width(self.status_x())) * d::LINE_HEIGHT;
         if needed <= base.height {
             return base;
         }
@@ -990,11 +1012,7 @@ impl<'a> Frame<'a> {
                 }
             }
         }
-        let status_x = if self.view.screen == Screen::Material {
-            layout.status.x
-        } else {
-            d::PAD
-        };
+        let status_x = self.status_x();
         let status_width = viewport.logical_width() - status_x - d::PAD;
         let status_y = self.status_area().y;
         paint.fill(
@@ -1009,7 +1027,7 @@ impl<'a> Frame<'a> {
         paint.wrapped(
             status_x,
             status_y,
-            status_label(self.view.status),
+            self.status_text(),
             status_width,
             if matches!(self.view.status, Status::Failed(_)) {
                 paint.danger()
@@ -1023,10 +1041,18 @@ impl<'a> Frame<'a> {
             } else {
                 ((layout.status.width as u64 * completed.min(total) as u64) / total as u64) as u32
             };
+            // The bar takes the rect's second line where it has one; a compact
+            // one-line rect has none, so it takes the divider band above the
+            // text (UX-SR11: inside the viewport, clear of the text).
+            let bar_y = if layout.status.height >= d::LINE_HEIGHT + 4 {
+                layout.status.y + d::LINE_HEIGHT
+            } else {
+                status_y.saturating_sub(8)
+            };
             paint.fill(
                 Rect {
                     x: layout.status.x,
-                    y: layout.status.y + 24,
+                    y: bar_y,
                     width: layout.status.width,
                     height: 4,
                 },
@@ -1035,7 +1061,7 @@ impl<'a> Frame<'a> {
             paint.fill(
                 Rect {
                     x: layout.status.x,
-                    y: layout.status.y + 24,
+                    y: bar_y,
                     width,
                     height: 4,
                 },
@@ -1264,7 +1290,7 @@ impl<'a> Frame<'a> {
                 id: SemanticId::Status,
                 parent: Some(SemanticId::Window),
                 role: Role::Status,
-                label: status_label(self.view.status),
+                label: self.status_text(),
                 bounds: self.status_area().physical(self.view.viewport.scale()),
                 enabled: true,
                 ..SemanticNode::EMPTY
@@ -1728,7 +1754,7 @@ impl<'a> Frame<'a> {
             SemanticId::Status,
             Some(SemanticId::Window),
             Role::Status,
-            status_label(self.view.status),
+            self.status_text(),
             None,
             self.status_area(),
             None,
@@ -1933,7 +1959,44 @@ pub fn status_label(status: Status) -> &'static str {
         Status::Failed(UiError::Storage(S::Service(volume_core::Status::Io))) => {
             "Lezen of opslaan mislukt. Er is niets bevestigd."
         }
-        Status::Failed(_) => "Handeling mislukt. Je tekst blijft open.",
+        Status::Failed(_) => FAILED,
+    }
+}
+const FAILED: &str = "Handeling mislukt. Je tekst blijft open.";
+
+/// One-line copy for a status rect with no room to wrap (ADR-U-OWNER-20261127):
+/// the same facts and recovery route as `status_label`, at most 272 logical
+/// px wide (the narrowest status width). Full, Quota, I/O and the generic
+/// failure stay distinct (UX-SR07). Labels that already fit map to themselves.
+pub fn compact_status_label(status: Status) -> &'static str {
+    use nieuw_os_document_session::volume::Error as S;
+    use volume_core::Status as V;
+    match status {
+        Status::Restored { .. } => "Hersteld als nieuwe revisie.",
+        Status::RestoreRefreshFailed { .. } => "Hersteld; heropen voor je bewerkt.",
+        Status::Renamed => "Naam gewijzigd; nog bewaren.",
+        Status::NeedsSave => "Bewaar eerst, of bewerk verder.",
+        Status::CollectionSavedAssignmentFailed => "Niet verplaatst; heropen en orden.",
+        Status::PreviewUnavailable => "Geen preview; niets hersteld.",
+        Status::Cancelled => "Opslaan gestopt. Tekst blijft open.",
+        Status::InputLost => "Invoer onderbroken; tekst open.",
+        Status::ClipboardTooLong => "Selectie te groot voor klembord.",
+        Status::ClipboardUnavailable => "Klembordfout. Probeer opnieuw.",
+        Status::Failed(UiError::InvalidUtf8) => "Geen geldige UTF-8-tekst.",
+        Status::Failed(UiError::NoFreeObject) => "Geen ruimte voor nieuw document.",
+        Status::Failed(UiError::Storage(S::ReadOnly)) => "Alleen lezen: wijzigen kan niet.",
+        Status::Failed(UiError::Storage(S::ContentTooLarge)) => "Tekst past niet in de ruimte.",
+        Status::Failed(UiError::Storage(S::Conflict)) => "Nieuwe versie. Je tekst blijft open.",
+        Status::Failed(UiError::Storage(S::Closed)) => "Opslag verbroken. Tekst blijft open.",
+        Status::Failed(UiError::Storage(S::Service(V::Full))) => "Vol: niet bewaard. Tekst open.",
+        Status::Failed(UiError::Storage(S::Service(V::Quota))) => {
+            "Quotum: niet bewaard. Tekst open."
+        }
+        Status::Failed(UiError::Storage(S::Service(V::Io))) => {
+            "Lees- of opslagfout. Niets bevestigd."
+        }
+        _ if status_label(status) == FAILED => "Mislukt. Je tekst blijft open.",
+        _ => status_label(status),
     }
 }
 enum ButtonStyle {
