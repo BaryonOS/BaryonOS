@@ -647,6 +647,16 @@ jobs:
           for problem in problems[:50]:
               print(f"- {json.dumps(problem)}")
           PY
+      - name: Report progress row changes (advisory, never a gate)
+        # CI-PROG-1 P1 (owner, 27 Nov 2026). pull_request only: a merge_group diff also holds the
+        # queue entries ahead. The merge ref's first parent is the base. Findings warn; never fails.
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        run: |
+          base="$(git rev-parse HEAD^1)" || exit 0
+          echo "### Progress rows" >> "$GITHUB_STEP_SUMMARY"
+          if ! python3 -B -I tools/progress.py --check-rows --base "$base" >> "$GITHUB_STEP_SUMMARY"; then
+            echo "::warning title=Progress rows (advisory)::Row findings for the PR guard; see the job summary."
+          fi
       - name: Preserve the CI impact plan
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
