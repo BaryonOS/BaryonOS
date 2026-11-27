@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "07c39a3a6dc0211acc97a71c9b1a945e3de0f73c",
+  "assessment_basis": "parent_commit",
+  "branch": "h04-txdown-adr-amend",
+  "task": "H04-TXDOWN: amendment of ADR-H04-LINK-20261119 for a TX completed across a link edge (-27), docs only (#600)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Docs-only design decision: -27 TX_EDGE for a TX whose completion poll_tx collects in a later kernel link epoch than its publication. N reviewed it (GO on the text). Nothing is implemented, so no runtime behaviour is accepted. TXDOWN-1, TXDOWN-2 and the control case are NOT RUN. G3 (epoch leak on physical NICs) stays a recorded residual. H04 stays open: no in-flight TX case runs natively, no physical NIC, no human audit."
+}

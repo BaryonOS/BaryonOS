@@ -1858,8 +1858,10 @@ must keep its `.text` and `.data` byte-identical.
    edge. The existing cases expect `window_delta` 0 because QEMU 8.2 delivers
    no RX while the link is down. An RX completion inside a down window would
    therefore show as a nonzero `window_delta` rather than be hidden.
-   Apart from these two paths, a down window allows no TX publication, no
-   RX delivery and no other counter change. Further revisit triggers: a -27 outside
+   The existing -23 refusals (decision 2) also stay allowed: each refused
+   `0x70` or `0x72` increases `tx_refused` or `rx_refused` and `denied` by
+   one. Apart from these three paths, a down window allows no TX publication,
+   no RX delivery and no other counter change. Further revisit triggers: a -27 outside
    `test-system-net-link*`, and a -27 counted in `denied`.
 6. **Epoch leak, recorded residual (G3).** A physical device that holds TX
    across down and then up could emit an epoch-N frame on the link of epoch N+1,
