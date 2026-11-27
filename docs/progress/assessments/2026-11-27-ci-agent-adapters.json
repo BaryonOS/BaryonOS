@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "3009755beedc3cd98605d3a8a2e2f6441ba2ae5b",
+  "assessment_basis": "parent_commit",
+  "branch": "ci/agent-adapters-20261127",
+  "task": "CI-C1..C3 and X-C1 (#494): tools/agent_adapters.py generates the Claude, Codex and Copilot adapters of the thirteen specialist role contracts of #611 with a fail-closed tool-class mapping (builder: Copilot read/search/edit/execute plus read-only Graphify without remember; coordinator: no Copilot profile; any other or missing class is an error); drift, protection and fail-closed tests in tools/tests/test_agent_governance.py; copilot-setup-steps.yml installs the toolchain once; docs/handoffs/CI/CURRENT.md refresh.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Agent adapter generation, CI setup and handoff text only; no product criterion, native acceptance evidence or human audit changes. The generated Copilot profiles are untested on the Copilot platform; the Claude and Codex adapters carry instructions only, not an enforced tool limit. First introduction of these agent permission profiles: D2 plus owner review before enqueue (G, 27 Nov 2026). A merge is not acceptance."
+}
