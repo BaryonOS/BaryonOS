@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Summarise the R02 tick-split diagnostic (local, KVM, 10 ms ticks)."""
-import json, re, sys
+import json, os, re, sys
 from pathlib import Path
-O = Path.home() / "projects/BaryonOS-scratch/r/diag-tick/out"
+O = Path(os.environ.get("R02_OUTPUT_DIR", Path.home() / "projects/BaryonOS-scratch/r/diag-tick/out"))
 B = ["AWAY", "LOOP", "INPUT", "RENDER", "SEND", "REPLY", "TAIL"]
 def last(raw, prefix):
     blocks = re.findall(re.escape(prefix + "SNAPSHOT:BEGIN\n") + r"(.*?)" + re.escape(prefix + "SNAPSHOT:END\n"), raw, re.S)
@@ -13,15 +13,18 @@ def last(raw, prefix):
     return {}
 meta = (O / "meta.txt").read_text()
 rows = []
+missing = False
 for run in ["D1", "M1", "M2", "D2", "D3", "M3"]:
     rep = O / f"report-{run}.json"
     if not rep.exists():
+        print(f"{run}: MISSING report {rep}", file=sys.stderr)
+        missing = True
         continue
     r = json.loads(rep.read_text())
     exit_line = re.search(rf"{run} exit (\d+)", meta)
     row = {"run": run, "exit": exit_line[1] if exit_line else "?", "passed": r.get("passed"), "raw": r.get("raw_qemu_exit"),
            "duration": round(r.get("duration_s", 0), 2), "cpu": round(sum(r.get("qemu_host_cpu", {}).get(k, 0) for k in ("user_seconds", "system_seconds")), 2)}
-    rd = re.search(rf"{run} rundir (\S+)", meta)
+    rd = re.search(rf"{run} rundir ([^\n]+)", meta)
     serial = None
     if rd:
         for p in Path(rd[1]).rglob("*"):
@@ -45,3 +48,6 @@ for row in rows:
     if c:
         print(f"  compositor full spans {c['DIAG_CF_COUNT']}: away {c['DIAG_CF_AWAY']} top {c['DIAG_CF_TOP']} ingress {c['DIAG_CF_INGRESS']} tail {c['DIAG_CF_TAIL']} ticks; commits {c['DIAG_CF_COMMITS']} turns {c['DIAG_CF_TURNS']}")
         print(f"  compositor run totals: away {c['DIAG_CT_AWAY']} top {c['DIAG_CT_TOP']} ingress {c['DIAG_CT_INGRESS']} tail {c['DIAG_CT_TAIL']} turns {c['DIAG_CT_TURNS']}")
+
+if missing:
+    sys.exit(1)
