@@ -1593,6 +1593,19 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                        'git cat-file blob "$base:tools/merge_hold.py"',
                        'git cat-file blob "$base:tools/ci_impact.py"', 'set -euo pipefail'):
             self.assertIn(needle.replace('"$second"', '"${second:-}"'), load["run"])
+        # merge_group (ADR-CI-MERGE-GROUP-SELECT-20261126): the base files come from T, the merge base of
+        # the queue commit and freshly fetched main, never from merge_group.base_sha (an unlanded entry ahead).
+        for needle in ('git fetch --no-tags --quiet origin "+refs/heads/main:$main"',
+                       'base="$(git merge-base "$tested" "$main")" || base=""',
+                       'git merge-base --is-ancestor "$base" "$main"',
+                       'git merge-base --is-ancestor "$base" "$MERGE_GROUP_BASE_SHA"',
+                       'git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"'):
+            self.assertIn(needle, load["run"])
+        self.assertNotIn('base="$MERGE_GROUP_BASE_SHA"', load["run"])
+        # merge_hold.py reads the same ref this step fetches (D2 N1).
+        main_ref = re.search(r'^MAIN_REF = "([^"]+)"$', (ROOT / "tools/merge_hold.py").read_text(), re.M)
+        self.assertIsNotNone(main_ref)
+        self.assertIn(f"main={main_ref.group(1)}\n", load["run"])
         self.assertEqual(load["env"], {
             "EVENT_NAME": "${{ github.event_name }}",
             "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",

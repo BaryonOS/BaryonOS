@@ -105,10 +105,12 @@ are rejected.
   other as a literal path). A partial overlap such as `plugins/**` with
   `**/Cargo.lock` is caught by a host-quality test instead: no tracked path may
   match both lists.
-- `[policy.events]`: one entry per event. `merge_group`, `push` and
-  `schedule` must be `full`; `validate` rejects anything else, and the
-  selector also plans these three events as full whatever the catalogue
-  says. `workflow_dispatch` must be `full` or `manual`. `pull_request` may
+- `[policy.events]`: one entry per event. `push` and `schedule` must be
+  `full`; `validate` rejects anything else, and the selector also plans these
+  two events as full whatever the catalogue says. `merge_group` must be
+  `select` or `full` (ADR-CI-MERGE-GROUP-SELECT-20261126); the selector plans
+  it as full (`merge-group`) under any policy but `select`, `full` being the
+  rollback. `workflow_dispatch` must be `full` or `manual`. `pull_request` may
   be `select`, `full` or `manual`.
 
 `[input_sets]`: named glob lists. `native` covers the integrated QEMU suites.
@@ -236,8 +238,12 @@ manifests are read at every revision too, because a workspace root's
    listing), `--base-ref` or `main` for `push`.
 1. Event: `workflow_dispatch` with a base and a `manual` policy gives
    `mode = "manual"` (nothing selected).
-   `merge_group`, `push` and `schedule` are full by policy (`merge-group`,
-   `push-main`, `schedule`); the diff is still recorded. A push whose `before`
+   `push` and `schedule` are full by policy (`push-main`, `schedule`), and
+   `merge_group` is full (`merge-group`) unless its policy is `select`; the
+   diff is still recorded. A `select` `merge_group` plan narrows like a
+   `pull_request` plan from the diff between `--base-sha` and the queue
+   commit; merge-hold passes the trusted base T (see **merge_group** below),
+   so the diff covers every entry ahead. A push whose `before`
    is empty, all zeros or not an ancestor gives `push-unknown-before`.
    A `workflow_dispatch` or `schedule` run without a base has no trusted
    catalogue: the plan is full with `no-trusted-base`, `selector.trusted` is
@@ -271,6 +277,12 @@ manifests are read at every revision too, because a workspace root's
    `filter_eval_uncertain` is set for zero or more than 300 changed files;
    `blocked_by_filter` is then `null` (unknown) for every filtered workflow,
    never a definite `true` or `false`.
+   On a `merge_group` `select` plan, `pull_request_filter_blocked` lists the
+   workflows whose own recorded `pull_request` path filter certainly keeps
+   them from starting for this diff (ADR-CI-MERGE-GROUP-SELECT-20261126); it
+   is empty on every other plan and for zero or more than 300 changed files,
+   and a workflow without a `pull_request` filter, with a negated pattern or
+   with both `paths` and `paths-ignore` is never listed.
 
 ## Plan schema
 
@@ -699,7 +711,7 @@ only the head's run listing and makes the next full decision once no gated
 workflow run is open or the budget ends; a failed poll counts as open, and
 pending gates with nothing left running decide at once. `merge_group` keeps
 `merge_group_wait_minutes = 80` and still waits that way; that budget now
-also covers the plan and every gate run of the queue commit (see
+also covers the plan and every awaited gate run of the queue commit (see
 **merge_group** below).
 
 **Re-check.** `.github/workflows/merge-hold-recheck.yml` runs on
@@ -856,16 +868,38 @@ once.
 **merge_group.** The merge queue is not active on `main`; enabling it needs the
 project owner's explicit confirmation at that moment (D1). Every workflow with
 an automatic `core` or `rwa` job has an unfiltered `merge_group` trigger (D1
-step 1), so the selected gates also report on a queue commit, at full scope.
-Since D1 step 2 merge-hold judges every applicable gate on the queue commit
-itself:
+step 1), so every job also runs on a queue commit. Since D1 step 2 merge-hold
+judges the applicable gates on the queue commit itself, and since
+ADR-CI-MERGE-GROUP-SELECT-20261126 only those that the plan from the trusted
+base selects:
 
-- `BASE_SHA` (the commit the two base files came from) must equal
-  `merge_group.base_sha` and `TESTED_SHA` (the checkout) `merge_group.head_sha`,
-  both well-formed, and the base must be an ancestor of the queue commit. The
-  plan is recomputed with `--event=merge_group` (mode full) and must describe
-  that event, base, queue commit and `main` before any wait; any doubt fails at
-  once.
+- The trusted base T is the merge base of the queue commit and `main`, which
+  merge-hold.yml fetches from origin in the same job. `merge_group.base_sha`
+  can be the unlanded queue commit of the entry ahead, so it is never a source
+  of tools or catalogue. merge-hold.yml loads `tools/merge_hold.py` and
+  `tools/ci_impact.py` from T only after checking that T is a well-formed
+  commit on that `main`, an ancestor of (or equal to) `merge_group.base_sha`,
+  and that this base is an ancestor of the queue commit; otherwise the job
+  fails. `merge_hold.py` repeats these checks against the same ref and
+  requires `BASE_SHA` (the commit the two base files came from) to equal T and
+  `TESTED_SHA` (the checkout) `merge_group.head_sha`.
+- The plan is recomputed from T with `--event=merge_group` and must describe
+  that event, T as base and merge base, the queue commit and `main` before any
+  wait; any doubt fails at once. Under the catalogue's `merge_group =
+  "select"` it narrows from the diff T..queue commit, which covers every entry
+  ahead, with the `pull_request` fail-closed rules (`always_full`,
+  `unknown-path`); a diff that cannot be determined from T makes it full. The
+  wait budget is read from T's catalogue. The `select-ci` input `base-sha`
+  above stays `merge_group.base_sha`: the `select` jobs never narrow on
+  `merge_group`, so only this plan decides.
+- Under a `select` plan a workflow whose `core` or `rwa` gates are excluded
+  as `no-input-match`, none of them selected, and that the plan lists in
+  `pull_request_filter_blocked` (its own `pull_request` path filter certainly
+  keeps it from starting for the diff from T; any doubt keeps it off the list)
+  is neither awaited nor judged on the queue commit, and the report names it; a selected gate that is skipped
+  or missing still fails. A workflow with a selected gate, a workflow without
+  any `core` or `rwa` gate, and every workflow under a `full` plan are judged
+  as below.
 - A run counts only with event `merge_group`, head SHA the queue commit, head
   branch the queue ref without `refs/heads/`, and repository and head
   repository this repository; its `pull_requests` list is not used. GitHub's
@@ -914,9 +948,9 @@ itself:
 - Under `shadow` the group neither waits for gate runs nor blocks on them, and
   no gate ends its wait early.
 
-The 80-minute budget is counted from before the plan. The plan and the
-catalogue read, the group's own checks, every gate run of the queue commit and
-the chain of entries ahead share it, less a 3-minute reserve kept back for the
+The 80-minute budget is counted from before the plan. The trusted-base
+checks, the plan and the catalogue read, the group's own checks, every awaited
+gate run of the queue commit and the chain of entries ahead share it, less a 3-minute reserve kept back for the
 decision after the wait; the deadline fails closed. Up to the wait's last poll
 the script, whose clock starts before the plan, therefore takes at most 78
 minutes; the workflow steps before the script are outside that clock. The last
@@ -968,7 +1002,9 @@ native suites, CodeQL, `ci.yml` and every other workflow are not narrowed by
 job: their input relations are not provable more narrowly (the `native` input
 set covers almost all code); only their path filters decide whether they start
 (see "Tooling metadata" below). `push`, `merge_group`, `schedule` and
-`workflow_dispatch` always run everything.
+`workflow_dispatch` always run everything; on `merge_group` merge-hold requires
+only the gates that the plan from the trusted base selects (**merge_group**
+above, ADR-CI-MERGE-GROUP-SELECT-20261126).
 
 **Tooling metadata (phase 5 C2).** On `pull_request`, 13 native workflows with
 a `push` backstop on `main` (`entropy-keys`, `nas-core`,
