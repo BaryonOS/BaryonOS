@@ -37,7 +37,9 @@ handoff rules and per-PR integrity duties are in `docs/handoffs/README.md`.
   optimisation. It minimises the time from a verified change to its landing
   on `main`, with the least necessary runner use and no loss of quality,
   security, functional acceptance or reliability. The P0 performance contract
-  (owner, 26 November 2026 ~21:15 UTC) sets the current targets.
+  (owner, 26 November 2026 ~21:15 UTC) sets the current targets. Since
+  27 November 2026 this is permanent, with no final completion state: items 10
+  and 11 of ADR-GOVERNANCE-AUTONOMY-20261127 and #494 issuecomment-7219844497 §0.
   - Work areas: A, selective native tests; B, less duplicate work;
     C, the critical path, with a KVM pilot alongside Specialist R; D, the merge flow.
   - The KVM pilot does not replace TCG acceptance without evidence.
