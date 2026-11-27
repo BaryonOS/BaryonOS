@@ -43,6 +43,9 @@ POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-syst
                  "power-s3-blk-reinit-identity": "test-system-s3-blk-reinit-identity",
                  "power-s3-blk-reinit-capacity": "test-system-s3-blk-reinit-capacity",
                  "power-s3-blk-reinit-no-ack": "test-system-s3-blk-reinit-no-reset-ack",
+                 # H05-T5d A7 (labelled): a kernel entropy request keeps LOCK at -8,
+                 # so SUSPEND refuses (-25) and init falls back to S5; no sleep.
+                 "power-s3-lock-busy": "test-system-s3-lock-busy",
                  # B01-LOCK (ADR-KEYRING-LOCK-20261126): the labelled LOCK fixture
                  # (A2-A4, A6, A9, A10) while init's S5 grant waits, then S5.
                  "power-lock": "test-system-lock"}
@@ -73,6 +76,22 @@ BLK_CASES = {"power-s3-blk-reinit": None, "power-s3-blk-reinit-busy": ("BUSY", "
              "power-s3-blk-reinit-capacity": ("CAPACITY", "CAPACITY"),
              "power-s3-blk-reinit-no-ack": ("NO_RESET_ACK", "RESET_ACK")}
 S3_CASES = ("power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
+# H05-T5d: every S3 case LOCKs first (KL2); the A7 case never sleeps.
+LOCK_BUSY = "power-s3-lock-busy"
+S3_LOCK_CASES = (*S3_CASES, LOCK_BUSY)
+LOCK_BUSY_ATTEMPTS = 8  # init's LOCK attempts, all refused (-8)
+# B01-LOCK counters printed by every native-system-lock kernel. S3: init's one
+# granted LOCK, one verified scrub, no fixture canary. A7: nothing ended.
+S3_LOCK_EXACT = {"LOCK_COUNT": 1, "LOCK_REFUSALS": 0, "LOCK_STACK_SCRUBS": 1, "LOCK_STACK_RESIDUE": 0,
+                 "LOCK_CANARY_BEFORE": 0, "LOCK_CANARY_AFTER": 0}
+LOCK_BUSY_EXACT = {"LOCK_COUNT": 0, "LOCK_REFUSALS": LOCK_BUSY_ATTEMPTS, "LOCK_STACK_SCRUBS": 0,
+                   "LOCK_STACK_RESIDUE": 0, "LOCK_CANARY_BEFORE": 0, "LOCK_CANARY_AFTER": 0,
+                   "LOCK_ENTROPY_OBJECTS_BEFORE": 0, "LOCK_ENTROPY_OBJECTS_AFTER": 0}
+LOCK_COUNTERS = ("LOCK_COUNT", "LOCK_REFUSALS", "LOCK_STACK_SCRUBS", "LOCK_STACK_RESIDUE", "LOCK_CANARY_BEFORE",
+                 "LOCK_CANARY_AFTER", "LOCK_ENTROPY_OBJECTS_BEFORE", "LOCK_ENTROPY_OBJECTS_AFTER")
+S3_LABEL_ERASED = "SYSTEM:S3:LABEL:instance erased; unwrap secret is a public TEST constant"
+S3_LABEL_O5 = "SYSTEM:S3:LABEL:no key-state durability claimed (O5 open)"
+S3_LOCK_BUSY_MARKER = "SYSTEM:S3:LOCK_BUSY:LOCK=-8:SUSPEND=-25:S5"
 # Cases with the virtio-rng re-init (the blk re-init builds on it).
 RNG_REINIT_CASES = ("power-s3-reinit", *BLK_CASES)
 # The single re-init marker; CI's QEMU 8.2.2 may keep the BARs that 10.2.1 clears.
@@ -286,7 +305,7 @@ def check_suspend(lines: list[str], reinit: bool = False, blk: str | None = None
 def refuse_stray_suspend(case: str, stdout: str) -> None:
     """Only the S3 cases carry SYSTEM:SUSPEND* evidence, only re-init KEYRING:S3:."""
     lines = stdout.splitlines()
-    if case not in S3_CASES and any(line.startswith("SYSTEM:SUSPEND") for line in lines):
+    if case not in S3_LOCK_CASES and any(line.startswith(("SYSTEM:SUSPEND", "SYSTEM:S3:")) for line in lines):
         raise ValueError("suspend evidence outside the power-s3 profile")
     if case not in RNG_REINIT_CASES and any(line.startswith("KEYRING:S3:") for line in lines):
         raise ValueError("re-init evidence outside the power-s3-reinit profile")
@@ -309,13 +328,52 @@ REINIT_ORDER = ("REFUSALS", "GRANTED", "TICK_AFTER_WAKE", "HELD_REFUSALS", "REIN
 # H05-T5c: the blk outcome, the pre-sleep ticket refused (-1), the 8259 masks and
 # INTx line seen after the wake, then block at authority (-6) or quarantined (-24);
 # last the volume re-init's accounted device accesses.
+# H05-T5d A7: SUSPEND refusals, no grant, the LOCK refusals, kernel requests.
+LOCK_BUSY_ORDER = ("REFUSALS", "GRANTED", "LOCK_BUSY_REFUSALS", "LOCK_BUSY_REQUESTS", "LOCK_BUSY_DELIVERED")
 BLK_ORDER = (*REINIT_ORDER[:7], "BLK_QUARANTINED", "BLK_STALE_TICKET", "BLK_PIC_MASTER", "BLK_PIC_SLAVE",
              "BLK_INTX_LINE", "BLK_LATCH_CARRIED", "LOST_BLOCK", *DEVICE_ORDER, "DEVICE_IO_ACCOUNTED_VOLUME")
+
+
+def check_s3_lock(case: str, lines: list[str], found: dict) -> None:
+    """H05-T5d: S3 cases LOCK once before the sleep (LOCKED between MANIFEST and
+    POWER:S3:ENTER) and print both labels before the gate; A7 never LOCKs and
+    prints only the O5 label and its fallback marker."""
+    if lines.count("SYSTEM:LOCK:PASS") != 0:
+        raise ValueError(f"{case} carries the power-lock fixture marker")
+    missing = [key for key in LOCK_COUNTERS if key not in found]
+    if missing:
+        raise ValueError(f"{case} lacks LOCK counters: {missing}")
+    gate = lines.index("SYSTEM:POWER:GATE:PASS") if "SYSTEM:POWER:GATE:PASS" in lines else -1
+    cleanup = lines.index("SYSTEM:CLEANUP:PASS") if "SYSTEM:CLEANUP:PASS" in lines else len(lines)
+    if case == LOCK_BUSY:
+        exact, labels = LOCK_BUSY_EXACT, (S3_LOCK_BUSY_MARKER, S3_LABEL_O5)
+        if "SYSTEM:LOCK:LOCKED" in lines or S3_LABEL_ERASED in lines:
+            raise ValueError("power-s3-lock-busy was LOCKED or claims an erased instance")
+    else:
+        exact, labels = S3_LOCK_EXACT, (S3_LABEL_ERASED, S3_LABEL_O5)
+        if lines.count("SYSTEM:LOCK:LOCKED") != 1 or "POWER:S3:ENTER:CYCLE=1:SCI_EN=1" not in lines:
+            raise ValueError(f"{case} needs exactly one LOCKED marker before its one sleep")
+        if not (lines.index("SYSTEM:MANIFEST:PASS") < lines.index("SYSTEM:LOCK:LOCKED")
+                < lines.index("POWER:S3:ENTER:CYCLE=1:SCI_EN=1")):
+            raise ValueError(f"{case} LOCKED marker is not between MANIFEST and the sleep")
+        if not found["LOCK_ENTROPY_OBJECTS_AFTER"] < found["LOCK_ENTROPY_OBJECTS_BEFORE"]:
+            raise ValueError("LOCK did not reclaim the instance's entropy object")
+    for key, value in exact.items():
+        if found.get(key) != value:
+            raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
+    for label in labels:
+        if lines.count(label) != 1 or not cleanup < lines.index(label) < gate:
+            raise ValueError(f"{case} lacks the label between CLEANUP and the gate: {label}")
+    if [line for line in lines if line.startswith("SYSTEM:S3:")] != list(labels):
+        raise ValueError(f"{case} S3 label set differs")
 
 
 def check_lock(case: str, stdout: str, found: dict) -> None:
     """B01-LOCK: one LOCKED marker before finish, exact refusals, canary scrubbed."""
     lines = stdout.splitlines()
+    if case in S3_LOCK_CASES:
+        check_s3_lock(case, lines, found)
+        return
     if case != "power-lock":
         if any(line.startswith("SYSTEM:LOCK") for line in lines):
             raise ValueError("LOCK evidence outside the power-lock profile")
@@ -339,11 +397,30 @@ def check_lock(case: str, stdout: str, found: dict) -> None:
 def check_power(case: str, stdout: str, found: dict) -> None:
     """Exact S5 tail after M1:PASS, or a refusal without any PM1 write."""
     lines = stdout.splitlines()
-    if case in ("power", "power-lock", *S3_CASES):
+    if case in ("power", "power-lock", *S3_LOCK_CASES):
         if tuple(lines[-3:]) != ("M1:PASS", *S5_TAIL) or "SYSTEM:POWER:GATE:PASS" not in lines:
             raise ValueError("power case did not end with the gated S5 write")
         expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
-        if case in S3_CASES:
+        if case == LOCK_BUSY:
+            # A7: the plan only, never a sleep; SUSPEND -25, -6, -4, -1, -25 (five
+            # refusals), every LOCK attempt refused, every kernel request delivered.
+            from run_sleep import PLAN  # lazy, see run_system
+            s3 = [line for line in lines if line.startswith(("POWER:S3:", "KEYRING:S3:", "VOLUME:S3:"))]
+            if len(s3) != 1 or not PLAN.fullmatch(s3[0]):
+                raise ValueError(f"power-s3-lock-busy must plan S3 and never enter it: {s3}")
+            expected.update(SUSPEND_REFUSALS=5, SUSPEND_GRANTED=0,
+                            SUSPEND_LOCK_BUSY_REFUSALS=LOCK_BUSY_ATTEMPTS)
+            suspend = [line.split(":")[1] for line in lines if line.startswith("SYSTEM:SUSPEND")]
+            if suspend != [f"SUSPEND_{key}" for key in LOCK_BUSY_ORDER]:
+                raise ValueError(f"{case} suspend evidence out of order: {suspend}")
+            requests = found.get("SUSPEND_LOCK_BUSY_REQUESTS", 0)
+            if not 1 <= requests <= LOCK_BUSY_ATTEMPTS or found.get("SUSPEND_LOCK_BUSY_DELIVERED") != requests:
+                raise ValueError("power-s3-lock-busy kernel requests were not all delivered")
+            at = {line.split(":")[1]: index for index, line in enumerate(lines)
+                  if line.startswith("SYSTEM:SUSPEND_")}
+            if not at[f"SUSPEND_{LOCK_BUSY_ORDER[-1]}"] < lines.index("SYSTEM:CLEANUP:PASS"):
+                raise ValueError(f"{case} suspend evidence out of order around CLEANUP")
+        elif case in S3_CASES:
             reinit = case in RNG_REINIT_CASES
             blk = case if case in BLK_CASES else None
             held = int(case == "power-s3-held-completion")
@@ -418,7 +495,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if controlled != list(expected):
         raise ValueError(f"system marker sequence mismatch: {controlled}")
     # Only a guest poweroff exits 0: the power runs override -no-reboot.
-    if timed_out or raw_exit != (0 if case in ("power", "power-lock", *S3_CASES) else 33):
+    if timed_out or raw_exit != (0 if case in ("power", "power-lock", *S3_LOCK_CASES) else 33):
         raise ValueError(f"raw exit {raw_exit}, timed_out {timed_out}")
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
@@ -710,10 +787,11 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     if (qmp_hook is not None or nic_status is not True) and not link:
         raise ValueError("QMP link control and a STATUS-less NIC belong to the link profile only")
     wake, machine = None, None
-    if case in S3_CASES:
-        from run_sleep import SystemWake  # lazy: run_sleep's wake hook reuses run_net_link, which imports this module
+    if case in S3_LOCK_CASES:
         # The S3 evidence boundary: the measured QEMU 8.2 q35/OVMF profile under TCG only.
         machine = s3_machine()
+    if case in S3_CASES:
+        from run_sleep import SystemWake  # lazy: run_sleep's wake hook reuses run_net_link, which imports this module
         wake = SystemWake(time.monotonic() + timeout)
     use_tcp = selected == TCP_FEATURE.get(case)
     use_network = selected == network_feature or use_tcp or link

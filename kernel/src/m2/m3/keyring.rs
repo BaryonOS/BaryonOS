@@ -168,7 +168,24 @@ fn entropy_binding(pid: u64, handle: u64) -> Result<EntropyBinding, i64> {
     })
 }
 
+/// H05-T5d C1 (TEST only): the post-wake re-init request belongs to the kernel
+/// itself, because LOCK ended the Key Service instance before the sleep. Handle
+/// 0 is never a valid capability (`handle_slot` refuses slot 0), so no
+/// `entropy_binding(pid, handle)` can produce or redeem this binding.
+#[cfg(all(feature = "test-system-s3-reinit", feature = "native-system-lock"))]
+const KERNEL_BINDING: EntropyBinding = EntropyBinding {
+    pid: u64::MAX,
+    handle: 0,
+    object_key: u64::MAX,
+};
+
 fn binding_is_live(binding: EntropyBinding) -> bool {
+    // No capability backs the kernel's own request; its deadline and lease
+    // still expire it (fail closed).
+    #[cfg(all(feature = "test-system-s3-reinit", feature = "native-system-lock"))]
+    if binding == KERNEL_BINDING {
+        return true;
+    }
     m4::engine()
         .authorize_entropy(binding.pid, binding.handle)
         .is_ok_and(|authority| authority.object_key() == binding.object_key)
@@ -606,41 +623,108 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
                     return Err(error);
                 }
             };
-            reclaim_completed(s.ticks);
-            let r = runtime();
-            let Some(completed) = r.completed else {
-                return match r.pending {
-                    Some(pending) if pending.binding == binding && pending.ticket == a[1] => {
-                        Err(-8)
-                    }
-                    _ => Err(-1),
-                };
-            };
-            if completed.binding != binding || completed.ticket != a[1] {
-                return Err(-1);
-            }
-            let length = match completed.result {
-                Ok(length) => length,
-                Err(code) => {
-                    r.completed = None;
-                    r.bytes = [0; 256];
-                    return Err(code);
-                }
-            };
-            if a[3] != u64::from(length) {
-                return Err(-11);
-            }
-            // Validate the whole output range before any byte is copied.
-            let plan = m4::plan(s, slot, a[2], a[3], true).map_err(|e| e.code())?;
-            let mut out = [0u8; 320];
-            out[..length as usize].copy_from_slice(&r.bytes[..length as usize]);
-            m4::write_plan(&plan, &out);
-            r.bytes = [0; 256];
-            r.completed = None;
-            r.delivered_bytes += u64::from(length);
-            Ok(u64::from(length))
+            redeem(s.ticks, binding, a[1], a[3], |bytes| {
+                // Validate the whole output range before any byte is copied.
+                let plan = m4::plan(s, slot, a[2], a[3], true).map_err(|e| e.code())?;
+                let mut out = [0u8; 320];
+                out[..bytes.len()].copy_from_slice(bytes);
+                m4::write_plan(&plan, &out);
+                Ok(())
+            })
         }
         _ => Err(-2),
+    }
+}
+
+/// 0x61 after the caller's authority check: the completed answer for exactly
+/// `binding` and `ticket`, handed to `write` and then wiped from the broker.
+/// A `write` refusal keeps the answer for a corrected retry.
+fn redeem(
+    now: u64,
+    binding: EntropyBinding,
+    ticket: u64,
+    expected: u64,
+    write: impl FnOnce(&[u8]) -> Result<(), i64>,
+) -> Result<u64, i64> {
+    reclaim_completed(now);
+    let r = runtime();
+    let Some(completed) = r.completed else {
+        return match r.pending {
+            Some(pending) if pending.binding == binding && pending.ticket == ticket => Err(-8),
+            _ => Err(-1),
+        };
+    };
+    if completed.binding != binding || completed.ticket != ticket {
+        return Err(-1);
+    }
+    let length = match completed.result {
+        Ok(length) => length,
+        Err(code) => {
+            r.completed = None;
+            r.bytes = [0; 256];
+            return Err(code);
+        }
+    };
+    if expected != u64::from(length) {
+        return Err(-11);
+    }
+    write(&r.bytes[..length as usize])?;
+    r.bytes = [0; 256];
+    r.completed = None;
+    r.delivered_bytes += u64::from(length);
+    Ok(u64::from(length))
+}
+
+/// H05-T5d C1 (TEST only): the 0x60 submission body (latched and counted like
+/// `call`) for the kernel's own 32-byte request; no process, capability or
+/// `denied` count is involved.
+#[cfg(all(feature = "test-system-s3-reinit", feature = "native-system-lock"))]
+pub(super) fn kernel_request(s: &State) -> Result<u64, i64> {
+    if device_lost() {
+        return Err(-14);
+    }
+    reclaim_completed(s.ticks);
+    let r = runtime();
+    r.requests += 1;
+    if r.offline != 0 {
+        r.offline_errors += 1;
+        return Err(r.offline);
+    }
+    if r.pending.is_some() || r.completed.is_some() {
+        r.busy += 1;
+        return Err(-8);
+    }
+    let device = r.device.as_mut().ok_or(-14)?;
+    device_access();
+    device.request(32).map_err(|_| -8)?;
+    let ticket = r.next_ticket;
+    r.next_ticket += 1;
+    r.pending = Some(Pending {
+        binding: KERNEL_BINDING,
+        ticket,
+        requested: 32,
+        deadline: s.ticks + TIMEOUT,
+    });
+    Ok(ticket)
+}
+
+/// H05-T5d C1 (TEST only): the 0x61 delivery of the kernel's own request into a
+/// stack buffer, checked for a nonzero byte and wiped before it goes out of
+/// scope. The bytes are never used; a zero answer is an I/O error (-12).
+#[cfg(all(feature = "test-system-s3-reinit", feature = "native-system-lock"))]
+#[inline(never)]
+pub(super) fn kernel_deliver(s: &State, ticket: u64) -> Result<u64, i64> {
+    let mut out = [0u8; 32];
+    let result = redeem(s.ticks, KERNEL_BINDING, ticket, 32, |bytes| {
+        out.copy_from_slice(bytes);
+        Ok(())
+    });
+    let any = out.iter().any(|byte| *byte != 0);
+    out.fill(0);
+    core::hint::black_box(&out);
+    match result {
+        Ok(_) if !any => Err(-12),
+        other => other,
     }
 }
 
@@ -1494,8 +1578,8 @@ fn reinitialised() -> bool {
 /// H05-T5b (test-system-s3-reinit): virtio-rng re-initialisation after a
 /// validated wake, driven from `system::poll` with tick deadlines. Stages:
 /// 0 rediscover + reset, 1 ack + ownership + initialize + self-test request,
-/// 2 self-test answer, 3 one Key Service request through the real handler,
-/// 4 its delivery, 5 done. Any failure stops the VM (fail closed).
+/// 2 self-test answer, 3 one kernel-owned request (C1: LOCK ended the Key
+/// Service before the sleep), 4 its delivery, 5 done. Any failure stops the VM (fail closed).
 #[cfg(feature = "test-system-s3-reinit")]
 struct Reinit {
     stage: u8,
@@ -1526,10 +1610,6 @@ fn reinit_state() -> &'static mut Reinit {
 const REINIT_SERVING: u8 = 3;
 #[cfg(feature = "test-system-s3-reinit")]
 const REINIT_DONE: u8 = 5;
-/// Last 32 bytes of the Key Service's initial heap, which its binary never
-/// uses: the delivery target of the post-wake request, wiped after the check.
-#[cfg(feature = "test-system-s3-reinit")]
-const DELIVERY: u64 = HEAP + 65536 - 32;
 
 #[cfg(feature = "test-system-s3-reinit")]
 fn reinitialised() -> bool {
@@ -1571,9 +1651,8 @@ fn reinit_require(condition: bool, reason: &[u8]) {
 }
 
 /// One step per poll after a validated wake (`system` calls this only then).
-/// `key` is the Key Service slot; `handle` its own Entropy capability.
 #[cfg(feature = "test-system-s3-reinit")]
-pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
+pub(super) fn reinit_poll(s: &State) {
     let p = reinit_state();
     match p.stage {
         0 => {
@@ -1671,14 +1750,13 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
             p.stage = REINIT_SERVING;
         }
         3 => {
-            // Served normally: the Key Service's own capability through the
-            // real 0x60 handler (labelled kernel-driven fixture, as B01's lease
-            // fixture). The first post-wake ticket continues the sequence.
-            // `call` re-enters `reinitialised`, which borrows REINIT again:
-            // no borrow of it is live across the call.
+            // Served through the real 0x60 submission body with the kernel's
+            // own binding (labelled kernel-driven fixture). The first post-wake
+            // ticket continues the sequence. `kernel_request` re-enters
+            // `reinitialised`, which borrows REINIT again: no borrow of it is
+            // live across the call.
             let floor = p.ticket_floor;
-            let ticket = call(s, key, 0x60, [handle, 32, 0, 0, 0, 0])
-                .unwrap_or_else(|_| reinit_fail(b"SERVED_REQUEST"));
+            let ticket = kernel_request(s).unwrap_or_else(|_| reinit_fail(b"SERVED_REQUEST"));
             reinit_require(ticket == floor, b"TICKET_ORDER");
             let p = reinit_state();
             p.deadline = s.ticks + TIMEOUT;
@@ -1690,26 +1768,16 @@ pub(super) fn reinit_poll(s: &mut State, key: usize, handle: u64) {
                 return;
             };
             reinit_require(completed.result == Ok(32), b"SERVED_RESULT");
-            // As in stage 3, no REINIT borrow is live across `call`.
+            // As in stage 3, no REINIT borrow is live across the calls.
             let floor = p.ticket_floor;
             // A pre-sleep ticket can never redeem the post-wake answer.
-            let stale = call(s, key, 0x61, [handle, floor - 1, DELIVERY, 32, 0, 0])
-                .err()
-                .unwrap_or(0);
+            let stale = kernel_deliver(s, floor - 1).err().unwrap_or(0);
             reinit_require(stale == -1, b"STALE_TICKET");
-            reinit_require(
-                call(s, key, 0x61, [handle, floor, DELIVERY, 32, 0, 0]) == Ok(32),
-                b"DELIVERY",
-            );
-            let mut any = 0;
-            for offset in (0..32).step_by(8) {
-                let at = s.processes[key].physical(DELIVERY + offset);
-                any |= read_word(at);
-                write_word(at, 0);
-            }
+            // Nonzero bytes, delivered into a wiped kernel stack buffer.
+            reinit_require(kernel_deliver(s, floor) == Ok(32), b"DELIVERY");
             let r = runtime();
             reinit_require(
-                any != 0 && r.completed.is_none() && r.pending.is_none(),
+                r.completed.is_none() && r.pending.is_none(),
                 b"DELIVERED_BYTES",
             );
             let p = reinit_state();
