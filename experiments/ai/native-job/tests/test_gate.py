@@ -64,10 +64,11 @@ class Gate(unittest.TestCase):
     def test_publish_is_owner_only_even_with_an_open_umask(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "build-report.json"
-            path.write_bytes(b"old")
-            os.chmod(path, 0o644)
             previous = os.umask(0)
             try:
+                # The earlier output is created world-readable by the open umask, not by an explicit chmod.
+                path.write_bytes(b"old")
+                self.assertTrue(stat.S_IMODE(path.stat().st_mode) & 0o044)
                 build.publish(path, b"new")
             finally:
                 os.umask(previous)
