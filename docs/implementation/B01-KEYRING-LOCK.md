@@ -376,14 +376,14 @@ A review by a second AI is not an independent audit.
 | ID | Owner | Question |
 |---|---|---|
 | O1 | project owner | decided 26 November 2026: F1 alone in TEST profiles with the label; F1 and F2 in every non-TEST profile (§4) |
-| O2 | project owner | product unwrap-secret source for UNLOCK: a sign-in-derived secret, a TPM-sealed factor with user authorisation (B03/B04), or both; which component holds it and for how long |
+| O2 | project owner | decided 27 November 2026: TPM-protected high-entropy secret with mandatory user authentication and boot-chain binding, never password-only (ADR-KEYRING-LOCK-20261126 amendment) |
 | O3 | H | answered 26 November 2026: 0x92, -25, -8 retry and -14 already LOCKED, C1–C4 as in §6.1; non-binding until O1 and the ADR exist |
 | O4 | S | answered 26 November 2026: the remount needs no keys (§7 U5) |
-| O5 | project owner and B | the durability window without write-ahead: a Key Service freeze opcode before export, or write-ahead relay in S3 profiles |
+| O5 | project owner and B | decided 27 November 2026: fail-closed mutation freeze before export until durable commit and LOCK, reusing ADR-B02-KEY1-RELAY write-ahead (ADR amendment) |
 | O6 | H and S | settled 26 November 2026: one read-only grant (T5f-1) for the remount and the domain-1 read, whole volume kernel-enforced and domain 1 service-enforced; T5f-2 is a writable instance after UNLOCK (§7 U5) |
-| O8 | project owner | whether a pre-authentication, kernel-enforced read-only whole-volume ciphertext read by the volume service, limited to domain 1 only by that service, counts as "access restored" under Q3 (§7 U5) |
-| O7 | S and B | a keyed MAC for volume authenticity after a wake, with a key outside the domain-1 blob; not planned |
-| OQ1 | project owner, H and U | erasure of plaintext content held by apps and the volume service before S3 |
+| O8 | project owner | decided 27 November 2026: authentication, then T5f-1, then UNLOCK, then T5f-2; no rights before authentication and verification (ADR amendment) |
+| O7 | S and B | decided 27 November 2026: GO for a joint design of cryptographically authenticated volume metadata; FNV-64 is no authenticity guarantee (ADR amendment) |
+| OQ1 | project owner, H, K and U | decided 27 November 2026: removal before product S3 is demonstrable, otherwise S3 refuses; the per-owner split is open (ADR amendment) |
 
 ## 11. Work split (agreed with H on 26 November 2026, §6.1 C4)
 

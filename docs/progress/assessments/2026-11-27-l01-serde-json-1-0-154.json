@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "81e3d613d612e7cc1102b344b1285638bbefbb1b",
+  "assessment_basis": "parent_commit",
+  "branch": "dependabot/cargo/experiments/ai/candle-oracle/cargo-629642c63d",
+  "task": "L01 maintenance: bump the host-only serde_json pin from 1.0.145 to 1.0.154 in experiments/ai/candle-oracle and experiments/ai/reference-forward (dev-dependency) and record the changed lockfile closure (new transitive crate zmij 1.0.23) in the Candle oracle dependency review",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Host-tool and test-only dependency update with a corrected dependency record; no new L01 capability, native evidence or acceptance."
+}
