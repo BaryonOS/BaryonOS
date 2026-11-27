@@ -62,6 +62,10 @@ Floor unchanged. H coordinates with K, B, N and S.
 | OD-HW-INV-ROUTE | Native hardware inventory becomes the primary route once it is reliably demonstrated. An independent Linux inventory serves as the completeness reference. | decided |
 | OD-HW-POWER | Prioritise physical S5, S3 where supported, controlled wake, and safe storage and network recovery. Battery and thermal tests stay profile-dependent. | open: the physical wake source is not chosen yet |
 
+OD-HW-SIGNERS and OD-HW-BOOT are consistent with
+ADR-B04-POLICY-DIRECTION-20261127 (B, draft #631): no production keys,
+ceremonies or physical TPM or boot changes without separate permission.
+
 Physical boot, firmware, disk and signing actions that need the owner are
 presented to the owner concretely and as one bundle. The four entries that
 stay open are answered in part; the open part goes into that bundle.
