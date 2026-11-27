@@ -7,7 +7,7 @@ ADR-SPECIALIST-TEAM-20261125 clause 2 (#527, 9cc1b86f), which extends
 ADR-MERGE-DELEGATION-20261123 to A; squash with --match-head-commit after the
 required checks and merge-hold pass. Report the kernel write set to
 the PR Bewaker before committing under `kernel/` (S and H write `volume.rs`).
-Last updated: 2026-11-25 (Europe/Amsterdam).
+Last updated: 2026-11-26 (Europe/Amsterdam). Owner session ref `b92220` since 26 Nov ~11:45Z UTC.
 
 ## Criteria status (from docs/PROGRESS.md at origin/main 5846e1fb)
 
@@ -136,18 +136,52 @@ notice is a fixture; no full A03 acceptance.
   resume prompt still described it as pending. Confirm it with the project owner
   before any T2c-3 kernel work.
 
+## A03-T2c-2 native volume broker (27 Nov)
+
+- Branch `claude/a03-t2c2-volume-native-20261126`, worktree
+  `~/projects/BaryonOS-worktrees/a-track-t2c2`: T2c-1 db76a416 + main 2289a271 +
+  S seed 6206b8c8 (merged locally with S's consent) + #535 5159f8cc; T2c-2 commits
+  16384b01 + oracle tightening 1af1a516. S's seeded-read PR #561 landed on main as
+  fb4a40fa (`tools/volume_disk.py` identical to 6206b8c8); main fb4a40fa merged in
+  as ca4c35c4 and the four native cases re-passed there (build/t2c2/postmerge.log).
+  27 Nov: #583 (T2c-1) landed as 28e7ee1a and #579 (T2c-3 pin) as 95553a22;
+  main 20d9089f merged in (T2c-1 content taken from main, T2c-2 additions kept).
+  The broker now takes the boot epoch from word 32 in both modes (Graphify nit
+  on #583); the kernel supplies 1 in both profiles, so the native cases cannot
+  distinguish it from the host constant `EPOCH`.
+- Write set: new `kernel/src/m2/m3/task_grant_volume.rs`; `m3.rs` 2 lines (path
+  swap at `mod system;`, `SYSTEM_WORKER_ELF` exclusion); `kernel/Cargo.toml`
+  features `native-task-grant-volume`, `test-task-grant-volume-denied`;
+  `tools/build.py` new lines only; new `tools/build_task_grant_volume.py`;
+  `tools/run.py` optional `volume_variant`; `run_task_grant.py` cases
+  `volume`/`volume-denied`; broker bin volume mode (word 80). No `volume.rs`.
+- Evidence (QEMU x86_64, build/t2c2/, final.log at 1af1a516): volume and
+  volume-denied raw exit 33 (kernel disk reads 544 -> 548 normal, 544 -> 544
+  denied); mutations skip-authorise (FAIL:BROKER_LOG), skip-retire
+  (FAIL:EXIT_RETIREMENT), touch-volume-then-deny (FAIL:VOLUME_REQUESTS, both
+  cases) and touch with uncounted broker calls (denied FAIL:VOLUME_STATE, disk
+  reads 548 > 544) all raw 35; regressions native-task-grant normal/denied,
+  native-sdk-app normal and the 4-stage NAS gate pass; host: broker 22/22,
+  clippy/fmt 0, test_ci_workflows 70 OK, test_ci_impact 114 OK, coverage clean,
+  progress --check 43/100. Assessment `2026-11-26-a03-volume-native.json`.
+- Evidence limits: volume `rejected` is 1 after startup: the broker's startup
+  STAT of absent object 2 answers NotFound (service.rs dispatch error path), so
+  UNKNOWN_OBJECT_DENIED is about an absent object, not an existing ungranted
+  one; domain 1 names the helper's PID with its send closed (nas.rs pattern), no
+  separate silent process; Stale path host-only; dialog and exit notice remain
+  fixtures. A CI job for the new cases is a `.github` request to CI.
+
 ## Next action
 
-State 26 Nov 21:15Z: #535 landed as a004e3dc; the T2c-3 pin is PR #579 in the
-merge queue. Autonomous merge queue (owner, 26 Nov ~20:10Z; ADR in #576): a
-specialist enqueues its own merge-ready PR without a per-PR lane grant.
-
-1. T2c-1 (this branch, main a004e3dc merged): open the PR, set metadata
-   (label, milestone M7, Project #5, `Part of #536`).
-2. Before `gh pr merge N --squash --match-head-commit <sha>`: mergeStateStatus
-   CLEAN, autoMergeRequest null, 0 unresolved threads, open-run check `[]`.
-3. Then T2c-2 (`claude/a03-t2c2-volume-native-20261126`): merge main, re-run
-   the four native cases, open the PR, send CI the head SHA for its job commit.
+1. Validate the merged tree: the four native task-grant cases (raw exit 33),
+   `native-sdk-app` normal, the NAS gate, broker host tests, clippy/fmt,
+   test_ci_impact/test_ci_workflows and `progress.py --check`.
+2. Push once; open the PR (labels security + enhancement, milestone M7,
+   `Part of #536`, Project #5 In Progress/Security/Feature).
+3. Send the head SHA to Specialist CI for the separate T2c-2 CI job.
+4. Enqueue via GraphQL `enqueuePullRequest` with expectedHeadOid only when
+   mergeStateStatus is CLEAN, autoMergeRequest is null, 0 unresolved threads
+   and no in-progress or queued run on the head.
 
 Then A03-T2c, specified in `docs/handoffs/A/T2C-SPEC.md` (read-only analysis,
 25 Nov): T2c-1 host-only broker over `volume_core::client::Transport` (no kernel,

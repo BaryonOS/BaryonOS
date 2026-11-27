@@ -52,7 +52,7 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
               rtc_base=None, tpm_socket=None, cpus=1, tcg_threads="single",
               acpi_tables=(), reboot_on_reset=False, xhci_case=None,
               hid_input_probe=False, vga_rom=None, usb_hid_case=None, s3_case=None,
-              virtio_rng=False):
+              virtio_rng=False, volume_variant=None):
     # Defaults keep every existing profile byte-identical (-smp 1, single TCG).
     if type(virtio_rng) is not bool:
         raise ValueError("virtio-rng selection must be boolean")
@@ -127,6 +127,17 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
         hid_volume = run_dir / "volume.img"
         create_image(hid_volume, "empty")
         hid_volume_initial = sha256(hid_volume)
+    seeded_volume = None
+    if volume_variant is not None:
+        # A03-T2c-2: a fresh generated image, attached writable so that only the
+        # guest's read-only enforcement keeps it unchanged.
+        from volume_disk import create_image
+        if (hid_input_probe or m5_case is not None or xhci_case is not None
+                or usb_hid_case is not None):
+            raise ValueError("a seeded volume excludes the HID, M5, xHCI and USB fixtures at 00:05.0")
+        seeded_volume = run_dir / "volume.img"
+        create_image(seeded_volume, volume_variant)
+        seeded_volume_initial = sha256(seeded_volume)
     disk_path, disk_info = None, None
     if m5_case is not None:
         from build import M5_CASES
@@ -179,6 +190,9 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
                  "-object", "rng-random,id=rng0,filename=/dev/urandom",
                  "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
                  "-drive", f"if=none,id=volume,format=raw,cache=writeback,file={run_rel}/volume.img",
+                 "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"]
+    if seeded_volume is not None:
+        args += ["-drive", f"if=none,id=volume,format=raw,cache=writeback,file={run_rel}/volume.img",
                  "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"]
     if reboot_on_reset:
         # Overrides -no-reboot: a reset re-runs firmware (second EBS marker)
@@ -251,6 +265,10 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     if hid_input_probe:
         report.update(hid_input_probe=True, input_scope="synthetic HID through native service IPC; no USB device attached",
                       volume_initial_sha256=hid_volume_initial, volume_final_sha256=sha256(hid_volume))
+    if seeded_volume is not None:
+        report.update(volume_variant=volume_variant, volume_path=str(seeded_volume),
+                      volume_initial_sha256=seeded_volume_initial,
+                      volume_final_sha256=sha256(seeded_volume))
     if usb_hid_case is not None:
         report.update(usb_hid_case=usb_hid_case, usb_control=usb_control and {
             "trace": usb_control["trace"], "error": usb_control["error"]})
