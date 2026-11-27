@@ -80,13 +80,31 @@ profiles. QEMU host timings never replace physical input-to-display measurements
    evidenced gap against tier 1 that a profile can resolve. Each optimisation is
    verified by its own A/B run.
 
+**User-interface classes (Specialist U, under ADR-U-OWNER-20261127, #629; proposal
+#530 issuecomment-7219594221, adopted here):** U02 uses the tier 1 targets unchanged.
+U supplies the interaction classes and the measurement points; R owns the measurement
+method and the profile split.
+
+- Regular local feedback: p50 ≤ 50 ms, p95 ≤ 100 ms, p99 ≤ 200 ms.
+- Light interaction completion: p95 ≤ 250 ms.
+- Actions with an external I/O dependency: visible feedback and a progress indication
+  within 250 ms.
+- Frame pacing: at the active refresh rate, with 60 Hz as the base and no 60 Hz cap.
+- HiDPI: the same targets. The UI thread never blocks.
+- Guest measurement points (KVM, WHPX, TCG; diagnostic only):
+  - input acceptance to the first compositor commit with changed tiles (first feedback);
+  - input acceptance to `SHELL_READY` where it applies;
+  - present intervals.
+- Only physical input-to-display measurement is product evidence.
+
 **Open cells, frozen before the corresponding acceptance measurement:**
 
 - physical reference hardware, resolution and refresh rates (H, with the open HW-FR
   decision);
 - input-to-display method and energy method and budget on physical hardware (H);
 - a guest timestamp source with at least 1 ms resolution (K);
-- a present or scanout timestamp at the compositor (U);
+- a present or scanout timestamp at the compositor, starting with the first commit with
+  changed tiles (U);
 - the final combined workload and the memory budget per profile (R with U).
 
 **Source:** #530 issuecomment-7219541052 (owner text); `docs/FULL-TEST-RELEASE.md`
