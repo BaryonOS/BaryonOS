@@ -1,0 +1,22 @@
+<h2>How do the pieces fit together?</h2>
+<p>The first development target is x86_64 in a QEMU virtual machine with UEFI firmware. This simplified path helps explain the layers; it does not mean that every planned service or app is integrated.</p>
+<ol class="guide-flow">
+  <li><strong>UEFI firmware</strong><span>OVMF provides the boot interface inside the virtual machine.</span></li>
+  <li><strong>Project loader</strong><span>The Baryon OS loader prepares the kernel and passes boot information to it.</span></li>
+  <li><strong>Kernel</strong><span>The independently developed Rust kernel manages privileged resources and process boundaries.</span></li>
+  <li><strong>Processes and services</strong><span>Isolated components perform bounded jobs through defined interfaces.</span></li>
+  <li><strong>SDK, apps and UI</strong><span>Application-facing interfaces and the desktop sit above those boundaries; their integration remains in progress.</span></li>
+</ol>
+
+<h2>What makes the kernel independent?</h2>
+<p>The native system does not use Linux, BSD, XNU or another existing OS kernel as its foundation. Development tools, UEFI firmware, public standards and reviewed libraries can still be used. A Linux development computer does not turn the guest OS into a Linux distribution.</p>
+
+<h2>How are permissions meant to cross layers?</h2>
+<p>A <a href="/docs/glossary/">capability</a> is a kernel-checked right to a particular resource and operation. The design calls for bounded requests between processes: selecting one document for an app should not grant access to every file. The <a href="/docs/privacy/">privacy and security chapter</a> explains the intended limits; the <a href="/docs/progress/">progress chapter</a> separates implemented paths from full release acceptance.</p>
+
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/README.md">Project overview <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md">Kernel and security contract <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/PROJECT-STATE.md">Current integration state <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/wiki/Architecture-Overview.md">Architecture reading guide <span aria-hidden="true">↗</span></a>
+</div>

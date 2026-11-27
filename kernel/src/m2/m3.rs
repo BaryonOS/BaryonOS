@@ -48,6 +48,7 @@ mod wait;
     any(
         feature = "milestone-m4",
         feature = "native-fpu",
+        feature = "native-ai-job",
         feature = "native-qsim"
     )
 ))]
@@ -70,6 +71,34 @@ const _: () = assert!(
     )
 ))]
 compile_error!("native-fpu is a separate M3 acceptance profile");
+// One CPU, no sleep/wake: S3/S5/power profiles are excluded explicitly, not
+// only through their own milestone guards.
+#[cfg(all(
+    feature = "native-ai-job",
+    any(
+        feature = "milestone-m4",
+        feature = "native-fpu",
+        feature = "native-qsim",
+        feature = "native-qsim-job",
+        feature = "native-memory",
+        feature = "process-memory",
+        feature = "ipc-wait",
+        feature = "native-smp",
+        feature = "native-smp-m3",
+        feature = "native-display-probe",
+        feature = "framebuffer",
+        feature = "native-acpi-s3",
+        feature = "acpi-s3-core",
+        feature = "native-acpi-s5",
+        feature = "native-system-power",
+        feature = "test-system-s3",
+        feature = "test-system-s3-reinit",
+        feature = "test-system-s3-held-completion"
+    )
+))]
+compile_error!("native-ai-job is a separate single-CPU M3 acceptance profile");
+#[cfg(feature = "native-ai-job")]
+mod ai_job;
 #[cfg(feature = "native-cap-digest-bench")]
 mod cap_bench;
 #[cfg(all(
@@ -249,6 +278,7 @@ mod m5;
     any(not(feature = "milestone-m4"), feature = "native-smp-m3-ipc"),
     not(feature = "native-qsim"),
     not(feature = "native-fpu"),
+    not(feature = "native-ai-job"),
     not(feature = "native-memory")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
@@ -284,7 +314,8 @@ const KEYRING_APP_ELF: &[u8] = include_bytes!(env!("NOS_KEYRING_APP_ELF"));
     not(feature = "native-supervisor"),
     not(feature = "native-keyring"),
     not(feature = "native-display-probe"),
-    not(feature = "native-fpu")
+    not(feature = "native-fpu"),
+    not(feature = "native-ai-job")
 ))]
 const ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(all(feature = "milestone-m5", not(feature = "milestone-m6a")))]
@@ -553,6 +584,7 @@ struct State {
     any(
         feature = "milestone-m4",
         feature = "native-fpu",
+        feature = "native-ai-job",
         feature = "native-smp-m3"
     ),
     allow(dead_code)
@@ -692,6 +724,14 @@ fn process_elf(slot: usize) -> &'static [u8] {
         _ => panic!("FPU acceptance has two processes"),
     }
 }
+#[cfg(feature = "native-ai-job")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0 => include_bytes!(env!("NOS_AI_JOB_ELF")),
+        1 => include_bytes!(env!("NOS_FPU_B_ELF")),
+        _ => panic!("AI job acceptance has two processes"),
+    }
+}
 #[cfg(feature = "native-sdk-app")]
 fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
@@ -774,6 +814,7 @@ fn process_elf(slot: usize) -> &'static [u8] {
     feature = "native-display-probe",
     feature = "native-memory",
     feature = "native-fpu",
+    feature = "native-ai-job",
     feature = "native-sdk-app",
     feature = "native-volume",
     feature = "native-update",
@@ -913,7 +954,10 @@ impl State {
             MAX
         } else if cfg!(feature = "native-memory-oom") {
             MAX
-        } else if cfg!(feature = "native-memory") || cfg!(feature = "native-fpu") {
+        } else if cfg!(feature = "native-memory")
+            || cfg!(feature = "native-fpu")
+            || cfg!(feature = "native-ai-job")
+        {
             2
         } else if cfg!(feature = "native-supervisor") {
             // The whole table is schedulable; only the supervisor boots now.
@@ -1017,7 +1061,8 @@ impl State {
             not(feature = "native-supervisor"),
             not(feature = "native-keyring"),
             not(feature = "native-display-probe"),
-            not(feature = "native-fpu")
+            not(feature = "native-fpu"),
+            not(feature = "native-ai-job")
         ))]
         if !cfg!(feature = "native-smp-m3-ipc") {
             m4::manifest(self);
@@ -1045,6 +1090,8 @@ impl State {
         qsim_job::manifest(self);
         #[cfg(feature = "native-fpu")]
         fpu::fixture::manifest(self);
+        #[cfg(feature = "native-ai-job")]
+        ai_job::manifest(self);
         #[cfg(feature = "native-memory")]
         memory_fixture::manifest(self);
         #[cfg(feature = "native-display-probe")]
@@ -1343,7 +1390,8 @@ impl State {
             not(feature = "native-supervisor"),
             not(feature = "native-keyring"),
             not(feature = "native-display-probe"),
-            not(feature = "native-fpu")
+            not(feature = "native-fpu"),
+            not(feature = "native-ai-job")
         ))]
         if !cfg!(feature = "native-smp-m3-ipc") || cfg!(feature = "native-smp-m3-soak") {
             if let Some(next) = m4::poll(state) {
@@ -1395,6 +1443,8 @@ impl State {
         }
         #[cfg(feature = "native-fpu")]
         fpu::fixture::poll(state);
+        #[cfg(feature = "native-ai-job")]
+        ai_job::poll(state);
         #[cfg(feature = "native-memory")]
         memory_fixture::poll(state);
         #[cfg(feature = "native-display-probe")]
@@ -1554,6 +1604,7 @@ impl State {
                         && !cfg!(feature = "native-qsim-job")
                         && !cfg!(feature = "native-sdk-app")
                         && !cfg!(feature = "native-fpu")
+                        && !cfg!(feature = "native-ai-job")
                         && !cfg!(feature = "native-memory")
                         && !cfg!(feature = "native-smp-m3")
                         && mode() == 0
@@ -1852,6 +1903,11 @@ impl State {
             fpu::fixture::observe_exit(self, slot, counter);
             return;
         }
+        #[cfg(feature = "native-ai-job")]
+        {
+            ai_job::observe_exit(self, slot, counter);
+            return;
+        }
         #[cfg(feature = "native-window-session")]
         {
             window_session::observe_exit(self, slot, counter);
@@ -1904,7 +1960,8 @@ impl State {
             not(feature = "native-supervisor"),
             not(feature = "native-keyring"),
             not(feature = "native-display-probe"),
-            not(feature = "native-fpu")
+            not(feature = "native-fpu"),
+            not(feature = "native-ai-job")
         ))]
         {
             m4::observe_exit(self, slot, counter);
@@ -1913,6 +1970,7 @@ impl State {
         #[cfg(all(
             not(feature = "milestone-m4"),
             not(feature = "native-fpu"),
+            not(feature = "native-ai-job"),
             not(feature = "native-memory")
         ))]
         {
@@ -1953,6 +2011,11 @@ impl State {
         #[cfg(feature = "native-fpu")]
         {
             fpu::fixture::observe_fault(self, slot, context, counter);
+            return;
+        }
+        #[cfg(feature = "native-ai-job")]
+        {
+            ai_job::observe_fault(self, slot, context, counter);
             return;
         }
         #[cfg(feature = "native-window-session")]
@@ -2007,7 +2070,8 @@ impl State {
             not(feature = "native-supervisor"),
             not(feature = "native-keyring"),
             not(feature = "native-display-probe"),
-            not(feature = "native-fpu")
+            not(feature = "native-fpu"),
+            not(feature = "native-ai-job")
         ))]
         {
             m4::observe_fault(self, slot, context, counter);
@@ -2016,6 +2080,7 @@ impl State {
         #[cfg(all(
             not(feature = "milestone-m4"),
             not(feature = "native-fpu"),
+            not(feature = "native-ai-job"),
             not(feature = "native-memory")
         ))]
         {
@@ -2158,6 +2223,8 @@ fn event(source: *const u64) -> *const u64 {
     }
     #[cfg(feature = "native-fpu")]
     fpu::fixture::entry(current, vector);
+    #[cfg(feature = "native-ai-job")]
+    ai_job::entry(current, vector);
     let mut terminate = false;
     if vector == 32 {
         out8(0x20, 0x20);
@@ -2563,6 +2630,7 @@ fn event(source: *const u64) -> *const u64 {
     #[cfg(all(
         not(feature = "milestone-m4"),
         not(feature = "native-fpu"),
+        not(feature = "native-ai-job"),
         not(feature = "native-memory"),
         not(feature = "native-smp-m3")
     ))]
@@ -2771,6 +2839,7 @@ fn m5_case() -> u8 {
 #[cfg_attr(
     any(
         feature = "native-fpu",
+        feature = "native-ai-job",
         feature = "native-memory",
         feature = "native-smp-m3"
     ),

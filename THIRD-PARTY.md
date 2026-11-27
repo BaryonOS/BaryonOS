@@ -6,12 +6,14 @@ Third-party code and fonts retain their own license terms. Applying MPL-2.0 to p
 
 | Component | Terms and existing evidence |
 |---|---|
+| LLM Project Docs 1.12.0 documentation linter | MIT; vendored as `.claude/scripts/docs-lint.py`. Exact upstream source, local adaptation and hashes are recorded in [the linter provenance](.claude/scripts/README.md); the full notice is in [LICENSE-llm-project-docs.txt](.claude/scripts/LICENSE-llm-project-docs.txt) |
 | Patched zune-jpeg 0.5.16-rc3 | MIT, Apache-2.0, or Zlib; full upstream texts are included under `services/image-codec/vendor/zune-jpeg-0.5.16-rc3/`; changes and provenance are documented in [image-codec/THIRD-PARTY.md](services/image-codec/THIRD-PARTY.md) |
 | Patched hkdf 0.13.0 and hmac 0.13.0 | MIT or Apache-2.0; full upstream texts are included under the two directories in `services/keyring/vendor/`; changes and provenance are documented in [vendor/README.md](services/keyring/vendor/README.md) |
 | Open Sans atlas `ui/graphics/assets/open-sans-atlas.rle` and generated glyph metadata `ui/graphics/src/atlas.rs` | Apache-2.0; both remain outside the MPL-covered-file register. See [graphics/THIRD-PARTY.md](ui/graphics/THIRD-PARTY.md), original provenance/hashes in [font-provenance.json](ui/graphics/assets/font-provenance.json), and the full license text under `ui/graphics/licenses/` |
 | Noto Sans Mono bitmap data | OFL-1.1 for the font data, MIT for the Rust crate code; full notices are included in [native/THIRD-PARTY.md](ui/native/THIRD-PARTY.md) and [compositor/THIRD-PARTY.md](sdk/examples/compositor/THIRD-PARTY.md), together with their `licenses/` directories |
 | SplitMix64 algorithm | Public-domain statement by Sebastiano Vigna; source attribution is preserved in `experiments/quantum/qsim-core/src/sampler.rs` and [quantum/THIRD-PARTY.md](experiments/quantum/THIRD-PARTY.md) |
 | `days_from_civil` calendar calculation | Public-domain statement by Howard Hinnant; source attribution is preserved in `drivers/rtc/src/lib.rs` |
+| Contributor Covenant 3.0 adaptation in `CODE_OF_CONDUCT.md` | CC BY-SA 4.0; the source, steward, adaptation, and licence are identified in the file's attribution section |
 
 ## Registered dependencies
 
