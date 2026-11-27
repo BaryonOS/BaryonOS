@@ -14,6 +14,10 @@ Use [Discussions](https://github.com/BaryonOS/BaryonOS/discussions) for question
 
 The [community guide](docs/COMMUNITY.md) explains which channel fits each type of contribution. Search for existing work before opening a new issue or proposal. An ordinary submission does not start an agent pipeline; a maintainer reviews an actionable task before assigning a pipeline label.
 
+Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+Accessibility priorities, current limitations, and barrier-reporting routes are
+documented in [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
 ## Development environment
 
 Before making a change, read:
