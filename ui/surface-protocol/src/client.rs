@@ -10,9 +10,12 @@ use nieuw_os_sdk_runtime::{
     Error as RuntimeError, Outgoing, ReceiveEndpoint, Received, SendEndpoint,
 };
 
-/// Reply wait in PIT ticks (100 Hz) for transports that can block: half the
-/// 200-tick window-session stage deadline, so the client error comes first.
-pub const REPLY_DEADLINE_TICKS: u64 = 100;
+/// Reply wait in PIT ticks (100 Hz) for transports that can block. The
+/// compositor expires a staged tile at `begin + 200` and drops an undeliverable
+/// reply after `start + 200`, both on its pass clock. 150 keeps the client's
+/// Delivery error first while the Begin-to-wait gap and that pass skew stay
+/// below 50 ticks (measured worst reply 8 ticks locally, ~20 estimated hosted).
+pub const REPLY_DEADLINE_TICKS: u64 = 150;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Error {
