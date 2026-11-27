@@ -1,7 +1,8 @@
-"""Summarise the R02 (2) A/B: per-phase median and range, acceptance fields, pixel identity."""
-import json, statistics, sys, glob, os
+"""Summarise the R02 (1) A/B: per-phase median and range, acceptance fields, pixel identity."""
+import json, statistics, sys, os
+from pathlib import Path
 d = sys.argv[1] if len(sys.argv) > 1 else '.'
-runs = {s: [json.load(open(os.path.join(d, f'report-{s}{i}.json'))) for i in range(1, 6)] for s in 'AB'}
+runs = {s: [json.loads(Path(d, f'report-{s}{i}.json').read_text()) for i in range(1, 6)] for s in 'AB'}
 out = []
 for s, rs in runs.items():
     out.append(f"{s} commit {rs[0]['source_commit'][:8]} kernel.elf {rs[0]['immutable']['esp/kernel.elf'][:16]}")
@@ -37,7 +38,7 @@ out.append(f"oracle files_sha256 distinct sets {len(oracles)}; paint_isolation_b
 # (local screendumps from run_directory; e483-style prefixes are only labels for comparison).
 import hashlib
 def ppm(path):
-    b = open(path, 'rb').read(); parts = b.split(maxsplit=4); return int(parts[1]), parts[4]
+    b = Path(path).read_bytes(); parts = b.split(maxsplit=4); return int(parts[1]), parts[4]
 for p in mismatch:
     cells = []
     for s in 'AB':
@@ -46,7 +47,7 @@ for p in mismatch:
             cells.append(f"{s}{i}:{hashlib.sha256(px[cut:]).hexdigest()[:4]}/{hashlib.sha256(px[:cut]).hexdigest()[:4]}")
     out.append(f"split {p} taskbar/content: " + ' '.join(cells))
 # High contrast (--clipboard --workspace), if present.
-ws = {k: json.load(open(f)) for k in ('A1', 'B1', 'B2', 'A2') for f in [os.path.join(d, f'ws-report-{k}.json')] if os.path.exists(f)}
+ws = {k: json.loads(Path(f).read_text()) for k in ('A1', 'B1', 'B2', 'A2') for f in [os.path.join(d, f'ws-report-{k}.json')] if os.path.exists(f)}
 if ws:
     out.append("workspace runs " + ' '.join(f"{k}: raw {r['raw_qemu_exit']} passed {r['passed']} hc_gate {r['app_high_contrast_gate']} dur {r['duration_s']:.2f}" for k, r in ws.items()))
     hc = [p for p in next(iter(ws.values()))['phases'] if 'contrast' in p]
