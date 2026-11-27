@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "a5500d0e7c5669a4e4496c5906bbf21de3ad9796",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/b03-s7-anchor-20261127",
+  "task": "REL-05 S7 pre-write success integrity repair after N review",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The private host-state model now converts an Extend success reported before the single-use write transition to Corrupt, while preserving pre-write Conflict and RateLimited failures and post-write Extended completion. Targeted host tests and Clippy pass. No native TPM write, read-back, signed ENROLL handoff or joint N04 test is established; REL-05 remains open and N04 stays on 5A."
+}
