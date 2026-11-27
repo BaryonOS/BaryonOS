@@ -9,6 +9,13 @@ and live evidence take precedence.
 
 State as of 27 Nov 2026 11:30Z (main 8ee0d501).
 
+**Live handoff:** the newest "HANDOFF" comment on issue #592, currently
+https://github.com/BaryonOS/BaryonOS/issues/592#issuecomment-7217096041
+(HEADs, commands and exit codes, not-run list, next safe action). Graphify is
+optional context only; every fact here and in that comment can be reproduced
+from the repository and GitHub. On resume, first verify branch, HEAD,
+worktree status, ownership and freshness against that comment.
+
 ## Scope and working agreements
 
 - Scope: P01 native end-to-end encrypted NAS storage, P02 automatic
@@ -116,4 +123,5 @@ State as of 27 Nov 2026 11:30Z (main 8ee0d501).
 2. Pick the next P row only if it has no owner or cross-track gate. Otherwise
    raise the OWNER questions on the tracking issue and wait.
 
-Handoff threads: #592 (current slice), #554 (P02-T3).
+Handoff threads: #592 (current slice, live HANDOFF), #554 (P02-T3). Update
+the live handoff before an ownership change or a stop.
