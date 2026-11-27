@@ -4,7 +4,8 @@ set -uo pipefail
 O=${R02_OUTPUT_DIR:?Set R02_OUTPUT_DIR to a new output directory}
 if [ -e "$O" ]; then printf "Output path already exists: %s\n" "$O" >&2; exit 1; fi
 mkdir -p "$O" || exit 1
-O=$(cd "$O" && pwd -P) || exit 1
+O=$(cd "$O" && printf '%s.' "$PWD") || exit 1
+O=${O%.}
 D=$HOME/projects/BaryonOS-scratch/r/diag-tick/src; M=$HOME/projects/BaryonOS-worktrees/r-tick
 export NOS_QEMU_ACCEL=kvm CARGO_NET_OFFLINE=true OS_OVMF_CODE=/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/usr/share/OVMF/OVMF_VARS_4M.fd
 VGA=/usr/share/seabios/vgabios-stdvga.bin BIOS=/usr/share/seabios/bios-256k.bin

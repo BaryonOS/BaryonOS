@@ -17,12 +17,13 @@ with tempfile.TemporaryDirectory(prefix='r02 output ') as tmp:
         stub = bindir / name
         stub.write_text('#!/bin/sh\nprintf "stub %s\\n" "$*"\n')
         stub.chmod(0o755)
-    env = dict(os.environ, HOME=str(home), PATH=str(bindir) + os.pathsep + os.environ['PATH'],
-               R02_OUTPUT_DIR='relative evidence/output', BUILD_ONLY='1')
-    result = subprocess.run(['bash', str(runner)], cwd=root, env=env, capture_output=True, text=True)
-    assert result.returncode == 0, (result.returncode, result.stdout, result.stderr)
-    output = root / env['R02_OUTPUT_DIR']
-    for name in ('meta.txt', 'build-D.log', 'build-M.log'):
-        assert (output / name).is_file(), name
-    assert 'build-only' in (output / 'meta.txt').read_text()
-print('relative output path and spaces: PASS')
+    for output_name in ('relative evidence/output', 'relative evidence/newline\n'):
+        env = dict(os.environ, HOME=str(home), PATH=str(bindir) + os.pathsep + os.environ['PATH'],
+                   R02_OUTPUT_DIR=output_name, BUILD_ONLY='1')
+        result = subprocess.run(['bash', str(runner)], cwd=root, env=env, capture_output=True, text=True)
+        assert result.returncode == 0, (result.returncode, result.stdout, result.stderr)
+        output = root / output_name
+        for name in ('meta.txt', 'build-D.log', 'build-M.log'):
+            assert (output / name).is_file(), (output_name, name)
+        assert 'build-only' in (output / 'meta.txt').read_text()
+print('relative output paths with spaces and trailing newline: PASS')
