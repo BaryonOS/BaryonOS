@@ -3,7 +3,7 @@
   "source_commit": "3009755beedc3cd98605d3a8a2e2f6441ba2ae5b",
   "assessment_basis": "reviewed_main_commit",
   "branch": "docs/h03-broker-ingress",
-  "task": "Record the reviewed H03-T3b output-only IPC proposal and the capability-attachment ingress blocker in the owning transport and H handoff.",
+  "task": "Record the reviewed H03-T3b output-only IPC proposal and the capability-attachment ingress blocker in the owning transport and H handoff. Record the project-owner-approved four-endpoint narrowing in the H03 ADR.",
   "previous_score": 43,
-  "summary": "43/100, unchanged. The proposal defines broker-only AUDIO, bounded queues, generation-aware cancellation and explicit fallback. The shared ingress rule awaits scope and review. No runtime, native audio, physical evidence or criterion acceptance is added."
+  "summary": "43/100, unchanged. The proposal defines broker-only AUDIO, bounded queues, generation-aware cancellation and explicit fallback. The shared ingress rule is approved for the four fixture endpoints and awaits implementation, tests and K/B diff reviews. No runtime, native audio, physical evidence or criterion acceptance is added."
 }

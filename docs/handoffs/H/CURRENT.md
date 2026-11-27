@@ -125,8 +125,10 @@ feature-off baseline waits for K's linker pin on main.
   confirmed the reserved range and bounded IPC wait on the reviewed
   source. B found that attached capabilities can stall a full receiver.
   The bootstrap-scoped no-attachments proposal (issuecomment-7227589916)
-  has a conditional security design review from B. The shared contract
-  awaits project-owner scope and an exact B/K write set. See the
+  has a conditional security design review from B. The project owner
+  approved the four-endpoint narrowing only (#564, issuecomment-7227712309).
+  The implementation requires an exact shared write set and GO from
+  both K and B on the diff. See the
   [broker boundary](../../../drivers/virtio-snd/TRANSPORT.md#ring-3-broker-boundary-proposal-no-implementation).
 - K measures whether #602 (C3 scheduler) slows the H04-T3 net-link gates
   (27–52 % on hosted TCG; #602 issuecomment-7218963989); #602 is held until
@@ -208,7 +210,7 @@ feature-off baseline waits for K's linker pin on main.
    Implement #600 according to issue comments 7219928487, 7222111549 and
    7222382170, with N review on #529. T5f follows TXDOWN. K-9 follows
    #602, #634 and TXDOWN.
-2. H03-T3b: resolve the shared IPC ingress scope with the project owner,
+2. H03-T3b: coordinate the approved four-endpoint ingress write set with
    B and K. After the reviewed ingress path is verified, implement the
    output-only broker using the AUDIO right and the reserved syscall
    range. Preserve the transport oracle in §7 and the Security Floor

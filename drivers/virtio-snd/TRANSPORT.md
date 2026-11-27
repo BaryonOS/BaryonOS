@@ -243,9 +243,9 @@ queue resources. Ordinary endpoints retain the existing path.
 [B's conditional security design review](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227620602)
 and [K's interface review](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227602220)
 identify the capability engine and kernel manifest adapter as shared
-interfaces. The project owner must scope the change before
-B and K settle the exact implementation write set. H owns the broker
-fixture.
+interfaces. The [project owner approved the narrowing](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227712309)
+only for the four boot-created fixture endpoints. B and K must each
+give GO on the implementation diff. H owns the broker fixture.
 
 Add negative cases for one and two attachments with a full receiver table,
 unchanged slot and queue counts, later delivery of capless control and data,

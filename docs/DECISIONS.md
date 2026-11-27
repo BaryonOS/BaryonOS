@@ -497,6 +497,23 @@ Floor unchanged. H coordinates with K, B, N and S.
     crash recovery are designed in;
   - latency is optimised without weakening isolation.
 
+**H03-T3b capability attachments (project-owner decision, 27 November 2026).**
+The four trusted boot-created VM-SND-1 ingress endpoints reject messages
+carrying capabilities before enqueue, transfer reservation or queue
+mutation. The restriction belongs to the live endpoint object and ends
+with its lifetime. Its scope is the private control and data endpoints
+for the ordinary fixture client and the system assistive client.
+Ordinary IPC, all other endpoints and message types, application rights
+and the Security Floor retain their existing behaviour.
+
+Negative tests must prove refusal on each of the four endpoints and
+unchanged ordinary IPC elsewhere. The full-receiver case must leave
+resources unchanged and allow subsequent capless control and data
+delivery. K and B must each review and give GO on the implementation
+diff. This approval narrows the fixture ingress and establishes no
+runtime or acceptance evidence. The decision is
+[recorded on #564](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227712309).
+
 **Physical hardware (`OD-HW-*`).**
 
 | Decision | Owner answer | Matrix status |
