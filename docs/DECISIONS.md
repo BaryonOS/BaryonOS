@@ -8,8 +8,8 @@ wording and speaker.
 ## ADR-PROGRESS-OWN-ROWS-20261127 — criterion owners maintain their own implementation and verification snapshot rows
 
 **Status:** decided by the project owner on 27 November 2026 (given in the PR
-guard session and relayed verbatim by the PR guard; received by G before 12:45
-UTC by `date -u`), recorded by Specialist G at the owner's request. It amends
+guard session and relayed verbatim by the PR guard; no later than 12:43:34 UTC by the guard's
+`date -u` log), recorded by Specialist G at the owner's request. It amends
 the lead ownership of `docs/progress.json` in AGENTS.md and D2 of
 ADR-PROGRESS-ASSESSMENTS-20261125 for these rows only, and supersedes the
 narrower owner decision relayed shortly before it ("Ja, eigen rijen"), which
