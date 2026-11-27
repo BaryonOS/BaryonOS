@@ -2719,13 +2719,16 @@ fn event(source: *const u64) -> *const u64 {
     #[cfg(not(feature = "native-smp-m3"))]
     let next = {
         // Single-CPU form of the SMP candidate above; the pid check rejects a
-        // process that an observer respawned into the caller's slot.
+        // process that an observer respawned into the caller's slot. An
+        // `again` result (-8) means the caller polls for another process's
+        // progress, so it selects like a yield instead of spinning its quantum.
         let candidate = (vector == 128
             && !matches!(context[14], 1 | 2)
             && !terminate
             && state.current == current
             && state.processes[current].pid == entry_pid
-            && state.processes[current].status == Status::Ready)
+            && state.processes[current].status == Status::Ready
+            && state.processes[current].context[14] != (-8i64) as u64)
             .then_some(current);
         state.select_with_continuation(candidate)
     };
