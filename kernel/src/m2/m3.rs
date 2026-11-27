@@ -2284,6 +2284,8 @@ fn event(source: *const u64) -> *const u64 {
         let supervisor_call = supervisor_call || number == 0x90;
         #[cfg(feature = "test-system-s3")]
         let supervisor_call = supervisor_call || number == 0x91;
+        #[cfg(feature = "native-system-lock")]
+        let supervisor_call = supervisor_call || number == 0x92;
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         #[allow(unused_variables)]
         let supervisor_call = false;
@@ -2349,6 +2351,13 @@ fn event(source: *const u64) -> *const u64 {
                 timer_init();
                 state.audit();
             }
+            state.processes[current].context[14] = code as u64;
+            state.processes[current].context[12] = 0;
+        }
+        // B01-LOCK (ADR-KEYRING-LOCK-20261126): init-only LOCK behind POWER.
+        #[cfg(feature = "native-system-lock")]
+        if number == 0x92 {
+            let code = system::lock(state, current, args);
             state.processes[current].context[14] = code as u64;
             state.processes[current].context[12] = 0;
         }

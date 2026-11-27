@@ -231,10 +231,20 @@ test-system-s3-blk-reinit-busy = ["test-system-s3-blk-reinit"]
 test-system-s3-blk-reinit-identity = ["test-system-s3-blk-reinit"]
 test-system-s3-blk-reinit-capacity = ["test-system-s3-blk-reinit"]
 test-system-s3-blk-reinit-no-reset-ack = ["test-system-s3-blk-reinit"]
+# B01-LOCK (ADR-KEYRING-LOCK-20261126, #564): syscall 0x92 ends the Key Service
+# instance through process teardown and scrubs the unused service stack.
+native-system-lock = ["native-system-power"]
+# Labelled acceptance fixture (A2-A6, A9, A10), TEST profile only.
+test-system-lock = ["native-system-lock"]
+# Red controls: no stack scrub; the Key Service exits on its own before LOCK.
+test-system-lock-noscrub = ["test-system-lock"]
+test-system-lock-exit = ["test-system-lock"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 test-system-nas-interrupt = ["native-system-nas-probe"]
 test-system-nas-repair = ["native-system-nas-probe"]
+test-system-nas-offline = ["native-system-nas-probe"]
+test-system-nas-resume = ["native-system-nas-probe"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.
 native-system-net = ["native-system", "dep:virtio-net-driver"]
 test-system-net-recover = ["native-system-net", "test-system-recover"]

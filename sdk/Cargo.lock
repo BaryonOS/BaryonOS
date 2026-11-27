@@ -420,6 +420,7 @@ version = "0.1.0"
 dependencies = [
  "nieuw-os-sdk-runtime",
  "nieuw-os-task-grant-core",
+ "volume-core",
 ]
 
 [[package]]

@@ -706,7 +706,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 old_acks = numbers(raw, f"WINDOW:{role}:INPUT_ACKS")[-1]
                 control.command("send-key", {"keys": [{"type": "qcode", "data": k} for k in keys], "hold-time": 1})
                 if keys == ("f6",):
-                    observe("F6 focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == 1-current["FOCUSED"])
+                    # SHELL_READY means the compositor presented all damage, including the
+                    # taskbar focus change, so later captures cannot show the old taskbar.
+                    observe("F6 focus", lambda raw: comp(raw).get("GENERATION") == group_generation[0] and comp(raw).get("FOCUSED") == 1-current["FOCUSED"] and comp(raw).get("SHELL_READY") == 1)
                 elif keys not in (("f10",), ("f12",)):
                     # The compositor consumes Delete itself; the four genuine
                     # modifier edges still reach the focused application.

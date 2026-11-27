@@ -8,9 +8,15 @@
 //! 64/72 reply send handles for the owner/helper, 176/184 owner/helper PID.
 //! FIXTURE standing in for the trusted permission dialog: 96 present flag,
 //! 104 PID, 112 object, 120 revision, 128 rights bits, 136 duration code.
+//! FIXTURE: a second grant decision of the same form at 360..400, applied
+//! after the owner's close. FIXTURE lifecycle notice (kernel-written on each
+//! client exit, standing in for a product exit-notification path): 448 count,
+//! 456.. exited PIDs. Only the kernel and the broker can write this page.
 //! Evidence (written before each reply): 40 status (1 done, 0x1xx error),
-//! 144 fixture applied, 192 read ok, 200 denied, 208 close ok, 216 claimed
-//! actor differed from sender, 224 bad requests, 256.. decision log.
+//! 144 fixtures applied, 152 exit notices consumed, 160 owner grants after the
+//! forged retire, 192 read ok, 200 denied, 208 close ok, 216 claimed actor
+//! differed from sender, 224 bad requests, 232/240/248 owner grants before
+//! retirement, grants retired, owner grants after, 256.. decision log.
 
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("task-grant-broker is only for the Baryon OS x86_64-unknown-none target");
@@ -19,14 +25,14 @@ mod support;
 
 use nieuw_os_sdk_runtime::{native, Handle, ReceiveEndpoint, SendEndpoint};
 use nieuw_os_task_grant_broker_example::{
-    decode_request, encode_reply, Broker, OP_CLOSE, OP_READ, STATUS_BAD_REQUEST, STATUS_DENIED,
-    STATUS_GO, STATUS_OK, STATUS_RESUME, TAG,
+    decode_request, encode_reply, Broker, FixtureVolume, DATA_MAX, EPOCH, OP_CLOSE, OP_READ,
+    STATUS_BAD_REQUEST, STATUS_DENIED, STATUS_GO, STATUS_OK, STATUS_RESUME, TAG,
 };
 
-const REQUESTS: u64 = 8;
-const OWNER_FIRST_PHASE: u64 = 3;
-const HELPER_PHASE: u64 = 2;
+const REQUESTS: u64 = 12;
 const LOG: u64 = 256;
+const EXIT_COUNT: u64 = 448;
+const EXIT_PIDS: u64 = 456;
 
 fn bump(offset: u64) {
     support::put(offset, support::word(offset) + 1);
@@ -34,6 +40,38 @@ fn bump(offset: u64) {
 
 fn endpoint(offset: u64) -> Result<Handle, ()> {
     Handle::from_raw(support::word(offset)).map_err(|_| ())
+}
+
+/// FIXTURE standing in for the trusted dialog: a kernel-written decision of
+/// (present, PID, object, revision, rights, duration) words at `base`.
+fn apply_fixture(broker: &mut Broker<FixtureVolume>, base: u64) -> Result<(), ()> {
+    if support::word(base) != 1 {
+        return Ok(());
+    }
+    broker
+        .trusted_grant(
+            support::word(base + 8),
+            support::word(base + 16),
+            support::word(base + 24),
+            support::word(base + 32),
+            support::word(base + 40),
+        )
+        .map_err(|_| ())?;
+    bump(144);
+    Ok(())
+}
+
+/// The first kernel-written exit notice. The private startup page is the
+/// authentication: no client can write it and no IPC message reaches it.
+fn wait_exit_notice() -> Result<u64, ()> {
+    for _ in 0..100_000 {
+        support::tick();
+        if support::word(EXIT_COUNT) != 0 {
+            return Ok(support::word(EXIT_PIDS));
+        }
+        native::yield_now().map_err(|_| ())?;
+    }
+    Err(())
 }
 
 fn run() -> Result<(), ()> {
@@ -47,21 +85,11 @@ fn run() -> Result<(), ()> {
     let owner_reply = SendEndpoint::from_handle(endpoint(64)?);
     let helper_reply = SendEndpoint::from_handle(endpoint(72)?);
 
-    let mut broker = Broker::new();
-    if support::word(96) == 1 {
-        broker
-            .trusted_grant(
-                support::word(104),
-                support::word(112),
-                support::word(120),
-                support::word(128),
-                support::word(136),
-            )
-            .map_err(|_| ())?;
-        support::put(144, 1);
-    }
+    // FIXTURE: T2c-2 replaces this stand-in with the real volume domain 0.
+    let mut broker = Broker::new(FixtureVolume { epoch: EPOCH }, EPOCH);
+    apply_fixture(&mut broker, 96)?;
 
-    let (mut served, mut from_owner, mut from_helper) = (0u64, 0u64, 0u64);
+    let mut served = 0u64;
     while served < REQUESTS {
         let message = support::receive(requests)?;
         // Reply routing uses the kernel-supplied sender only.
@@ -81,15 +109,15 @@ fn run() -> Result<(), ()> {
             let _ = native::close_received_caps(&message);
             None
         };
-        let (status, data, op, object) = match request {
+        let (status, data, length, op, object) = match request {
             Some(request) => {
                 if request.claimed_actor != sender {
                     bump(216);
                 }
-                let (status, data) = broker.handle(sender, request);
-                (status, data, request.op, request.object & 0xff)
+                let (status, data, length) = broker.handle(sender, request);
+                (status, data, length, request.op, request.object & 0xff)
             }
-            None => (STATUS_BAD_REQUEST, &[][..], 0, 0),
+            None => (STATUS_BAD_REQUEST, [0; DATA_MAX], 0, 0, 0),
         };
         match (status, op) {
             (STATUS_OK, OP_READ) => bump(192),
@@ -103,17 +131,29 @@ fn run() -> Result<(), ()> {
             (sender << 32) | (op << 24) | (object << 16) | status,
         );
         served += 1;
-        support::send(reply, TAG, &encode_reply(status, data))?;
-        if sender == owner {
-            from_owner += 1;
-            if from_owner == OWNER_FIRST_PHASE {
-                support::send(helper_reply, TAG, &encode_reply(STATUS_GO, &[]))?;
-            }
-        } else {
-            from_helper += 1;
-            if from_helper == HELPER_PHASE {
+        support::send(reply, TAG, &encode_reply(status, &data[..length]))?;
+        // Fixed script; the kernel checks the resulting log order exactly.
+        match served {
+            3 | 9 => support::send(helper_reply, TAG, &encode_reply(STATUS_GO, &[]))?,
+            5 => support::send(owner_reply, TAG, &encode_reply(STATUS_RESUME, &[]))?,
+            8 => apply_fixture(&mut broker, 360)?,
+            10 => {
+                // After the helper's forged RETIRE: the owner's grant must survive.
+                support::put(160, broker.live_grants(owner));
                 support::send(owner_reply, TAG, &encode_reply(STATUS_RESUME, &[]))?;
             }
+            11 => {
+                let exited = wait_exit_notice()?;
+                if exited != owner {
+                    return Err(());
+                }
+                support::put(232, broker.live_grants(exited));
+                support::put(240, broker.retire_process(exited).map_err(|_| ())?);
+                support::put(248, broker.live_grants(exited));
+                support::put(152, 1);
+                support::send(helper_reply, TAG, &encode_reply(STATUS_GO, &[]))?;
+            }
+            _ => {}
         }
     }
     support::put(40, 1);

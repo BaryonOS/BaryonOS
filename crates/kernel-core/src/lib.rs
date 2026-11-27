@@ -56,6 +56,7 @@ pub enum Error {
     Mapped,
     Permission,
 }
+pub mod keylock;
 pub mod pressure;
 pub mod smp;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

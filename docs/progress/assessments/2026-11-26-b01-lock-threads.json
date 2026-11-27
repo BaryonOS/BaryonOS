@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "9adcf8aeb178b2c6bdfe32846f1b092328cc7179",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b01-lock-l1-20261126",
+  "task": "B01-LOCK review fixes on #573: latch defers while the exit-path scrub is pending, no aliased LOCK_STATE borrows",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. A ring-3 0x92 reaches latch() in its own kernel entry before m3_restore scrubs; latch() now returns while the scrub is pending, so LOCKED and erased() stay false until a later entry. The fixture calls latch() right after its successful LOCK in that order; a mutant without the deferral halts with LOCK_CANARY_RESIDUE. teardown, fixture and check_and_print no longer hold a LOCK_STATE borrow across nested accessors. Evidence is local native QEMU/TCG on 9adcf8ae (power-lock raw 0, noscrub and exit raw 35); hosted CI does not run the LOCK cases. B01 stays open: no ring-3 program issues 0x92, SUSPEND does not yet call erased(), UNLOCK is blocked on O2, O5 and O8, no physical S3 and no human audit."
+}
