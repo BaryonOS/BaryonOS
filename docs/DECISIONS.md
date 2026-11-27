@@ -88,13 +88,21 @@ conditions, required checks and gates that already apply to every integration.
 **Rollback:** the project owner can withdraw or narrow the mandate by a newer
 decision. Until a superseding ADR is recorded, the per-specialist delegations of
 ADR-MERGE-DELEGATION-20261123, ADR-SPECIALIST-TEAM-20261125 and
-ADR-MERGE-QUEUE-AUTONOMY-20261126 apply as before. Pull requests already
-integrated are not reverted by the rollback alone.
+ADR-MERGE-QUEUE-AUTONOMY-20261126 apply as before. Before a narrowed or
+withdrawn mandate takes effect, the affected specialist removes from the merge
+queue (or holds) each of its queued pull requests that falls outside the
+remaining mandate, and disables any armed auto-merge as before. The PR guard
+confirms both steps from GitHub: no merge-queue entry and `autoMergeRequest`
+null for each affected pull request. Pull requests already integrated are not
+reverted by the rollback alone.
 
 **Review criteria:** a pull request integrated under this ADR lies within the
 approved area of both its author and the integrating specialist, passed every
 required check and the applicable gates, and was not approved by its own author
-as an independent review.
+as an independent review. A pull request that changes a file on the Protected
+files list in `AGENTS.md` was also reviewed by someone outside the integrating
+workstream (ADR-MERGE-DELEGATION-20261123); a specialist that both reviews and
+integrates another specialist's protected-file pull request does not meet this.
 
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
