@@ -485,7 +485,7 @@ fn layout_change_and_superseded_partial_stay_exact() {
 }
 
 #[test]
-fn input_lost_banner_sends_exactly_the_changed_tiles() {
+fn input_loss_on_an_idle_view_sends_exactly_the_banner_tiles() {
     let host = surface_host();
     let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
     let mut cache = [0; DAMAGE_TILES];
@@ -495,6 +495,12 @@ fn input_lost_banner_sends_exactly_the_changed_tiles() {
         staging: &mut s,
     };
     let mut app = editor(&host, buffers, &mut cache);
+    // Idle: no press, drag, cursor, menu press or pending frame (#537).
+    let idle = app.controller().view();
+    assert!(!idle.dirty, "the view must be idle before the input loss");
+    let kept = (idle.focus, idle.caret, idle.anchor);
+    let contents = idle.contents.map(str::to_owned);
+    let g = generation(&app);
     let shown = host.borrow().framebuffer.clone();
     let before = app.surface_counts();
 
@@ -502,12 +508,16 @@ fn input_lost_banner_sends_exactly_the_changed_tiles() {
     assert!(app.step().is_err(), "a lost input service must surface");
     INPUT_FAILS.set(false);
     assert!(app.input_failed());
-    let g = generation(&app);
-    app.set_semantic_value(SemanticId::Document, g, "x")
-        .unwrap();
     finish_paint(&mut app);
 
-    // The screen shows the edit together with the input-lost banner.
+    // Mutation control: without `input_lost()` no frame starts, the screen
+    // keeps the plain view and the assertions below fail.
+    assert!(generation(&app) > g, "input loss must start a new frame");
+    let view = app.controller().view();
+    assert_eq!((view.focus, view.caret, view.anchor), kept);
+    assert_eq!(view.contents.map(str::to_owned), contents);
+
+    // The screen shows the unchanged document with the input-lost banner.
     let mut view = app.controller().view();
     view.status = ViewStatus::InputLost;
     view.can_save = false;
