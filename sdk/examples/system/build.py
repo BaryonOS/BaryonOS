@@ -12,10 +12,8 @@ ROOT = EXAMPLE.parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 from common import environment as toolchain_environment
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--native-clock", action="store_true")
-    args = parser.parse_args()
+def cargo_command(features: str) -> tuple[list[str], dict[str, str]]:
+    """The release build of the three binaries with exactly `features`."""
     environment = toolchain_environment()
     # Explicit target flags prevent inheriting the parent kernel linker script.
     # The three --cfg flags force the portable integer backends of the pinned
@@ -28,11 +26,22 @@ def main() -> int:
              "--cfg", 'sha2_backend="soft"']
     environment["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-system"))
-    features = "native,native-clock" if args.native_clock else "native"
     command = ["cargo", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(ROOT / "sdk/Cargo.toml"),
                "-p", "nieuw-os-system-example", "--features", features,
                "--bins", "--target", "x86_64-unknown-none"]
+    return command, environment
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--native-clock", action="store_true")
+    # H05-T5d: the S3 TEST init with the LOCK caller; tools/build.py passes it for S3 profiles only.
+    parser.add_argument("--test-system-s3", action="store_true")
+    args = parser.parse_args()
+    features = ",".join(["native", *(["native-clock"] if args.native_clock else []),
+                         *(["test-system-s3"] if args.test_system_s3 else [])])
+    command, environment = cargo_command(features)
     print(json.dumps({"command": command, "target_dir": environment["CARGO_TARGET_DIR"]}), flush=True)
     return subprocess.run(command, cwd=ROOT, env=environment, check=False).returncode
 

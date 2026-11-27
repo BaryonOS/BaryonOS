@@ -13,7 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (DEVICE_ORDER, KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
                         S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext,
-                        BLK_CASES, BOOT, evaluate_lock_red)
+                        BLK_CASES, BOOT, evaluate_lock_red, LOCK_BUSY, S3_LABEL_ERASED, S3_LABEL_O5,
+                        S3_LOCK_BUSY_MARKER)
 import volume_disk
 
 
@@ -366,14 +367,29 @@ DEVICE = tuple(f"SUSPEND_{key}" for key in (*DEVICE_ORDER, "DEVICE_IO_ACCOUNTED_
 AT_WAKE = dict(SUSPEND_DEVICE_IO_AT_WAKE_KEYRING=9, SUSPEND_DEVICE_IO_AT_WAKE_VOLUME=700)
 
 
-def power_transcript(case="power", tail=None, **changes):
+S3_LOCK_VALUES = dict(LOCK_COUNT=1, LOCK_REFUSALS=0, LOCK_STACK_SCRUBS=1, LOCK_STACK_RESIDUE=0,
+                      LOCK_CANARY_BEFORE=0, LOCK_CANARY_AFTER=0, LOCK_ENTROPY_OBJECTS_BEFORE=1,
+                      LOCK_ENTROPY_OBJECTS_AFTER=0)
+LOCK_BUSY_VALUES = dict(LOCK_COUNT=0, LOCK_REFUSALS=8, LOCK_STACK_SCRUBS=0, LOCK_STACK_RESIDUE=0,
+                        LOCK_CANARY_BEFORE=0, LOCK_CANARY_AFTER=0, LOCK_ENTROPY_OBJECTS_BEFORE=0,
+                        LOCK_ENTROPY_OBJECTS_AFTER=0)
+
+
+def power_transcript(case="power", tail=None, labels=None, **changes):
     """H05 power run in the kernel's real order: the wake evidence and the
     counters, BROKERS, teardown, CLEANUP, the post-wake device evidence, then
     the gate, case marker and S5 tail."""
-    ok = case in ("power", "power-lock", "power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
+    s3 = case in ("power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
+    ok = s3 or case in ("power", "power-lock", LOCK_BUSY)
     values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
                   POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
     held = int(case == "power-s3-held-completion")
+    # H05-T5d: every S3 kernel prints the B01-LOCK counters (init's one LOCK).
+    if s3:
+        values.update(S3_LOCK_VALUES)
+    if case == LOCK_BUSY:
+        values.update(LOCK_BUSY_VALUES, SUSPEND_REFUSALS=5, SUSPEND_GRANTED=0, SUSPEND_LOCK_BUSY_REFUSALS=8,
+                      SUSPEND_LOCK_BUSY_REQUESTS=3, SUSPEND_LOCK_BUSY_DELIVERED=3)
     if case in ("power-s3", "power-s3-held-completion"):
         values.update(SUSPEND_REFUSALS=5 + held, SUSPEND_GRANTED=1, SUSPEND_TICK_AFTER_WAKE=1,
                       SUSPEND_HELD_REFUSALS=held, SUSPEND_LOST_ENTROPY=14, SUSPEND_LOST_BLOCK=14,
@@ -405,8 +421,11 @@ def power_transcript(case="power", tail=None, **changes):
         *(line for line in lines if line not in group[0] + group[1]), "SYSTEM:BROKERS:PASS",
         *group[0], "SYSTEM:CLEANUP:PASS", *group[1]))
     marker = expected_markers(case)[-2]
+    if labels is None:
+        labels = ((S3_LABEL_ERASED, S3_LABEL_O5) if s3 else
+                  (S3_LOCK_BUSY_MARKER, S3_LABEL_O5) if case == LOCK_BUSY else ())
     if ok:
-        end = ["SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", *S5_TAIL] if tail is None else tail
+        end = [*labels, "SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", *S5_TAIL] if tail is None else tail
     else:
         fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
         end = [f"SYSTEM:FAULT_INJECTED:{fault}", "SYSTEM:POWER:REFUSED:NOT_DURABLE", marker,
@@ -421,13 +440,20 @@ S3_RESUMED = ("POWER:S3:RESUMED:CYCLE=1:ENTRY=PM32:PM1_STS=0x8101:WAK_STS=1:SCI_
               "HWSIG=SAME:FACS=DISARMED:CANARY=PASS:CR3=SAME")
 
 
-def s3_transcript(s3=(S3_ENTER, S3_RESUMED), plan=S3_PLAN, case="power-s3", **changes):
+def s3_transcript(s3=(S3_ENTER, S3_RESUMED), plan=S3_PLAN, case="power-s3", locked=("SYSTEM:LOCK:LOCKED",),
+                  labels=None, **changes):
     """H05-T4 power-s3 in the kernel's real order: plan at bootstrap, the one
-    cycle inside init's run (after MANIFEST, before the broker evidence)."""
-    text = power_transcript(case, **changes)
+    cycle inside init's run (after MANIFEST, before the broker evidence).
+    H05-T5d: init's LOCK latches (LOCKED) before the sleep."""
+    text = power_transcript(case, labels=labels, **changes)
     before = (plan + "\n") if plan else ""
-    return text.replace("SYSTEM:MANIFEST:PASS\n",
-                        before + "SYSTEM:MANIFEST:PASS\n" + "".join(line + "\n" for line in s3), 1)
+    return text.replace("SYSTEM:MANIFEST:PASS\n", before + "SYSTEM:MANIFEST:PASS\n" +
+                        "".join(line + "\n" for line in (*locked, *s3)), 1)
+
+
+def lock_busy_transcript(s3=(), locked=(), **changes):
+    """H05-T5d A7: the plan only, no LOCKED marker and no sleep."""
+    return s3_transcript(s3=s3, case=LOCK_BUSY, locked=locked, **changes)
 
 
 class PowerS3HarnessTests(unittest.TestCase):
@@ -823,6 +849,104 @@ def following(body, marker):
     return code[found[0] + 1:]
 
 
+class S3LockHarnessTests(unittest.TestCase):
+    """H05-T5d run_system oracle: every S3 case LOCKs before its sleep and
+    carries both labels; A7 never LOCKs, never sleeps and falls back to S5."""
+
+    def test_every_s3_case_needs_one_lock_before_the_sleep_and_both_labels(self):
+        found = evaluate("power-s3", s3_transcript(), 0, False)
+        self.assertEqual((found["LOCK_COUNT"], found["LOCK_STACK_SCRUBS"]), (1, 1))
+        late = s3_transcript(locked=()).replace(f"{S3_RESUMED}\n", f"{S3_RESUMED}\nSYSTEM:LOCK:LOCKED\n")
+        for text in (s3_transcript(locked=()), s3_transcript(locked=("SYSTEM:LOCK:LOCKED",) * 2), late,
+                     s3_transcript(labels=(S3_LABEL_O5,)), s3_transcript(labels=(S3_LABEL_ERASED,)),
+                     s3_transcript(labels=(S3_LABEL_O5, S3_LABEL_ERASED, S3_LOCK_BUSY_MARKER)),
+                     s3_transcript() + "SYSTEM:LOCK:PASS\n"):
+            with self.subTest(text=text[-200:]), self.assertRaises(ValueError):
+                evaluate("power-s3", text, 0, False)
+        for change in (dict(LOCK_COUNT=0), dict(LOCK_REFUSALS=1), dict(LOCK_STACK_SCRUBS=0),
+                       dict(LOCK_STACK_RESIDUE=8), dict(LOCK_ENTROPY_OBJECTS_AFTER=1), dict(LOCK_CANARY_AFTER=None)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-s3", s3_transcript(**change), 0, False)
+        for case, text in (("power-s3-reinit", reinit_transcript()), ("power-s3-held-completion", held_transcript()),
+                           *((case, blk_transcript(case)) for case in BLK_CASES)):
+            with self.subTest(case=case):
+                evaluate(case, text, 0, False)
+                with self.assertRaises(ValueError):
+                    evaluate(case, text.replace(S3_LABEL_ERASED + "\n", ""), 0, False)
+
+    def test_labels_and_s3_lock_counters_outside_the_s3_cases_are_refused(self):
+        for line in (S3_LABEL_O5, S3_LOCK_BUSY_MARKER):
+            with self.subTest(line=line), self.assertRaisesRegex(ValueError, "outside"):
+                evaluate("power", power_transcript("power", labels=(line,)), 0, False)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            evaluate("power", power_transcript("power", **S3_LOCK_VALUES), 0, False)
+
+    def test_lock_busy_passes_without_lock_or_sleep(self):
+        found = evaluate(LOCK_BUSY, lock_busy_transcript(), 0, False)
+        self.assertEqual((found["LOCK_COUNT"], found["LOCK_REFUSALS"], found["SUSPEND_GRANTED"],
+                          found["SUSPEND_LOCK_BUSY_DELIVERED"]), (0, 8, 0, 3))
+        for raw, timed_out in ((33, False), (None, True)):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                evaluate(LOCK_BUSY, lock_busy_transcript(), raw, timed_out)
+
+    def test_lock_busy_refuses_a_lock_a_sleep_or_an_erased_claim(self):
+        texts = [lock_busy_transcript(locked=("SYSTEM:LOCK:LOCKED",)),
+                 lock_busy_transcript(s3=(S3_ENTER, S3_RESUMED)),
+                 lock_busy_transcript(plan=None),
+                 lock_busy_transcript(labels=(S3_LABEL_ERASED, S3_LABEL_O5)),
+                 lock_busy_transcript(labels=(S3_LABEL_O5,)),
+                 lock_busy_transcript(labels=(S3_LOCK_BUSY_MARKER,))]
+        for text in texts:
+            with self.subTest(text=text[-160:]), self.assertRaises(ValueError):
+                evaluate(LOCK_BUSY, text, 0, False)
+        for change in (dict(LOCK_COUNT=1), dict(LOCK_REFUSALS=7), dict(LOCK_STACK_SCRUBS=1),
+                       dict(SUSPEND_GRANTED=1), dict(SUSPEND_REFUSALS=4), dict(SUSPEND_LOCK_BUSY_REFUSALS=7),
+                       dict(SUSPEND_LOCK_BUSY_DELIVERED=2), dict(SUSPEND_LOCK_BUSY_REQUESTS=0,
+                                                                  SUSPEND_LOCK_BUSY_DELIVERED=0),
+                       dict(SUSPEND_LOCK_BUSY_REQUESTS=None), dict(POWER_INIT_REFUSALS=4)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate(LOCK_BUSY, lock_busy_transcript(**change), 0, False)
+
+
+class S3LockStructure(unittest.TestCase):
+    """STRUCTURAL ONLY (H05-T5d): KL2's place in SUSPEND, the cfg of the
+    kernel-owned re-init target and the wipe of its delivery buffer."""
+
+    def test_kl2_refuses_before_the_storage_gate(self):
+        body = [line.split("//")[0].strip() for _, line in functions(KERNEL / "m3/system.rs")["suspend"]]
+        body = [line for line in body if line]
+        ready = body.index("} else if !crate::m2::sleep::ready() {")
+        self.assertEqual(body[ready + 1:ready + 8],
+                         ["-14", "} else if {", "keylock::latch();",
+                          "!(keylock::locked() && keylock::erased())", "} {", "-25",
+                          "} else if let Err(code) = storage_closed() {"])
+        cargo = (KERNEL.parents[1] / "Cargo.toml").read_text()
+        self.assertIn('test-system-s3 = ["native-system-power", "acpi-s3-core", "native-system-lock"]', cargo)
+        # The kernel's own exact SUSPEND log: check 70 now meets KL2 (-25) first.
+        source = (KERNEL / "m3/system.rs").read_text()
+        for pin in ("[-25, -6, -4, -1, 0, -14]", "[-25, -6, -4, -1, -8, 0, -14]", "[-25, -6, -4, -1, -25]"):
+            self.assertEqual(source.count(pin), 1, pin)
+        self.assertNotIn("[-8, -6, -4, -1", source)
+
+    def test_kernel_binding_is_test_only_and_its_buffer_is_wiped(self):
+        source = (KERNEL / "m3/keyring.rs").read_text()
+        gate = '#[cfg(all(feature = "test-system-s3-reinit", feature = "native-system-lock"))]'
+        for item in ("const KERNEL_BINDING", "pub(super) fn kernel_request", "    if binding == KERNEL_BINDING {"):
+            before = source[:source.index(item)].rstrip().splitlines()[-1].strip()
+            self.assertEqual(before, gate, item)
+        deliver = source[source.index("pub(super) fn kernel_deliver"):]
+        self.assertEqual(source[:source.index("pub(super) fn kernel_deliver")].rstrip().splitlines()[-2:],
+                         [gate, "#[inline(never)]"])
+        self.assertIn("handle: 0,", source[source.index("const KERNEL_BINDING"):][:200])
+        self.assertEqual(source.count("KERNEL_BINDING"), 4)  # definition, live check, request, deliver
+        body = deliver[:deliver.index("\n}\n")]
+        any_at, fill_at = body.index("let any = out.iter().any("), body.index("out.fill(0);")
+        self.assertLess(any_at, fill_at)
+        self.assertLess(fill_at, body.index("core::hint::black_box(&out);"))
+        keyring = functions(KERNEL / "m3/keyring.rs")
+        self.assertEqual(following(keyring["kernel_request"], "if device_lost() {")[0], "return Err(-14);")
+
+
 class PostWakeLatchStructure(unittest.TestCase):
     """STRUCTURAL ONLY (review R1/R3): source shape of the post-wake device
     latch and the access counter of both system brokers. Natively only the
@@ -831,7 +955,9 @@ class PostWakeLatchStructure(unittest.TestCase):
 
     # Reachable after the S3 wake in the system profile (broker ticks,
     # submission syscalls, owner teardown): latched and counted.
-    REACHABLE = {"keyring.rs": {"call", "advance", "quarantine_pending"},
+    # H05-T5d C1: `kernel_request` (TEST only) is the 0x60 body for the kernel's
+    # own post-wake request, latched and counted like `call`.
+    REACHABLE = {"keyring.rs": {"call", "advance", "quarantine_pending", "kernel_request"},
                  "volume.rs": {"device_call", "reset", "advance_lane"}}
     LATCH = {"keyring.rs": "device_lost()", "volume.rs": "device_lost()"}
     # The validated re-init paths (test-system-s3-reinit, and for volume.rs
@@ -960,8 +1086,7 @@ class PostWakeLatchStructure(unittest.TestCase):
                    and any("reinit_fail(" in line for _, line in body)}
         self.assertEqual(callers, {"reinit_require", "reinit_poll"})
         poll = "\n".join(line for _, line in functions(KERNEL / "m3/system.rs")["poll"])
-        self.assertIn("if resumed() {\n        let handle = suspend_state().key_entropy;\n"
-                      "        keyring::reinit_poll(", poll)
+        self.assertIn("if resumed() {\n        keyring::reinit_poll(s);\n    }", poll)
 
     @staticmethod
     def check_blk_reinit(volume: str, system: str) -> None:

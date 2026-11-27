@@ -88,9 +88,12 @@ that earlier budget; thin LTO is not usable with the pinned
 prebuilt-core/code-model combination. Both failed experiments remain
 diagnostic evidence, not accepted binaries.
 
-The current Veld version measures exactly 157.161 bytes of RX code (39 pages),
-9.705 bytes above 144 KiB. The app-specific linker script therefore reserves
-a fixed **160 KiB RX** from the same address `0x400f0000`. Read-only remains
+The Veld version measured exactly 157.161 bytes of RX code (39 pages),
+9.705 bytes above 144 KiB, after which the budget became 160 KiB. The SUR1
+reply-wait version (R02, 26 November 2026) measures 164.355 bytes (41 pages),
+515 bytes above 160 KiB, against 163.507 bytes on `main` at that time. On the
+project owner's decision the app-specific linker script therefore reserves
+a fixed **176 KiB RX** from the same address `0x400f0000`. Read-only remains
 512 KiB; data/BSS remains 256 KiB;
 the three 64-KiB document buffers, entry/startup ABI, stack/guards and kernel quotas
 remain unchanged. No W+X, capability, device or kernel ABI expansion is introduced.
