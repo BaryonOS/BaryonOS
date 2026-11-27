@@ -28,7 +28,7 @@ _spec = importlib.util.spec_from_file_location("ai_job_build", ROOT / "experimen
 job_build = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(job_build)
 MIN_ITERATIONS, MIN_TICKS = 2000, 50
-MIN_JOB_TIMER_IRQS = 4  # mirrors kernel/src/m2/m3/ai_job.rs (hosted TCG sees 12-17)
+MIN_JOB_TIMER_IRQS = 4  # mirrors kernel/src/m2/m3/ai_job.rs (hosted TCG minimum 8)
 SCOPE = ("Opt-in native-ai-job profile: one capability-free ring-3 SSE2 AI job (tiny two-layer decoder "
          "fixture, not Qwen) run twice with slot reuse beside the fpu-b register canary, using the existing "
          "eager FXSAVE64/FXRSTOR64 context. Evidence limits: QEMU TCG qemu64, one CPU, no SMP and no "
@@ -155,6 +155,9 @@ def run_ai_job() -> dict:
     build = private_path(BUILD).resolve(strict=True)
     if not build.is_relative_to(ROOT):
         raise ValueError("NOS_BUILD_DIR must be inside the checkout")
+    result_path = private_path(build / "native-ai-job-result.json")
+    # A failure before the guarded block must not leave an earlier passing result behind.
+    result_path.unlink(missing_ok=True)
     frozen = source_hash()
     bound = validate_build(build, frozen)
     qemu = shutil.which("qemu-system-x86_64", path=environment()["PATH"])
@@ -162,7 +165,6 @@ def run_ai_job() -> dict:
         raise RuntimeError("Missing QEMU")
     qemu_hash = sha256(Path(qemu))
     private_path(build / "run")
-    result_path = private_path(build / "native-ai-job-result.json")
     inputs = private_path(build / ("ai-job-inputs-" + uuid.uuid4().hex[:10]))
     inputs.mkdir()
     shutil.copyfile(build / "users/ai-job/ai-job-native.elf", inputs / "ai-job-native.elf")
@@ -205,7 +207,7 @@ def run_ai_job() -> dict:
         validate_build(build, frozen)
         checks["build_artifacts_unchanged"] = True
         report["passed"] = all(checks.values())
-    except (ValueError, KeyError, TypeError, OSError) as error:
+    except Exception as error:  # Any failure still publishes a failing report (e.g. TimeoutExpired).
         report["error"] = f"{type(error).__name__}: {error}"
     publish_json(result_path, report)
     return report
