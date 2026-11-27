@@ -169,10 +169,11 @@ superseded as follows.
 - Accepted risk (D2 finding F1): the gate jobs and merge-hold fetch `main`
   separately. In a stacked queue an entry ahead can land between those
   fetches, so a gate can derive a newer T and skip a workflow that merge-hold
-  still expects. merge-hold reports such an expected job with conclusion
-  `skipped` as failed (`tools/merge_hold.py` accepts only `success`), so
-  merge-hold fails, the queue removes the entry, and its owner must enqueue
-  it again; nothing re-queues it automatically. This costs a queue round but
+  still expects. merge-hold reports such an expected job as failed, whether
+  GitHub lists it as `skipped` or not at all (a skipped matrix job may be
+  "missing"; `tools/merge_hold.py` accepts only `success`), so merge-hold
+  fails, the queue removes the entry, and its owner must enqueue it again;
+  nothing re-queues it automatically. This costs a queue round but
   never passes an untested gate (fail-closed), so it is accepted rather than
   adding a shared T between workflows.
 
