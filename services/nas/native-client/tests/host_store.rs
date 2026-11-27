@@ -313,7 +313,7 @@ fn restored_queue_reconciles_via_head_without_implicit_commit() {
 fn revocation_serializes_with_publication_in_both_orders() {
     let (mut coordinator, mut fake) = setup();
     let staged = stage(&coordinator, &mut fake, 2, 2);
-    coordinator.revoke();
+    coordinator.revoke(&mut fake).unwrap();
     assert!(matches!(
         coordinator.publish(staged, &mut Auth { allowed: true }, &mut fake),
         Err(StoreError::Unauthorized)
@@ -324,7 +324,7 @@ fn revocation_serializes_with_publication_in_both_orders() {
     coordinator
         .publish(staged, &mut Auth { allowed: true }, &mut fake)
         .unwrap();
-    coordinator.revoke();
+    coordinator.revoke(&mut fake).unwrap();
     assert!(matches!(
         coordinator.prepare(&mut Auth { allowed: true }, &mut fake),
         Err(StoreError::Unauthorized)
@@ -336,7 +336,7 @@ fn revocation_serializes_with_publication_in_both_orders() {
 fn restore_handoff_races_revoke_and_invalidates_stale_handles() {
     let (mut coordinator, mut fake) = setup();
     let prep = prepared(&coordinator, &mut fake);
-    coordinator.revoke();
+    coordinator.revoke(&mut fake).unwrap();
     assert!(matches!(
         coordinator.handoff(prep, &mut Auth { allowed: true }),
         Err(StoreError::Unauthorized)
@@ -348,7 +348,7 @@ fn restore_handoff_races_revoke_and_invalidates_stale_handles() {
         .unwrap();
     let mut out = [0; 32];
     assert_eq!(coordinator.read(handle, 0, &mut out), Ok(16));
-    coordinator.revoke();
+    coordinator.revoke(&mut fake).unwrap();
     assert!(matches!(
         coordinator.read(handle, 0, &mut out),
         Err(StoreError::Unauthorized)
@@ -636,7 +636,7 @@ fn foreign_candidate_cannot_cross_coordinator_after_revoke() {
     let mut b = Coordinator::new(binding(), [12; 32]);
     let mut fake = Fake::default();
     let candidate = stage(&a, &mut fake, 1, 1);
-    a.revoke();
+    a.revoke(&mut fake).unwrap();
     assert!(matches!(
         b.publish(candidate, &mut Auth { allowed: true }, &mut fake),
         Err(StoreError::Unauthorized)
@@ -693,7 +693,7 @@ fn prepared_restore_cannot_cross_coordinator_after_revoke() {
     let candidate_b = stage(&b, &mut fake_b, 1, 1);
     b.publish(candidate_b, &mut Auth { allowed: true }, &mut fake_b)
         .unwrap();
-    a.revoke();
+    a.revoke(&mut fake_a).unwrap();
     assert!(matches!(
         b.handoff(prepared_a, &mut Auth { allowed: true }),
         Err(StoreError::Unauthorized)
@@ -737,4 +737,51 @@ fn publication_rechecks_authority_after_candidate_verification() {
     assert!(coordinator
         .prepare(&mut Auth { allowed: true }, &mut fake)
         .is_ok());
+}
+
+#[test]
+fn revoke_fences_unknown_attempt_and_retries_without_restoring_access() {
+    for applied in [false, true] {
+        let (mut coordinator, mut fake) = setup();
+        let prior = fake.published.clone().unwrap();
+        let staged = stage(&coordinator, &mut fake, 2, 2);
+        fake.unknown = true;
+        fake.unknown_applied = applied;
+        assert!(matches!(
+            coordinator.publish(staged, &mut Auth { allowed: true }, &mut fake),
+            Err(StoreError::Unknown)
+        ));
+        fake.fail_fence = true;
+        assert!(matches!(
+            coordinator.revoke(&mut fake),
+            Err(StoreError::Backend)
+        ));
+        assert!(matches!(
+            coordinator.prepare(&mut Auth { allowed: true }, &mut fake),
+            Err(StoreError::Unauthorized)
+        ));
+        assert!(matches!(
+            coordinator.resolve_unknown(&mut UnreachableAuthority, &mut fake),
+            Err(StoreError::Unauthorized)
+        ));
+        if applied {
+            assert!(fake.preserved.as_ref().unwrap().0 == prior.0);
+        } else {
+            assert!(fake.published.as_ref().unwrap().0 == prior.0);
+        }
+        fake.fail_fence = false;
+        assert_eq!(coordinator.revoke(&mut fake), Ok(()));
+        // The fenced delayed write must not become visible after revoke success.
+        assert!(!fake.complete_delayed());
+        assert!(matches!(
+            coordinator.prepare(&mut Auth { allowed: true }, &mut fake),
+            Err(StoreError::Unauthorized)
+        ));
+        assert_eq!(
+            fake.published.as_ref().unwrap().0.publication,
+            if applied { 2 } else { 1 }
+        );
+        // Repeated cleanup is safe and does not reauthorize or replay.
+        assert_eq!(coordinator.revoke(&mut fake), Ok(()));
+    }
 }

@@ -137,10 +137,17 @@ impl Coordinator {
             client: None,
         }
     }
-    pub fn revoke(&mut self) {
+    /// Disable access immediately; success additionally means any uncertain
+    /// publication is terminally fenced. On fence failure access stays revoked,
+    /// pending is retained, and this method may be called again for cleanup.
+    pub fn revoke(&mut self, backend: &mut impl Backend) -> Result<(), StoreError> {
         self.active = false;
         self.client = None;
         self.generation = self.generation.saturating_add(1);
+        if let Some(candidate) = &self.pending {
+            backend.fence_attempt(candidate)?;
+        }
+        Ok(())
     }
     fn live(&self, binding: &Binding) -> Result<(), StoreError> {
         if !self.active || self.binding != *binding {
