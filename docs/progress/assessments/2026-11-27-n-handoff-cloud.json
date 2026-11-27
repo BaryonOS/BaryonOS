@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "2961c754b706a8a444ae9ffcccfeb8ced150ec35",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "codex/n-handoff-20261127",
+  "task": "Refresh the canonical N resume pointer for the #529 transfer checkpoint.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The handoff records source-bound N02, N03 and N04 checkpoints and dependencies. N01 remains accepted. The required evidence for N02, N03 and N04 acceptance remains open."
+}
