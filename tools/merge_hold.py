@@ -61,6 +61,12 @@ re-runs this job once every gate run of the head has finished; a manual re-run
 remains the fallback.
 `policy.mode = "shadow"` in the base catalogue reports gates without blocking on
 them.
+A head that does not contain the base tip fails, because its gate runs did not
+test the tree that would merge, unless the head is positively not a descendant
+(git exits 1), the policy enforces and GitHub lists an active `merge_queue` rule
+for the target branch (rules/branches, read live and only in this case); then a
+notice reports it and the merge_group run judges the merged tree. Any read error
+or malformed answer keeps the failure.
 
 On `merge_group` (D1 option B step 2, ADR-CI-GATE-ENFORCEMENT-20261124) every
 applicable gate is judged on the queue commit itself. BASE_SHA (the commit the
@@ -110,7 +116,7 @@ import sys
 import tempfile
 import time
 import tomllib
-from urllib import request
+from urllib import parse, request
 
 LABEL = "acceptance-pending"
 RELEASE_PREFIX = "acceptance-released: "
@@ -232,6 +238,23 @@ def pull_request_hold(token, repo, number, head_sha):
     comments = fetch_all(token, base + "/comments") if LABEL in labels else []
     passed, message = decide(labels, comments, head_sha)
     return passed, message, labels
+
+
+def merge_queue_required(token, repo, ref):
+    """True only when GitHub lists an active merge_queue rule for branch ref; any doubt is False.
+
+    GET rules/branches returns only rules of active rulesets (not "evaluate" or "disabled") and
+    needs only the Metadata read permission that the merge-hold job token carries.
+    """
+    try:
+        rules = fetch_all(token, f"{API}/repos/{repo}/rules/branches/{parse.quote(ref, safe='')}")
+    except Exception as error:  # noqa: BLE001 - any failure keeps containment binding
+        print(f"::warning::merge-hold could not read the branch rules of {ref} ({error}); "
+              "base-tip containment stays binding", file=sys.stderr)
+        return False
+    if not all(isinstance(rule, dict) and isinstance(rule.get("type"), str) for rule in rules):
+        return False
+    return any(rule["type"] == "merge_queue" for rule in rules)
 
 
 def commit_oid(node):
@@ -907,10 +930,18 @@ def pull_request_gates(token, repo, number, head_sha):
     lines = [f"Plan {plan['plan_id']}: mode {plan['mode']}"
              + (f", fallback {plan['fallback']['code']}" if plan.get("fallback") else "")
              + f", base {base}, head {head_sha}, merge commit {tested}, target {ref}."]
-    if git("merge-base", "--is-ancestor", base, head_sha)[0] != 0:
-        return False, lines + [
-            f"::error::The head {head_sha} does not contain the base tip {base}, so the gate runs did not "
-            "test the tree that would merge. Update the branch; the new head is checked again."]
+    contained = git("merge-base", "--is-ancestor", base, head_sha)[0]
+    if contained != 0:
+        # Advisory only when the head is positively not a descendant (exit 1, not a git error), the
+        # policy enforces and the target lands through a merge queue: its merge_group run judges the
+        # merged tree and refuses a queue commit without its base (merge_group_plan).
+        if contained != 1 or not enforce or not merge_queue_required(token, repo, ref):
+            return False, lines + [
+                f"::error::The head {head_sha} does not contain the base tip {base}, so the gate runs did not "
+                "test the tree that would merge. Update the branch; the new head is checked again."]
+        lines.append(f"::notice::The head {head_sha} does not contain the base tip {base}, so the gate runs "
+                     f"did not test the tree that would merge. {ref} lands only through its merge queue, whose "
+                     "merge_group run re-tests the merged tree, so this is advisory here.")
     budget = min(int((plan.get("budgets") or {}).get("pull_request_wait_minutes", 0)) * 60, MAX_WAIT_SECONDS)
     deadline = time.monotonic() + budget
     fresh = False  # the last report was made after the runs were seen closed
@@ -1067,6 +1098,32 @@ def merge_group_plan(base_sha, head_sha):
     return plan
 
 
+def queue_ref():
+    """(queue commit, queue ref, its QUEUE_REF match) of this merge_group run; raise unless it targets main."""
+    head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
+    if os.environ["MERGE_GROUP_BASE_REF"] != "refs/heads/main":
+        raise ValueError("merge group does not target main")
+    head_ref = os.environ["MERGE_GROUP_HEAD_REF"]
+    match = QUEUE_REF.fullmatch(head_ref)
+    if not match or not SHA.fullmatch(head_sha):
+        raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
+    return head_sha, head_ref, match
+
+
+def merge_group_skip(workflow):
+    """The merge-group gate (PR B of ADR-CI-MERGE-GROUP-SELECT-20261126): may `workflow` skip its jobs?
+
+    True only when the checked plan that merge_group_hold makes for this queue commit, from the
+    trusted base T and with the same inputs (queue_ref, merge_group_plan), leaves the workflow out
+    (unselected_workflows): merge-hold then neither awaits nor judges it, so skipping its jobs
+    hides no gate merge-hold expects. Any doubt raises; .github/actions/merge-group-gate then runs
+    every job. merge-hold judges independently either way: a skipped gate it expects blocks.
+    """
+    head_sha, _, _ = queue_ref()
+    plan = merge_group_plan(os.environ["MERGE_GROUP_BASE_SHA"], head_sha)
+    return workflow != GATE_WORKFLOW and workflow in unselected_workflows(plan)
+
+
 def merge_group_hold(token, repo):
     """Return (passed, lines) for the gates of the queue commit and every pull request in the group.
 
@@ -1109,13 +1166,7 @@ def merge_group_hold(token, repo):
     max(B, P) + R, 83 min.
     """
     start = time.monotonic()
-    head_sha = os.environ["MERGE_GROUP_HEAD_SHA"]
-    if os.environ["MERGE_GROUP_BASE_REF"] != "refs/heads/main":
-        raise ValueError("merge group does not target main")
-    head_ref = os.environ["MERGE_GROUP_HEAD_REF"]
-    match = QUEUE_REF.fullmatch(head_ref)
-    if not match or not SHA.fullmatch(head_sha):
-        raise ValueError(f"unexpected merge group ref {head_ref!r} or SHA {head_sha!r}")
+    head_sha, head_ref, match = queue_ref()
     base_sha, trusted = os.environ["MERGE_GROUP_BASE_SHA"], os.environ["BASE_SHA"]
     plan = merge_group_plan(base_sha, head_sha)
     budget = base_wait_seconds(trusted)

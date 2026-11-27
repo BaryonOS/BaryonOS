@@ -1,0 +1,24 @@
+10:19:44Z A 16071bdc9ca8cb40e7233f6e267529260fc46cb0 dirty=[] B 20d9089fe78a400143272aa34aa73cfb19f2e992 dirty=[] qemu=[0]
+10:19:56Z build-A exit 0
+10:20:06Z build-B exit 0
+10:20:06Z A1 start load 3.54 2.31 1.06
+10:21:05Z A1 exit 0 load 3.38 2.52 1.20
+10:21:05Z B1 start load 3.38 2.52 1.20
+10:22:04Z B1 exit 0 load 2.78 2.51 1.29
+10:22:04Z B2 start load 2.78 2.51 1.29
+10:23:03Z B2 exit 0 load 3.66 2.81 1.47
+10:23:03Z A2 start load 3.66 2.81 1.47
+10:24:01Z A2 exit 0 load 2.12 2.52 1.45
+10:24:01Z A3 start load 2.12 2.52 1.45
+10:25:01Z A3 exit 0 load 5.98 3.47 1.84
+10:25:01Z B3 start load 5.98 3.47 1.84
+10:25:59Z B3 exit 0 load 4.30 3.42 1.92
+10:25:59Z B4 start load 4.30 3.42 1.92
+10:26:57Z B4 exit 0 load 3.10 3.25 1.96
+10:26:57Z A4 start load 3.10 3.25 1.96
+10:27:54Z A4 exit 0 load 2.91 3.15 2.00
+10:27:54Z A5 start load 2.91 3.15 2.00
+10:28:51Z A5 exit 0 load 2.83 3.06 2.04
+10:28:51Z B5 start load 2.83 3.06 2.04
+10:29:49Z B5 exit 0 load 2.69 3.00 2.08
+10:29:49Z done

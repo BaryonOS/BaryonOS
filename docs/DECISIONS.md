@@ -5,6 +5,37 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
+
+**Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the
+P0 performance contract (owner, 26 November 2026 about 21:15 UTC). Proposed by the CI
+specialist for issue #494 on 27 November 2026, with an independent D2 review (GO, 27 November 2026; two minor findings recorded as follow-ups on #494:
+keep containment binding while `acceptance-pending` is set, and echo the rules-read warning in the step summary). It changes
+no required check name, workflow, trigger, permission or ruleset.
+
+**Problem:** on `pull_request`, merge-hold failed a head that did not contain the base tip. Since
+main lands only through the merge queue, whose `merge_group` run judges the merged tree and
+refuses a queue commit without its base, that rule only forced every open pull request into a
+main merge, a push and a full check round after each landing. From 25 November 09:37Z to
+26 November 22:27Z, 24 of 85 failed `pull_request` merge-hold runs failed on containment alone.
+
+**Decision:** on `pull_request`, missing base-tip containment emits a `::notice::` and the gate
+judgement continues unchanged, but only when all three hold: git positively reports a
+non-descendant (exit 1), the policy enforces, and
+`GET /repos/{repo}/rules/branches/{base ref}` lists an active `merge_queue` rule. Any error, a
+malformed answer or a missing rule keeps the binding error. `merge_group` containment and all
+member checks are unchanged. It takes effect only once on main, because merge-hold runs the
+base copy of `tools/merge_hold.py`.
+The code proves an active `merge_queue` rule, not that nobody can bypass it. On 27 November ruleset
+25967588 on `~DEFAULT_BRANCH` has no bypass actors. Adding a bypass actor to a ruleset with a
+merge queue requires revisiting this decision.
+
+**Source:** branch `ci/containment-advisory-20261126`; `tools/merge_hold.py`
+(`merge_queue_required`, `pull_request_gates`), `tools/tests/test_merge_hold.py`,
+`docs/CI-CONTRACT.md` (containment paragraph).
+
+**Rollback:** revert the commit; containment is binding again from the next main landing.
+
 ## ADR-CI-MERGE-GROUP-SELECT-20261126 — merge-hold judges a merge group by the gates selected from its trusted main base
 
 **Status:** accepted (binding acceptance contract). The project owner
@@ -146,6 +177,36 @@ commit of #572.
 - The three `select` jobs still plan `merge_group` from
   `merge_group.base_sha`; they never narrow on it, so this is harmless here.
   PR B must plan them from T before any job is skipped on `merge_group`.
+
+**Amendment (PR B, 27 November 2026, CI specialist, #494; implemented,
+hosted-unverified until the first `merge_group` run after PR B lands).** PR B
+(branch `ci/merge-group-skip-20261126`) is the later change named under
+Source; the statements above that describe the state "until PR B" are
+superseded as follows.
+
+- Each of the 19 workflows that merge-hold can leave out of a merge group
+  gains a `merge-group-gate` job (`merge_group` only). It loads
+  `tools/merge_hold.py` from T through `./.github/actions/trusted-base` and
+  asks `merge_group_skip()`. Only an explicit `True` skips the workflow's
+  jobs on the queue commit; a missing function, an error or any other answer
+  runs every job. On every other event the gate is skipped and changes
+  nothing. On the queue commit, an unselected workflow therefore still starts
+  its small gate job, but its gated suites no longer run.
+- `ci.yml`, CodeQL and the three workflows with a `select` job have no gate
+  and still run whole on `merge_group`. Those three `select` jobs now plan
+  `merge_group` from T, not from `merge_group.base_sha`.
+- The two-source rule stays unchanged; consolidating the selection logic is
+  separate work.
+- Accepted risk (D2 finding F1): the gate jobs and merge-hold fetch `main`
+  separately. In a stacked queue an entry ahead can land between those
+  fetches, so a gate can derive a newer T and skip a workflow that merge-hold
+  still expects. merge-hold reports such an expected job as failed, whether
+  GitHub lists it as `skipped` or not at all (a skipped matrix job may be
+  "missing"; `tools/merge_hold.py` accepts only `success`), so merge-hold
+  fails, the queue removes the entry, and its owner must enqueue it again;
+  nothing re-queues it automatically. This costs a queue round but
+  never passes an untested gate (fail-closed), so it is accepted rather than
+  adding a shared T between workflows.
 
 **Revise when:** the first queue trial shows a stacked group's base or run
 payloads that differ from the above; PR B lands; or GitHub documents the
@@ -1777,7 +1838,8 @@ accepts no criterion.
   QMP socket.
 - Revisit this decision if any of these occur:
   - a feature-off build changes `.text` or `.data`;
-  - any broker or device counter changes during a down window;
+  - any broker or device counter changes during a down window
+    *(narrowed by amendment H04-TXDOWN below)*;
   - an event appears after a latch;
   - a stale RX frame crosses an epoch.
 - Evidence is QEMU 8.2.2/TCG only. There is no physical NIC, and QEMU has no
@@ -1789,6 +1851,121 @@ accepts no criterion.
   samples are undetectable. The edge harvests are covered by host model
   tests and source inspection; no native case drives two or three
   `set_link` changes within one tick.
+
+**Amendment H04-TXDOWN, 27 November 2026: TX completed across a link edge, -27.**
+This is a technical decision of the executing hardware-track lead, of the same
+class as the decision above. The decision values were agreed with the
+network-track lead (N), who answered on 26 November 2026; N reviews this
+amendment, including the code assignment, before it merges. It is **decided,
+not implemented**. Nothing on `main` returns -27, the TXDOWN cases below are
+NOT RUN, and the amendment accepts no criterion. The same scope as the decision
+above applies: kernel features `test-system-net-link*` only, `abi_info` stays
+1.5, and no product API is created. A build without `test-system-net-link`
+must keep its `.text` and `.data` byte-identical.
+
+1. **Trigger, defined on kernel state.** At publication (`0x70` accepted) the
+   kernel records the kernel link-state epoch (`r.link.state`) next to the
+   pending ticket. Without `VIRTIO_NET_F_STATUS` the state is `None`, no epoch
+   is recorded and -27 never occurs. When
+   `broker_tick` later collects the device completion through `poll_tx` and
+   the result is `Ok(length)`, the TX result is -27 `TX_EDGE` if the kernel
+   epoch then differs from the recorded one, and `Ok(length)` otherwise.
+   "Collection" means this `poll_tx` observation, not the caller's `0x71`
+   read: a result fixed before an edge stays as it was. `link::poll` runs
+   before `poll_tx` in the same tick, so a completion first seen in the tick
+   of an edge is classified -27. The synthetic down/up pair produced by a
+   generation-only change (decision 3) is an edge and also gives -27.
+2. **Meaning.** -27 says only that the kernel observed at least one link edge
+   between publication and collection. The device did complete the descriptor,
+   but the frame may or may not have left it: QEMU completes dropped TX with
+   `used.len` 0, the same as a sent frame. Publication requires a usable link,
+   so any later epoch change includes a down edge. The descriptor and bounce
+   page stay device-owned until that completion, as today; no new reclaim or
+   DMA path exists. -27 is the first free value: -23 `LINK_DOWN`,
+   -24 quarantine, -25 the KL2 SUSPEND refusal (H05-T5d-T, PR #597) and -26
+   the post-wake remount proposal (`docs/implementation/VOLUME-POST-WAKE-REMOUNT.md`)
+   are taken or reserved. The check covered `kernel/src`, `sdk/runtime`, `docs`
+   and the diffs of open PRs #590, #593–#596 and #598 at main `bbf4df38`. `sdk/runtime`
+   gets the matching test-profile constant. A -27 result carries no length:
+   it must not be read as a length-0 success.
+   -27 is a completion, not a refusal. `syscall()` exempts it from `denied`
+   as it exempts -8. At collection it increments `tx_completed` and
+   `tx_edge_completed` by one each; the `0x71` read of -27 changes no counter.
+   Without this exemption, N's invariant `denied == 2 + revoke + helper +
+   link_refused` in the `native-net-service` profiles would break at the
+   first -27. A later re-read of the consumed ticket returns -1 and is
+   counted in `denied` as today. End-of-boot assertion:
+   `tx_edge_completed <= tx_completed`.
+3. **Mapping for the network broker** (N's answers of 26 November 2026; the adapter
+   is N's): -23 on `0x70` means NotPublished; -27 on `0x71` means Completed and the
+   adapter increments its "completed across a down edge" counter; `Ok` means
+   Completed. `0x71` never returns -23, and -27 comes only from `0x71`,
+   never from `0x70` or `0x72`. Any other unexpected `0x71` code stays
+   outside this mapping. -27 is never Unknown, because Unknown quarantines and would
+   fire on every link flap. Unknown stays reserved for "no completion
+   within the deadline", which is the stop path in item 4.
+4. **Precedence; deadline unchanged (option A).** -27 applies only to an
+   `Ok(length)` collection. A `poll_tx` error, the TX deadline (-13, then
+   `stop()`), budget exhaustion, a device reset and owner exit keep their
+   existing paths. Each of them terminalizes the pending ticket with the
+   existing stop or offline code, which wins over -27. A deadline that
+   expires while the link is down still stops the broker. No reclaim path
+   while down (option B) is introduced.
+5. **Narrowed revisit trigger.** The bullet above, "any broker or device
+   counter changes during a down window", now excludes exactly one thing.
+   That is the device completion of a TX published before the down edge,
+   which increments `tx_completed` and the new `tx_edge_completed` by one each.
+   The existing RX path also stays allowed. An RX completion polled while the
+   link is down or unknown is dropped as today: `rx_completed` and
+   `rx_dropped` increase by one each, the copy is zeroed, and `post_rx`
+   hands the same pinned page back to the device. That repost advances the RX
+   available index and therefore adds one to `window_delta` at the next up
+   edge. The existing cases expect `window_delta` 0 because QEMU 8.2 delivers
+   no RX while the link is down. An RX completion inside a down window would
+   therefore show as a nonzero `window_delta` rather than be hidden.
+   The existing -23 refusals (decision 2) also stay allowed: each refused
+   `0x70` or `0x72` increases `tx_refused` or `rx_refused` and `denied` by
+   one. Apart from these three paths, a down window allows no TX publication,
+   no RX delivery and no other counter change. Further revisit triggers: a -27 outside
+   `test-system-net-link*`, and a -27 counted in `denied`.
+6. **Epoch leak, recorded residual (G3).** A physical device that holds TX
+   across down and then up could emit an epoch-N frame on the link of epoch N+1,
+   which may be a different network. That frame crosses network N's
+   destination-permission boundary. This amendment does not close the leak
+   and claims no guarantee against it. A broker reset before the up edge is a
+   precondition for accepting physical H04 (OD-HW-*). QEMU cannot show the
+   behaviour. The amendment creates no new grant path: N04 remains the only
+   destination-permission enforcement point.
+7. **Sampling residual, unchanged.** Edges are seen at most once per PIT tick.
+   Exactly 256 configuration-generation changes between two samples are
+   undetectable; such a hidden down/up pair yields `Ok` instead of -27.
+
+**Acceptance (native QEMU, labelled, NOT RUN).** To make the edge precede
+collection, a test-only feature `test-system-net-link-txdown`, which implies
+`test-system-net-link`, holds `poll_tx` for exactly one ticket per boot (the
+first accepted TX). The hold lasts until the kernel epoch has advanced by
+the case's fixed depth (1 or 2) or the TX deadline tick arrives, whichever is
+first. A missed edge therefore ends in the existing -13 stop and fails the
+case; it can never pass by mistake. The TX deadline is `a[3]` = 500 ticks. All values
+are deltas from the snapshot taken just before the `0x70`. In both TXDOWN cases
+the second `0x70` is issued after publication and before the off edge (epoch
+unchanged, link up, `pending` set) and returns -8. After the off edge the
+broker is never both up and still held: the hold ends in the `broker_tick`
+whose `link::poll` applies the final edge, and `poll_tx` collects in that
+same tick. Every case re-reads `t` once after its first result. -8 results
+are not counted in `denied`.
+
+| Case | Profile | Link sequence | Before collection | `0x71(t)` after collection | Then | `tx_submitted` | `tx_completed` | `tx_edge_completed` | `denied` | `tx_refused` | `timeouts` | offline / quarantined / `reset_acks` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| TXDOWN-1 | txdown, depth 1 | up, `0x70`→t, second `0x70`→-8, off | `0x71(t)` → -8 | -27 once, then -1 | `0x70` while down → -23 | +1 | +1 | +1 | +2 | +1 | 0 | 0 / no / 0 |
+| TXDOWN-2 | txdown, depth 2 | up, `0x70`→t, second `0x70`→-8, off, on | `0x71(t)` → -8 | -27 once, then -1 | `0x70` while up → t+1; `0x71(t+1)` → -8 until completed, then 0 | +2 | +2 | +1 | +1 | 0 | 0 | 0 / no / 0 |
+| Control | `test-system-net-link` (no hold) | up, `0x70`→t, completed and collected, then off | `0x71(t)` → -8 until completed | 0 once, then -1 | `0x70` while down → -23 | +1 | +1 | 0 | +2 | +1 | 0 | 0 / no / 0 |
+
+The broker stays online and not quarantined in every row. The pending slot
+is freed only by the device completion: `0x71(t)` returns -8 until then, and
+while the link is up a second `0x70` returns -8. The existing
+`test-system-net-link` and `-storm` cases keep their current expected values,
+because none of them has a TX in flight across an edge.
 
 ## ADR-H03-SND-FIXTURE-20261119 — Kernel-only virtio-snd PCM output fixture for the fixed QEMU 8.2 profile
 
@@ -5649,9 +5826,10 @@ UTF-8 in the existing staging buffer. Labels make abbreviation and location
 clear. Proportional text shares metrics/caret/selection/wrap/hit-test and
 preserves bytes.
 
-The own scalar app-specific RX budget changes from 144→160 KiB after an
-actual 157161-byte linker measurement, following the earlier 128→144 KiB
-change based on 131177 bytes; fixed addresses, five segments, W^X,
+The own scalar app-specific RX budget changes from 160→176 KiB on
+26 November 2026 (project owner's decision) after an actual 164355-byte
+linker measurement of the SUR1 reply-wait version, following 144→160 KiB
+based on 157161 bytes and the earlier 128→144 KiB change based on 131177 bytes; fixed addresses, five segments, W^X,
 R/RW/stack/guard/kernel quotas and capabilities remain the same. See
 `implementation/NATIVE-MATERIAL-LIBRARY.md`.
 The native gate uses complete allocated app images and an independent disk

@@ -73,7 +73,9 @@ CLOSE_THEN_READ_DENIED, EXIT_RETIRES + READ_AFTER_RETIREMENT_DENIED, optional
 STALE_REVISION_DENIED; counters: volume READ requests > 0 only after an authorised READ and 0 for
 every authorisation denial; the optional STALE_REVISION_DENIED case expects
 exactly one READ (answered Stale) followed by one re-STAT (startup STATs, the post-Stale re-STAT and multi-READ objects
-over 160 B make 'requests == authorised READs' false), volume `rejected` == 0; mutations (skip authorise, skip retire) must fail the gate.
+over 160 B make 'requests == authorised READs' false), volume `rejected` == 1
+after startup and unchanged by every served request (the startup STAT of
+absent object 2 answers NotFound on the service's dispatch error path); mutations (skip authorise, skip retire) must fail the gate.
 Regression: `native-task-grant` normal/denied and `native-system-nas-probe`.
 CI job addition is a `.github` change for the CI owner.
 
