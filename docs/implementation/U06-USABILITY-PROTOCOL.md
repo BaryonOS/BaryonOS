@@ -225,10 +225,11 @@ participants were affected (`frequency`) and paraphrased observations:
 - Visual findings may also be raised by an expert inspection of the same frozen
   image; those are tagged `"source": "expert"` and do not count as user evidence.
 
-## 6. Proposed budgets (PROPOSALS; owner decision required)
+## 6. Budgets (accepted by the owner on 27 November 2026)
 
-None of the values below is agreed. They are starting proposals for the owner
-decision that the preregistration must record.
+The project owner accepted the values below on 27 November 2026
+(ADR-U-OWNER-20261127), with a SUS target of 75–80 above the floor of 68. The
+preregistration records them unchanged.
 
 | Budget | Proposed value |
 |---|---|
@@ -395,7 +396,36 @@ docs/verification/u06-usability-<YYYYMMDD>/
 - AI review of screenshots or this protocol is not a user test.
 - A small qualitative sample does not support statistical generalisation.
 
-## 12. Open owner questions
+## 12. Owner decisions (27 November 2026)
+
+The project owner answered the questions below on 27 November 2026
+(ADR-U-OWNER-20261127):
+
+1. **Scope.** A first study on the tasks that are natively testable now may start.
+   It does not wait for the remaining product parts, and it is not a full U06
+   acceptance claim.
+2. **Budgets.** §6 is accepted. The SUS floor is 68, and the target is 75–80.
+3. **Participants.** A pilot of about five participants comes first. It is followed by
+   a first formal round of 12–16 participants with a targeted accessibility subgroup
+   of suitable users. These are practical sizes, not statistical representativeness.
+4. **Consent and data.** Informed consent and a designated human observer, whom the
+   owner arranges. Only necessary data is collected. Raw data stays local, outside
+   the repository, for at most 90 days after the analysis is complete. The consent
+   text and the privacy procedure are prepared, and the applicable privacy
+   requirements are checked before any recruitment.
+5. **Recording.** Screen recording is off by default and only with separate explicit
+   consent. There is never camera or microphone recording.
+6. **Language.** The first round is held in Dutch, matching the current interface,
+   with a validated Dutch SUS version.
+7. **Reference profile.** One reproducible, recorded reference profile, preferably
+   hardware-accelerated virtualisation (for example Linux/KVM). Results from
+   different accelerators are never mixed without being distinguished.
+8. **Compensation.** None, and no new costs without separate approval. Participation
+   is voluntary.
+
+AI-agent reviews never replace human user tests.
+
+The original questions are kept below for traceability.
 
 1. Is the current testable slice (CT01–CT06, CT10 and CT11, plus CT07–CT09 and
    CT12 if confirmed in the bundle) acceptable as the agreed core set for a

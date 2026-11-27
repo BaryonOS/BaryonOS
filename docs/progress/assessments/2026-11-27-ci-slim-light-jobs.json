@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "7b335b25aceac9f95d9d9e935402bcb3ea350393",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "ci/slim-light-jobs-20261126",
+  "task": "CI runners (#494, #567): seven light jobs (in ci.yml, clear-stale-actions, merge-hold-recheck, project-classification and security-alerts) move from ubuntu-24.04 to ubuntu-slim, and native-window-session raises max-parallel from 3 to 5 so all five legs start at once; catalogue and workflow tests updated. Assessed after landing; recorded retroactively under the 27 November per-PR assessment rule.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI tooling, workflow wiring, tests and decision text only; no product criterion, native acceptance evidence or human audit changes. A merge is not acceptance."
+}
