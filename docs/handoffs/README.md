@@ -85,8 +85,10 @@ Every live handoff and clear prompt restates them.
 Owner decision of 27 November 2026 at about 12:46Z ("Ja, eigen rijen"): as an
 explicit exception to lead ownership, the owner of a criterion may refresh the
 rows of that criterion in the `delivery_review` object of `docs/progress.json`.
-Only the row text, the date and the `source_commit` may change; never a score,
-a status, a weight or another criterion. The refresh goes into the owner's next
+Only that row text may change; never a score, a status, a weight or another
+criterion. The shared `date` and `source_commit` header of `delivery_review`
+stays unchanged, because it dates every row; the owner writes the refresh date
+and commit into the row text itself (`updated YYYY-MM-DD @<sha>: …`). The refresh goes into the owner's next
 pull request that touches progress anyway, runs `python3 -B tools/progress.py
 --write` and `--check`, falls under D2 review and cites this decision.
 
