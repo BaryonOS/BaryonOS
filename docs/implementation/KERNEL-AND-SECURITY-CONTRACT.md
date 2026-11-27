@@ -113,6 +113,48 @@ For IPC, `size` is exactly 320; otherwise `EMSGSIZE` before copying. On receive,
 
 Validation order: syscall/unused args → ABI size → endpoint handle/generation/node/object/right → user buffer → message fields → resources → commit. Return values leak no object data before the rights check. An error changes no rights or resource ownership.
 
+### REL-05 S7 private completion (TEST profile)
+
+S7 uses the current `m2` kernel with a dedicated TEST profile. The three
+calls below return `-2 ENOSYS` in other profiles. A combined S7 and
+`native-smp-legacy` build must fail. The existing ABI version applies.
+`0xB3`–`0xBF` remain reserved. These rows specify the planned native dispatch.
+The [private completion state](../../kernel/src/m2/m3/anchor_completion.rs)
+is exercised by a host test in the current checkpoint.
+
+| No. | Name | Submit operands (phase 0) | Collect operands (phase 1) |
+|---|---|---|---|
+| `0xB0` | `anchor_read` | handle, 0, 0, 0, 0, 0 | handle, ticket, output pointer, 32, 1, 0 |
+| `0xB1` | `anchor_extend` | handle, input pointer, 64, 0, 0, 0 | handle, ticket, 0, 0, 1, 0 |
+| `0xB2` | `anchor_instance` | handle, 0, 0, 0, 0, 0 | handle, ticket, output pointer, 32, 1, 0 |
+
+The columns list the six `u64` arguments in register order. The kernel derives
+the domain from the caller's live manifest-bound `ANCHOR` object. The
+64-byte input to `anchor_extend` is the expected chain followed by the store
+digest, each 32 bytes. Submission validates and copies input in the syscall.
+It returns a nonzero, non-wrapping boot-local ticket in RDX and queues at most
+one request per domain. Submission establishes no commit outcome.
+
+Collection rechecks the caller, object generation, operation and ticket.
+A pending operation returns `-8 EAGAIN`. After successful collection, RDX
+contains `0` (success), `1` (Unavailable), `2` (Corrupt), `3` (Conflict)
+or `4` (RateLimited). Successful read and instance copy exactly 32 bytes.
+The kernel consumes the completion only after this copy succeeds. An
+operation error leaves the output untouched. The bounded, empty-condition
+form of `ipc_wait` may wait until the next monotonic tick before another
+collection. The private completion slots use no new IPC endpoint or sender.
+
+Delivery expires at the submission tick plus 1,000, or when the PID or anchor
+authority becomes invalid. A queued request is dropped. A started operation
+keeps its transport state until it finishes, cancels or quarantines. The
+kernel discards its expired result. An extend may have reached the TPM even
+if its result was lost. A subsequent authoritative read reconciles that
+uncertainty when the transport settles. Automatic resubmission is forbidden.
+An extend is reported as successful only after the prescribed read-back.
+
+Sources: [cold-freshness anchor](COLD-FRESHNESS-ANCHOR.md) and
+[K's interface review](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7226874939).
+
 ## 5. Capability and IPC model
 
 ### Handles and rights

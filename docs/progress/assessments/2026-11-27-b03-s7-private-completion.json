@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "94b6eb4a3cb44ea0a494922a118b0e26781d6a16",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/b03-s7-anchor-20261127",
+  "task": "REL-05 S7 private completion encoding and lifetime",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The S7 TEST dispatch contract documents submission, collection, correlation and expiry. Host tests compile the kernel completion state, covering invalid and duplicate collection, copy refusal, expiry, process/authority loss, transport draining and exhaustion. The native hook, CRB work, BootInfo provenance and joint N04 verification remain open."
+}
