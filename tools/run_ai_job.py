@@ -28,7 +28,7 @@ _spec = importlib.util.spec_from_file_location("ai_job_build", ROOT / "experimen
 job_build = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(job_build)
 MIN_ITERATIONS, MIN_TICKS = 2000, 50
-MIN_JOB_TIMER_IRQS = 4  # mirrors kernel/src/m2/m3/ai_job.rs (hosted TCG sees 12-17)
+MIN_JOB_TIMER_IRQS = 4  # mirrors kernel/src/m2/m3/ai_job.rs (hosted TCG minimum 8)
 SCOPE = ("Opt-in native-ai-job profile: one capability-free ring-3 SSE2 AI job (tiny two-layer decoder "
          "fixture, not Qwen) run twice with slot reuse beside the fpu-b register canary, using the existing "
          "eager FXSAVE64/FXRSTOR64 context. Evidence limits: QEMU TCG qemu64, one CPU, no SMP and no "
