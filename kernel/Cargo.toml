@@ -439,6 +439,9 @@ test-volume-o13-latch = ["test-volume-archive-device"]
 # S09 O13 N38 slice 2 (f): syscall 0x44 on test-scripted disk-1 latch entries
 # and handle scopes; no injected fault; never with test-volume-o13-latch.
 test-volume-o13-latch-0x44 = ["test-volume-archive-device"]
+# S09 K5 per-disk admission fixtures (F1, F2) on the device-1 disk: the kernel
+# postpones observing a held lane only; never with the N38 or power profiles.
+test-volume-k5 = ["test-volume-archive-device"]
 # S09 phase 3 L2 export/restore on the device-1 archive disk (cases 25-28).
 test-volume-l2-export = ["test-volume-archive-device"]
 test-volume-l2-restore = ["test-volume-archive-device"]

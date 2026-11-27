@@ -694,14 +694,15 @@
             "verification": [
               "native"
             ],
-            "observation": "xHCI fault/no-DMAR/read-only cases and strict descriptor/report parsing exist; the fixture retains retired pages and checks canaries.",
+            "observation": "xHCI fault/no-DMAR/read-only cases and strict descriptor/report parsing exist; the fixture retains retired pages and checks canaries. Update 25 Nov 2026 (#515, 744f1b75; ledger H02-T5 verified): the opt-in native-usb-hid-refusal profile refuses four out-of-profile devices on root port 1 (hub, non-boot tablet, high-speed keyboard, USB storage), keeps serving the boot mouse on port 2 and recovers port 1 with a new-generation boot keyboard after unplug (QEMU only).",
             "remaining": "Physical invalid-response matrix is absent; some malformed responses have host-only evidence; canaries detect writes and do not themselves prevent them.",
             "evidence": [
               "drivers/usb/src/lib.rs",
               "kernel/src/m2/xhci.rs",
               "kernel/src/m2/iommu.rs",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640648/job/138191503697",
-              "docs/verification/issue42-native-input-20261114/README.md"
+              "docs/verification/issue42-native-input-20261114/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h02-usb-refusal-20261125/README.md"
             ]
           }
         ]
@@ -806,14 +807,15 @@
             "verification": [
               "native"
             ],
-            "observation": "Native link down/up clears retained RX, preserves down-window no-send invariants and reacquires a fresh neighbor; link-storm exhaustion resets/latches the device. Network integration adds reconnect/configuration work.",
-            "remaining": "Hardware unplug/cable/radio/sleep-resume is untested; the original link fixture does not exercise in-flight TX at the down edge.",
+            "observation": "Native link down/up clears retained RX, preserves down-window no-send invariants and reacquires a fresh neighbor; link-storm exhaustion resets/latches the device. Network integration adds reconnect/configuration work. Update 27 Nov 2026 (#601, 8ee0d501): the H04-TXDOWN amendment to ADR-H04-LINK-20261119 decides that a TX completed across a link-down edge returns -27 (TX_EDGE); design only.",
+            "remaining": "Hardware unplug/cable/radio/sleep-resume is untested; in-flight TX at the down edge is decided (-27, #601) but not implemented or native-tested (#600).",
             "evidence": [
               "tools/run_net_link.py",
               "docs/implementation/VIRTIO-NET.md",
               "docs/verification/h04-native-link-20261119/README.md",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768805",
-              "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933"
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45308625592/job/138158768933",
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/DECISIONS.md"
             ]
           }
         ]
@@ -859,15 +861,18 @@
             "verification": [
               "native"
             ],
-            "observation": "Current 12-stage power gate passes S3 loss refusal, RNG reinit and held-completion quiescence plus cold recovery; broker device-access latches/counters are present.",
-            "remaining": "The entropy delivery demonstration is kernel-driven; block reinitialization and complete product device/session survival are not established. Some latches are source/counter checks only.",
+            "observation": "Current 12-stage power gate passes S3 loss refusal, RNG reinit and held-completion quiescence plus cold recovery; broker device-access latches/counters are present. Update 26-27 Nov 2026: virtio-blk lane 0 is re-validated and re-initialised after an S3 wake, with quarantine -24 on refusal and O13 latch carryover (#556, 945847d8; ledger H05-T5c verified); in the TEST profiles SUSPEND refuses with -25 unless the Key Service instance is LOCKED and erased (#597, 8b00a9c0; ledger H05-T5d-T verified), and the noscrub red control halts with LOCK_STACK_RESIDUE before SUSPEND (#613, af7415df). All QEMU/TCG.",
+            "remaining": "The entropy delivery demonstration is kernel-driven; block re-initialisation covers lane 0 with no ring-3 block capability (T5c slices 2-4: key erasure/UNLOCK, post-wake remount, ring-3 re-grant remain open); production LOCK waits for owner decision O5; complete product device/session survival is not established. Some latches are source/counter checks only.",
             "evidence": [
               "kernel/src/m2/m3/keyring.rs",
               "kernel/src/m2/m3/volume.rs",
               "kernel/src/m2/m3/system.rs",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640387/job/138191502229",
               "docs/verification/h05-s3-reinit-20261123/README.md",
-              "docs/verification/h05-s3-held-completion-20261123/README.md"
+              "docs/verification/h05-s3-held-completion-20261123/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h05-s3-blk-reinit-20261125/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h05-t5d-t-20261127/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h05-s3-noscrub-20261127/README.md"
             ]
           },
           {
@@ -906,13 +911,14 @@
             "verification": [
               "native"
             ],
-            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures). H06-T6 packs it into a deterministic raw GPT/FAT32 image with a recorded SHA-256 that boots in QEMU as a disk. H06-T7 adds the serial-timeout fixture and an HLT=1 check for every terminal fixture.",
+            "observation": "All HW-FR entries are pending or unsupported with evidence_level none; H06-T4 prepares protocols and signature validation only. H06-T3 adds a read-only native-hw-inventory kernel/loader pair that emits the HW-INV markers; it passes two QEMU configurations against QMP query-pci and configured CPUID/DMAR, and its inventory is rejected as a virtual capture. H06-T5 makes every terminal path of that pair halt without port 0xF4 (four QEMU fixtures). H06-T6 packs it into a deterministic raw GPT/FAT32 image with a recorded SHA-256 that boots in QEMU as a disk. H06-T7 adds the serial-timeout fixture and an HLT=1 check for every terminal fixture. H06-T8 (#507, 78dc7b18, 25 Nov 2026) makes every full-line fixture marker an exact-line match and reruns all HW-INV cases natively in QEMU.",
             "remaining": "Physical operators, authorization and signed actual runs remain missing; host validation of evidence format proves no device support.",
             "evidence": [
               "docs/drivers/hardware-matrix.json",
               "docs/drivers/physical-protocols.json",
               "tools/hw_evidence.py",
-              "docs/roadmap-pipeline/ledger.json"
+              "docs/roadmap-pipeline/ledger.json",
+              "https://github.com/BaryonOS/BaryonOS/blob/af7415df6aa64f0f293c5e88b59970c43a2f3ff6/docs/verification/h06-exact-markers-20261124/README.md"
             ]
           },
           {
@@ -2346,7 +2352,7 @@
             "verification": [
               "native"
             ],
-            "observation": "PR480 passes the scripted native window-session gates at scales 1 and 2 on merge checkout 4677238. These automated interaction and recovery checks do not establish product latency, physical performance or human usability acceptance. Separately, the historical Windows/WHPX A/B study measures idle CPU use on its own frozen sources.",
+            "observation": "PR480 passes the scripted native window-session gates at scales 1 and 2 on merge checkout 4677238. R02 performance candidates since then (local KVM A/B, 5+5 window sessions each, host-side 0.2 s screendump grid, not hosted or physical): #540 (ffea3883, 2026-11-26) changed-region repaint, run median 26.93 to 19.50 s; #578 (8033e2dd, 2026-11-26) compositor clock once per pass, 19.25 to 17.21 s; #603 (ae0fbd5a, 2026-11-27) SUR1 reply wait with ipc_wait and a 150-tick deadline, 37.60 to 36.86 s with --clipboard --workspace. No latency budget exists yet (R02-L1). These automated interaction and recovery checks do not establish product latency, physical performance or human usability acceptance. Separately, the historical Windows/WHPX A/B study measures idle CPU use on its own frozen sources.",
             "remaining": "Current-source physical performance and human usability acceptance are absent; retained ignored UX tests/known limitations must be resolved or scoped by the fixed contract.",
             "evidence": [
               "docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md",
@@ -2354,7 +2360,10 @@
               "docs/STATUS.md",
               "docs/verification/gui-idle-20261102/windows-ab/README.md",
               "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630466",
-              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630768"
+              "https://github.com/BaryonOS/BaryonOS/actions/runs/45318640704/job/138191630768",
+              "https://github.com/BaryonOS/BaryonOS/blob/ae0fbd5a0d06a727db00276927645fc8be631e6b/docs/verification/r02-window-baseline-20261126/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/ae0fbd5a0d06a727db00276927645fc8be631e6b/docs/verification/r02-compositor-turn-ab-20261126/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/ae0fbd5a0d06a727db00276927645fc8be631e6b/docs/verification/r02-sur1-ipc-wait-20261127/README.md"
             ]
           }
         ]

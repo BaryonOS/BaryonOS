@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "c6e8cb5c0f920dc759fd5ef8d0cc73eb4c5bccd3",
+  "assessment_basis": "parent_commit",
+  "branch": "ci/pr-hygiene-20261127",
+  "task": "CI (#494): read-only PR hygiene report in tools/project_classification.py (option 1 of the 27 Nov per-PR integrity follow-up). pr_hygiene() names the per-PR duties of docs/handoffs/README.md that an open pull request misses: labels, milestone (CI pull requests exempt), an issue link (Refs/Part of/Closes/Fixes/Resolves #N) and a D3 assessment file; bot pull requests are exempt and a cut-off file list leaves the assessment unknown. The daily project-classification run prints pull request numbers and fixed rule names only and one summary warning; the report never changes the exit code. No workflow, catalogue or protected file changes.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI organisation tooling and tests only; no criterion, native evidence or acceptance result changes."
+}

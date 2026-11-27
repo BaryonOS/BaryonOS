@@ -2947,7 +2947,7 @@
       "criterion": "H05",
       "milestone": "M9",
       "executor": "lead",
-      "status": "ready",
+      "status": "verified",
       "title": "Q3 key-erasure SUSPEND gate in the S3 TEST profiles (KL2 -25, init LOCK before SUSPEND)",
       "goal": "Every test-system-s3 kernel profile implies native-system-lock; SUSPEND returns -25 unless the keyring is LOCKED and the instance erased (KL2, before storage_closed); the TEST init issues LOCK 0x92 before the granted SUSPEND; the re-init stage uses a kernel-owned entropy target instead of the torn-down Key Service.",
       "deps": [
@@ -2964,7 +2964,8 @@
         "tools/run_system.py",
         "tests/test_system_harness.py",
         "tests/test_system_s3_lock_guard.py",
-        "docs/verification/h05-t5d-t-20261127/"
+        "docs/verification/h05-t5d-t-20261127/",
+        "docs/verification/h05-s3-noscrub-20261127/"
       ],
       "checks": [
         "python3 -B -u tools/test_power_system.py",
@@ -2975,10 +2976,17 @@
         "native-system.yml#native-system",
         "ci.yml#host-quality"
       ],
-      "evidence_level": "Pending: local native QEMU/TCG evidence in docs/verification/h05-t5d-t-20261127/ and hosted power-system-gate on the PR head.",
-      "non_claimable": "TEST profiles only. The unwrap secret is a public TEST constant; no key-state durability is claimed (O5 open); no production LOCK path, no ring-3 block re-grant, no remount, no physical S3. s3-noscrub (B #590) not run in this slice.",
-      "next": "After merge: ledger verified with the landing SHA; s3-noscrub case once B #590 lands; then H05-T5d-P after O5.",
-      "blocker": null
+      "evidence_level": "Local native QEMU/TCG power gate on the PR head (docs/verification/h05-t5d-t-20261127/); hosted native-power, power-system-gate, native-system and host-quality green on head 26513271 and in the merge queue. S3 noscrub red control (power-s3-noscrub: LOCK_STACK_RESIDUE, raw 35, no LOCKED, no SUSPEND) added locally by the follow-up in docs/verification/h05-s3-noscrub-20261127/.",
+      "non_claimable": "TEST profiles only. The unwrap secret is a public TEST constant; no key-state durability is claimed (O5 open); no production LOCK path, no ring-3 block re-grant, no remount, no physical S3. The S3 noscrub red control is local evidence only, like power-lock-noscrub; no hosted job runs the LOCK red controls.",
+      "next": "H05-T5d-P after owner decision O5.",
+      "blocker": null,
+      "history": [
+        {
+          "event": "verified",
+          "at": "2026-11-27",
+          "reason": "PR #597 squash-merged through the merge queue as 8b00a9c0 (tree identical to merge-tree(2d0d2d51, head 26513271)); all applicable hosted gates green on the head and in merge_group. Follow-up: tools/build.py computed S3_SYSTEM_FEATURES before B #590's test-system-s3-lock-noscrub joined POWER_SYSTEM_FEATURES, so that profile built without the S3 TEST init; fixed and covered by a plumbing test and the power-s3-noscrub red control."
+        }
+      ]
     },
     {
       "id": "H05-T5d-P",
