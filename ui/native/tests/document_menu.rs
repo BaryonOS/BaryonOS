@@ -728,7 +728,8 @@ fn scrolled_selection_survives_menu_dismissal_and_resync_never_replays_a_press()
             (&after.0, after.1, after.2, after.3, after.5, after.6),
             (&before.0, before.1, before.2, before.3, before.5, before.6)
         );
-        assert_eq!(after.4, Status::InputLost);
+        // A compositor resync is not an input failure (#541).
+        assert_eq!(after.4, before.4);
     });
 }
 

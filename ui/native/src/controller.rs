@@ -2132,8 +2132,10 @@ impl<'a, T: Transport> Controller<'a, T> {
                 self.pressed = None;
                 self.cursor = None;
                 self.dismiss_document_menu();
-                // A window switch is normal desktop behaviour, not an input failure (#541).
-                if reason != CancelReason::FocusLost
+                // A window switch (FocusLost) or a compositor resync (shell overlay,
+                // window move, source Sync) is normal desktop behaviour, not an input
+                // failure (#541); like Calculator, only lost input shows the banner.
+                if !matches!(reason, CancelReason::FocusLost | CancelReason::Resync)
                     && !self.document.is_uncertain()
                     && !self.document.is_conflicted()
                     && !self.document.is_closed()

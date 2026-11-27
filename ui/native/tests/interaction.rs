@@ -1445,6 +1445,7 @@ fn focus_lost_cancels_input_without_input_lost_banner_impl() {
     // InputLost, so the FocusLost assertion cannot pass vacuously (#541).
     for (reason, banner) in [
         (CancelReason::FocusLost, false),
+        (CancelReason::Resync, false),
         (CancelReason::SourceLost, true),
     ] {
         let host = Host::new();
