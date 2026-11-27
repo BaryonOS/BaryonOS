@@ -4,13 +4,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Choose a topic to learn about the project, follow development, try a build or contribute.">
+  <meta name="description" content="Choose the question that matters to you: suitability, experience, architecture, evidence or development.">
   <meta name="referrer" content="no-referrer">
   <meta name="color-scheme" content="dark">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' https://raw.githubusercontent.com/BaryonOS/BaryonOS/main/docs/assets/progress.svg; font-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Baryon OS Docs</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/site.css?v=progress-orbitaal">
+  <link rel="stylesheet" href="/assets/site.css?v=visitor-library">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -23,8 +23,8 @@
         <ul class="nav-list">
           <li><a href="/">Overview</a></li>
           <li><a href="/docs/" aria-current="page">Docs</a></li>
-          <li><a href="/docs/progress/">Status</a></li>
-          <li><a href="/docs/contribute/">Contribute</a></li>
+          <li><a href="/status/">Status</a></li>
+          <li><a href="/contribute/">Contribute</a></li>
         </ul>
       </nav>
     </div>
@@ -49,31 +49,56 @@
       <div class="wrap guide-intro">
         <p class="breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span>Docs</p>
         <h1 id="guide-title">Baryon OS Docs</h1>
-        <p class="lead">Choose a topic to learn about the project, follow development, try a build or contribute.</p>
+        <p class="lead">Choose the question that matters to you: suitability, experience, architecture, evidence or development.</p>
       </div>
     </section>
     <div class="wrap docs-directory" id="topics" tabindex="-1">
       <section class="topic-group section-divider">
-        <h2>Start here</h2>
+        <h2>Decide if it fits</h2>
         <ul class="topic-grid">
           <li id="project"><a class="resource-card topic-card" href="/docs/project/"><strong>About Baryon OS <span aria-hidden="true">→</span></strong><span>Why the project exists, what the name means and what makes the OS independent.</span></a></li>
-          <li id="progress"><a class="resource-card topic-card" href="/docs/progress/"><strong>Roadmap and evidence <span aria-hidden="true">→</span></strong><span>How far development has progressed and how to read the test evidence.</span></a></li>
-          <li id="try"><a class="resource-card topic-card" href="/docs/try/"><strong>Try the development build <span aria-hidden="true">→</span></strong><span>How to start a QEMU experiment and what hardware support is available.</span></a></li>
+          <li id="mission"><a class="resource-card topic-card" href="/docs/mission/"><strong>Mission and vision <span aria-hidden="true">→</span></strong><span>The European research question, the mission it produced and the future experience being pursued.</span></a></li>
+          <li id="fit"><a class="resource-card topic-card" href="/docs/fit/"><strong>Is Baryon OS for me? <span aria-hidden="true">→</span></strong><span>A direct suitability guide for curious visitors, testers, contributors and daily-use seekers.</span></a></li>
+          <li id="capabilities"><a class="resource-card topic-card" href="/docs/capabilities/"><strong>Planned capabilities <span aria-hidden="true">→</span></strong><span>The intended product experience, from everyday apps to storage, networking and recovery.</span></a></li>
+          <li id="choices"><a class="resource-card topic-card" href="/docs/choices/"><strong>Why these choices? <span aria-hidden="true">→</span></strong><span>The main product and technology decisions explained in everyday language and linked to their evidence.</span></a></li>
+          <li id="progress"><a class="resource-card topic-card" href="/docs/progress/"><strong>Roadmap and evidence <span aria-hidden="true">→</span></strong><span>How development progress is measured and how to interpret the available evidence.</span></a></li>
+          <li id="faq"><a class="resource-card topic-card" href="/docs/faq/"><strong>Frequently asked questions <span aria-hidden="true">→</span></strong><span>Short answers about Linux, installation, readiness, privacy, licensing and support.</span></a></li>
         </ul>
       </section>
       <section class="topic-group section-divider">
-        <h2>How it works</h2>
+        <h2>Experience and personal data</h2>
+        <ul class="topic-grid">
+          <li id="design"><a class="resource-card topic-card" href="/docs/design/"><strong>Desktop and Material <span aria-hidden="true">→</span></strong><span>How Orbit, familiar desktop interactions and the document model fit together.</span></a></li>
+          <li id="profiles"><a class="resource-card topic-card" href="/docs/profiles/"><strong>Profiles and accessibility <span aria-hidden="true">→</span></strong><span>The intended first start, local accounts, trusted sign-in and adaptive experience.</span></a></li>
+          <li id="apps"><a class="resource-card topic-card" href="/docs/apps/"><strong>Apps and permissions <span aria-hidden="true">→</span></strong><span>How apps, packages, data access and replaceable tools are meant to remain separate.</span></a></li>
+          <li id="storage"><a class="resource-card topic-card" href="/docs/storage/"><strong>Storage, sync and NAS <span aria-hidden="true">→</span></strong><span>Local work, encrypted remote copies, personal NAS roles, conflicts and recovery.</span></a></li>
+          <li id="privacy"><a class="resource-card topic-card" href="/docs/privacy/"><strong>Privacy and data control <span aria-hidden="true">→</span></strong><span>Where data may go, which choices remain explicit and what local-first actually means.</span></a></li>
+          <li id="local-ai"><a class="resource-card topic-card" href="/docs/local-ai/"><strong>Local AI <span aria-hidden="true">→</span></strong><span>The on-device assistant direction, model boundaries and current experiment limits.</span></a></li>
+        </ul>
+      </section>
+      <section class="topic-group section-divider">
+        <h2>Inside the system</h2>
         <ul class="topic-grid">
           <li id="architecture"><a class="resource-card topic-card" href="/docs/architecture/"><strong>System architecture <span aria-hidden="true">→</span></strong><span>Follow the boot chain from firmware and the Rust kernel through services to apps.</span></a></li>
-          <li id="design"><a class="resource-card topic-card" href="/docs/design/"><strong>Desktop and Material <span aria-hidden="true">→</span></strong><span>How Orbit, familiar desktop interactions and the document model fit together.</span></a></li>
-          <li id="privacy"><a class="resource-card topic-card" href="/docs/privacy/"><strong>Privacy and security <span aria-hidden="true">→</span></strong><span>Understand app permissions, local storage, optional sync and the security requirements.</span></a></li>
+          <li id="security"><a class="resource-card topic-card" href="/docs/security/"><strong>Security model <span aria-hidden="true">→</span></strong><span>Capabilities, isolation, the Security Floor, threat boundaries and evidence limits.</span></a></li>
+          <li id="packages"><a class="resource-card topic-card" href="/docs/packages/"><strong>Packages and updates <span aria-hidden="true">→</span></strong><span>Provenance, installation, permissions, system updates and remaining integration work.</span></a></li>
+          <li id="research"><a class="resource-card topic-card" href="/docs/research/"><strong>Research tracks <span aria-hidden="true">→</span></strong><span>Explore work on local AI, post-quantum protection and quantum execution.</span></a></li>
         </ul>
       </section>
       <section class="topic-group section-divider">
-        <h2>Go further</h2>
+        <h2>Try and verify</h2>
         <ul class="topic-grid">
-          <li id="research"><a class="resource-card topic-card" href="/docs/research/"><strong>Research tracks <span aria-hidden="true">→</span></strong><span>Explore work on local AI, post-quantum protection and quantum execution.</span></a></li>
-          <li id="contribute"><a class="resource-card topic-card" href="/docs/contribute/"><strong>Contribute <span aria-hidden="true">→</span></strong><span>Find a way to help through feedback, reproducible reports, documentation or code.</span></a></li>
+          <li id="try"><a class="resource-card topic-card" href="/docs/try/"><strong>Try the development build <span aria-hidden="true">→</span></strong><span>How to start a bounded QEMU experiment without treating it as an installer.</span></a></li>
+          <li id="hardware"><a class="resource-card topic-card" href="/docs/hardware/"><strong>Hardware and release readiness <span aria-hidden="true">→</span></strong><span>Why virtual-machine progress differs from PC support and a maintained release.</span></a></li>
+          <li id="testing"><a class="resource-card topic-card" href="/docs/testing/"><strong>Testing and evidence <span aria-hidden="true">→</span></strong><span>What host, build, QEMU, physical-hardware and human evidence can establish.</span></a></li>
+        </ul>
+      </section>
+      <section class="topic-group section-divider">
+        <h2>Explore the project</h2>
+        <ul class="topic-grid">
+          <li id="workflow"><a class="resource-card topic-card" href="/docs/workflow/"><strong>Development workflow <span aria-hidden="true">→</span></strong><span>How a bounded change moves from current state and contracts to evidence and review.</span></a></li>
+          <li id="repository"><a class="resource-card topic-card" href="/docs/repository/"><strong>Repository guide <span aria-hidden="true">→</span></strong><span>A map of the loader, kernel, services, drivers, SDK, UI, tests and research areas.</span></a></li>
+          <li id="sources"><a class="resource-card topic-card" href="/docs/sources/"><strong>Sources and documentation <span aria-hidden="true">→</span></strong><span>Which project source answers which question and how the website and wiki relate.</span></a></li>
           <li id="glossary"><a class="resource-card topic-card" href="/docs/glossary/"><strong>Glossary <span aria-hidden="true">→</span></strong><span>Look up terms such as kernel, capability, NAS and QEMU in plain English.</span></a></li>
         </ul>
       </section>
@@ -84,6 +109,8 @@
       <p>Baryon OS <span>·</span> Independent operating system research</p>
       <div>
         <a href="/docs/">Docs</a>
+        <a href="/status/">Status</a>
+        <a href="/contribute/">Contribute</a>
         <a href="https://github.com/BaryonOS/BaryonOS">Source code</a>
         <a href="https://github.com/BaryonOS/BaryonOS/blob/main/SECURITY.md">Report a vulnerability</a>
         <a href="https://github.com/BaryonOS/BaryonOS/blob/main/LICENSING.md">Licensing</a>

@@ -125,9 +125,11 @@ h1 em { color: var(--silver); font-style: normal; text-shadow: 0 0 34px rgba(172
 .topic-card strong { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .topic-grid li:target .topic-card { border-color: var(--silver); box-shadow: inset 0 0 0 1px var(--rim); }
 .guide-layout { display: grid; grid-template-columns: minmax(0,760px) minmax(160px,220px); gap: clamp(32px,6vw,84px); align-items: start; padding-block: 38px 80px; }
-.guide-topics { position: sticky; inset-block-start: var(--anchor-clearance); padding: 18px; border: 1px solid var(--line); border-radius: 17px; background: var(--s1); }
+.guide-topics { position: sticky; inset-block-start: var(--anchor-clearance); max-height: calc(100vh - var(--anchor-clearance) - 24px); padding: 18px; overflow: auto; border: 1px solid var(--line); border-radius: 17px; background: var(--s1); }
 .guide-topics-title { margin: 0 0 10px; padding-inline: 10px; font-size: 14px; font-weight: 600; }
 .guide-topics ul { display: grid; gap: 4px; list-style: none; padding: 0; margin: 0; }
+.guide-topic-heading { grid-column: 1 / -1; margin: 12px 10px 3px; color: var(--subtle); font-size: 10px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.guide-topic-heading:first-child { margin-top: 2px; }
 .guide-topics a { display: block; padding: 8px 10px; border-radius: 8px; color: var(--silver); font-size: 14px; text-decoration: none; }
 .guide-topics a:hover,
 .guide-topics a[aria-current="page"] { color: var(--text); background: var(--s2); box-shadow: inset 2px 0 var(--silver); }
@@ -151,6 +153,18 @@ h1 em { color: var(--silver); font-style: normal; text-shadow: 0 0 34px rgba(172
 .guide-glossary { max-width: 68ch; }
 .guide-glossary dt { margin-top: 14px; font-weight: 600; }
 .guide-glossary dd { margin: 2px 0 0; color: var(--muted); }
+.standalone-layout { display: grid; grid-template-columns: minmax(0,760px) minmax(200px,260px); gap: clamp(32px,6vw,84px); align-items: start; padding-block: 38px 80px; }
+.standalone-aside { position: sticky; inset-block-start: var(--anchor-clearance); padding: 20px; border: 1px solid var(--line); border-radius: 17px; background: var(--s1); }
+.standalone-aside h2 { margin: 0 0 10px; font-size: 16px; letter-spacing: -.02em; }
+.standalone-aside p { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
+.standalone-aside .button { width: 100%; }
+.standalone-aside .button + .button { margin-top: 10px; }
+.status-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; max-width: 68ch; margin-block: 20px 28px; padding: 0; list-style: none; }
+.status-facts li { margin: 0; padding: 18px; border: 1px solid var(--line); border-radius: 13px; background: var(--s1); }
+.status-facts strong { display: block; margin-bottom: 5px; color: var(--text); }
+.status-facts span { color: var(--muted); font-size: 13px; }
+.decision-callout { max-width: 68ch; margin-block: 20px; padding: 18px 20px; border-left: 2px solid var(--silver); border-radius: 0 12px 12px 0; background: var(--s1); color: var(--muted); }
+.decision-callout strong { color: var(--text); }
 
 .site-footer { border-top: 1px solid var(--line); background: #05070f; }
 .footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; padding-block: 32px; color: var(--subtle); font-size: 12px; }
@@ -187,7 +201,9 @@ h1 em { color: var(--silver); font-style: normal; text-shadow: 0 0 34px rgba(172
   .docs-directory { padding-block: 18px 44px; }
   .topic-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .guide-layout { grid-template-columns: minmax(0,1fr); gap: 28px; padding-block: 32px 56px; }
-  .guide-topics { position: static; }
+  .standalone-layout { grid-template-columns: minmax(0,1fr); gap: 28px; padding-block: 32px 56px; }
+  .guide-topics { position: static; max-height: none; overflow: visible; }
+  .standalone-aside { position: static; }
   .guide-topics ul { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .guide-topic { padding-block: 28px 32px; }
 }
@@ -203,6 +219,7 @@ h1 em { color: var(--silver); font-style: normal; text-shadow: 0 0 34px rgba(172
   .roadmap-progress { margin-top: 20px; padding: 8px; }
   .link-grid { grid-template-columns: 1fr; }
   .topic-grid { grid-template-columns: minmax(0,1fr); }
+  .status-facts { grid-template-columns: minmax(0,1fr); }
 }
 @media (max-width: 350px) {
   :root { --brand-height: 54px; --brand-gap: 8px; }
