@@ -18,9 +18,8 @@ fn to_volume(status: Status) -> volume_core::Status {
     volume_core::Status::from_code(status as i64)
 }
 
-/// Service status for a verifier result. Codes the service does not define
-/// (only `Quota`, which `verify` never returns) become `Corrupt`, so an
-/// unexpected result never accepts an entry.
+/// Service status for a verifier result. Unexpected volume statuses become
+/// `Corrupt` so they cannot cause an entry to be accepted.
 fn from_volume(status: volume_core::Status) -> Status {
     match status {
         volume_core::Status::Ok => Status::Ok,
@@ -38,7 +37,7 @@ fn from_volume(status: volume_core::Status) -> Status {
         volume_core::Status::Corrupt => Status::Corrupt,
         volume_core::Status::NotFound => Status::NotFound,
         volume_core::Status::Busy => Status::Busy,
-        volume_core::Status::Quota => Status::Corrupt,
+        volume_core::Status::Quota | volume_core::Status::RemountRefused => Status::Corrupt,
         // Lane 0 only (H05-T5c): terminal device loss, never retried.
         volume_core::Status::Quarantined => Status::NoDevice,
     }

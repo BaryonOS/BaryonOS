@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "50191426b184587b61ebbd873d8b11633fc09165",
+  "assessment_basis": "parent_commit",
+  "branch": "g/adr-slots-20261127",
+  "task": "Interim ADR slots in docs/DECISIONS.md so that several ADR pull requests merge without conflict (owner directive: remove merge queue bottlenecks)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Documentation only: one comment and ten slot markers in docs/DECISIONS.md; no decision, criterion, implementation or evidence changes."
+}

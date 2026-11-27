@@ -88,7 +88,7 @@ they differ, the chosen variant is stated below.
 | Administrator actions | A standard user or app asks for the administrator password in a trusted system window (dimmed background) | UAC, macOS administrator prompt, `sudo`/polkit |
 | Password | Mandatory at setup; no password hint | All three |
 | PIN | Optional, at least 4 digits, with increasing delay after failures. Without TPM binding the PIN only unlocks a locked session and never protects keys on disk; after a reboot the password is required, with that explanation on screen | Windows Hello PIN; "password required after restart" on macOS/phones |
-| Locking | Keys remain in memory; sign-out, shutdown and guest sign-out wipe them | All three |
+| Locking | Keys remain in memory while a locked session stays awake; sign-out, shutdown and guest sign-out wipe them. Before sleep (S3) keys, derived keys and session plaintext are erased, otherwise S3 refuses (ADR-KEYRING-LOCK-20261126, O2 and OQ1) | All three |
 | Automatic locking | By default after 5 minutes of inactivity, configurable | All three |
 | Guest account | Available, off by default; can be turned on in Settings > Accounts. Guest data is held under an ephemeral key that exists only in memory | macOS, Linux |
 | Recovery | Show the recovery key at setup and have it stored; later a second own device. No vendor account, backdoor or escrow | BitLocker/FileVault recovery key |
@@ -155,8 +155,11 @@ Invariants (design first, then interface, then code and negative tests):
    signed-in user; a guessed object ID, catalogue name or handle of
    another user yields nothing.
 2. The password does not leave the session service, is not logged and is not
-   directly a key. Via Argon2id it unlocks a random
-   secret of **that user**, which only unlocks that user's own key state (own
+   directly a key, and no key is derived from the password alone (owner
+   decision O2, ADR-KEYRING-LOCK-20261126). Together with a TPM-protected,
+   high-entropy factor bound to the trusted boot chain, it unlocks a random
+   secret of **that user**; Argon2id remains the candidate hardening of the
+   password factor. That secret only unlocks that user's own key state (own
    master key and DEKs). There is no shared volume key
    with which one user's password decrypts another user's
    content. The PIN never protects keys on disk.

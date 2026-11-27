@@ -30,6 +30,13 @@ register. Newer ADRs and live GitHub state take precedence over this file.
     decides.
   - **C:** G decides.
   - **D:** reserved items or a material risk go to the project owner.
+- **Governance and Graphify mandate (owner, 27 November 2026, recorded as
+  ADR-GOVERNANCE-AUTONOMY-20261127):** G formalises owner decisions already
+  taken in binding documentation, including protected governance files,
+  without a second owner approval; keeps the review required for protected
+  files and never approves its own review; and accepts, corrects,
+  consolidates and withdraws Graphify memories after validating each one.
+  It escalates only the items listed in item 8 of that ADR.
 - **Limits:** G is never a mandatory approval step, reviews no routine choices,
   runs no watcher or polling loop, and does no operational PR watching. Those
   duties belong to the PR guard ("BaryonOS - PR Bewaker"). D1 to D3, required
@@ -63,12 +70,23 @@ OBSERVE, RECALL, CLASSIFY, ABSTRACT, VALIDATE, REMEMBER, APPLY, MEASURE, CORRECT
 |---|---|
 | Decision rules GR-01 to GR-11 | hosted Graphify memory; query "decision rule GR-" |
 | Owner decisions and operational history | issue #503 (PR guard) and #494 (CI) |
-| Volatile working state (pilot cases, scores, drafts) | local scratch `~/projects/BaryonOS-scratch/g/`, never committed |
+| Durable G handoff and newer handoff notes | comments on PR #585 (first: issuecomment-7204907599) |
+| Specialist role contracts | `.agents/roles/specialist_*.md` (G-C1) |
+| Volatile working state (pilot cases, scores, drafts) | local scratch of the G session, never committed; an addition only, never the canonical state |
+
+Live state (branch, HEAD, open items, owner questions) is never kept here
+(ADR-SPECIALIST-TEAM-20261125, item 4). It is in the newest `HANDOFF G` comment
+on PR #585, which uses the required fields in `docs/handoffs/README.md`.
 
 ## Resume procedure
 
 1. Read this file.
 2. Run `recall` with the `audit` profile and the query "decision rule GR-".
-3. Read the newest G handoff note in the local scratch directory.
+   Without Graphify access, work from the binding sources instead: the ADRs in
+   `docs/DECISIONS.md`, the owner decisions linked in the newest `HANDOFF G`
+   comment, and `.agents/roles/specialist_g.md`. GR rules are derived context,
+   never the only source of a binding fact.
+3. Read the newest G handoff comment on PR #585. A local scratch note may add
+   detail but never overrides that comment.
 4. Process only the event-driven cases that the PR guard or specialists have
    sent. Do not reread all chats.

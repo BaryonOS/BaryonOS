@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "3be6d3efb660caa16d198e34f2cc4cd8588d9bba",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/r02-l1-budgets-adr-20261127",
+  "task": "Correct R02 repaint diagnostic interpretation and protect evidence on reruns",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Review corrects uncertainty and a non-exclusive diagnostic run; no physical, endurance, or product-latency acceptance was established."
+}

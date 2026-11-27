@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "f8725d7af31602e6f8679fe9fadc82cb30732bb2",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/pages-progress-orbitaal-20261127",
+  "task": "UI-U review of the public site: bound product claims to evidence, separate designed from demonstrated, state the search query path",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Public wording is corrected to match accepted evidence; no OS implementation or acceptance evidence is added."
+}
