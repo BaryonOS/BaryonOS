@@ -110,6 +110,164 @@ TEST material, as `tools/update-keys/TEST-*` are.
 release publication or paid audit takes place under this ADR alone, or a
 synthetic key is not labelled as TEST material.
 
+## ADR-K-SCHED-CONTINUE-20261126 — the single-CPU scheduler continues the caller after an ordinary system call within its quantum
+
+**Status:** accepted. The project owner approved design revision 2 with
+options D1–D6 on 26 November 2026 at 22:22 UTC, and on 27 November 2026 at
+about 12:03 UTC judged the D3 kill criterion met by the recorded A/B (see
+"Kill criterion (D3) and result"); the hosted-duration half of D3 still
+applies to the pull request. Amended on 27 November 2026 after a hosted
+network regression (see "Network regression and amendment"). Proposed by
+Specialist K for issue #530 (R02 long-term stability and performance
+budgets), task R02-C3. It amends one sentence of
+`docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md` §3 Scheduler and adds
+no system call, capability, IPC semantics or message format.
+
+**Source:** branch `claude/k-sched-continue-20261126`, PR #602; code head
+`478b4ba3` on `main` `7c32e6c7`, followed by documentation-only commits.
+Evidence: `docs/verification/k-sched-continue-20261127/`.
+
+### Context
+
+- On one CPU, every kernel entry was a full reschedule: `event()` called
+  `select()` without a candidate, so an IPC send, a clock read or a blit
+  handed the CPU to the next ready process. The R02 window baseline measured
+  about 40–50 kernel entries per changed tile, each a context switch
+  (`docs/verification/r02-window-baseline-20261126`).
+- The SMP path (`native-smp-m3`) already continued the caller after an
+  ordinary call, guarded by `sched::Quantum`, which is host-tested in
+  `crates/smp-lock`.
+- The contract required "one FIFO round-robin queue, equal priority, quantum
+  one timer tick"; the code switched far more often than that.
+
+### Decision
+
+After an ordinary `int 0x80` (any call except yield and exit whose result is
+not -8 Again, and the caller not terminated), the single-CPU scheduler dispatches the caller again without
+a new selection, as long as no timer IRQ has arrived since its last genuine
+dispatch. The candidate also requires the PID the process had on entry,
+because fixtures can respawn a fresh process into the same slot.
+`select_with_continuation` revalidates it after the wait and TPM refreshes
+(current slot, `Ready`, not `Dying`, quantum) and takes it once. The SMP
+path is unchanged.
+
+### Invariants
+
+- **I1 Fairness.** A continued caller runs at most until the next PIT tick
+  (10 ms). Every tick selects round-robin from `current + 1` without a
+  candidate, so continuation never renews a quantum.
+- **I2 Switch points kept.** Yield, exit, `terminate`, every exception or
+  fault vector, every call whose result is -8 (Again: a failed poll for
+  another process's progress), every call that leaves the caller non-`Ready` (a parking
+  `ipc_wait`, a granted 0x90, a fixture `Dying`), an invalid saved return
+  state and the timer tick never continue.
+- **I3 Housekeeping per entry.** A continuation still runs the whole
+  selection path: wait refresh, TPM fixture poll, return-state validator,
+  `set_rsp0`, FPU selection and CR3 activation. Only the choice of slot
+  changes.
+- **I4 No ABI change.** A wake stays a hint: the woken process runs at the
+  caller's next switch point or the next tick.
+- **I5 Single use.** The candidate is taken once; a retry after cleanup or
+  idle never continues the caller again.
+- `selections` and `selected` count genuine selections only, as on SMP.
+
+### Consequences
+
+- Ring-3 code that needs a switch at an ordinary system call to make progress
+  is now wrong on one CPU, as it already was on SMP. The design §7 survey
+  found one instance class: a capability-bearing send immediately followed
+  by exit, without waiting for a receipt. The K05 example had it
+  (`k05-client` hello) and was fixed in #604 (`20c7e18a`) by waiting
+  for the supervisor's receipt. The qsim-job cancel race was fixed first in
+  #588 (yield on `EAGAIN`).
+- Fixtures that guard `syscall_calls < 2_000_000` (FPU, display, memory)
+  pass in the local native verification list on `0623ddf1` (QEMU TCG; see
+  the verification directory).
+- New regression case `test-m3-syscall-spin` (`M3:SYSCALL_SPIN:PASS` in both
+  rounds) fails on a kernel without continuation (red control, raw 35), and
+  since the amendment also on a kernel that continues a -8 result.
+
+### Kill criterion (D3) and result
+
+C3 lands only if the median per-phase gain in the 5+5 window-session A/B
+exceeds the run-to-run spread and hosted native job durations do not regress.
+
+Result (local KVM, not hosted; A = `main` `be1fd9ac`, B = that `main` plus
+C3; ten interleaved runs, all raw exit 33):
+
+- Whole session: median 17.02 s (17.00–17.49) on A against 16.50 s
+  (15.90–16.61) on B, −3.1 %, with disjoint ranges.
+- QEMU host CPU: median 11.79 s (11.77–12.00) against 10.78 s
+  (10.10–10.93), −8.6 %, with disjoint ranges.
+- Per-phase `last_input_to_verified_app_image_s`: no phase median moves by
+  more than its spread; this host-side metric sits on a coarse screendump
+  retry grid.
+- All 31 phase frames are identical across the ten runs; the high-contrast
+  workspace loop (A1 B1 B2 A2) passed 4/4 with identical contrast frames.
+
+The literal per-phase reading of D3 is not met. The project owner decided
+that the disjoint whole-session and CPU gains satisfy D3, and that the
+hosted native durations on the pull request must still not regress against
+recent `main`.
+
+### Network regression and amendment (27 November 2026)
+
+- **Finding.** On head `6a74ad67` the hosted rule above passed, but the
+  step-level comparison with same-day non-C3 controls showed the networked
+  system guests 27–52 % slower (ARP/UDP/DNS step 197 s against 136–154 s,
+  virtio-net link step 281 s against 194–215 s; guest wall time 88–94 s
+  against 57–72 s). The job-level rule missed it because faster
+  window-session jobs offset the network steps.
+- **Project-owner decision (27 November 2026, received 13:26:52 UTC;
+  verbatim on #602).** The regression is not an accepted residual risk:
+  #602 stays out of the merge queue until a structural fix is verified;
+  timeouts are not extended and D3 is not relaxed; the fix must not add
+  per-application exceptions.
+- **Root cause.** Userspace pollers in the system guest
+  (`sdk/examples/system/src/init.rs` `wait()` and the status loop in
+  `sdk/examples/system/src/app.rs`) loop on a non-blocking receive that
+  returns -8 (Again). Before C3 every such call switched; with C3 the poller
+  kept its whole quantum while the process it waited for could not run.
+- **Amendment.** A system call whose result is exactly -8 (Again) is a
+  failed poll for another process's progress, so it selects like a yield
+  instead of continuing (I2). The rule reads the result after the call has
+  written it and changes only the scheduling choice; return values and
+  counters are unchanged. Blocking `ipc_wait` waiters already park as
+  `Waiting`. The SMP path keeps its own pre-C3 continuation rule, which still
+  continues a -8 result (candidate K-8 in `docs/handoffs/K/CURRENT.md`).
+- **Gate.** `test-m3-syscall-spin` gains a second process: slot 1 polls a
+  fixture-only call (number 15 in that feature) that always returns -8, and
+  the kernel asserts that its loop count never exceeds its genuine
+  selections plus one. On a kernel without the amendment the assertion stops
+  the guest (red control in the verification directory).
+- **Not yet done.** The rule removes the cost of a poll that fails; it does
+  not remove the pollers. Moving `init.rs` `wait()` and the status loop to
+  `ipc_wait` is a follow-up with N and H, so the owner's aim to discourage
+  polling is met only in part.
+- **Result (local, not hosted;** A = `main` `af7415df`, B = C3 `6a74ad67`,
+  C = B plus this amendment; all raw exit 33). `tools/test_net_system.py`
+  under TCG (`pc-q35-8.2`), three interleaved runs per side after one
+  discarded warm-up: guest `normal` 54.8–56.8 s / 66.9–68.4 s /
+  42.9–43.5 s, guest `recover` 42.2–42.8 s / 65.4–65.9 s / 42.1–42.2 s.
+  Net-link gate (H04-T3), two interleaved rounds after one discarded
+  warm-up: `normal` 54.3–55.9 s / 66.9–67.8 s / 43.3–44.6 s, `nostatus`
+  54.5–54.8 s / 65.1–65.6 s / 43.0–43.1 s, `storm` 45.8–46.4 s /
+  68.4–71.2 s / 46.4–46.8 s. Window session under local KVM, five
+  `--clipboard` sessions per side: whole session 16.69–17.52 s /
+  15.75–16.33 s / 15.35–15.72 s, QEMU host CPU 11.26–12.07 s /
+  9.87–10.55 s / 10.26–10.52 s, and no phase with more than one frame hash
+  within a side. The hosted rule and the step-level comparison on the new
+  head are recorded on the pull request.
+- **D3 practice.** Every later D3 check of a scheduler change also compares
+  step-level guest durations against same-day controls; the rule itself is
+  not amended after reading the data.
+
+### Rollback
+
+Revert the `fix(kernel)` again commit and the `feat(kernel)` commit together
+with the `test-m3-syscall-spin` fixture commits; the fixture fails by design
+on a kernel without continuation or without the again rule.
+
 ## ADR-PROGRESS-OWN-ROWS-20261127 — criterion owners maintain their own implementation and verification snapshot rows
 
 **Status:** decided by the project owner on 27 November 2026 (given in the PR

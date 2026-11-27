@@ -8,7 +8,15 @@ PHDRS {
 }
 SECTIONS {
   . = 0x02000000;
-  .text : ALIGN(4096) { KEEP(*(.text.entry)) *(.text .text.*) } :text
+  /* The mem* routines sit in the first text page in every build. QEMU TCG never
+     chains a translated block that spans two pages, and QEMU 8.2 translates each
+     REP iteration as its own block, so a page-straddling memcmp loop or
+     `rep movsq` made hosted gates layout-dependently slow (ADR-K-SCHED-CONTINUE). */
+  .text : ALIGN(4096) {
+    KEEP(*(.text.entry))
+    *(.text.memcpy .text.memmove .text.memset .text.memcmp .text.bcmp)
+    *(.text .text.*)
+  } :text
   . = ALIGN(4096);
   .rodata : { *(.rodata .rodata.*) } :rodata
   . = ALIGN(4096);
@@ -27,4 +35,10 @@ SECTIONS {
   ASSERT(__kernel_start < __text_end && __text_end <= __rodata_end && __rodata_end < __kernel_end,
          "kernel layout symbols out of order")
   ASSERT(__kernel_end <= 0x03000000, "kernel exceeds reserved span")
+  /* Each routine is under 0x100 bytes; lld keeps input order, so check each one. */
+  ASSERT(!DEFINED(memcpy) || memcpy + 0x100 <= 0x02001000, "memcpy left the first text page")
+  ASSERT(!DEFINED(memmove) || memmove + 0x100 <= 0x02001000, "memmove left the first text page")
+  ASSERT(!DEFINED(memset) || memset + 0x100 <= 0x02001000, "memset left the first text page")
+  ASSERT(!DEFINED(memcmp) || memcmp + 0x100 <= 0x02001000, "memcmp left the first text page")
+  ASSERT(!DEFINED(bcmp) || bcmp + 0x100 <= 0x02001000, "bcmp left the first text page")
 }

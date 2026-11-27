@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "ef42cb18463f59edb57fe49a88a7c7c0c4c76280",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/k-sched-continue-20261126",
+  "task": "R02-C3 (K): the single-CPU M3 scheduler continues the caller after an ordinary system call within its quantum (ADR-K-SCHED-CONTINUE-20261126), amended after a hosted network regression so that a -8 (Again) result selects like a yield; regression case test-m3-syscall-spin covers both rules. Places compiler memory routines in the first kernel text page to address two QEMU TCG S3 timing regressions.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. K03 retains its accepted score and R02 remains open. On ef42cb18 the 45-step local L4 replay, the K05 SMP gate and the local network system, link and native-service checks succeeded. The two S3 outliers returned to the main-control range in 24 local runs with the pinned QEMU 8.2.2 and OVMF bundle. The first-page layout and existing segment permissions were checked on 17 power ELFs. Hosted H1–H3 and final-head window-session measurements are tracked on #602."
+}

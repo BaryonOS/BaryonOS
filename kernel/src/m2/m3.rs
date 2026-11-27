@@ -21,7 +21,6 @@ use core::{
 #[cfg(feature = "native-memory")]
 use kernel_core::pressure::{Level as MemoryPressure, ReclaimBudget};
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
-#[cfg(feature = "native-smp-m3")]
 use smp_lock::sched;
 #[cfg(feature = "display-input")]
 mod display;
@@ -574,6 +573,9 @@ struct State {
     /// Periodic timer/0xe8 generations acknowledged by each real selection.
     #[cfg(feature = "native-smp-m3")]
     cpu_quantum: [sched::Quantum; smp::MAX_CPUS],
+    /// Single-CPU mirror of `cpu_quantum`: timer generation of the last real selection.
+    #[cfg(not(feature = "native-smp-m3"))]
+    quantum: sched::Quantum,
     #[cfg(feature = "native-smp-m3-migrate")]
     migration_stage: u8,
     #[cfg(feature = "native-smp-m3-migrate")]
@@ -897,6 +899,8 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
             ptr::addr_of_mut!((*state).cpu_switches).write([0; smp::MAX_CPUS]);
             ptr::addr_of_mut!((*state).cpu_quantum).write([sched::Quantum::new(); smp::MAX_CPUS]);
         }
+        #[cfg(not(feature = "native-smp-m3"))]
+        ptr::addr_of_mut!((*state).quantum).write(sched::Quantum::new());
         #[cfg(feature = "native-smp-m3-migrate")]
         {
             ptr::addr_of_mut!((*state).migration_stage).write(0);
@@ -1247,9 +1251,19 @@ impl State {
         } else if slot == 0 {
             if mode() == 0 && self.round >= 2 {
                 2
+            } else if cfg!(feature = "test-m3-syscall-spin") {
+                // Kernel mode() stays 0: all 16 processes and the 64-tick check.
+                21
             } else {
                 mode()
             }
+        } else if cfg!(feature = "test-m3-syscall-spin")
+            && slot == 1
+            && mode() == 0
+            && self.round < 2
+        {
+            // Slot 1 polls the fixture's again call (-8) in both mode-0 rounds.
+            22
         } else {
             0
         };
@@ -1457,12 +1471,19 @@ impl State {
         self.select_with_continuation(None)
     }
 
+    /// Timer IRQs only ever grow; a u32 wrap can only deny a continuation.
+    #[cfg(not(feature = "native-smp-m3"))]
+    fn schedule_events(&self) -> sched::ScheduleEvents {
+        sched::ScheduleEvents {
+            deferred_timer: self.timer_interrupts as u32,
+            reschedule: 0,
+        }
+    }
+
     /// A candidate is only the just-descheduled caller of an ordinary syscall.
     /// All observers, kill/wait refresh and the existing return validator still
     /// run; the final event-generation test is made here, with IF=0.
     fn select_with_continuation(&mut self, mut continuation: Option<usize>) -> *const u64 {
-        #[cfg(not(feature = "native-smp-m3"))]
-        let _ = &mut continuation;
         debug_assert!(lock::kernel_held(), "K-1: mutation without KERNEL");
         'selection: loop {
             #[cfg(feature = "native-smp-m3")]
@@ -1475,8 +1496,18 @@ impl State {
             wait::refresh(self);
             #[cfg(feature = "native-tpm-crb")]
             tpm_fixture::poll(self.ticks);
+            // Revalidated after the refreshes above; `take` makes it single-use (I5).
             #[cfg(not(feature = "native-smp-m3"))]
-            let start = if self.current < self.amount {
+            let candidate = continuation.take().filter(|&slot| {
+                slot < self.amount
+                    && slot == self.current
+                    && self.processes[slot].status == Status::Ready
+                    && self.quantum.can_continue(self.schedule_events())
+            });
+            #[cfg(not(feature = "native-smp-m3"))]
+            let start = if let Some(slot) = candidate {
+                slot
+            } else if self.current < self.amount {
                 (self.current + 1) % self.amount
             } else {
                 0
@@ -1485,7 +1516,7 @@ impl State {
                 #[cfg(not(feature = "native-smp-m3"))]
                 let slot = (start + _offset) % self.amount;
                 #[cfg(not(feature = "native-smp-m3"))]
-                let continuing = false;
+                let continuing = candidate == Some(slot);
                 #[cfg(feature = "native-smp-m3")]
                 let (slot, continuing) = {
                     let candidate = continuation.take().filter(|&slot| {
@@ -1596,6 +1627,8 @@ impl State {
                         self.selections += 1;
                         #[cfg(feature = "native-smp-m3")]
                         self.cpu_quantum[cpu()].record_dispatch(smp::m3_schedule_events());
+                        #[cfg(not(feature = "native-smp-m3"))]
+                        self.quantum.record_dispatch(self.schedule_events());
                     }
                     let p = &mut self.processes[slot];
                     p.status = Status::Running;
@@ -2163,6 +2196,9 @@ fn event(source: *const u64) -> *const u64 {
     let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
     let current = state.current;
     assert!(current < state.amount);
+    // Fixtures can respawn a fresh process into `current` before selection.
+    #[cfg(not(feature = "native-smp-m3"))]
+    let entry_pid = state.processes[current].pid;
     let mut context = [0u64; 22];
     // SAFETY: Live normalized full ring-3 frame (CS checked in `m3_event`).
     // RSP frame source is on mapped stack.
@@ -2484,6 +2520,10 @@ fn event(source: *const u64) -> *const u64 {
                         terminate = true;
                         state.exited = true;
                     }
+                    // Fixture only: a poll that never succeeds (again, -8).
+                    15 if cfg!(feature = "test-m3-syscall-spin") => {
+                        p.context[14] = (-8i64) as u64;
+                    }
                     _ => p.context[14] = (-2i64) as u64,
                 }
             }
@@ -2664,6 +2704,15 @@ fn event(source: *const u64) -> *const u64 {
             assert!(state.processes[..16]
                 .iter()
                 .all(|p| p.selected >= 4 && read_word(p.physical(DATA + 8)) > 0));
+            if cfg!(feature = "test-m3-syscall-spin") {
+                // Slot 0's ordinary syscalls must continue it inside its quantum.
+                assert!(state.syscall_calls > 2 * state.selections);
+                // Slot 1's again (-8) results must each end its turn, so its
+                // loop count cannot outrun its genuine selections.
+                let poller = &state.processes[1];
+                assert!(read_word(poller.physical(DATA + 8)) <= poller.selected + 1);
+                serial::write(b"M3:SYSCALL_SPIN:PASS\n");
+            }
             state.complete_round();
         }
     }
@@ -2683,7 +2732,21 @@ fn event(source: *const u64) -> *const u64 {
         state.select_with_continuation(candidate)
     };
     #[cfg(not(feature = "native-smp-m3"))]
-    let next = state.select();
+    let next = {
+        // Single-CPU form of the SMP candidate above; the pid check rejects a
+        // process that an observer respawned into the caller's slot. An
+        // `again` result (-8) means the caller polls for another process's
+        // progress, so it selects like a yield instead of spinning its quantum.
+        let candidate = (vector == 128
+            && !matches!(context[14], 1 | 2)
+            && !terminate
+            && state.current == current
+            && state.processes[current].pid == entry_pid
+            && state.processes[current].status == Status::Ready
+            && state.processes[current].context[14] != (-8i64) as u64)
+            .then_some(current);
+        state.select_with_continuation(candidate)
+    };
     if vector == 128 {
         state.max_syscall_cycles =
             core::cmp::max(state.max_syscall_cycles, clock().saturating_sub(begin));

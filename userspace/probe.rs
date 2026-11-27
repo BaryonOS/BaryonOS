@@ -152,6 +152,10 @@ _start:
     je .Lfpu_canary
     cmp rax, 20
     je .Lfpu_canary
+    cmp rax, 21
+    je .Lsyscall_spin
+    cmp rax, 22
+    je .Lagain_spin
     mov edi, 0xe2
     jmp .Lexit
 
@@ -167,6 +171,37 @@ _start:
     test rax, rax
     jne .Labi_error
     test rdx, rdx
+    jne .Labi_error
+    check_preserved 0
+    jmp .Lloop
+
+    // Mode 21: one ordinary ABI-info syscall per loop (R02-C3 continuation).
+.Lsyscall_spin:
+    xor eax, eax
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    xor r10d, r10d
+    xor r8d, r8d
+    xor r9d, r9d
+    int 0x80
+    test rax, rax
+    jne .Labi_error
+    check_preserved 0
+    jmp .Lloop
+
+    // Mode 22: poll a fixture-only call that always returns again (-8); the
+    // kernel must select after every such call (R02-C3 again amendment).
+.Lagain_spin:
+    mov eax, 15
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    xor r10d, r10d
+    xor r8d, r8d
+    xor r9d, r9d
+    int 0x80
+    cmp rax, -8
     jne .Labi_error
     check_preserved 0
     jmp .Lloop

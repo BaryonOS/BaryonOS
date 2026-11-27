@@ -1,0 +1,20 @@
+branch=claude/k-sched-continue-20261126 dirty_paths=0 NOS_QEMU_MACHINE=<unset: default pc-q35-10.0; CI uses pc-q35-8.2> NOS_QEMU_ACCEL=<unset, TCG as CI>
+fresh NOS_BUILD_DIR, NOS_TARGET_DIR and CARGO_TARGET_DIR per gate
+head=478b4ba3877291a3c045a94248ccefffb743fbb4
+ai-job-build exit=0 2026-11-27T12:23:29Z 2026-11-27T12:23:33Z
+ai-job-run exit=0 2026-11-27T12:23:33Z 2026-11-27T12:23:36Z
+qsim-k07-gate exit=0 2026-11-27T12:23:36Z 2026-11-27T12:23:44Z
+gates_end=2026-11-27T12:23:44Z
+run2 exit=0 RUN1:TIMER_IRQS=35 RUN2:TIMER_IRQS=35  raw_qemu_exit=33
+run3 exit=0 RUN1:TIMER_IRQS=35 RUN2:TIMER_IRQS=35  raw_qemu_exit=33
+run4 exit=0 RUN1:TIMER_IRQS=28 RUN2:TIMER_IRQS=41  raw_qemu_exit=33
+run5 exit=0 RUN1:TIMER_IRQS=37 RUN2:TIMER_IRQS=37  raw_qemu_exit=33
+supervisor exit=0 2026-11-27T12:27:56Z 2026-11-27T12:28:20Z
+supervisor-smp exit=0 2026-11-27T12:28:20Z 2026-11-27T12:29:30Z
+supervisor_end=2026-11-27T12:29:30Z
+run1 (ai-job-run above) RUN1:TIMER_IRQS=41 RUN2:TIMER_IRQS=34 raw_qemu_exit=33
+m3-build (milestone-m3, probe ELF for test_probe) exit=0
+host tests/test_capture_gate.py exit=0
+host tools/tests/test_smp_host.py (PYTHONPATH=tools) exit=0, 23 tests
+host userspace/tests/test_probe.py --elf <fresh m3 probe.elf> exit=0, 13 tests
+host tools/tests/test_run_ai_job.py exit=0
