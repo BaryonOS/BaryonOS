@@ -1,4 +1,56 @@
-# Native TLS port: preconditions, not yet a TLS service
+# Native TLS profile and provider
+
+## N03 B1 provider library
+
+The `b1-provider` feature implements the provider route selected in
+[ADR-N03-PROVIDER-20261125](../../docs/DECISIONS.md#adr-n03-provider-20261125--native-tls-provider-route-test-peers-certificate-time-and-randomness).
+It supplies TLS 1.3 X25519MLKEM768, TLS_AES_256_GCM_SHA384 and Ed25519
+verification. The key-share layout and receiver checks follow
+[RFC 10024 §4](https://www.rfc-editor.org/rfc/rfc10024.html#section-4).
+Rustls owns the handshake transcript, key schedule and record sequence. The
+adapter supplies its cryptographic interfaces through the upstream primitives.
+
+Construct `b1::Provider` with the process's authorized `KeyServiceRandom` lease.
+Both Rustls entropy callbacks reference that lease. The hybrid client draws 32
+bytes for X25519 and 64 bytes for ML-KEM key generation. The hybrid server
+draws 32 bytes for X25519 and 32 bytes for ML-KEM encapsulation. Each draw is a
+separate bounded request. TLS profile builders receive a resolved signing
+identity through their existing resolver interfaces. The provider rejects
+private-key import and traffic-key extraction.
+
+### Dependency provenance
+
+The direct pins below are stable releases, with defaults disabled. The
+resolved checksums and transitive versions are in `Cargo.lock`. The six direct
+crates have no build scripts. The selected target graph excludes getrandom,
+ring and AWS-LC. Its Dalek build script selects the arithmetic backend. The
+portable build explicitly selects the serial or software backends for Dalek,
+SHA-2, AES and POLYVAL. Host-only signing and peer fixtures still use AWS-LC.
+
+| Crate | Release date (UTC) | Licence | Minimum Rust | Versioned upstream source |
+| --- | --- | --- | --- | --- |
+| aes-gcm 0.11.1 | 2026-08-21 | Apache-2.0 OR MIT | 1.85 | [RustCrypto/AEADs](https://github.com/RustCrypto/AEADs/tree/2eff6ccb137850202ad581afb6e947f302ccbbcf) |
+| ed25519-dalek 3.0.0 | 2026-07-06 | BSD-3-Clause | 1.85 | [dalek-cryptography](https://github.com/dalek-cryptography/curve25519-dalek/tree/07bef73ff85998a206cd2cea7f2605c801d0d1c9/ed25519-dalek) |
+| hmac 0.13.0 | 2026-03-29 | MIT OR Apache-2.0 | 1.85 | [RustCrypto/MACs](https://github.com/RustCrypto/MACs/tree/0236c8eb50098dd7f277a71ab89caaeb1e7314df) |
+| ml-kem 0.3.4 | 2026-10-31 | Apache-2.0 OR MIT | 1.87 | [RustCrypto/KEMs](https://github.com/RustCrypto/KEMs/tree/6855b16a6cca9fc1c3eaea76776a7cd50ad67846/ml-kem) |
+| sha2 0.11.2 | 2026-11-25 | MIT OR Apache-2.0 | 1.88 | [RustCrypto/hashes](https://github.com/RustCrypto/hashes/tree/3ae6b7f0d93643ae33be3cd342556a847f9c8e15) |
+| x25519-dalek 3.0.0 | 2026-07-06 | BSD-3-Clause | 1.85 | [dalek-cryptography](https://github.com/dalek-cryptography/curve25519-dalek/tree/07bef73ff85998a206cd2cea7f2605c801d0d1c9/x25519-dalek) |
+
+Use the profile from the crate directory. The host suite requires the existing
+Node/OpenSSL test peer (OpenSSL 3.5 or later).
+
+```sh
+cargo +1.100.0 test --locked --features b1-provider
+RUSTFLAGS='--cfg curve25519_dalek_backend="serial" --cfg sha2_backend="soft" --cfg aes_backend="soft" --cfg polyval_backend="soft"'   cargo +1.100.0 build --locked --release --target x86_64-unknown-none --features b1-provider
+cargo +1.100.0 tree --locked --target x86_64-unknown-none --features b1-provider -e normal,build
+```
+
+Evidence for this slice is host interoperability, defensive host cases and a
+portable target library build. A linked native service, native entropy and
+certificate validation, trusted time, native identity custody and independent
+security review remain open.
+
+## Original platform-adapter baseline
 
 Task `TL-NET-TLS-PORT-1`, base `94c8908` plus the unchanged CORE time port
 `9afabbd` (cherry-pick `00608c4`). Write area exclusively

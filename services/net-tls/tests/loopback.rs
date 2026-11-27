@@ -196,13 +196,22 @@ impl Identity {
     }
 }
 
+#[cfg(feature = "b1-provider")]
+fn b1_provider(random: &'static KeyServiceRandom<KeyService, Ticks>) -> CryptoProvider {
+    Box::leak(Box::new(nieuw_os_net_tls::b1::Provider::new(random))).crypto_provider()
+}
+
 /// Library pin of `identity`'s exact certificate and SPKI, Ed25519 only.
 fn pin_of(identity: &Identity) -> Arc<PinnedPeer> {
+    #[cfg(feature = "b1-provider")]
+    let algorithms = b1_provider(key_service_random(false).0).signature_verification_algorithms;
+    #[cfg(not(feature = "b1-provider"))]
+    let algorithms = default_provider().signature_verification_algorithms;
     Arc::new(
         PinnedPeer::new(
             identity.cert.clone(),
             identity.spki.clone().into(),
-            default_provider().signature_verification_algorithms,
+            algorithms,
             vec![SignatureScheme::ED25519],
         )
         .unwrap(),
@@ -242,9 +251,12 @@ impl Side {
             ..Self::profile(key_service_random(false).0)
         }
     }
-    /// The full aws-lc-rs provider (only the RNG swapped): the library profile
-    /// must do the restriction itself.
     fn full_provider(&self) -> CryptoProvider {
+        #[cfg(feature = "b1-provider")]
+        if let Some(random) = self.random.filter(|_| self.profile) {
+            return b1_provider(random);
+        }
+
         let mut provider = default_provider();
         if let Some(random) = self.random {
             provider.secure_random = random;
@@ -1125,4 +1137,23 @@ fn h2_classical_only_openssl_server_gets_no_fallback() {
         "{events:?}"
     );
     assert_ne!(code, 0);
+}
+
+#[cfg(feature = "b1-provider")]
+#[test]
+fn b1_uses_one_lease_for_rustls_and_key_exchange_and_refuses_key_import() {
+    let (rng, sends) = key_service_random(false);
+    let provider = b1_provider(rng);
+    let mut random = [0; 32];
+    provider.secure_random.fill(&mut random).unwrap();
+    assert_eq!(sends.load(Ordering::SeqCst), 1);
+    assert_eq!(provider.kx_groups.len(), 1);
+    let group = provider.kx_groups[0];
+    assert_eq!(group.name(), NamedGroup::X25519MLKEM768);
+    assert_eq!(group.start().unwrap().pub_key().len(), 1216);
+    assert_eq!(sends.load(Ordering::SeqCst), 3);
+    assert!(provider
+        .key_provider
+        .load_private_key(PrivatePkcs8KeyDer::from(Identity::generate().key).into(),)
+        .is_err());
 }

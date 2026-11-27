@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "fc6bc0856e58683d155e8df3bc6d2861fe108664",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "codex/n03-b1-provider-20261127",
+  "task": "Implement the optional N03 B1 Rustls provider library.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The B1 provider uses released and pinned primitives, one SDK RANDOM lease, a fixed TLS 1.3 suite and group, and an externally resolved identity. Host H3 and target library checks pass. Native TLS, native key custody, trusted time and acceptance remain open."
+}
