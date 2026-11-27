@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "case": "power-s3-noscrub",
+  "source_commit": "8ee0d50170981fb5dcb68df320e23483d54de8f7",
+  "source_fingerprint_version": 3,
+  "source_sha256": "6cb7bd9f3cee46b044efb1651e73a0fadcf641f2c6ef82407a81b48d28ad0d3a",
+  "kernel_feature": "test-system-s3-lock-noscrub",
+  "started_utc": "2026-11-27T11:25:28.269639+00:00",
+  "duration_s": 4.669446362000599,
+  "timeout_s": 180,
+  "raw_qemu_exit": 35,
+  "timed_out": false,
+  "command": [
+    "/usr/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-8.2",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/s3-noscrub/run/system-power-s3-noscrub-b4e532a5491a4223a126b21aa072850d/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/s3-noscrub/run/system-power-s3-noscrub-b4e532a5491a4223a126b21aa072850d/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/s3-noscrub/run/system-power-s3-noscrub-b4e532a5491a4223a126b21aa072850d/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,readonly=off,file=build/s3-noscrub/run/system-image-e16e8101a9934562bb0cf1b7dc81eece/volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"
+  ],
+  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "manifest": {
+    "schema_version": 1,
+    "profile": "test-system-s3-lock-noscrub",
+    "kernel_feature": "test-system-s3-lock-noscrub",
+    "loader_feature": null,
+    "source_fingerprint_version": 3,
+    "source_sha256": "6cb7bd9f3cee46b044efb1651e73a0fadcf641f2c6ef82407a81b48d28ad0d3a",
+    "loader": {
+      "sha256": "0065fdf6899b18282f517e265d33db97743126f744f0e0bc9accf2c09e274625",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "d6449fb67357b37f7fa763517f8995e7c0dbf1ca6b75e0657eca9abbc2beb22c",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 196915,
+          "memsz": 196915,
+          "page_start": 33554432,
+          "page_end": 33755136
+        },
+        {
+          "flags": 4,
+          "offset": 204800,
+          "address": 33755136,
+          "filesz": 391163,
+          "memsz": 391163,
+          "page_start": 33755136,
+          "page_end": 34148352
+        },
+        {
+          "flags": 6,
+          "offset": 598016,
+          "address": 34148352,
+          "filesz": 1724832,
+          "memsz": 5494496,
+          "page_start": 34148352,
+          "page_end": 39645184
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 196915
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 391163
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1724832
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3765984
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 10632
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 24531
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "system": {
+      "system_init": {
+        "sha256": "d6be9d43f93814c496895e527b9c6e51038716078e26929c3444b581f1cdd4c2",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1088,
+              "memsz": 1088,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 1952,
+              "memsz": 1952,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 26677,
+              "memsz": 26677,
+              "page_start": 1073872896,
+              "page_end": 1073901568
+            }
+          ]
+        }
+      },
+      "system_app": {
+        "sha256": "e9c7c5828746a7116ca2cd9dc90125dd0996c313e2148cdf29ddd4e195ebc827",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1112,
+              "memsz": 1112,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 3995,
+              "memsz": 3995,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 56469,
+              "memsz": 56469,
+              "page_start": 1073872896,
+              "page_end": 1073930240
+            }
+          ]
+        }
+      },
+      "system_worker": {
+        "sha256": "b677c22da1d26eeede4273435e1d839c0a83bf259dadbcee0105ed99c4f31dbe",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 322,
+              "memsz": 322,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1040,
+              "memsz": 1040,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 12288,
+              "filesz": 580,
+              "memsz": 580,
+              "page_start": 1073872896,
+              "page_end": 1073876992
+            }
+          ]
+        }
+      },
+      "keyring_service": {
+        "sha256": "f78de677bd95a415ab11df9e106cc5c25330fd675502f3b9e077b4d6b60815fb",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 6,
+              "memsz": 6,
+              "page_start": 1073741824,
+              "page_end": 1073745920
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 8192,
+              "filesz": 1144,
+              "memsz": 1144,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 12288,
+              "filesz": 2331,
+              "memsz": 2331,
+              "page_start": 1073823744,
+              "page_end": 1073827840
+            },
+            {
+              "flags": 5,
+              "address": 1073872896,
+              "offset": 16384,
+              "filesz": 78147,
+              "memsz": 78147,
+              "page_start": 1073872896,
+              "page_end": 1073954816
+            }
+          ]
+        }
+      },
+      "volume_service": {
+        "sha256": "dd8ef49af40e8dd489259cbff9ad8857f612425fcb0e418120a8f8fe9e62e57e",
+        "elf": {
+          "entry": 1073741824,
+          "segments": [
+            {
+              "flags": 5,
+              "address": 1073741824,
+              "offset": 4096,
+              "filesz": 50117,
+              "memsz": 50117,
+              "page_start": 1073741824,
+              "page_end": 1073795072
+            },
+            {
+              "flags": 6,
+              "address": 1073807360,
+              "offset": 57344,
+              "filesz": 1096,
+              "memsz": 1096,
+              "page_start": 1073807360,
+              "page_end": 1073811456
+            },
+            {
+              "flags": 4,
+              "address": 1073823744,
+              "offset": 61440,
+              "filesz": 21176,
+              "memsz": 21176,
+              "page_start": 1073823744,
+              "page_end": 1073848320
+            }
+          ]
+        }
+      }
+    }
+  },
+  "run_directory": "/home/simon/projects/BaryonOS-scratch/h/wt-s3-noscrub/build/s3-noscrub/run/system-power-s3-noscrub-b4e532a5491a4223a126b21aa072850d",
+  "volume_directory": "/home/simon/projects/BaryonOS-scratch/h/wt-s3-noscrub/build/s3-noscrub/run/system-image-e16e8101a9934562bb0cf1b7dc81eece",
+  "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+  "after_sha256": "3f4b43d3834c30e2e157648b689a4dfdf516b3e7f7a116205dd1b1516d1d494d",
+  "firmware_sha256": {
+    "code": "0d362a7daf354c9b16cf6b257f6853a3e4e10b274de414060652b33d4e8f3730",
+    "vars_template": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "esp_sha256": {
+    "esp/kernel.elf": "d6449fb67357b37f7fa763517f8995e7c0dbf1ca6b75e0657eca9abbc2beb22c",
+    "esp/EFI/BOOT/BOOTX64.EFI": "0065fdf6899b18282f517e265d33db97743126f744f0e0bc9accf2c09e274625"
+  },
+  "passed": false,
+  "cold_case": null,
+  "fixture_environment": {
+    "NOS_SYSTEM_COLD_CASE": null
+  },
+  "cold_antirollback": {
+    "status": "UNPROTECTED",
+    "replay": "NOT_DETECTABLE: cold restore uses minimum_generation 0; older A/B slot (generation 2) has no key-state object; equal-generation stale image with same VOLUME_ID is accepted"
+  },
+  "error": "ValueError: red lock case stopped for another reason: ['SYSTEM:FAIL:APP_OR_INIT_RESULT']"
+}

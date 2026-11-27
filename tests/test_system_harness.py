@@ -1455,5 +1455,38 @@ class PowerLockHarnessTests(unittest.TestCase):
             with self.subTest(case=case, text=text, raw=raw), self.assertRaises(ValueError):
                 evaluate_lock_red(case, text, raw, False)
 
+    def test_s3_noscrub_red_control_needs_the_stack_residue_refusal(self):
+        # H05-T5d: without the scrub request init's LOCK never latches LOCKED; the
+        # S3 profile then stops at LOCK_STACK_RESIDUE before any SUSPEND.
+        plan = ("POWER:S3:PLAN:PM1A=0x0604:SLP_TYP=1:PM1A_STS=0x0600:FACS_VERSION=0:REAL=0x1000:"
+                "PM32=0x2000570:POLICY=Edk2Version0Extended")  # the bootstrap line of the native run
+
+        def red(reason="LOCK_STACK_RESIDUE", locked=0, extra=(plan,)):
+            return lock_red_transcript(reason, locked=locked, extra=extra)
+
+        found = evaluate_lock_red("power-s3-noscrub", red(), 35, False)
+        self.assertEqual(found["fail"], "SYSTEM:FAIL:LOCK_STACK_RESIDUE")
+        for text, raw in ((red(locked=1), 35), (red("LOCK_CANARY_RESIDUE"), 35), (red(), 33),
+                          (red(extra=()), 35), (red(extra=(plan, plan)), 35),
+                          (red(extra=(plan.replace("SLP_TYP=1", "SLP_TYP=5"),)), 35),
+                          (red(extra=(plan, "POWER:S3:ENTER:1")), 35),
+                          (red(extra=(plan, "SYSTEM:SUSPEND:-25")), 35),
+                          (red(extra=(plan, "SYSTEM:LOCK_COUNT:" + "0" * 19 + "1")), 35)):
+            with self.subTest(text=text, raw=raw), self.assertRaises(ValueError):
+                evaluate_lock_red("power-s3-noscrub", text, raw, False)
+
+
+class S3BuildPlumbingTests(unittest.TestCase):
+    """tools/build.py: every test-system-s3* kernel profile gets the S3 TEST init
+    (its LOCK caller); computing the list before the LOCK features dropped the
+    noscrub red control, which then never reached init's LOCK."""
+
+    def test_every_s3_kernel_profile_builds_the_s3_test_init(self):
+        import build
+        s3 = {feature for feature in build.SYSTEM_FEATURES if feature.startswith("test-system-s3")}
+        self.assertEqual(set(build.S3_SYSTEM_FEATURES), s3)
+        self.assertIn("test-system-s3-lock-noscrub", build.S3_SYSTEM_FEATURES)
+        self.assertIn("test-system-s3-lock-noscrub", build.KERNEL_FEATURES)
+
 if __name__ == "__main__":
     unittest.main()

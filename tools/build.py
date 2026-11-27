@@ -61,14 +61,15 @@ POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error",
 # H05-T5c: virtio-blk re-init after the wake and its labelled quarantine injections.
 POWER_SYSTEM_FEATURES += ("test-system-s3-blk-reinit", "test-system-s3-blk-reinit-busy", "test-system-s3-blk-reinit-identity",
                           "test-system-s3-blk-reinit-capacity", "test-system-s3-blk-reinit-no-reset-ack")
-# H05-T5d A7: LOCK kept busy (-8), SUSPEND -25, then S5. Every S3 profile builds the
-# S3 TEST init (its LOCK caller); no other profile does.
+# H05-T5d A7: LOCK kept busy (-8), SUSPEND -25, then S5.
 POWER_SYSTEM_FEATURES += ("test-system-s3-lock-busy",)
-S3_SYSTEM_FEATURES = tuple(feature for feature in POWER_SYSTEM_FEATURES if feature.startswith("test-system-s3"))
 # B01-LOCK (ADR-KEYRING-LOCK-20261126): syscall 0x92 and its labelled fixture.
 LOCK_SYSTEM_FEATURES = ("native-system-lock", "test-system-lock", "test-system-lock-noscrub", "test-system-lock-exit",
                         "test-system-s3-lock-noscrub")
 POWER_SYSTEM_FEATURES += LOCK_SYSTEM_FEATURES
+# Every S3 profile builds the S3 TEST init (its LOCK caller); no other profile does.
+# Computed after the LOCK features so the S3 noscrub red control is included.
+S3_SYSTEM_FEATURES = tuple(feature for feature in POWER_SYSTEM_FEATURES if feature.startswith("test-system-s3"))
 NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-port-sweep", "test-net-service-dhcp", "test-net-service-link", "test-net-service-slirp")
 SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
