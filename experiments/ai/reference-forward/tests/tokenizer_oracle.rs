@@ -5,58 +5,19 @@
 //! from `candle-oracle --bin tokenize <dir> --cjk` (not committed). Host only.
 
 mod common;
+mod store;
 
-use artifact_store_core::{
-    ArtifactDescriptor, ArtifactRef, ArtifactStore, Error as StoreError, StoreCapacity,
-};
+use artifact_store_core::{ArtifactDescriptor, ArtifactRef};
 use baryon_ai_reference_forward::{
     pre_tokenize, Budget, NoCancel, TokenError, Tokenizer, ADDED_TOKENS,
 };
-use nieuw_os_model_store_contract::{open, Cancellation, ReadBudget};
+use nieuw_os_model_store_contract::{open, ReadBudget};
 use serde_json::{json, Value};
+use store::{Memory, Never};
 
 const TOKENIZER_LEN: u64 = 7_031_645;
 const TOKENIZER_SHA256: &str = "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539";
 const SPLIT: &str = r"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+";
-
-struct Never;
-impl Cancellation for Never {
-    fn is_cancelled(&self) -> bool {
-        false
-    }
-}
-
-// Same in-memory store as qwen_oracle.rs; deduplicate once #525 has landed.
-struct Memory(Vec<u8>, ArtifactRef);
-impl ArtifactStore for Memory {
-    type Handle = ArtifactRef;
-    fn open(
-        &mut self,
-        d: &ArtifactDescriptor,
-    ) -> Result<(Self::Handle, ArtifactDescriptor), StoreError> {
-        Ok((
-            self.1,
-            ArtifactDescriptor {
-                length: self.0.len() as u64,
-                ..*d
-            },
-        ))
-    }
-    fn read_at(
-        &mut self,
-        _: &ArtifactRef,
-        offset: u64,
-        out: &mut [u8],
-    ) -> Result<usize, StoreError> {
-        let start = offset as usize;
-        let n = out.len().min(self.0.len() - start);
-        out[..n].copy_from_slice(&self.0[start..start + n]);
-        Ok(n)
-    }
-    fn capacity(&mut self) -> Result<StoreCapacity, StoreError> {
-        Err(StoreError::Io)
-    }
-}
 
 /// Read `tokenizer.json` and verify it against the pinned length and SHA-256.
 fn pinned_tokenizer(dir: &str) -> Value {

@@ -10,15 +10,16 @@ identical across different floating-point environments/backends.
 
 The exact little-endian binary32 decoder validates all values before publishing.
 It establishes neither artifact authenticity nor permission. A future loader must
-use the existing verified-artifact/descriptor path; no model or tokenizer is loaded.
+use the existing verified-artifact/descriptor path; no model or tokenizer table is loaded
+by the library (the tokenizer borrows a caller-supplied, validated table).
 No allocator, unsafe code, CPU profile or grant is added. The pinned numerical
 dependency is documented below.
 
 Run locked tests, Clippy, fmt and release library build with Rust1.100. A successful
 no_std library build does not prove floating-point linkage, context saving, native
 execution or numerical quality on the project's OS. The approved engine/model route and
-the full model graph are described below (L01-T5/T6); native execution, the tokenizer
-and task-quality acceptance remain open.
+the full model graph are described below (L01-T5/T6), and a host tokenizer is described
+at the end; native execution, native tokenizer use and task-quality acceptance remain open.
 CI coverage must be added with integration; the existing shared workflow is owned
 by pending CI PR391 and is deliberately not changed by this independent leaf.
 
@@ -54,7 +55,8 @@ Tests compare against hand-computed rotations and softmax weights. Host tests an
 an `x86_64-unknown-none` release library build were the evidence for this step.
 (Historical: at this step the pinned configuration was still unread. It has since
 been inspected (L01-T5), and the multi-layer graph with attention biases is wired
-and compared with the real model (L01-T6). The tokenizer is not implemented.)
+and compared with the real model (L01-T6). A host tokenizer has since been added; see
+"Byte-level BPE tokenizer" below.)
 
 ## Decoder layer, work budget and pinned configuration (L01-T5)
 
@@ -113,5 +115,30 @@ match within 1e-2 and two greedy steps give the same tokens. Run it with
 `NOS_QWEN_DIR=<model dir> cargo +1.100.0 test --release --locked --test qwen_oracle`
 (2.8 s, 1.9 GB peak RSS on the development host); without the variable it is
 skipped and proves nothing. Reversing the RoPE rotation makes it fail.
-This is host evidence of numerical agreement only; native execution, the
-tokenizer and task quality remain open.
+This is host evidence of numerical agreement only; native execution, native
+tokenizer use and task quality remain open.
+
+## Byte-level BPE tokenizer (L01)
+
+`Tokenizer` encodes and decodes for the pinned Qwen2.5 tokenizer without
+allocation. It borrows a validated table blob (`MAGIC`, then byte ids, merges in
+rank order and a pair index sorted by pair); token ids are `256 + merge rank`, so
+no vocabulary strings are stored. `encode` writes into caller-owned output, charges
+every pair lookup to the `Budget`, honours cancellation and returns
+`ContextLimit` instead of truncating; on any error no ids are published. Text
+outside a fixed whitelist of assigned, canonical-combining-class-0, NFC-stable
+code points is refused, so NFC normalization is the identity; every control-token
+literal (`<|im_start|>`, `<tool_call>`, ...) is refused too, so untrusted text never
+yields a control id.
+
+Evidence is host only. `tests/tokenizer.rs` uses synthetic tables and runs without
+the model. `tests/tokenizer_oracle.rs` reads the SHA-256-pinned `tokenizer.json`
+through the verified artifact path and compares pieces and ids with the pinned
+`tokenizers` 0.23.2 reference (the `candle-oracle --bin tokenize` tool): the 819
+committed cases in `tests/fixtures/qwen-tokenizer.json`, the five oracle prompts
+and, with `NOS_TOKENIZER_SWEEP`, an uncommitted CJK sweep of 983 further cases
+(1,802 corpus cases in total) all match. Run it with
+`NOS_QWEN_DIR=<model dir> cargo +1.100.0 test --release --locked --test tokenizer_oracle`;
+without the variable it is skipped and proves nothing. Comparing ids alone missed
+character-class mutants, so the test compares pieces as well. Native use of the
+tokenizer, the ChatML template and task quality remain open.
