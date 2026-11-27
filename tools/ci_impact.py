@@ -250,6 +250,11 @@ UNKNOWN = object()  # a value the evaluator cannot know for this event
 CONDITION_TOKEN_RE = re.compile(
     r"\s*(?:(?P<op>&&|\|\||==|!=|!|\(|\))|'(?P<str>[^']*)'|(?P<name>[A-Za-z_][A-Za-z0-9_.-]*))")
 SELECT_OUTPUT = "needs.select.outputs."
+# PR B of ADR-CI-MERGE-GROUP-SELECT-20261126: the merge-group gate of a workflow and its wiring.
+GATE_JOB = "merge-group-gate"
+GATE_CONDITION = "${{ github.event_name == 'merge_group' }}"
+GATE_RUNS = ("!cancelled() && (needs.merge-group-gate.result != 'success' "
+             "|| needs.merge-group-gate.outputs.run != 'false')")
 
 
 def _condition_tokens(text):
@@ -286,7 +291,8 @@ def condition_value(condition, event, selection=True):
     phase-4 selection output: 'true' exactly when the plan selects the job; the
     `selection` argument supplies that answer), `!`, `&&`, `||` and parentheses,
     optionally wrapped in `${{ }}`. Status functions, other contexts and function
-    calls give None, so a caller must never rely on them.
+    calls give None, so a caller must never rely on them. job_runs first reduces the
+    merge-group gate wiring (gate_wiring) to the job's own condition.
     """
     if not isinstance(condition, str):
         return True if condition is None else None
@@ -380,6 +386,37 @@ def condition_value(condition, event, selection=True):
     return None if result is UNKNOWN else bool(result)
 
 
+def gate_wiring(job):
+    """(own condition, needs) that model a job wired below the merge-group gate, or None.
+
+    Exactly two forms, each optionally followed by ` && (<own condition>)` inside `${{ }}`.
+    A gated root needs the gate alone and has GATE_RUNS: it runs unless the gate succeeded
+    and output run=false, which the gate does only on merge_group for a workflow merge-hold
+    leaves out (merge_hold.merge_group_skip), so the plan models it by its own condition, with
+    no prerequisite. A job below a gated root has `!cancelled()` followed by
+    `needs.<id>.result == 'success'` for each of its needs in order, because a skipped or
+    failed gate would otherwise skip it through the implicit success() of its whole
+    dependency chain; it is modelled by its own condition over its needs.
+    """
+    condition, needs = job.get("condition"), job.get("needs", [])
+    if not (isinstance(condition, str) and condition.startswith("${{ ") and condition.endswith(" }}")
+            and _list_of_str(needs) and needs):
+        return None
+    if needs == [GATE_JOB]:
+        prefix, walk = GATE_RUNS, []
+    elif GATE_JOB in needs:
+        return None
+    else:
+        prefix = " && ".join(["!cancelled()"] + [f"needs.{need}.result == 'success'" for need in needs])
+        walk = list(needs)
+    text = condition[len("${{ "):-len(" }}")]
+    if text == prefix:
+        return None, walk
+    if text.startswith(prefix + " && (") and text.endswith(")"):
+        return "${{ " + text[len(prefix + " && ("):-1] + " }}", walk
+    return None
+
+
 def job_runs(jobs_by_id, job_id, event, selection=True, seen=()):
     """Will GitHub start this job on `event`? True, False or None (undecidable).
 
@@ -387,16 +424,19 @@ def job_runs(jobs_by_id, job_id, event, selection=True, seen=()):
     An undecidable own condition (for example a status function such as
     `always()`, which runs a job even after a skipped prerequisite) is None
     before any prerequisite is looked at, so validate() rejects it for a gate.
+    The merge-group gate wiring is modelled by gate_wiring.
     """
     job = jobs_by_id.get(job_id)
     if job is None or job_id in seen:
         return None
-    value = condition_value(job.get("condition"), event, selection)
+    wiring = gate_wiring(job)
+    condition, needs = wiring if wiring else (job.get("condition"), job.get("needs", []))
+    value = condition_value(condition, event, selection)
     if value is None:
         return None
     if value is False:
         return False
-    for need in job.get("needs", []):
+    for need in needs:
         upstream = job_runs(jobs_by_id, need, event, selection, seen + (job_id,))
         if upstream is False:
             return False
@@ -756,9 +796,13 @@ def validate(catalogue):
                 if need in seen or need not in graph:
                     continue
                 seen.add(need)
+                if need == GATE_JOB:
+                    continue  # the gate never blocks the jobs below it (gate_problems checks the wiring)
                 stack += graph[need]
                 if classes[need] not in SELECTABLE:
                     add(f"{stem(path)}#{job_id}: needs {need}, which is never selected ({classes[need]})")
+        if not cycles:
+            problems += gate_problems(stem(path), by_id)
     if uses_nonnative:
         for overlap in nonnative_overlaps(policy):
             add(f"policy.core_only overlaps always_full, which {NONNATIVE} would hide: {overlap}")
@@ -771,6 +815,42 @@ def validate(catalogue):
             if other:
                 add(f"check name {execution['check_name']!r} used by {other} and {execution['id']}")
             seen_checks[execution["check_name"]] = execution["id"]
+    return problems
+
+
+def gate_problems(name, by_id):
+    """The merge-group gate rules of one workflow (PR B, ADR-CI-MERGE-GROUP-SELECT-20261126).
+
+    The gate is operational, automatic, needs nothing and runs only on merge_group. Every job
+    below it carries one of the gate_wiring forms, so no prerequisite's skip or failure is ever
+    ignored and the plan models it exactly. No core or ruleset-required job may be below it: a
+    job skipped by its `if` passes branch protection, so gating a required check would fail open.
+    """
+    problems = []
+    below, stack = set(), [GATE_JOB]
+    while stack:
+        parent = stack.pop()
+        for job_id, job in by_id.items():
+            if parent in (job.get("needs") or []) and job_id not in below:
+                below.add(job_id)
+                stack.append(job_id)
+    gate = by_id.get(GATE_JOB)
+    if gate is not None and (gate.get("class") != "operational" or gate.get("activation") != "automatic"
+                             or gate.get("condition") != GATE_CONDITION or gate.get("needs")
+                             or "variant" in gate):
+        problems.append(f"{name}#{GATE_JOB}: the gate must be operational and automatic, without needs or "
+                        f"variants, with condition {GATE_CONDITION}")
+    for job_id in sorted(below):
+        job = by_id[job_id]
+        if job.get("class") == "core" or job.get("ruleset_required"):
+            problems.append(f"{name}#{job_id}: a core or ruleset-required job must not depend on {GATE_JOB}")
+        if gate_wiring(job) is None:
+            problems.append(f"{name}#{job_id}: below {GATE_JOB} a job needs the gate alone with condition "
+                            f"${{{{ {GATE_RUNS} }}}}, or names the success of each of its needs after "
+                            "!cancelled(), optionally && (<own condition>)")
+    for job_id, job in sorted(by_id.items()):
+        if job_id not in below and job_id != GATE_JOB and GATE_JOB in str(job.get("condition") or ""):
+            problems.append(f"{name}#{job_id}: names {GATE_JOB} without depending on it")
     return problems
 
 

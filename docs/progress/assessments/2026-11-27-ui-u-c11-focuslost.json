@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "bd134505f7972e5df7244c7521c6412585e1fd83",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/ui-u-541-focuslost-20261127",
+  "task": "UI-U-C11-20261127 U03 / #541 (PR #612): no InputLost banner on a normal window switch; also records the earlier landed #586 (#545, 627437ff) that had no assessment",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. #612: Controller::deliver() set Status::InputLost for every Event::Cancel, so FocusLost (F6 window switch) and Resync (shell overlay, window move or mode change, source Sync) showed the input-failure banner on a normal desktop transition. These cancellations still clear press, drag, cursor and the document menu and still start a frame; only SourceLost, QueueFull, SourceDead and CompositorDead keep the banner. Test evidence: new interaction test focus_lost_cancels_input_without_input_lost_banner fails with either exclusion reverted (mutation controls), plus updated window-fixture, document_menu and object_tools assertions. Probe evidence at 57485486, all raw exit 33 and passed=true: native Materiaal normal and recover, window-session clipboard+workspace scale 1 and 2, switcher scale 1 and 2; bd134505 only adds a main merge (AI-job paths) and a handoff file. Hosted CI on the PR head is the acceptance run for the merge, not for U03. #586 (landed 627437ff, #545) changed only the window-session harness: RETAIN-completed frames are sampled and the F6 predicate waits for SHELL_READY; guest behaviour unchanged, one local KVM scale-1 run passed (raw exit 33); it adds observation, no criterion evidence. U03 stays open: #589 (lost surface replies), deny copy, encrypted durable storage and human trials are missing."
+}

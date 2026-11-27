@@ -602,6 +602,139 @@ mod latch44_test {
     }
 }
 
+/// S09 K5 per-disk admission fixtures (test-volume-k5 only). The hooks only
+/// postpone observation: a held lane's used ring, or a lane-1 reset
+/// acknowledgement, is not read for a while. They add no device call.
+/// F1: the service's first disk-0 WRITE after the portal's phase 2 stays
+/// published until the portal's next disk-1 READ completes. F2: the portal's
+/// following disk-1 READ is held until its TIMEOUT, and the reset
+/// acknowledgement is not read before a disk-1 submission was refused with
+/// the -13 already delivered and the reset still running.
+#[cfg(feature = "test-volume-k5")]
+mod k5_test {
+    use super::{print_number, Lane, Operation, Phase, Runtime};
+    use core::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
+
+    /// Per lane: 0 not yet, 2 holding, 3 released (1 is unused).
+    static HOLD: [AtomicU64; 2] = [const { AtomicU64::new(0) }; 2];
+    static WITHHOLD_ACK: AtomicBool = AtomicBool::new(false);
+    /// Disk-1 publications and completions while a disk-0 request was published.
+    static ADMITTED_DURING_DISK0: AtomicU64 = AtomicU64::new(0);
+    static COMPLETED_DURING_DISK0: AtomicU64 = AtomicU64::new(0);
+    /// Disk-0 completions while the disk-1 READ was held.
+    static DISK0_DURING_DISK1: AtomicU64 = AtomicU64::new(0);
+    static REFUSED_IN_RESET: AtomicU64 = AtomicU64::new(0);
+    static ADMITTED_IN_RESET: AtomicU64 = AtomicU64::new(0);
+    /// Ticks left before the reset deadline at the first such refusal.
+    static RESET_MARGIN: AtomicU64 = AtomicU64::new(0);
+
+    pub(super) fn published(r: &Runtime, dev: usize, op: Operation) {
+        if dev == 1 {
+            if r.lanes[0].policy.phase() == Phase::Published {
+                ADMITTED_DURING_DISK0.fetch_add(1, Relaxed);
+            }
+            if r.lanes[1].resetting {
+                ADMITTED_IN_RESET.fetch_add(1, Relaxed);
+            }
+            if HOLD[0].load(Relaxed) == 3 && matches!(op, Operation::Read { .. }) {
+                let _ = HOLD[1].compare_exchange(0, 2, Relaxed, Relaxed);
+            }
+        } else if r.apps[0].phase >= 2 && matches!(op, Operation::Write { .. }) {
+            let _ = HOLD[0].compare_exchange(0, 2, Relaxed, Relaxed);
+        }
+    }
+    pub(super) fn holding(index: usize) -> bool {
+        HOLD[index].load(Relaxed) == 2
+    }
+    /// At a successful completion, before the Policy records it.
+    pub(super) fn completed(r: &Runtime, index: usize) {
+        if index == 1 && HOLD[0].load(Relaxed) == 2 {
+            if r.lanes[0].policy.phase() == Phase::Published {
+                COMPLETED_DURING_DISK0.fetch_add(1, Relaxed);
+            }
+            HOLD[0].store(3, Relaxed);
+        }
+        if index == 0 && holding(1) {
+            DISK0_DURING_DISK1.fetch_add(1, Relaxed);
+        }
+    }
+    pub(super) fn timed_out(index: usize) {
+        if HOLD[index].swap(3, Relaxed) == 2 && index == 1 {
+            WITHHOLD_ACK.store(true, Relaxed);
+        }
+    }
+    pub(super) fn withholding(index: usize) -> bool {
+        index == 1 && WITHHOLD_ACK.load(Relaxed)
+    }
+    /// At the K5 -8 refusal of a submission.
+    pub(super) fn refused(dev: usize, lane: &Lane, now: u64) {
+        if dev == 1 && lane.resetting && lane.error.is_none() && WITHHOLD_ACK.load(Relaxed) {
+            if REFUSED_IN_RESET.fetch_add(1, Relaxed) == 0 {
+                RESET_MARGIN.store(lane.reset_deadline.saturating_sub(now), Relaxed);
+            }
+            WITHHOLD_ACK.store(false, Relaxed);
+        }
+    }
+    /// Fixture ordering only: the portal waits for gate 3 (disk 0 held) and
+    /// gate 5 (its disk-1 READ timed out), slot 2 for gate 4 (disk 1 held).
+    /// Gates carry no authority.
+    pub(super) fn gates(gates: &mut [u64; 2]) {
+        if HOLD[0].load(Relaxed) >= 2 {
+            gates[0] = gates[0].max(3);
+        }
+        if HOLD[1].load(Relaxed) >= 2 {
+            gates[1] = gates[1].max(4);
+        }
+        if HOLD[1].load(Relaxed) == 3 {
+            gates[0] = gates[0].max(5);
+        }
+    }
+    pub(super) fn report(r: &Runtime) {
+        let quarantined = r.lanes.iter().filter(|lane| lane.quarantined).count() as u64;
+        for (label, value) in [
+            (
+                &b"VOLUME:ADMISSION:ARCHIVE_ADMITTED_DURING_VOLUME_IO:"[..],
+                ADMITTED_DURING_DISK0.load(Relaxed),
+            ),
+            (
+                b"VOLUME:ADMISSION:ARCHIVE_COMPLETED_DURING_VOLUME_IO:",
+                COMPLETED_DURING_DISK0.load(Relaxed),
+            ),
+            (
+                b"VOLUME:ADMISSION:VOLUME_COMPLETED_DURING_ARCHIVE_HOLD:",
+                DISK0_DURING_DISK1.load(Relaxed),
+            ),
+            (
+                b"VOLUME:ADMISSION:REFUSED_IN_RESET:",
+                REFUSED_IN_RESET.load(Relaxed),
+            ),
+            (
+                b"VOLUME:ADMISSION:ADMITTED_IN_RESET:",
+                ADMITTED_IN_RESET.load(Relaxed),
+            ),
+            (
+                b"VOLUME:ADMISSION:RESET_MARGIN:",
+                RESET_MARGIN.load(Relaxed),
+            ),
+            (b"VOLUME:ADMISSION:TIMEOUTS:", r.timeouts),
+            (b"VOLUME:ADMISSION:QUARANTINED:", quarantined),
+        ] {
+            print_number(label, value);
+        }
+    }
+}
+
+// The K5 holds would corrupt the N38 and power fixtures' evidence.
+#[cfg(all(
+    feature = "test-volume-k5",
+    any(
+        feature = "test-volume-o13-latch",
+        feature = "test-volume-o13-latch-0x44",
+        feature = "native-system-power"
+    )
+))]
+compile_error!("test-volume-k5 is a separate boot");
+
 fn case() -> u64 {
     if cfg!(feature = "test-volume-recover") {
         1
@@ -671,6 +804,9 @@ fn case() -> u64 {
     } else if cfg!(feature = "test-volume-o13-latch-0x44") {
         // S09 O13 N38 slice 2 (f, syscall 0x44) on the device-1 disk; flow == case.
         32
+    } else if cfg!(feature = "test-volume-k5") {
+        // S09 K5 per-disk admission on the device-1 disk; flow == case.
+        33
     } else {
         0
     }
@@ -701,12 +837,12 @@ fn flow() -> u64 {
 /// wrong-device case (17), where device 1 holds the archive but the portal
 /// is granted the device-0 archive range.
 fn archive_device() -> bool {
-    matches!(case(), 13..=16 | 18 | 19 | 25..=32)
+    matches!(case(), 13..=16 | 18 | 19 | 25..=33)
 }
 /// Cases with an archive grant to the portal: the S09 v1 archive cases and
 /// the L2 cases; the install and settings cases (20..=24) keep zero archive I/O.
 fn archive_case() -> bool {
-    matches!(case(), 7..=19 | 25..=32)
+    matches!(case(), 7..=19 | 25..=33)
 }
 /// Device 1 negotiates writes in the export, too-small, power-cut and L2
 /// export cases; restore, wrong-device, verify and L2 26..=30 attach it read-only.
@@ -742,6 +878,7 @@ fn marker() -> &'static [u8] {
         30 => b"VOLUME:CASE:RECOVER_L2_CUT:PASS\n",
         31 => b"VOLUME:CASE:O13_LATCH:PASS\n",
         32 => b"VOLUME:CASE:O13_LATCH_0X44:PASS\n",
+        33 => b"VOLUME:CASE:K5:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -1454,6 +1591,8 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     // K5: only this device's own state can refuse the submission.
     let lane = &mut r.lanes[dev];
     if lane.resetting || lane.error.is_some() || lane.policy.phase() != Phase::Ready {
+        #[cfg(feature = "test-volume-k5")]
+        k5_test::refused(dev, lane, s.ticks);
         return Err(-8);
     }
     let Some(capacity) = lane.device.as_ref().map(|d| d.capacity) else {
@@ -1503,6 +1642,8 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
     r.device_ops[dev][operation_index(op)] += 1;
     #[cfg(feature = "test-volume-o13-latch")]
     latch_test::published(dev, op);
+    #[cfg(feature = "test-volume-k5")]
+    k5_test::published(r, dev, op);
     #[cfg(feature = "test-volume-o13-latch-0x44")]
     latch44_test::write(dev, op, false);
     if r.archive_key == Some(binding.object_key) {
@@ -1589,6 +1730,11 @@ fn advance_lane(r: &mut Runtime, index: usize, now: u64) {
         return;
     }
     if r.lanes[index].resetting {
+        // K5 F2: the acknowledgement is only read later, never earlier.
+        #[cfg(feature = "test-volume-k5")]
+        if k5_test::withholding(index) && now < r.lanes[index].reset_deadline {
+            return;
+        }
         let writable = if index == 0 {
             !read_only()
         } else {
@@ -1648,12 +1794,18 @@ fn advance_lane(r: &mut Runtime, index: usize, now: u64) {
         {
             power_track().hold = false;
         }
+        #[cfg(feature = "test-volume-k5")]
+        k5_test::timed_out(index);
         reset(r, index, now);
         return;
     }
     // The timeout fixture also withholds observation until the real deadline.
     #[cfg(feature = "native-system-power")]
     if power_track().hold {
+        return;
+    }
+    #[cfg(feature = "test-volume-k5")]
+    if k5_test::holding(index) {
         return;
     }
     #[cfg(feature = "native-system-power")]
@@ -1678,6 +1830,8 @@ fn advance_lane(r: &mut Runtime, index: usize, now: u64) {
     }
     match completion {
         Ok(Some((data, Completion::Success))) => {
+            #[cfg(feature = "test-volume-k5")]
+            k5_test::completed(r, index);
             r.lanes[index].data = data;
             r.completions[operation_index(request.operation)] += 1;
             #[cfg(feature = "native-system-power")]
@@ -1849,6 +2003,8 @@ fn barriers(s: &State) {
     if a >= 3 && gates[1] >= 2 {
         gates[1] = 3;
     }
+    #[cfg(feature = "test-volume-k5")]
+    k5_test::gates(&mut gates);
     for slot in 1..3 {
         if s.processes[slot].status != Status::Dead {
             put(s, slot, 464, gates[slot - 1]);
@@ -1924,7 +2080,14 @@ fn finish(s: &mut State) -> ! {
             r.completions[1] + latch_test::injected_once(),
             r.completions[2],
         ];
-        #[cfg(not(feature = "test-volume-o13-latch"))]
+        // K5 F2: the timed-out disk-1 READ was published and never completed.
+        #[cfg(feature = "test-volume-k5")]
+        let completions = [
+            r.completions[0] + r.timeouts,
+            r.completions[1],
+            r.completions[2],
+        ];
+        #[cfg(not(any(feature = "test-volume-o13-latch", feature = "test-volume-k5")))]
         let completions = r.completions;
         if r.publications != completions {
             fail(b"IO_ACCOUNTING");
@@ -1996,6 +2159,8 @@ fn finish(s: &mut State) -> ! {
             // N38: every disk-1 operation is the portal's; the host checks counts.
             // In (f) the extra handles only issue 0x44, which touches no device.
             31 | 32 => d[1] == a,
+            // K5: the portal's disk-1 READs only; the host checks the K5 counts.
+            33 => d[1] == a && a[1..] == [0, 0],
             _ => a == [0; 3],
         };
         if !archive {
@@ -2104,7 +2269,7 @@ fn finish(s: &mut State) -> ! {
         print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
         print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);
     }
-    if matches!(case(), 13..=19 | 25..=28 | 30..=32) {
+    if matches!(case(), 13..=19 | 25..=28 | 30..=33) {
         print_number(b"VOLUME:ARCHIVE:DEVICE:", u64::from(archive_device()));
         print_number(
             b"VOLUME:ARCHIVE:DISK_FOUND:",
@@ -2147,6 +2312,8 @@ fn finish(s: &mut State) -> ! {
     latch_test::report(r);
     #[cfg(feature = "test-volume-o13-latch-0x44")]
     latch44_test::report(r);
+    #[cfg(feature = "test-volume-k5")]
+    k5_test::report(r);
     print_number(
         b"VOLUME:APP_DEVICE_DENIALS:",
         r.app_device_denials[0] + r.app_device_denials[1],

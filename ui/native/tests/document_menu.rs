@@ -432,6 +432,8 @@ fn resize_cancel_rebind_and_new_focus_generation_cancel_pending_menu_clicks() {
             );
             assert_eq!(ui.view().tool, DocumentTool::Write);
             if cancellation == 1 {
+                // A window switch keeps the status; it is not an input failure (#541).
+                assert_eq!(after.4, before.4);
                 // The next input generation must be newer than the cancellation.
                 sequence += 1;
                 ui.deliver(InputEnvelope {
@@ -726,7 +728,8 @@ fn scrolled_selection_survives_menu_dismissal_and_resync_never_replays_a_press()
             (&after.0, after.1, after.2, after.3, after.5, after.6),
             (&before.0, before.1, before.2, before.3, before.5, before.6)
         );
-        assert_eq!(after.4, Status::InputLost);
+        // A compositor resync is not an input failure (#541).
+        assert_eq!(after.4, before.4);
     });
 }
 
