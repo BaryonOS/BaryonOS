@@ -149,7 +149,13 @@ None outside the open PRs listed above.
     mtime-based: switching the init variant for the same kernel feature in
     one target directory can leave a stale init. Touch the
     `system-{init,app,worker}` sources or use a fresh target directory before
-    rebuilding. Hosted CI is unaffected.
+    rebuilding. Hosted CI was not observed to hit this. The native H
+    workflows (`.github/workflows/native-power.yml`,
+    `.github/workflows/native-system.yml`) have no cache step, so each job
+    starts without a target directory from an earlier run. Steps that share a
+    target directory within one job (for example `target/power-native-s3`)
+    build different kernel features. Hosted CI has not been tested
+    specifically for this failure mode.
 14. In `tools/build.py`, a feature list derived from another list must be
     computed after every list it depends on is complete (the
     `test-system-s3-lock-noscrub` profile built the plain init until #613);
