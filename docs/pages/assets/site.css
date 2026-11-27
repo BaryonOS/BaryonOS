@@ -82,7 +82,7 @@ h1 em { color: var(--silver); font-style: normal; text-shadow: 0 0 34px rgba(172
 .roadmap-progress:hover { border-color: var(--silver); }
 .roadmap-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin: 0 4px 8px; color: var(--silver); font-size: 12px; }
 .roadmap-heading strong { color: var(--text); font-size: 14px; font-weight: 600; }
-.roadmap-progress img { display: block; width: 100%; height: auto; border-radius: 8px; filter: invert(1) grayscale(1) sepia(.32) hue-rotate(173deg) brightness(1.1); }
+.roadmap-progress img { display: block; width: 100%; height: auto; border-radius: 8px; }
 
 .section { padding-block: 104px; }
 .section-divider { position: relative; border-top: 1px solid var(--line); }
