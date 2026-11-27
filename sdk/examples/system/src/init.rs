@@ -5,6 +5,11 @@
 //! B02 recovery agent: init alone holds the Key Service's administrative
 //! ingress and the second volume domain. It persists the encrypted key state
 //! before the app may commit ciphertext, and restores it after a cold start.
+// H05-T5d: the LOCK caller is TEST code for the S3 profiles only.
+#[cfg(all(feature = "lock-caller", not(feature = "test-system-s3")))]
+compile_error!(
+    "lock-caller (LOCK 0x92) exists only in the S3 TEST init; enable feature test-system-s3"
+);
 #[allow(dead_code)]
 mod protocol;
 mod support;
@@ -477,13 +482,15 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
     check(native::derive(power, Rights::POWER).is_err(), 51);
     // The volume still holds BLOCK authority: refused, nothing happens.
     check(native::power_off(power) == Error::Kernel(-8), 52);
-    // test-system-s3 kernels set word 592 (2: the held-completion fixture);
-    // every other profile skips SUSPEND.
+    // test-system-s3 kernels set word 592 (2: the held-completion fixture,
+    // 3: the A7 LOCK-busy fixture); every other profile skips SUSPEND.
     let word = support::word(592);
     let held = word == 2;
-    let s3 = word == 1 || held;
+    let busy = word == 3;
+    let s3 = word == 1 || held || busy;
     if s3 {
-        check(native::suspend(power) == Err(Error::Kernel(-8)), 70);
+        // KL2: the instance is not LOCKED yet (-25, before the storage gate).
+        check(native::suspend(power) == Err(Error::Kernel(-25)), 70);
     }
     // Final flush; on Ok the volume closes its block capability. A refused
     // flush (Unknown) leaves the decision to the kernel gate below.
@@ -493,7 +500,7 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
     let forged = Handle::from_raw(power.raw() + (1 << 32)).unwrap_or_else(|_| fail(54));
     check(native::power_off(forged) == Error::Kernel(-4), 54);
     if s3 {
-        suspend_sequence(power, image, forged, held);
+        suspend_sequence(power, image, forged, held, busy);
     }
     for _ in 0..LIMIT * 8 {
         match native::power_off(power) {
@@ -512,7 +519,7 @@ fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
 /// granted suspend, proof of ticks after the wake, then the one-shot refusal.
 /// The kernel logs each SUSPEND result itself; init only sequences.
 #[inline(never)]
-fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle, held: bool) {
+fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle, held: bool, busy: bool) {
     check(
         native::suspend(image.handle()) == Err(Error::Kernel(-6)),
         71,
@@ -535,6 +542,27 @@ fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle, held: boo
         );
     }
     check(number as i64 == -1 && secondary == 0, 73);
+    // H05-T5d (KL2): LOCK ends the Key Service instance before any sleep.
+    #[cfg(feature = "lock-caller")]
+    let locked = lock_sequence(power, busy);
+    #[cfg(not(feature = "lock-caller"))]
+    let locked = {
+        let _ = busy;
+        check(false, 81);
+        false
+    };
+    if !locked {
+        // A7: LOCK stayed busy, so SUSPEND refuses (-25) and init returns to
+        // S5 once the kernel has delivered its own requests (word 640).
+        check(native::suspend(power) == Err(Error::Kernel(-25)), 83);
+        for _ in 0..LIMIT {
+            if support::word(640) == 1 {
+                return;
+            }
+            let _ = native::yield_now();
+        }
+        fail(84);
+    }
     // Ring-3 stack memory must survive the sleep unchanged.
     let mut pattern = [0u64; 8];
     for (index, slot) in pattern.iter_mut().enumerate() {
@@ -548,6 +576,8 @@ fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle, held: boo
         check(native::suspend(power) == Err(Error::Kernel(-8)), 80);
     }
     // Storage is closed after SHUTDOWN Ok, so the next request is granted.
+    // No -25 retry: m3_restore finished LOCK's stack scrub before this
+    // process ran again, so KL2 sees LOCKED and erased (fail closed).
     check(native::suspend(power) == Ok(()), 74);
     for (index, slot) in pattern.iter_mut().enumerate() {
         let expected = (slot as *mut u64 as u64) ^ 0x5a5a_5a5a_0000_0000 ^ index as u64;
@@ -588,6 +618,49 @@ fn suspend_sequence(power: Handle, image: LaunchImage, forged: Handle, held: boo
         native::block_read(BlockDevice::from_handle(power), 0, 0, 1) == Err(Error::Kernel(block)),
         79,
     );
+}
+
+/// A7: init's LOCK attempts while the kernel keeps the broker busy.
+#[cfg(feature = "lock-caller")]
+const LOCK_BUSY_ATTEMPTS: usize = 8;
+
+/// H05-T5d (ADR-KEYRING-LOCK-20261126): LOCK 0x92 with the POWER handle. -8
+/// (an entropy request or a reply of the instance still in flight) is retried
+/// with a bounded number of yields; the A7 profile expects exactly
+/// LOCK_BUSY_ATTEMPTS refusals and no grant. Anything else fails.
+#[cfg(feature = "lock-caller")]
+#[inline(never)]
+fn lock_sequence(power: Handle, busy: bool) -> bool {
+    let attempts = if busy { LOCK_BUSY_ATTEMPTS } else { LIMIT };
+    for _ in 0..attempts {
+        // rdx is also argument 2 (context[12]), so it must enter as 0.
+        let (mut number, mut secondary) = (0x92u64, 0u64);
+        // SAFETY: Scalar-only call with the documented int80 registers and
+        // zero reserved arguments; no pointer reaches the kernel.
+        unsafe {
+            core::arch::asm!(
+                "int 0x80",
+                inout("rax") number,
+                in("rdi") power.raw(),
+                in("rsi") 0u64,
+                inout("rdx") secondary,
+                in("r10") 0u64,
+                in("r8") 0u64,
+                in("r9") 0u64,
+                options(nostack),
+            );
+        }
+        check(secondary == 0, 82);
+        match number as i64 {
+            0 if !busy => return true,
+            -8 => {
+                let _ = native::yield_now();
+            }
+            _ => fail(82),
+        }
+    }
+    check(busy, 82);
+    false
 }
 
 #[no_mangle]

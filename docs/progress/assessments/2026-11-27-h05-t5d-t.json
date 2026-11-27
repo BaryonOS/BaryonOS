@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "20d9089fe78a400143272aa34aa73cfb19f2e992",
+  "assessment_basis": "parent_commit",
+  "branch": "h05-t5d-t-s3-lock",
+  "task": "H05-T5d-T: Q3 key-erasure SUSPEND gate in the S3 TEST profiles (KL2 -25, init LOCK before SUSPEND, kernel-owned re-init target, A7 lock-busy)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Every test-system-s3 profile now carries native-system-lock and SUSPEND returns -25 unless the keyring is LOCKED and the instance erased (KL2); the TEST init issues LOCK 0x92 before the granted SUSPEND, and the post-wake re-init uses a kernel-owned entropy target. Local native QEMU/TCG power gate passes 26 stages; hosted power-system-gate pending on the PR head. TEST profiles only: the unwrap secret is a public TEST constant and no key-state durability is claimed (O5 open). H05 stays open: production gate (H05-T5d-P, blocked on O5), remount and ring-3 block re-grant, physical S3, IOMMU and human acceptance are missing; s3-noscrub was not run (B #590 not on main)."
+}

@@ -1,0 +1,206 @@
+{
+  "schema_version": 1,
+  "task": "H05-T5d-T",
+  "date_utc": "2026-11-27",
+  "base_commit": "20d9089fe78a400143272aa34aa73cfb19f2e992",
+  "source_sha256": "1f2f6b89dba0485fd8335fd8ac43132eecfffae81b5f930eaca50c955931142d",
+  "source_fingerprint_version": 3,
+  "gate": {
+    "command": "python3 -B -u tools/test_power_system.py",
+    "status": "completed",
+    "passed": true,
+    "stages": 26,
+    "recover_stages_passed": 13
+  },
+  "s3_reruns": {
+    "runs_per_case": 2,
+    "passed": true,
+    "source_unchanged": true
+  },
+  "cases": {
+    "power": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": []
+    },
+    "power-flush-error": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 33
+      },
+      "reruns": []
+    },
+    "power-flush-timeout": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 33
+      },
+      "reruns": []
+    },
+    "power-s3": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-s3-reinit": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-s3-held-completion": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-s3-blk-reinit": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-s3-blk-reinit-busy": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-s3-blk-reinit-identity": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-s3-blk-reinit-capacity": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-s3-blk-reinit-no-ack": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-s3-lock-busy": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": [
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        },
+        {
+          "passed": true,
+          "raw_qemu_exit": 0
+        }
+      ]
+    },
+    "power-lock": {
+      "gate": {
+        "passed": true,
+        "raw_qemu_exit": 0
+      },
+      "reruns": []
+    }
+  },
+  "mutants": {
+    "m1_remove_kl2": "killed: power-s3 and power-s3-lock-busy fail at init step 70 (raw exit 35); structural test fails",
+    "m2_ungate_kernel_binding": "killed: E0425 in test-system-s3 and native-system-power builds; structural test fails; equivalent in reinit profiles where the gate holds",
+    "m3_skip_kernel_deliver_zeroing": "survives natively (power-s3-reinit, power-s3-lock-busy pass); caught only by the structural test"
+  },
+  "not_run": [
+    "power-s3-noscrub (B's test-system-lock-noscrub S3 widening is not on main)",
+    "hosted CI",
+    "hardware",
+    "human audit"
+  ],
+  "acceptance": "not accepted; builder evidence only"
+}
