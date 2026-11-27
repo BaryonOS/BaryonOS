@@ -25,7 +25,8 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   `seeded-read` image variant for A03-T2c (PR #561, `fb4a40fa`), the
   catalog v2 specification revision 1 (PR #572, `9508ebfa`, tracking #569)
   and the post-wake remount design revision 0 (PR #580, `54c9f462`,
-  tracking #564). None of them accepts S09.
+  tracking #564) and `Status::Quarantined` -24 with design
+  revision 1 (PR #587, `43101e46`). None of them accepts S09.
 - **Owner:** the local S session ("BaryonOS - Specialist S"). Lane order and
   push permission come from the PR guard; the merge lane protocol applies.
   Immediately before `gh pr merge` (PR guard, 26 November 2026):
@@ -33,9 +34,8 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   --json databaseId,workflowName,status --jq '[.[] | select(.status !=
   "completed" and .workflowName != "Merge hold")]'` must print exactly `[]`;
   any other output, including empty output on an API error, means wait.
-- **Open PRs:** the S PR from `claude/s09-quarantine-status-20261126`:
-  `Status::Quarantined` -24 and revision 1 of the post-wake remount design
-  (Refs #564). Copilot review quota is exhausted until
+- **Open PRs:** the S PR from `claude/s09-post-wake-rev2-20261127`:
+  revision 2 of the post-wake remount design (Refs #564). Copilot review quota is exhausted until
   3 December 2026; Codex review quota is exhausted; use subagent review.
 
 ### Local work
@@ -54,9 +54,9 @@ zero-time RTC follow-up. No catalog v2 code before the answers.
   whole-volume read-only mount plus a BLOCK_READ-only grant; A grants
   object 1 of `seeded-read`. A per-ingress read-only right is a possible
   later S task with its own design; it is not planned.
-- With H: the -24 mapping is in the open S PR, in `services/volume` and
+- With H: the -24 mapping landed with #587, in `services/volume` and
   its clients only (no kernel, SUSPEND or T5d file). The post-wake remount
-  check is specified in `VOLUME-POST-WAKE-REMOUNT.md` revision 1 (one
+  check is specified in `VOLUME-POST-WAKE-REMOUNT.md` revision 2 (one
   read-only grant to the same instance, R1; `RemountRefused` as its own
   service status, R2; both H's proposals on #564, binding only after the
   ADR amendment). `RemountRefused` is not built before that amendment; the
@@ -117,7 +117,8 @@ zero-time RTC follow-up. No catalog v2 code before the answers.
 
 ## Next executable task
 
-1. Land the open S PR (-24 and design revision 1).
+1. Land the open S PR (design revision 2, #564 follow-ups 1–6); the
+   ADR amendment fixes the `RemountRefused` value.
 2. `RemountRefused` and the post-wake remount code after the ADR amendment.
 3. Native K5 fixtures (new stage; S moves its own pins).
 4. O12 owner-binding design with B and the user/session owner; O1

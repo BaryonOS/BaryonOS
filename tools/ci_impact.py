@@ -58,6 +58,9 @@ WORKFLOW_PATH_RE = re.compile(r"\.github/workflows/[A-Za-z0-9_][A-Za-z0-9_-]*\.y
 JOB_ID_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_-]*")
 VARIANT_ID_RE = re.compile(r"[A-Za-z0-9_.*-]+")
 EVENT_FULL_CODES = {"merge_group": "merge-group", "push": "push-main", "schedule": "schedule"}
+# Of those, merge_group alone may narrow, under policy.events.merge_group = "select" and with
+# merge-hold's trusted base (ADR-CI-MERGE-GROUP-SELECT-20261126); "manual" is never allowed.
+MERGE_GROUP_POLICIES = ("select", "full")
 METADATA = "@metadata"
 # policy.inert plus policy.core_only: only on a pull_request trigger whose workflow keeps a
 # @metadata push trigger as the main backstop (#494, phase 5 C2).
@@ -152,6 +155,33 @@ def first_match(patterns, path):
         if github_path_filter_matches(pattern, path):
             return pattern
     return None
+
+
+def pull_request_filter_blocked(catalogue, changed, policy):
+    """The workflows whose own pull_request path filter certainly keeps them from starting for
+    this diff (merge_group select plans, ADR-CI-MERGE-GROUP-SELECT-20261126).
+
+    Any doubt leaves a workflow out, so merge-hold still awaits and judges it: no pull_request
+    trigger, no path filter, a negated pattern, or no or too many changed paths.
+    """
+    if not changed or len(changed) > FILTER_FILE_LIMIT:
+        return []
+    blocked = []
+    for workflow in catalogue.get("workflow", []):
+        spec = workflow.get("trigger", {}).get("pull_request")
+        if "pull_request" not in workflow.get("events", []) or not isinstance(spec, dict):
+            continue
+        if "paths" in spec and "paths_ignore" not in spec:
+            patterns = list(spec["paths"])
+            starts = any(first_match(patterns, path) for path in changed)
+        elif "paths_ignore" in spec and "paths" not in spec:
+            patterns = list(trigger_globs(spec["paths_ignore"], policy))
+            starts = not all(first_match(patterns, path) for path in changed)
+        else:
+            continue
+        if not any(str(pattern).startswith("!") for pattern in patterns) and not starts:
+            blocked.append(workflow["path"])
+    return sorted(blocked)
 
 
 def glob_problem(pattern):
@@ -475,7 +505,10 @@ def validate(catalogue):
         add("policy.events table missing")
         events = {}
     for event in EVENTS:
-        if event in EVENT_FULL_CODES:
+        if event == "merge_group":
+            if events.get(event) not in MERGE_GROUP_POLICIES:
+                add(f"policy.events.{event} must be 'select' or 'full'")
+        elif event in EVENT_FULL_CODES:
             if events.get(event) != "full":
                 add(f"policy.events.{event} must be 'full'")
         elif event == "workflow_dispatch":
@@ -1107,7 +1140,10 @@ class Planner:
         if policy["mode"] == "full":
             self.full("policy-rollback")
         event_policy = policy["events"][self.event]
-        if event_policy == "full" or self.event in EVENT_FULL_CODES:  # never narrowed, whatever the catalogue says
+        # push and schedule are never narrowed, whatever the catalogue says; merge_group only under "select".
+        forced = self.event in EVENT_FULL_CODES and not (
+            self.event == "merge_group" and event_policy == "select")
+        if event_policy == "full" or forced:
             self.full(EVENT_FULL_CODES.get(self.event, "event-policy-full"), [self.event])
         elif event_policy == "manual":
             self.manual = True
@@ -1262,6 +1298,8 @@ class Planner:
                 "budgets": dict(policy.get("budgets", {})) if self.catalogue_source == self.base else {},
                 "fallback": fallback, "shas": shas, "changes": changes,
                 "filter_eval_uncertain": self.filter_uncertain,
+                "pull_request_filter_blocked": pull_request_filter_blocked(catalogue, changed, policy)
+                if catalogue and self.event == "merge_group" and mode == "select" else [],
                 "selected": selected_rows, "excluded": excluded_rows,
                 "plan_id": "sha256:" + hashlib.sha256(canonical(identity).encode("ascii")).hexdigest()}
         return plan
@@ -1296,7 +1334,7 @@ def minimal_full_plan(event, code, base="", head="", tested=""):
             "fallback": {"code": code, "detail": [], "reasons": [code]},
             "shas": {"base": base or "", "merge_base": None, "head": head or "", "tested": tested or head or ""},
             "changes": {"count": 0, "digest": paths_digest([]), "paths": []},
-            "filter_eval_uncertain": True, "selected": [], "excluded": []}
+            "filter_eval_uncertain": True, "pull_request_filter_blocked": [], "selected": [], "excluded": []}
     plan["plan_id"] = "sha256:" + hashlib.sha256(canonical(plan).encode("ascii")).hexdigest()
     return plan
 

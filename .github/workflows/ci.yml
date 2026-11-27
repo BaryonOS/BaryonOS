@@ -139,7 +139,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: |
           mkdir -p build/coverage-raw/python
-          python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev
+          python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job experiments/ai/native-job .agents/skills/os-dev
           # #494: three independent lanes run concurrently. tools/tests stays in the foreground:
           # a `&` job inherits ignored SIGINT/SIGQUIT, which test_roadmap_runner's signal test rejects.
           (
@@ -152,6 +152,7 @@ jobs:
           lane_b=$!
           (
             set -e
+            python3 -B -m unittest discover -s experiments/ai/native-job/tests
             python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'
             coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'
             python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'
@@ -244,6 +245,14 @@ jobs:
           cargo +1.100.0 clippy --manifest-path experiments/quantum/job-protocol/Cargo.toml --locked --all-targets -- -D warnings
           cargo +1.100.0 fmt --manifest-path experiments/quantum/job-protocol/Cargo.toml --all -- --check
           python3 experiments/quantum/native/job/build.py --output-dir /tmp/nieuw-os-qsim-job-build --target-dir /tmp/nieuw-os-qsim-job-target
+      - name: Native AI job host verification
+        # The ignored root target keeps the clean-tree check below valid.
+        run: |
+          cargo +1.100.0 test --manifest-path experiments/ai/native-job/Cargo.toml --locked --target-dir "$PWD/target"
+          cargo +1.100.0 clippy --manifest-path experiments/ai/native-job/Cargo.toml --locked --target-dir "$PWD/target" --all-targets -- -D warnings
+          # The ring-3 bin needs the native feature, so --all-targets skips it.
+          cargo +1.100.0 clippy --manifest-path experiments/ai/native-job/Cargo.toml --locked --target-dir "$PWD/target" --features native --bin ai-job-native -- -D warnings
+          cargo +1.100.0 fmt --manifest-path experiments/ai/native-job/Cargo.toml --all -- --check
       - name: Product prototype tests
         env:
           NODE_V8_COVERAGE: build/coverage-raw/node/raw

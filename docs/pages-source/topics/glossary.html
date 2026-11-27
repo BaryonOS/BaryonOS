@@ -1,0 +1,24 @@
+<h2>Terms used in this guide</h2>
+<p>These definitions are reading aids. The linked project contracts give each term its precise technical meaning.</p>
+<dl class="guide-glossary">
+  <dt>Kernel</dt><dd>The core of the operating system. It manages memory, processor time and access to shared resources.</dd>
+  <dt>Capability</dt><dd>A kernel-checked right to act on a particular resource.</dd>
+  <dt>IPC</dt><dd>Interprocess communication: messages or requests crossing process boundaries.</dd>
+  <dt>Ring 3</dt><dd>The x86 user privilege level for isolated processes outside the kernel.</dd>
+  <dt>UEFI</dt><dd>The firmware interface used by the project's loader.</dd>
+  <dt>OVMF</dt><dd>UEFI firmware used for the project's QEMU virtual machines.</dd>
+  <dt>QEMU</dt><dd>The emulator and virtual-machine environment for scoped guest tests.</dd>
+  <dt>Native</dt><dd>Running under the Baryon OS kernel, rather than on the development host.</dd>
+  <dt>Host prototype</dt><dd>A test or implementation running on the development computer's OS; it does not establish native integration.</dd>
+  <dt>NAS</dt><dd>Network-attached storage. Hosting encrypted data does not automatically grant the administrator a content key.</dd>
+  <dt>Security Floor</dt><dd>Core protections that a privacy preference must not disable.</dd>
+  <dt>ISA</dt><dd>Instruction-set architecture: the processor instruction model targeted by compiled code.</dd>
+  <dt>QPU</dt><dd>Quantum processing unit. Software simulator results are a different evidence category.</dd>
+</dl>
+<p>For how these terms fit together, start with <a href="/docs/architecture/">architecture</a>, then read <a href="/docs/privacy/">privacy and security</a> and <a href="/docs/progress/">progress and evidence</a>.</p>
+
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/wiki/Glossary.md">Repository glossary <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md">Kernel terminology <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/TEST-STRATEGY.md">Test evidence levels <span aria-hidden="true">↗</span></a>
+</div>
