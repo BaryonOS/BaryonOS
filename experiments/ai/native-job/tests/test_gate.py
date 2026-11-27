@@ -51,6 +51,7 @@ class Gate(unittest.TestCase):
                 build.inspect_instructions(OK + f"  40020030:\tcall   {good}\n  40020035:\tint3\n", slots)
         for bad, table in (("40020000 <job>", slots),  # returning callee
                            (f"400262f7 <{panic}+0x4>", slots),  # not the exact symbol
+                           (f"400262f3 <{panic}-0x4>", slots),  # negative offset, not the entry
                            ("40020000 <_RNvNtCs8uuN1nrGffB_4core3fmt5write>", slots),  # core, not panicking
                            (slot, {}),  # unresolved slot
                            (slot, {0x40010220: "memmove"}),  # returning slot target

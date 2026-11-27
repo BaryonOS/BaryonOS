@@ -155,6 +155,9 @@ def run_ai_job() -> dict:
     build = private_path(BUILD).resolve(strict=True)
     if not build.is_relative_to(ROOT):
         raise ValueError("NOS_BUILD_DIR must be inside the checkout")
+    result_path = private_path(build / "native-ai-job-result.json")
+    # A failure before the guarded block must not leave an earlier passing result behind.
+    result_path.unlink(missing_ok=True)
     frozen = source_hash()
     bound = validate_build(build, frozen)
     qemu = shutil.which("qemu-system-x86_64", path=environment()["PATH"])
@@ -162,7 +165,6 @@ def run_ai_job() -> dict:
         raise RuntimeError("Missing QEMU")
     qemu_hash = sha256(Path(qemu))
     private_path(build / "run")
-    result_path = private_path(build / "native-ai-job-result.json")
     inputs = private_path(build / ("ai-job-inputs-" + uuid.uuid4().hex[:10]))
     inputs.mkdir()
     shutil.copyfile(build / "users/ai-job/ai-job-native.elf", inputs / "ai-job-native.elf")

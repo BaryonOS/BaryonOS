@@ -1,7 +1,9 @@
 """HOST_ONLY serial-parser counterexamples for run_ai_job; generated text is no native evidence."""
 from pathlib import Path
 import sys
+import tempfile
 import unittest
+from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_ai_job as gate
 from common import DEVICE_EXECUTION_MARKER, EXPECTED_ACPI_MARKER
@@ -74,3 +76,17 @@ class SerialParser(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StaleResult(unittest.TestCase):
+    def test_failure_before_the_guarded_run_removes_an_earlier_result(self):
+        (gate.ROOT / "build").mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=gate.ROOT / "build") as temp:
+            stale = Path(temp) / "native-ai-job-result.json"
+            stale.write_text('{"passed": true}\n')
+            with mock.patch.object(gate, "BUILD", Path(temp)), \
+                    mock.patch.object(gate, "source_hash", return_value="0" * 64), \
+                    mock.patch.object(gate, "validate_build", side_effect=ValueError("stale build")):
+                with self.assertRaises(ValueError):
+                    gate.run_ai_job()
+            self.assertFalse(stale.exists())

@@ -49,7 +49,7 @@ TERMINATORS = {"ret", "jmp", "int3", "noreturn-call"}
 # A call ends a block only when its target never returns: v0-mangled items of
 # core::panicking (any nesting) and the panic handler `rust_begin_unwind`.
 NORETURN = re.compile(r"^_RNv(?:Nt)+Cs[0-9A-Za-z]+_4core9panicking\d|^_RNvCs[0-9A-Za-z]+_7___rustc17rust_begin_unwind$")
-DIRECT_CALL = re.compile(r"^[0-9a-f]+ <([^<>+]+)>$")
+DIRECT_CALL = re.compile(r"^[0-9a-f]+ <([^<>+-]+)>$")  # no `+0x`/`-0x` offset: entry addresses only
 SLOT_CALL = re.compile(r"^QWORD PTR \[rip[+-]0x[0-9a-f]+\]\s+# ([0-9a-f]+) <[^<>]+>$")
 PREFIXES = {"lock", "rep", "repz", "repe", "repnz", "repne", "data16", "addr32", "cs", "ds", "es", "ss",
             "fs", "gs", "notrack", "bnd", "xacquire", "xrelease"}
