@@ -1,5 +1,5 @@
 //! Host-testable ELF/user-ABI policy. All addresses remain integers.
-use crate::{Error, PAGE};
+use crate::{Error, Frames, Owner, ARTIFACT_QUOTA, PAGE};
 pub const MAX_SEGMENTS: usize = 8;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Segment {
@@ -180,10 +180,43 @@ const NO_CHUNK: CopyChunk = CopyChunk {
     offset: 0,
     length: 0,
 };
+/// Validated user byte range split into at most `N` page chunks.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct CopyPlan {
-    pub chunks: [CopyChunk; 2],
+pub struct ChunkPlan<const N: usize> {
+    pub chunks: [CopyChunk; N],
     pub count: usize,
+}
+pub type CopyPlan = ChunkPlan<2>;
+/// L01 `artifact_read` output bound: one 64 KiB chunk per syscall.
+pub const ARTIFACT_READ_MAX: u64 = 64 * 1024;
+/// An unaligned 64 KiB range spans at most 17 pages.
+pub type ArtifactReadPlan = ChunkPlan<17>;
+/// Validate the ordered page list for one sealed artifact before any page
+/// tables or aliases are created. The phase-1 artifact quota bounds the
+/// duplicate scan without a kernel-stack bitmap or reordered model bytes.
+pub fn artifact_pages_preflight<const N: usize>(
+    frames: &Frames<N>,
+    id: u16,
+    generation: u32,
+    pages: &[u64],
+) -> Result<(), Error> {
+    if id == 0 || pages.is_empty() || pages.len() > ARTIFACT_QUOTA {
+        return Err(Error::Range);
+    }
+    let expected = Owner::Artifact {
+        id,
+        generation,
+        sealed: true,
+    };
+    for (index, &pa) in pages.iter().enumerate() {
+        if pages[..index].contains(&pa) {
+            return Err(Error::Range);
+        }
+        if frames.owner(pa)? != expected {
+            return Err(Error::Owner);
+        }
+    }
+    Ok(())
 }
 pub fn copy_plan(
     pointer: u64,
@@ -194,6 +227,17 @@ pub fn copy_plan(
 ) -> Result<CopyPlan, Error> {
     bounded_copy_plan(pointer, length, 320, pid, output, lookup)
 }
+/// Output range for one L01 `artifact_read` call (at most 64 KiB). Every page is
+/// looked up and checked before the plan exists, so a refused range copies no
+/// byte; the `0x80000000` bound keeps the artifact window itself out (I2a).
+pub fn artifact_read_plan(
+    pointer: u64,
+    length: u64,
+    pid: u64,
+    lookup: impl FnMut(u64) -> Option<PageAccess>,
+) -> Result<ArtifactReadPlan, Error> {
+    bounded_copy_plan(pointer, length, ARTIFACT_READ_MAX, pid, true, lookup)
+}
 /// Exact sector input. This does not widen the 320-byte IPC/output contract.
 pub fn sector_input_plan(
     pointer: u64,
@@ -202,20 +246,20 @@ pub fn sector_input_plan(
 ) -> Result<CopyPlan, Error> {
     bounded_copy_plan(pointer, 512, 512, pid, false, lookup)
 }
-fn bounded_copy_plan(
+fn bounded_copy_plan<const N: usize>(
     pointer: u64,
     length: u64,
     maximum: u64,
     pid: u64,
     output: bool,
     mut lookup: impl FnMut(u64) -> Option<PageAccess>,
-) -> Result<CopyPlan, Error> {
+) -> Result<ChunkPlan<N>, Error> {
     let end = pointer.checked_add(length).ok_or(Error::Range)?;
     if length == 0 || length > maximum || pointer < 0x40000000 || end > 0x80000000 {
         return Err(Error::Range);
     }
-    let mut plan = CopyPlan {
-        chunks: [NO_CHUNK; 2],
+    let mut plan = ChunkPlan {
+        chunks: [NO_CHUNK; N],
         count: 0,
     };
     let mut cursor = pointer;
@@ -241,6 +285,88 @@ fn bounded_copy_plan(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{Kind, Range};
+    #[test]
+    fn artifact_pages_preflight_rejects_wrong_owner_generation_and_duplicates() {
+        let mut frames = Frames::<32>::new();
+        frames.admit(Range::pages(PAGE, 31).unwrap(), 7, 0x0f, &[]);
+        let owner = Owner::Artifact {
+            id: 7,
+            generation: 3,
+            sealed: false,
+        };
+        let first = frames.allocate(owner, |_| {}).unwrap();
+        let second = frames.allocate(owner, |_| {}).unwrap();
+        let user = frames.allocate(Owner::User(1, Kind::Data), |_| {}).unwrap();
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[first, second]),
+            Err(Error::Owner)
+        );
+        frames.seal_artifact(7, 3, 2).unwrap();
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[first, second]),
+            Ok(())
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 4, &[first]),
+            Err(Error::Owner)
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[first, user]),
+            Err(Error::Owner)
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[first, first]),
+            Err(Error::Range)
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[]),
+            Err(Error::Range)
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 0, 3, &[first]),
+            Err(Error::Range)
+        );
+    }
+    #[test]
+    fn artifact_read_plan_validates_all_seventeen_pages_before_copy() {
+        let start = 0x4001_0001;
+        let good = |va: u64| {
+            Some(PageAccess {
+                physical: va & !(PAGE - 1),
+                owner: 7,
+                user: true,
+                writable: true,
+            })
+        };
+        let plan = artifact_read_plan(start, ARTIFACT_READ_MAX, 7, good).unwrap();
+        assert_eq!(plan.count, 17);
+        assert_eq!(plan.chunks[0].offset, 1);
+        assert_eq!(plan.chunks[0].length, (PAGE - 1) as usize);
+        assert_eq!(plan.chunks[16].length, 1);
+
+        let mut visited = 0;
+        assert_eq!(
+            artifact_read_plan(start, ARTIFACT_READ_MAX, 7, |va| {
+                visited += 1;
+                good(va).map(|mut page| {
+                    if visited == 17 {
+                        page.writable = false;
+                    }
+                    page
+                })
+            }),
+            Err(Error::Permission)
+        );
+        assert_eq!(visited, 17);
+        assert_eq!(
+            artifact_read_plan(start, ARTIFACT_READ_MAX + 1, 7, good),
+            Err(Error::Range)
+        );
+        assert!(artifact_read_plan(0x7fff_ffff, 2, 7, good).is_err());
+        assert!(copy_plan(start, 512, 7, true, good).is_err());
+        assert!(sector_input_plan(start, 7, good).is_ok());
+    }
     #[test]
     fn sector_input_validates_second_page_owner_and_preserves_ipc_limit() {
         let ro = |va: u64| {
