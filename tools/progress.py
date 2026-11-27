@@ -404,8 +404,8 @@ def row_markers(item: dict | None) -> set[str]:
             try:
                 if dt.date.fromisoformat(date).isoformat() == date:
                     found.add(f"{date} @{sha}")
-            except ValueError:
-                pass
+            except ValueError:  # not a calendar date: this marker is invalid, keep scanning
+                continue
     return found
 
 
