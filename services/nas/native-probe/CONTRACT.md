@@ -159,8 +159,15 @@ client's own tickets. Each exchange gets a fresh correlation, and a reply must
 match the request's opcode and correlation. A request that was not delivered
 keeps its error; one that was delivered without a matching valid reply is
 `Unknown`, so a lost Commit reply leaves the edit `NeedsReconcile` and is never
-replayed. Ciphertext above the 104-byte probe payload fails `Invalid` before
-anything is sent.
+replayed. The guest's receive gives up after a bounded number of yields; that
+reply timeout is `Sent` (`Unknown`). Its reply may still arrive later. The next
+exchange then drops a reply with an older correlation and receives again
+without resending, at most once per earlier `Unknown` of that remote; a newer
+correlation, the same correlation with another opcode, or an undecodable frame
+stays `Unknown`. `NaspRemote` owns the endpoint's correlation sequence: the
+probe's other RPC helper completes or fails the boot before it starts.
+Ciphertext above the 104-byte probe payload fails `Invalid` before anything is
+sent.
 No principal, key, mutable client buffer or capability in the wire.
 
 The 104-byte payload and one selected guest are visible probe limits,

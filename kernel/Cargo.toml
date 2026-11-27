@@ -188,6 +188,9 @@ test-sdk-app-denied = ["native-sdk-app"]
 # A03 grant broker; reuses the sdk-app dispatch with a three-process manifest.
 native-task-grant = ["native-sdk-app"]
 test-task-grant-denied = ["native-task-grant"]
+# A03-T2c-2: the task-grant broker as sole client of a read-only volume domain 0.
+native-task-grant-volume = ["native-system", "monotonic-clock", "ipc-wait"]
+test-task-grant-volume-denied = ["native-task-grant-volume"]
 # K05 process management: supervisor/worker/client ELFs, spawn/kill/status.
 native-supervisor = ["milestone-m4"]
 test-supervisor-crash = ["native-supervisor"]
@@ -217,8 +220,13 @@ native-system-power = ["native-system", "dep:nieuw-os-acpi-power"]
 test-system-power-flush-error = ["native-system-power"]
 test-system-power-flush-timeout = ["native-system-power"]
 # H05-T4 (ADR-H05-S3-SYSTEM-20261123): test-only SUSPEND 0x91 behind POWER and the storage gate.
-test-system-s3 = ["native-system-power", "acpi-s3-core"]
+# H05-T5d (ADR-KEYRING-LOCK-20261126, KL2): every S3 profile carries LOCK, so no
+# S3 build can skip the LOCKED-and-erased check in SUSPEND.
+test-system-s3 = ["native-system-power", "acpi-s3-core", "native-system-lock"]
 test-system-s3-reinit = ["test-system-s3"]
+# H05-T5d A7 (labelled): a kernel entropy request keeps LOCK at -8, so SUSPEND
+# refuses (-25) and init falls back to S5. Built on the re-init kernel target.
+test-system-s3-lock-busy = ["test-system-s3-reinit", "native-system-lock"]
 # H05 review R1: the volume broker keeps init's SHUTDOWN flush unconsumed;
 # SUSPEND must refuse it (-8), then one labelled gate-defect injection sleeps
 # anyway so that only the post-wake latch keeps the teardown reset off the device.

@@ -529,6 +529,12 @@ impl Supervisor {
         let (cap, sender) = self.wait_hello();
         self.client_reply = Some(cap);
         self.client_pid = sender;
+        // Receipt: exit revokes the client's HELLO cap and drops a still-queued
+        // HELLO, so the client waits for this before it exits.
+        let receipt = frame(Frame::new(DONE, 0, 0, 0));
+        if send_bounded(SendEndpoint::from_handle(cap.handle), &receipt).is_err() {
+            fail(83);
+        }
         // Collect both reports (2 + 6 checks) before the own checks (13). The
         // worker's report may already have been consumed while waiting for the
         // client's hello; `classify` counts every report wherever it arrives.

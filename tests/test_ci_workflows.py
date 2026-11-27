@@ -2124,6 +2124,34 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                     ".github/actions/**", "crates/artifact-store-core/**",
                 }, set(workflow["on"][event]["paths"]))
 
+    def test_task_grant_volume_cases_run_in_their_own_gate(self):
+        """A03-T2c-2: both volume cases run isolated in one rwa nas-core job, never in ci.yml."""
+        job = self.workflows[".github/workflows/nas-core.yml"]["jobs"]["task-grant-volume"]
+        self.assertEqual(job["name"], "task-grant-volume")
+        self.assertEqual(job["timeout-minutes"], "20")
+        # Only the merge-group gate's wiring (PR B, MergeGroupGateTests); no other condition or dependency.
+        self.assertEqual((job["needs"], job["if"]), (GATE_JOB, "${{ " + GATE_RUNS + " }}"))
+        for key in ("continue-on-error", "strategy"):
+            self.assertNotIn(key, job)
+        runs = "\n".join(step.get("run", "") for step in job["steps"])
+        for feature, case in (("native-task-grant-volume", "volume"),
+                              ("test-task-grant-volume-denied", "volume-denied")):
+            with self.subTest(case=case):
+                step, = [step for step in job["steps"] if f"--case {case}\n" in step.get("run", "")]
+                build_dir = f'NOS_BUILD_DIR="$PWD/build/ci-task-grant-{case}"'
+                self.assertEqual(step["run"].count(build_dir), 2)
+                self.assertLess(step["run"].index(f"tools/build.py --kernel-feature {feature}\n"),
+                                step["run"].index(f"tools/run_task_grant.py --case {case}\n"))
+        self.assertIn("git diff --exit-code", runs)
+        self.assertIn('test -z "$(git status --porcelain)"', runs)
+        self.assertNotIn("task-grant-volume", json.dumps(self.workflows[".github/workflows/ci.yml"]))
+        catalogue = tomllib.loads((ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8"))
+        nas, = [entry for entry in catalogue["workflow"] if entry["path"] == ".github/workflows/nas-core.yml"]
+        row, = [row for row in nas["job"] if row["id"] == "task-grant-volume"]
+        preserve, = [step for step in job["steps"] if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertEqual((row["class"], row["input_sets"], row["evidence"]),
+                         ("rwa", ["native"], [preserve["with"]["name"]]))
+
 
 WINDOW_WORKFLOW = ".github/workflows/native-window-session.yml"
 # Every report assertion of the native window gates (CI-EVIDENCE, U02-U06),
@@ -3175,7 +3203,7 @@ class MergeGroupGateTests(unittest.TestCase):
                     break
                 below |= more
             below_any |= {(path, job_id) for job_id in below - {GATE_JOB} if GATE_JOB in jobs}
-        self.assertEqual(len(below_any), 29)
+        self.assertEqual(len(below_any), 30)
         for key in sorted(below_any):
             with self.subTest(job=key):
                 record = records[key]
@@ -3242,7 +3270,15 @@ class MergeGroupGateTests(unittest.TestCase):
             env.update({"WORKFLOW": workflow, "GITHUB_OUTPUT": str(output)}, **(environment or {}))
             result = subprocess.run([sys.executable, "-B", "-I", "-", str(module)], input=driver, text=True,
                                     capture_output=True, env=env, check=False)
+            self.last_stdout = result.stdout
             return result.returncode, output.read_text(encoding="utf-8")
+
+    def test_the_fallback_notice_cannot_inject_a_workflow_command(self):
+        """N1: the error text is escaped as merge_hold.hidden_listing does, so the runner decodes nothing."""
+        stub = "def merge_group_skip(workflow):\n    raise ValueError('50%\\nline2\\n::error::x \\u00e9')\n"
+        self.assertEqual(self.run_driver(stub), (0, "run=true\n"))
+        self.assertEqual(self.last_stdout, '::notice::merge-group gate: "ValueError: 50%25\\nline2\\n::error::x '
+                                           '\\u00e9"; every job runs.\n')
 
     def test_the_gate_says_skip_only_on_an_explicit_true(self):
         skip = "def merge_group_skip(workflow):\n    return {}\n"

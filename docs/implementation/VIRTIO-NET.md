@@ -177,6 +177,9 @@ comparison.
   0 (`virtio_net_drop_tx_queue_data`), which `validate_used` already accepts
   for every TX: this is ordinary TX completion, not link-specific behaviour.
   The native cases do not exercise an in-flight TX at a down edge.
+  Decided, not implemented: amendment H04-TXDOWN of ADR-H04-LINK-20261119
+  (27 November 2026) reports such a completion as -27 when a kernel link
+  edge lies between publication and collection; TXDOWN-1/2 are NOT RUN.
 - Exhaustion or any broker reset latches the monitor; the kernel runs the
   existing `stop()` (reset request, bus mastering off, pinned pages kept,
   reset acknowledgement awaited, no reinitialization). Later link changes
