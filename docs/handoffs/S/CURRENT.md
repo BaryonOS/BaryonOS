@@ -26,27 +26,36 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   catalog v2 specification revision 1 (PR #572, `9508ebfa`, tracking #569)
   and the post-wake remount design revision 0 (PR #580, `54c9f462`,
   tracking #564) and `Status::Quarantined` -24 with design
-  revision 1 (PR #587, `43101e46`). None of them accepts S09.
-- **Owner:** the local S session ("BaryonOS - Specialist S"). Lane order and
-  push permission come from the PR guard; the merge lane protocol applies.
-  Immediately before `gh pr merge` (PR guard, 26 November 2026):
+  revision 1 (PR #587, `43101e46`). On 27 November 2026 the post-wake
+  remount design revision 2 (#564 follow-ups 1–6, documentation only) landed
+  (PR #594, `095c0d24`). None of them accepts S09.
+- **Owner:** the S session ("BaryonOS - Specialist S"). Merge order is
+  coordinated by the PR guard; S enqueues its own merge-ready PRs.
+  Immediately before enqueueing (PR guard, 26 November 2026):
   `gh run list -R BaryonOS/BaryonOS --commit <full head SHA> --limit 200
   --json databaseId,workflowName,status --jq '[.[] | select(.status !=
   "completed" and .workflowName != "Merge hold")]'` must print exactly `[]`;
   any other output, including empty output on an API error, means wait.
-- **Open PRs:** the S PR from `claude/s09-post-wake-rev2-20261127`:
-  revision 2 of the post-wake remount design (Refs #564). Copilot review quota is exhausted until
-  3 December 2026; Codex review quota is exhausted; use subagent review.
+- **Open PRs:** none besides this handoff refresh. Copilot review quota is
+  exhausted until 3 December 2026; Codex review quota is exhausted; use an
+  independent subagent review.
+- **Communication:** the GitHub threads #564 (post-wake remount, with the H
+  track) and #569 (catalog v2) and the S PR itself carry the canonical state;
+  this file is the resume pointer. No local path is needed to resume.
 
 ### Local work
 
-None besides the open S PR.
+None.
 
 ### Owner questions
 
 V1–V9 in `docs/implementation/S09-CATALOG-V2.md` section 9 (catalog v2 for
 O3 controlled deletion and O5 backup time), tracked in #569 with the
 zero-time RTC follow-up. No catalog v2 code before the answers.
+
+The `RemountRefused` status value is fixed by an ADR amendment reserved for
+the project owner; S does not prepare that amendment. Revision 2 proposes -26;
+the H track uses -25 (KL2 SUSPEND, #597) and -27 (H04-TXDOWN, #601).
 
 ### Agreements and debts
 
@@ -117,19 +126,20 @@ zero-time RTC follow-up. No catalog v2 code before the answers.
 
 ## Next executable task
 
-1. Land the open S PR (design revision 2, #564 follow-ups 1–6); the
-   ADR amendment fixes the `RemountRefused` value.
-2. `RemountRefused` and the post-wake remount code after the ADR amendment.
-3. Native K5 fixtures (new stage; S moves its own pins).
-4. O12 owner-binding design with B and the user/session owner; O1
+1. Native K5 fixtures (new stage; S moves its own pins).
+2. `RemountRefused` and the post-wake remount code after the ADR amendment;
+   the native PW cases after H's T5d-T, T5e and UNLOCK.
+3. O12 owner-binding design with B and the user/session owner; O1
    remembered-VERIFY store; catalog v2 implementation after V1–V9 (#569).
-5. R5: destination service binary in the test profile on disk 1 with
+4. R5: destination service binary in the test profile on disk 1 with
    `DEST:ID:TEST-ONLY` and a scripted dialog.
 
 Merge procedure (owner decision of 26 November 2026, confirmed in the S
 session): S enqueues its own merge-ready PRs in the merge queue without a
-per-PR lane grant (open-run check exactly `[]`, all merge conditions, then
-`gh pr merge <N> --squash --match-head-commit <sha>`); the PR guard
+per-PR lane grant (mergeStateStatus `CLEAN`, `autoMergeRequest` null, no
+unresolved thread, open-run check exactly `[]`, then the GraphQL
+`enqueuePullRequest` mutation with `expectedHeadOid`; `gh pr merge` on a
+`BLOCKED` PR silently enables auto-merge); the PR guard
 coordinates order and dependencies. Non-blocking review comments on a pushed
 PR are answered, resolved and recorded on the tracking issue, not pushed.
 
