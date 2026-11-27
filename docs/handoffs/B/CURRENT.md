@@ -30,12 +30,14 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 - Active B PR: [#649](https://github.com/BaryonOS/BaryonOS/pull/649),
   `codex/b03-s7-anchor-20261127` in
-  `~/projects/BaryonOS-worktrees/b03-s7-anchor`. It is the REL-05 S7 TEST
-  anchor authority and private completion slice. The latest HANDOFF comment
-  on #649 and its newer comments carry the live head, checks and next step.
-  The native CRB hook, authenticated ENROLL/BootInfo handoff and joint N04
-  evidence remain open; keep the PR draft and N04 option 5A. #608 and #631
-  have landed. Score remains 43/100.
+  `~/projects/BaryonOS-worktrees/b03-s7-anchor`. It is the host-tested
+  REL-05 S7 TEST anchor authority, private completion and mutation-fence
+  foundation. The latest HANDOFF comment on #649 and its newer comments carry
+  the live head, checks and next step. This bounded PR may enter the merge
+  queue after exact-head checks and review pass; its landing does not accept
+  REL-05 or N04. The native CRB hook, authenticated ENROLL/BootInfo handoff
+  and joint N04 evidence remain follow-up work. N04 stays on option 5A;
+  score remains 43/100. #608 and #631 have landed.
 - Session: local "BaryonOS - Specialist B" (27 Nov, resumed from the #590 HANDOFF comment 7213772692). Merge queue
   autonomy (ADR-MERGE-QUEUE-AUTONOMY-20261126): B enqueues its own merge-ready PRs; the PR guard coordinates and
   does not approve.
@@ -43,7 +45,7 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   #573 (B01-LOCK L1, issue #564) as 40c10d3a; #590 (S3 LOCK noscrub red-control profile for H05-T5d) as 9fe65ba9
   on 27 Nov. H adds the `power-s3-noscrub` case after #597 (pitfall reported: `S3_SYSTEM_FEATURES` must include
   the profile).
-- cycle: REL-05 §7.9 M1-HAUTH halt, PR #608, branch claude/b03-rel05-hauth-unenrolled-20261127. Live head, checks
+- Previous cycle: REL-05 §7.9 M1-HAUTH halt, landed PR #608. Historical checks
   and evidence: the PR body and the newest "HANDOFF — specialist B" comment on #608 (plus its addendum). The
   verify-only TEST loader halts `TPM_UNENROLLED` with `RECOVERY:REQUIRED` on an unset ownerAuth (never-provisioned or
   cleared); the enrollment build is the unauthenticated TEST stand-in for S3b.
