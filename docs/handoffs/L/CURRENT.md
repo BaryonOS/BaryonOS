@@ -40,6 +40,13 @@ GitHub alone. Local paths below are optional additions for a local session.
   `source_commit` stay untouched (date and SHA go in the row text); regenerate with
   `python3 tools/progress.py --write` and `--check`; use D3 assessment files. The
   PR guard checks this at every relevant landing.
+- Owner decision, 27 November 2026 13:12Z (relayed by the PR guard; see #622):
+  "unchanged score" applies only to routine snapshot refreshes. Once every existing
+  acceptance condition of an own criterion is demonstrably met and the required
+  independent verification is complete, L itself runs the existing acceptance
+  procedure, including the score change through `progress.py --write`/`--check`,
+  without extra owner approval unless that procedure requires it. Rubric, weights,
+  acceptance conditions, D1–D3 and the Security Floor are unchanged.
 
 ## Current cycle
 
