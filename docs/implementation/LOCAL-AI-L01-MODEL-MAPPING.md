@@ -210,7 +210,10 @@ KV/scratch) need their own owner decisions (section 7).
   current generation and reports a 32-byte digest equal to the pinned descriptor.
   Any mismatch moves the artifact to `Rejected`, which never links. Links are
   allowed only in `Verified` (decision agreed with K, #534 issuecomment-7219369139).
-  `Released` requires zero links. Every illegal transition is an error.
+  `Released` requires zero links and is reachable from every other state, so a
+  failed fill, an unverified seal or a rejected artifact is aborted and its budget
+  recovered; release frees every frame through the zeroing free path before reuse.
+  Every illegal transition is an error.
 
 ### 4.2 Paging and process lifecycle
 
