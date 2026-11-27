@@ -51,6 +51,9 @@ pub trait Authorization {
 /// All confidentiality, authentication, collision resistance and durability
 /// remain explicit backend assumptions. No native implementation is supplied.
 pub trait Backend {
+    /// Across this backend, block all new attempts while any prior publication
+    /// outcome is unresolved, including across replacement coordinators.
+    /// A failed or unavailable fence must retain that backend-wide gate.
     fn begin_attempt(&mut self, attempt: &[u8; 32]) -> Result<(), StoreError>;
     fn commitment(&mut self, bytes: &[u8; CHECKPOINT_BYTES]) -> [u8; 32];
     fn stage_chunk(
@@ -63,13 +66,27 @@ pub trait Backend {
     /// Confirm this exact candidate remains complete and durable at decision time.
     fn verify_candidate(&mut self, manifest: &Manifest) -> Result<(), StoreError>;
     /// Publish only the exact fully staged and flushed candidate bound to this
-    /// manifest. On uncertainty retain the prior bytes until resolution.
+    /// manifest. Block publication while any earlier attempt is unresolved,
+    /// including direct calls and across coordinators. Refuse terminal attempts.
+    /// On uncertainty atomically set the backend-wide gate and retain prior bytes.
     fn publish(&mut self, manifest: &Manifest) -> Result<(), StoreError>;
     /// Make the uncertain attempt terminal before a fresh authority read. Once
     /// this succeeds no delayed completion can modify published bytes, even
     /// after a later attempt publishes. Repeated fences are idempotent, because
-    /// the later authority read may fail. Failure or uncertainty must return Err.
+    /// the later authority read may fail. Fencing alone never releases the
+    /// backend-wide gate. Failure or uncertainty must return Err and retain it.
     fn fence_attempt(&mut self, manifest: &Manifest) -> Result<(), StoreError>;
+    /// Trusted modeled decision after fencing and exact independent selection.
+    /// Preserve both the exact prior checkpoint (if any) and the entire
+    /// candidate, even when prior is selected, before atomically releasing the
+    /// gate. Failure or uncertainty retains both the gate and candidate data.
+    /// This is a host-only contract, not a native recovery implementation.
+    fn finalize_attempt(
+        &mut self,
+        candidate: &Manifest,
+        prior: &Option<Manifest>,
+        selected: &Option<Manifest>,
+    ) -> Result<(), StoreError>;
     fn open_manifest(&mut self) -> Result<Manifest, StoreError>;
     fn open_chunk(
         &mut self,
@@ -251,16 +268,13 @@ impl Coordinator {
         let candidate = self.pending.as_ref().ok_or(StoreError::Invalid)?;
         backend.fence_attempt(candidate)?;
         let observed = authority.observe(&self.anchor, candidate)?;
-        if observed.as_ref() == Some(candidate) {
-            self.anchor = observed;
-            self.pending = None;
-            Ok(())
-        } else if observed == self.anchor {
-            self.pending = None;
-            Ok(())
-        } else {
-            Err(StoreError::Stale)
+        if observed.as_ref() != Some(candidate) && observed != self.anchor {
+            return Err(StoreError::Stale);
         }
+        backend.finalize_attempt(candidate, &self.anchor, &observed)?;
+        self.anchor = observed;
+        self.pending = None;
+        Ok(())
     }
     pub fn prepare<A: Authorization, B: Backend>(
         &self,

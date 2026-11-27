@@ -55,12 +55,33 @@ struct Fake {
     unknown: bool,
     unknown_applied: bool,
     attempts: Vec<[u8; 32]>,
+    unresolved: Option<[u8; 32]>,
     fenced: Vec<[u8; 32]>,
     fail_fence: bool,
+    fail_finalize: bool,
+    retained: Vec<(Manifest, Vec<Chunk>)>,
     verifies: usize,
     delayed: Option<(Manifest, Vec<Chunk>)>,
 }
 impl Fake {
+    fn snapshot_valid(&mut self, snapshot: &(Manifest, Vec<Chunk>)) -> bool {
+        let (manifest, chunks) = snapshot;
+        if chunks.len() != CHUNKS
+            || chunks.iter().enumerate().any(|(i, c)| {
+                c.manifest != *manifest
+                    || c.index != i
+                    || c.bytes.len() != if i + 1 == CHUNKS { 16 } else { 128 }
+            })
+        {
+            return false;
+        }
+        let mut bytes = [0; CHECKPOINT_BYTES];
+        for chunk in chunks {
+            let start = chunk.index * host_store::CHUNK_BYTES;
+            bytes[start..start + chunk.bytes.len()].copy_from_slice(&chunk.bytes);
+        }
+        self.commitment(&bytes) == manifest.commitment
+    }
     fn complete_delayed(&mut self) -> bool {
         let Some((manifest, chunks)) = self.delayed.take() else {
             return false;
@@ -74,6 +95,9 @@ impl Fake {
 }
 impl Backend for Fake {
     fn begin_attempt(&mut self, attempt: &[u8; 32]) -> Result<(), StoreError> {
+        if self.unresolved.is_some() {
+            return Err(StoreError::Unknown);
+        }
         if self.attempts.contains(attempt) {
             return Err(StoreError::Invalid);
         }
@@ -131,10 +155,17 @@ impl Backend for Fake {
         Ok(())
     }
     fn publish(&mut self, m: &Manifest) -> Result<(), StoreError> {
+        if self.unresolved.is_some() {
+            return Err(StoreError::Unknown);
+        }
+        if self.fenced.contains(&m.attempt) {
+            return Err(StoreError::Invalid);
+        }
         if self.staged.len() != CHUNKS || self.staged.iter().any(|c| c.manifest != *m) {
             return Err(StoreError::Invalid);
         }
         if self.unknown {
+            self.unresolved = Some(m.attempt);
             if !self.unknown_applied {
                 self.delayed = Some((m.clone(), self.staged.clone()));
             }
@@ -151,9 +182,51 @@ impl Backend for Fake {
         if self.fail_fence {
             return Err(StoreError::Backend);
         }
-        if !self.fenced.contains(&m.attempt) {
-            self.fenced.push(m.attempt);
+        if self.fenced.contains(&m.attempt) {
+            return Ok(());
         }
+        if self.unresolved != Some(m.attempt) {
+            return Err(StoreError::Invalid);
+        }
+        self.fenced.push(m.attempt);
+        Ok(())
+    }
+    fn finalize_attempt(
+        &mut self,
+        candidate: &Manifest,
+        prior: &Option<Manifest>,
+        selected: &Option<Manifest>,
+    ) -> Result<(), StoreError> {
+        if self.fail_finalize {
+            return Err(StoreError::Backend);
+        }
+        if self.unresolved != Some(candidate.attempt) || !self.fenced.contains(&candidate.attempt) {
+            return Err(StoreError::Invalid);
+        }
+        if self.published.as_ref().map(|p| &p.0) != selected.as_ref() {
+            return Err(StoreError::Stale);
+        }
+        let candidate_data = if self.published.as_ref().is_some_and(|p| &p.0 == candidate) {
+            self.published.clone().unwrap()
+        } else {
+            (candidate.clone(), self.staged.clone())
+        };
+        let prior_data = match prior {
+            None => None,
+            Some(m) if self.published.as_ref().is_some_and(|p| &p.0 == m) => self.published.clone(),
+            Some(m) if self.preserved.as_ref().is_some_and(|p| &p.0 == m) => self.preserved.clone(),
+            Some(_) => return Err(StoreError::Stale),
+        };
+        if !self.snapshot_valid(&candidate_data)
+            || prior_data.as_ref().is_some_and(|p| !self.snapshot_valid(p))
+        {
+            return Err(StoreError::Invalid);
+        }
+        if let Some(data) = prior_data {
+            self.retained.push(data);
+        }
+        self.retained.push(candidate_data);
+        self.unresolved = None;
         Ok(())
     }
     fn open_manifest(&mut self) -> Result<Manifest, StoreError> {
@@ -784,4 +857,285 @@ fn revoke_fences_unknown_attempt_and_retries_without_restoring_access() {
         // Repeated cleanup is safe and does not reauthorize or replay.
         assert_eq!(coordinator.revoke(&mut fake), Ok(()));
     }
+}
+
+#[test]
+fn revoked_uncertain_checkpoint_never_releases_gate_after_fence() {
+    for applied in [false, true] {
+        let mut original = Coordinator::new(binding(), [11; 32]);
+        let mut fake = Fake::default();
+        let mut prior_client = Client::new();
+        prior_client.enqueue([3; 32], 0, 0, b"prior bytes").unwrap();
+        let prior = original
+            .stage(
+                &prior_client,
+                1,
+                [1; 32],
+                &mut Auth { allowed: true },
+                &mut fake,
+            )
+            .unwrap();
+        original
+            .publish(prior, &mut Auth { allowed: true }, &mut fake)
+            .unwrap();
+        let prior_bytes = fake.published.as_ref().unwrap().1[0].bytes.clone();
+        let mut candidate_client = Client::new();
+        candidate_client
+            .enqueue([3; 32], 0, 0, b"different candidate bytes")
+            .unwrap();
+        let candidate = original
+            .stage(
+                &candidate_client,
+                2,
+                [2; 32],
+                &mut Auth { allowed: true },
+                &mut fake,
+            )
+            .unwrap();
+        let candidate_bytes = fake.staged[0].bytes.clone();
+        assert_ne!(prior_bytes, candidate_bytes);
+        let candidate_manifest = fake.staged[0].manifest.clone();
+        fake.unknown = true;
+        fake.unknown_applied = applied;
+        assert!(matches!(
+            original.publish(candidate, &mut Auth { allowed: true }, &mut fake),
+            Err(StoreError::Unknown)
+        ));
+        fake.fail_fence = true;
+        assert!(matches!(
+            original.revoke(&mut fake),
+            Err(StoreError::Backend)
+        ));
+        let replacement = Coordinator::new(binding(), [12; 32]);
+        let mut replacement_client = Client::new();
+        replacement_client
+            .enqueue([3; 32], 0, 0, b"distinct replacement bytes")
+            .unwrap();
+        assert!(matches!(
+            replacement.stage(
+                &replacement_client,
+                3,
+                [3; 32],
+                &mut Auth { allowed: true },
+                &mut fake
+            ),
+            Err(StoreError::Unknown)
+        ));
+        assert!(matches!(
+            Backend::publish(&mut fake, &candidate_manifest),
+            Err(StoreError::Unknown)
+        ));
+        fake.fail_fence = false;
+        original.revoke(&mut fake).unwrap();
+        assert_eq!(fake.unresolved, Some([2; 32]));
+        assert!(matches!(
+            replacement.stage(
+                &replacement_client,
+                3,
+                [3; 32],
+                &mut Auth { allowed: true },
+                &mut fake
+            ),
+            Err(StoreError::Unknown)
+        ));
+        assert!(matches!(
+            Backend::publish(&mut fake, &candidate_manifest),
+            Err(StoreError::Unknown)
+        ));
+        assert!(!fake.complete_delayed());
+        if applied {
+            assert_eq!(fake.published.as_ref().unwrap().1[0].bytes, candidate_bytes);
+            assert_eq!(fake.preserved.as_ref().unwrap().1[0].bytes, prior_bytes);
+        } else {
+            assert_eq!(fake.published.as_ref().unwrap().1[0].bytes, prior_bytes);
+            assert_eq!(fake.staged[0].bytes, candidate_bytes);
+        }
+        assert!(matches!(
+            original.resolve_unknown(&mut UnreachableAuthority, &mut fake),
+            Err(StoreError::Unauthorized)
+        ));
+    }
+}
+
+#[test]
+fn live_unknown_finalization_retains_exact_selected_bytes_before_gate_release() {
+    for applied in [false, true] {
+        let mut coordinator = Coordinator::new(binding(), [11; 32]);
+        let mut fake = Fake::default();
+        let mut prior_client = Client::new();
+        prior_client.enqueue([3; 32], 0, 0, b"prior bytes").unwrap();
+        let prior_stage = coordinator
+            .stage(
+                &prior_client,
+                1,
+                [1; 32],
+                &mut Auth { allowed: true },
+                &mut fake,
+            )
+            .unwrap();
+        coordinator
+            .publish(prior_stage, &mut Auth { allowed: true }, &mut fake)
+            .unwrap();
+        let prior = fake.published.clone().unwrap();
+        let mut candidate_client = Client::new();
+        candidate_client
+            .enqueue([3; 32], 0, 0, b"different candidate bytes")
+            .unwrap();
+        let candidate_stage = coordinator
+            .stage(
+                &candidate_client,
+                2,
+                [2; 32],
+                &mut Auth { allowed: true },
+                &mut fake,
+            )
+            .unwrap();
+        let candidate = (fake.staged[0].manifest.clone(), fake.staged.clone());
+        fake.unknown = true;
+        fake.unknown_applied = applied;
+        assert!(matches!(
+            coordinator.publish(candidate_stage, &mut Auth { allowed: true }, &mut fake),
+            Err(StoreError::Unknown)
+        ));
+        let chosen = if applied { &candidate } else { &prior };
+        fake.fail_finalize = true;
+        let mut authority = Independent {
+            result: Ok(Some(chosen.0.clone())),
+        };
+        assert!(matches!(
+            coordinator.resolve_unknown(&mut authority, &mut fake),
+            Err(StoreError::Backend)
+        ));
+        assert_eq!(fake.unresolved, Some([2; 32]));
+        fake.fail_finalize = false;
+        coordinator
+            .resolve_unknown(&mut authority, &mut fake)
+            .unwrap();
+        assert_eq!(fake.unresolved, None);
+        assert!(fake
+            .retained
+            .iter()
+            .any(|p| p.0 == prior.0 && p.1[0].bytes == prior.1[0].bytes));
+        assert!(fake
+            .retained
+            .iter()
+            .any(|p| p.0 == candidate.0 && p.1[0].bytes == candidate.1[0].bytes));
+        assert!(!fake.complete_delayed());
+        assert!(coordinator
+            .prepare(&mut Auth { allowed: true }, &mut fake)
+            .is_ok());
+    }
+}
+
+#[test]
+fn prior_resolution_retains_unapplied_candidate_after_client_is_dropped_and_new_publish() {
+    let mut coordinator = Coordinator::new(binding(), [11; 32]);
+    let mut fake = Fake::default();
+    let mut prior_client = Client::new();
+    prior_client.enqueue([3; 32], 0, 0, b"prior bytes").unwrap();
+    let p = coordinator
+        .stage(
+            &prior_client,
+            1,
+            [1; 32],
+            &mut Auth { allowed: true },
+            &mut fake,
+        )
+        .unwrap();
+    coordinator
+        .publish(p, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
+    let prior = fake.published.clone().unwrap();
+    let candidate = {
+        let mut candidate_client = Client::new();
+        candidate_client
+            .enqueue([3; 32], 0, 0, b"unsent unique candidate bytes")
+            .unwrap();
+        coordinator
+            .stage(
+                &candidate_client,
+                2,
+                [2; 32],
+                &mut Auth { allowed: true },
+                &mut fake,
+            )
+            .unwrap()
+    };
+    let candidate_bytes: Vec<u8> = fake
+        .staged
+        .iter()
+        .flat_map(|c| c.bytes.iter().copied())
+        .collect();
+    let candidate_manifest = fake.staged[0].manifest.clone();
+    fake.unknown = true;
+    fake.unknown_applied = false;
+    assert!(matches!(
+        coordinator.publish(candidate, &mut Auth { allowed: true }, &mut fake),
+        Err(StoreError::Unknown)
+    ));
+    coordinator
+        .resolve_unknown(
+            &mut Independent {
+                result: Ok(Some(prior.0.clone())),
+            },
+            &mut fake,
+        )
+        .unwrap();
+    fake.unknown = false;
+    let mut next_client = Client::new();
+    next_client
+        .enqueue([3; 32], 0, 0, b"next distinct data")
+        .unwrap();
+    let next = coordinator
+        .stage(
+            &next_client,
+            3,
+            [3; 32],
+            &mut Auth { allowed: true },
+            &mut fake,
+        )
+        .unwrap();
+    coordinator
+        .publish(next, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
+    let kept = fake
+        .retained
+        .iter()
+        .find(|p| p.0 == candidate_manifest)
+        .unwrap();
+    let kept_bytes: Vec<u8> = kept
+        .1
+        .iter()
+        .flat_map(|c| c.bytes.iter().copied())
+        .collect();
+    assert_eq!(kept_bytes, candidate_bytes);
+    assert!(fake.retained.iter().any(|p| p.0 == prior.0));
+}
+
+#[test]
+fn missing_or_damaged_candidate_keeps_gate_closed_even_when_prior_was_selected() {
+    let (mut coordinator, mut fake) = setup();
+    let prior = fake.published.as_ref().unwrap().0.clone();
+    let candidate = stage(&coordinator, &mut fake, 2, 2);
+    fake.unknown = true;
+    fake.unknown_applied = false;
+    assert!(matches!(
+        coordinator.publish(candidate, &mut Auth { allowed: true }, &mut fake),
+        Err(StoreError::Unknown)
+    ));
+    fake.staged[0].bytes[8] ^= 1;
+    assert!(matches!(
+        coordinator.resolve_unknown(
+            &mut Independent {
+                result: Ok(Some(prior))
+            },
+            &mut fake
+        ),
+        Err(StoreError::Invalid)
+    ));
+    assert_eq!(fake.unresolved, Some([2; 32]));
+    assert!(matches!(
+        coordinator.prepare(&mut Auth { allowed: true }, &mut fake),
+        Err(StoreError::Unknown)
+    ));
 }
