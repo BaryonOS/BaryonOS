@@ -5,6 +5,134 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-GOVERNANCE-AUTONOMY-20261127 — One governance baseline for all agent clients and G's mandate to formalise approved decisions
+
+**Status:** accepted. It formalises two owner decisions of 27 November 2026,
+given directly to Specialist G and received between 13:27Z and 13:36Z
+(`date -u`): "OWNER DECISIONS — GOVERNANCE RECONCILIATION", "OWNER
+DECISION — GOVERNANCE AUTONOMY" and "OWNER DECISION — PERMANENT GOVERNANCE
+AUTONOMY & DEVELOPMENT EFFICIENCY". The last one also approves #622 in
+substance. The exception to separate owner review in
+item 6 is introduced through the existing procedure for protected files: this
+pull request carries the owner's review. Afterwards the exception applies as
+described below.
+
+**Problem:** role contracts, handoffs and client files held contradictory or
+outdated rules: context-rotation thresholds of 60/65/75/80–85 % next to
+70/75/80/85 %, an older instruction to ask the owner before the first push of
+a branch, no recorded writer for the guard's acceptance processing, and a
+Graphify write pause that blocked recording decisions the owner had already
+taken. Each contradiction produced repeated owner questions.
+
+**Decision:**
+
+1. **Responsibility split (confirmed).** Every formally appointed specialist
+   enqueues its own merge-ready pull requests within its own area
+   (ADR-SPECIALIST-MANDATE-20261127). Every criterion owner keeps its own
+   `delivery_review` rows current (ADR-PROGRESS-OWN-ROWS-20261127). The PR
+   guard performs formal criterion acceptance and processes it into the
+   official score after complete independent verification; for that purpose
+   only, it may commit, push and enqueue its own pull requests that change
+   criterion status and score in `docs/progress.json`, the generated views and
+   the matching assessment file, plus its own `docs/handoffs/PR-WATCHER/**`.
+   It still writes no product code and gives no review verdicts. G stays
+   independent in substance and decides routing category C. No new mandatory
+   approval layer.
+2. **One canonical role architecture.** `.agents/roles/*.md` and
+   `docs/handoffs/` are the single canonical source for Claude Code, Codex and
+   GitHub Copilot. Client files under `.claude`, `.codex` and `.github` are
+   adapters without task state. Compatibility work is preparation, not a
+   migration GO.
+3. **Context rotation.** For every specialist the thresholds are 70 % prepare
+   the checkpoint, 75 % choose the rotation moment, 80 % CLEAR_READY with a
+   verified handoff, 85 % hard limit (owner 26 November 2026 about 21:15Z,
+   confirmed 27 November). They replace the values in item 5 of
+   ADR-SPECIALIST-TEAM-20261125. The guard still rotates only at the owner's
+   request.
+4. **No separate approval per push or enqueue.** Within an existing mandate a
+   specialist pushes and enqueues without asking first. Older instructions to
+   ask the owner before a push, the first push of a branch or an enqueue are
+   void. Required checks, the pre-merge open-run check, D1–D3, rulesets and the
+   Security Floor are unchanged.
+5. **Superseded questions.** An owner question that a newer decision answers
+   is recorded as decided and is not asked again after a context rotation.
+   Hosted Graphify is the decision register; no parallel register exists.
+6. **G's governance mandate.** G may, without a second owner approval:
+   process owner decisions already taken into binding documentation; draft,
+   update and integrate ADRs that only formalise approved decisions; bring
+   `AGENTS.md`, `CLAUDE.md`, role contracts and handoff instructions in line
+   with them; correct outdated or contradictory instructions; record existing
+   authority correctly; apply approved governance decisions equally to Claude
+   Code, Codex and GitHub Copilot; and remove administrative inefficiencies
+   within this mandate. This includes protected documentation files, but only
+   when the change demonstrably stays within an approved decision. Every such
+   pull request names the decision it formalises, keeps the review required
+   for protected files by ADR-SPECIALIST-MANDATE-20261127 (outside G's own
+   workstream), and never bypasses a ruleset or technical GitHub protection.
+   G never approves its own review.
+7. **Graphify.** G manages shared decision knowledge and may accept, correct,
+   consolidate and withdraw memories after validating each one individually:
+   origin, correctness, currency, contradictions and scope. Notes keep five
+   classes apart: explicit owner decision, validated decision rule,
+   demonstrable technical fact or lesson, unconfirmed hypothesis, and new
+   policy proposal. Only validated knowledge within the mandate is published;
+   a policy proposal goes to the owner. This replaces the earlier G write
+   pause and the rule that G accepts only 1:1 traceable candidates.
+8. **Escalation to the owner** only for: a fundamental new architecture
+   choice, a material change to a binding contract not yet approved,
+   relaxation of a safety or acceptance condition, a change of product
+   vision, a new financial commitment, an extension of a role's own
+   authority, or a materially unresolved risk. Administrative processing of a
+   decision already taken is not an owner question.
+
+9. **Permanent governance mission (owner, "PERMANENT GOVERNANCE AUTONOMY &
+   DEVELOPMENT EFFICIENCY", 27 November 2026).** G continuously guards and
+   improves the quality, consistency, efficiency and durability of project
+   governance, so that specialists are not blocked by decisions already
+   taken, outdated instructions, context rotation or organisational
+   dependencies. Where possible G measures avoided owner questions, avoided
+   repeated reviews, avoided context loss, time lost to dependencies,
+   recurring contradictions and the effect on PR-to-main lead time. New
+   decision rules need evidence and validated generalisation, and no extra
+   administrative system is introduced without demonstrable net value. This
+   work has no final completion state. It does not widen G's authority
+   beyond items 6 to 8.
+10. **CI performance-engineering mandate (same owner decision).** CI holds
+    the permanent responsibility "CONTINUOUS PR-TO-MAIN OPTIMIZATION — NO
+    FINAL COMPLETION STATE": it continuously minimises the full PR-to-main
+    lead time without loss of quality, safety or reliable verification.
+    Reaching the current P0 targets is not an end point. Historical process
+    inefficiency is not by itself a necessary safety measure; effective
+    quality control, D1–D3, required checks and the Security Floor stay.
+
+11. **Continuous optimisation (owner, "CONTINUOUS BARYONOS OPTIMIZATION",
+    27 November 2026, 13:37Z in the PR guard's log, relayed to CI, G, K and
+    R).** Permanent mandates with no final completion state:
+    - CI minimises PR-to-main lead time.
+    - G minimises organisational delay, repeated owner questions,
+      unnecessary review rounds, conflicting instructions and context loss.
+    - K maximises safe kernel performance, scalability and robustness.
+    - R identifies and measures runtime bottlenecks and maximises real
+      runtime performance and user experience. Kernel changes stay with K.
+    - The PR guard maximises safe integration throughput and tracks real
+      project gain.
+
+    The cycle is measure, analyse, prioritise, implement, verify, integrate,
+    and measure again. Work is chosen by net project value, without duplicate
+    research or overlapping ownership. Existing measurements, infrastructure
+    and Graphify are reused. CI, virtualisation and OS runtime performance
+    are kept separate. No role becomes an approval layer, and necessary
+    checks stay.
+
+**Alternatives considered:** keeping a separate owner review for every
+documentation change (rejected by the owner: it repeats decisions already
+taken); a separate decision register next to Graphify (rejected: it would
+duplicate the register).
+
+**Rollback:** the owner withdraws or narrows item 6 or 7 by a later decision;
+G then stops the affected actions, and documentation already integrated stays
+until a correcting pull request lands.
+
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
 **Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the
@@ -177,6 +305,36 @@ commit of #572.
 - The three `select` jobs still plan `merge_group` from
   `merge_group.base_sha`; they never narrow on it, so this is harmless here.
   PR B must plan them from T before any job is skipped on `merge_group`.
+
+**Amendment (PR B, 27 November 2026, CI specialist, #494; implemented,
+hosted-unverified until the first `merge_group` run after PR B lands).** PR B
+(branch `ci/merge-group-skip-20261126`) is the later change named under
+Source; the statements above that describe the state "until PR B" are
+superseded as follows.
+
+- Each of the 19 workflows that merge-hold can leave out of a merge group
+  gains a `merge-group-gate` job (`merge_group` only). It loads
+  `tools/merge_hold.py` from T through `./.github/actions/trusted-base` and
+  asks `merge_group_skip()`. Only an explicit `True` skips the workflow's
+  jobs on the queue commit; a missing function, an error or any other answer
+  runs every job. On every other event the gate is skipped and changes
+  nothing. On the queue commit, an unselected workflow therefore still starts
+  its small gate job, but its gated suites no longer run.
+- `ci.yml`, CodeQL and the three workflows with a `select` job have no gate
+  and still run whole on `merge_group`. Those three `select` jobs now plan
+  `merge_group` from T, not from `merge_group.base_sha`.
+- The two-source rule stays unchanged; consolidating the selection logic is
+  separate work.
+- Accepted risk (D2 finding F1): the gate jobs and merge-hold fetch `main`
+  separately. In a stacked queue an entry ahead can land between those
+  fetches, so a gate can derive a newer T and skip a workflow that merge-hold
+  still expects. merge-hold reports such an expected job as failed, whether
+  GitHub lists it as `skipped` or not at all (a skipped matrix job may be
+  "missing"; `tools/merge_hold.py` accepts only `success`), so merge-hold
+  fails, the queue removes the entry, and its owner must enqueue it again;
+  nothing re-queues it automatically. This costs a queue round but
+  never passes an untested gate (fail-closed), so it is accepted rather than
+  adding a shared T between workflows.
 
 **Revise when:** the first queue trial shows a stacked group's base or run
 payloads that differ from the above; PR B lands; or GitHub documents the

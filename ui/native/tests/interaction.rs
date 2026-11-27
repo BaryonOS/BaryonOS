@@ -1440,6 +1440,61 @@ macro_rules! scenario {
         }
     };
 }
+fn focus_lost_cancels_input_without_input_lost_banner_impl() {
+    // Mutation control: the same cancellation with SourceLost must still show
+    // InputLost, so the FocusLost assertion cannot pass vacuously (#541).
+    for (reason, banner) in [
+        (CancelReason::FocusLost, false),
+        (CancelReason::Resync, false),
+        (CancelReason::SourceLost, true),
+    ] {
+        let host = Host::new();
+        let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        ui.create().unwrap();
+        ui.deliver(envelope(1, 1, key(PhysicalKey::A))).unwrap();
+        let status = ui.view().status;
+        assert_ne!(status, Status::InputLost);
+        let mut mouse = Ps2Mouse::new();
+        let mut pressed = None;
+        for byte in [0x09, 0, 0] {
+            pressed = mouse.feed(byte).unwrap();
+        }
+        ui.deliver(envelope(
+            2,
+            1,
+            Event::Mouse {
+                input: pressed.unwrap(),
+                x: 10,
+                y: 10,
+            },
+        ))
+        .unwrap();
+        ui.deliver(envelope(3, 1, Event::Cancel(reason))).unwrap();
+        assert_eq!(ui.view().cursor, None);
+        assert!(ui.view().document_menu.is_none());
+        assert_eq!(ui.view().status == Status::InputLost, banner);
+        if !banner {
+            assert_eq!(ui.view().status, status);
+        }
+        assert_eq!(ui.view().contents, Some("a"));
+        // Returning focus with a newer generation resumes input normally.
+        ui.deliver(envelope(4, 2, key(PhysicalKey::B))).unwrap();
+        assert_eq!(ui.view().contents, Some("ab"));
+    }
+}
+scenario!(
+    focus_lost_cancels_input_without_input_lost_banner,
+    focus_lost_cancels_input_without_input_lost_banner_impl
+);
 scenario!(
     editor_damage_covers_wrapping_selection_and_superseded_rows,
     editor_damage_covers_wrapping_selection_and_superseded_rows_impl
