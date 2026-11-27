@@ -6,7 +6,7 @@ updated: 2026-11-27
 sources:
   - code: .github/workflows/merge-hold-recheck.yml
   - code: tools/merge_hold_recheck.py
-verified_at: d1d055f
+verified_at: 14fa8014
 ---
 
 # CI verification route

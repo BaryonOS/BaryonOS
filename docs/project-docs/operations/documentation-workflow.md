@@ -7,7 +7,7 @@ sources:
   - code: AGENTS.md
   - code: docs/AGENTS.md
   - code: .claude/scripts/docs-lint.py
-verified_at: 2c88aed6
+verified_at: 14fa8014
 ---
 
 # Model-independent documentation workflow
@@ -47,6 +47,9 @@ python3 -B .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs
 The script checks frontmatter, `[[links]]`, orphans, source paths, code citations,
 staleness and unverifiable freshness. Its location is retained for compatibility with
 existing hooks; it is ordinary Python and can be run by every agent.
+
+The linter treats root-level `AGENTS.md`, `CLAUDE.md`, `index.md`, `log.md` and
+`README.md` files in this layer as metadata rather than maintained content pages.
 
 > ⚠️ The `.claude/` path does not make the linter or documentation Claude-specific.
 > Authority lives in repository `AGENTS.md` files and this maintained layer.
