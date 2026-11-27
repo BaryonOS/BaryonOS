@@ -87,9 +87,12 @@ class AgentGovernanceTests(unittest.TestCase):
                 self.assertEqual(copilot.is_file(), tool_class == "builder")
                 if copilot.is_file():
                     tools = json.loads(re.search(r"^tools: (.+)$", copilot.read_text(), re.M)[1])
-                    self.assertEqual(tools[:4], ["read", "search", "edit", "execute"])
-                    self.assertTrue(all(t.startswith("graphify/") for t in tools[4:]))
-                    self.assertNotIn("graphify/remember", tools)
+                    # Exact pin: a widened list (e.g. `graphify/*`) must fail even after a regenerate.
+                    self.assertEqual(tools, ["read", "search", "edit", "execute"] + [
+                        f"graphify/{t}" for t in (
+                            "recall", "graphify_rank_files", "graphify_find", "graphify_callers",
+                            "graphify_impact", "graphify_tests_for", "graphify_file_neighbors",
+                            "query_graph")])
                 for path in (f".codex/agents/{role}.toml", f".claude/agents/{slug}.md",
                              f".github/agents/{slug}.agent.md"):
                     self.assertTrue(agent_pipeline.is_protected(path))
