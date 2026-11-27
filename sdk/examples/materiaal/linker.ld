@@ -19,8 +19,8 @@ SECTIONS {
   ASSERT(. <= 0x400f0000, "data/BSS exceeds 256 KiB")
   . = 0x400f0000;
   .text : ALIGN(4096) { *(.text .text.*) } :code
-  /* Veld document tools require one additional fixed RX-only page; all R/RW,
-     startup, entry, stack and kernel per-process quotas stay unchanged. */
-  ASSERT(SIZEOF(.text) <= 0x28000, "code exceeds 160 KiB")
+  /* Fixed RX-only budget (ADR-MATERIAL-LIBRARY-20261102, 160->176 KiB on 26 Nov
+     2026); all R/RW, startup, entry, stack and kernel per-process quotas stay unchanged. */
+  ASSERT(SIZEOF(.text) <= 0x2C000, "code exceeds 176 KiB")
   /DISCARD/ : { *(.eh_frame*) *(.comment) *(.note*) *(.llvm_addrsig) }
 }

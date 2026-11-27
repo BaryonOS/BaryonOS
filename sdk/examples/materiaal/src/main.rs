@@ -16,7 +16,7 @@ use nieuw_os_document_session::{
 use nieuw_os_input_client::{Binding, Session as Input};
 use nieuw_os_materiaal::{controller::Controller, Viewport};
 use nieuw_os_materiaal_app::{bootstrap::Bootstrap, idle, App, Evidence, Observation};
-use nieuw_os_sdk_runtime::{native, Outgoing, Received, SendEndpoint};
+use nieuw_os_sdk_runtime::{native, NativeReplyWait, Outgoing, Received, SendEndpoint};
 use nieuw_os_surface_protocol::client::Session as Surface;
 
 const TAG: u64 = 0x5359_5354_454d_0001;
@@ -120,10 +120,8 @@ fn publish(e: Evidence, observation: Observation) {
 
 #[no_mangle]
 pub extern "C" fn materiaal_main() -> ! {
-    let idle_mode = native::abi_info()
-        .ok()
-        .and_then(idle::Mode::from_abi)
-        .unwrap_or_else(|| fail(1));
+    let abi = native::abi_info().unwrap_or_else(|_| fail(1));
+    let idle_mode = idle::Mode::from_abi(abi).unwrap_or_else(|| fail(1));
     let mut config = Bootstrap::read(support::word).unwrap_or_else(|| fail(2));
     // READY here is bootstrap/ELF readiness, not rendered UI or a saved file.
     send(config.registry_send, 1);
@@ -143,7 +141,7 @@ pub extern "C" fn materiaal_main() -> ! {
         fail(4);
     }
     let mut surface = Surface::new(
-        NativeTransport,
+        NativeReplyWait::new(abi),
         config.compositor_pid,
         config.surface_epoch,
         config.surface_send,
@@ -279,7 +277,7 @@ pub extern "C" fn materiaal_main() -> ! {
                     fail(18);
                 }
                 let mut surface = Surface::new(
-                    NativeTransport,
+                    NativeReplyWait::new(abi),
                     next.compositor_pid,
                     next.surface_epoch,
                     next.surface_send,

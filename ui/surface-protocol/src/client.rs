@@ -10,6 +10,13 @@ use nieuw_os_sdk_runtime::{
     Error as RuntimeError, Outgoing, ReceiveEndpoint, Received, SendEndpoint,
 };
 
+/// Reply wait in PIT ticks (100 Hz) for transports that can block. The
+/// compositor expires a staged tile at `begin + 200` and drops an undeliverable
+/// reply after `start + 200`, both on its pass clock. 150 keeps the client's
+/// Delivery error first while the Begin-to-wait gap and that pass skew stay
+/// below 50 ticks (measured worst reply 8 ticks locally, ~20 estimated hosted).
+pub const REPLY_DEADLINE_TICKS: u64 = 150;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Error {
     Configuration,
@@ -242,8 +249,14 @@ impl<T: Transport> Session<T> {
         ))
     }
     fn receive_reply(&mut self, expected: Header) -> Result<Reply, Error> {
+        // One absolute deadline per reply; the poll budget stays the second bound.
+        let deadline = match self.transport.reply_deadline(REPLY_DEADLINE_TICKS) {
+            Ok(deadline) => deadline,
+            Err(error) => return Err(self.interrupted(Delivery::Enqueued, Some(error))),
+        };
         let message: Received = {
             let mut found = None;
+            let mut expired = false;
             for _ in 0..self.budget {
                 self.counts.receive_calls = self.add_count(self.counts.receive_calls, 1)?;
                 match self.transport.receive(self.receive) {
@@ -254,7 +267,18 @@ impl<T: Transport> Session<T> {
                     Err(error) if error.is_again() => {}
                     Err(error) => return Err(self.interrupted(Delivery::Enqueued, Some(error))),
                 }
-                if let Err(error) = self.transport.yield_now() {
+                // The receive after an elapsed wait is the final pass.
+                if expired {
+                    break;
+                }
+                let waited = match deadline {
+                    None => self.transport.yield_now(),
+                    Some(at) => self
+                        .transport
+                        .wait_receive(self.receive, at)
+                        .map(|ready| expired = !ready),
+                };
+                if let Err(error) = waited {
                     return Err(self.interrupted(Delivery::Enqueued, Some(error)));
                 }
             }
@@ -597,5 +621,88 @@ mod counter_tests {
             closed(&session);
             assert_eq!(session.counts.send_calls, 0);
         }
+    }
+}
+
+#[cfg(test)]
+mod wait_tests {
+    use super::*;
+    use nieuw_os_sdk_runtime::Handle;
+
+    /// A reply endpoint that never answers. `ready` turns every wait into a
+    /// spurious wake instead of an elapsed deadline.
+    struct Silent {
+        now: u64,
+        ready: bool,
+        receives: u64,
+        waits: u64,
+        yields: u64,
+    }
+    impl Transport for Silent {
+        fn send(&mut self, _: SendEndpoint, _: &Outgoing) -> Result<(), RuntimeError> {
+            Ok(())
+        }
+        fn receive(&mut self, _: ReceiveEndpoint) -> Result<Received, RuntimeError> {
+            self.receives += 1;
+            Err(RuntimeError::Kernel(-8))
+        }
+        fn yield_now(&mut self) -> Result<(), RuntimeError> {
+            self.yields += 1;
+            Ok(())
+        }
+        fn close(&mut self, _: Handle) -> Result<(), RuntimeError> {
+            Ok(())
+        }
+        fn reply_deadline(&mut self, ticks: u64) -> Result<Option<u64>, RuntimeError> {
+            Ok(Some(self.now + ticks))
+        }
+        fn wait_receive(&mut self, _: ReceiveEndpoint, at: u64) -> Result<bool, RuntimeError> {
+            self.waits += 1;
+            if self.ready {
+                self.now += 1;
+            } else {
+                self.now = self.now.max(at);
+            }
+            Ok(self.ready)
+        }
+    }
+    fn geometry(ready: bool, budget: usize) -> Session<Silent> {
+        let transport = Silent {
+            now: 1000,
+            ready,
+            receives: 0,
+            waits: 0,
+            yields: 0,
+        };
+        let mut session = Session::new(
+            transport,
+            2,
+            11,
+            SendEndpoint::from_handle(Handle::from_raw(0x1_0000_0001).unwrap()),
+            ReceiveEndpoint::from_handle(Handle::from_raw(0x1_0000_0002).unwrap()),
+            budget,
+        )
+        .unwrap();
+        assert_eq!(
+            session.geometry(),
+            Err(Error::Interrupted {
+                delivery: Delivery::Enqueued,
+                runtime: None,
+                cleanup: None,
+            })
+        );
+        assert!(session.is_closed());
+        session
+    }
+    #[test]
+    fn silent_reply_fails_at_the_deadline_after_one_final_receive() {
+        let t = geometry(false, MAX_POLL_BUDGET).transport;
+        assert_eq!(t.now, 1000 + REPLY_DEADLINE_TICKS);
+        assert_eq!((t.waits, t.receives, t.yields), (1, 2, 0));
+    }
+    #[test]
+    fn spurious_wakes_stay_bounded_by_the_poll_budget() {
+        let t = geometry(true, 5).transport;
+        assert_eq!((t.waits, t.receives, t.yields), (5, 5, 0));
     }
 }

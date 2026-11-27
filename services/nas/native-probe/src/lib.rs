@@ -421,20 +421,29 @@ pub enum Delivery {
 /// `native-client` over encoded NASP frames. No principal travels in a frame:
 /// the NAS derives the caller from the kernel-supplied sender. A request that
 /// was sent without a matching valid reply is `Unknown` and never replayed.
+///
+/// `call(Some(request))` sends and then receives one reply; `call(None)` only
+/// receives the next reply for a request that was already sent. A bounded
+/// receive that gives up after a queued send is `Sent`.
 pub struct NaspRemote<F> {
     caller: Principal,
     call: F,
     next: u64,
+    /// Exchanges that ended `Unknown` after a send: at most this many late
+    /// replies may still arrive, so at most this many are dropped.
+    lost: u64,
 }
 
-impl<F: FnMut(&[u8; SIZE]) -> Result<[u8; SIZE], Delivery>> NaspRemote<F> {
+impl<F: FnMut(Option<&[u8; SIZE]>) -> Result<[u8; SIZE], Delivery>> NaspRemote<F> {
     /// `caller` is this process's own trusted-ingress identity, used only for
-    /// the client's ticket routing.
+    /// the client's ticket routing. The remote owns the endpoint's correlation
+    /// sequence: no other request may be outstanding on it.
     pub fn new(caller: Principal, call: F) -> Self {
         Self {
             caller,
             call,
             next: 1,
+            lost: 0,
         }
     }
 
@@ -442,18 +451,29 @@ impl<F: FnMut(&[u8; SIZE]) -> Result<[u8; SIZE], Delivery>> NaspRemote<F> {
         request.request = self.next;
         self.next = self.next.checked_add(1).ok_or(Error::Invalid)?;
         let bytes = request.encode(false)?;
-        let reply = match (self.call)(&bytes) {
-            Ok(reply) => reply,
+        let mut reply = match (self.call)(Some(&bytes)) {
             Err(Delivery::NotSent(error)) => return Err(error),
-            Err(Delivery::Sent) => return Err(Error::Unknown),
+            reply => reply.ok(),
         };
-        let reply = Frame::decode(&reply, true).map_err(|_| Error::Unknown)?;
-        if reply.op != request.op || reply.request != request.request {
-            return Err(Error::Unknown);
-        }
-        match reply.status {
-            Some(error) => Err(error),
-            None => Ok(reply),
+        loop {
+            match reply.and_then(|bytes| Frame::decode(&bytes, true).ok()) {
+                // A late reply to an earlier `Unknown` exchange: drop it and
+                // receive again; the request itself is never resent.
+                Some(late) if late.request < request.request && self.lost > 0 => {
+                    self.lost -= 1;
+                    reply = (self.call)(None).ok();
+                }
+                Some(reply) if reply.op == request.op && reply.request == request.request => {
+                    return match reply.status {
+                        Some(error) => Err(error),
+                        None => Ok(reply),
+                    };
+                }
+                _ => {
+                    self.lost = self.lost.saturating_add(1);
+                    return Err(Error::Unknown);
+                }
+            }
         }
     }
 
@@ -464,7 +484,7 @@ impl<F: FnMut(&[u8; SIZE]) -> Result<[u8; SIZE], Delivery>> NaspRemote<F> {
     }
 }
 
-impl<F: FnMut(&[u8; SIZE]) -> Result<[u8; SIZE], Delivery>> Remote for NaspRemote<F> {
+impl<F: FnMut(Option<&[u8; SIZE]>) -> Result<[u8; SIZE], Delivery>> Remote for NaspRemote<F> {
     fn caller(&self) -> Principal {
         self.caller
     }
