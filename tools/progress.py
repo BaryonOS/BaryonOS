@@ -10,6 +10,7 @@ import json
 import math
 from pathlib import Path
 import re
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +21,14 @@ ASSESSMENTS = "docs/progress/assessments"
 ASSESSMENT_FILE = re.compile(r"(\d{4}-\d{2}-\d{2})-[a-z0-9][a-z0-9-]{0,80}\.json")
 ASSESSMENT_MAX_BYTES = 16 * 1024
 ASSESSMENT_KEYS = {"date", "source_commit", "assessment_basis", "branch", "task", "previous_score", "summary"}
+# Optional since CI-PROG-1 P2 (owner, 27 Nov 2026): the criteria whose delivery_review rows the task
+# changed. A name for --check-rows only, never proof of ownership or authorisation.
+ASSESSMENT_OPTIONAL_KEYS = {"criteria"}
+# CI-PROG-1 P1: --check-rows compares delivery_review rows with a base commit (advisory report).
+ROW_TEXT_FIELDS = ("description", "observation", "remaining")
+ROW_MARKER = re.compile(r"updated (\d{4}-\d{2}-\d{2}) @([0-9a-f]{7,40})\b")  # ADR-PROGRESS-OWN-ROWS-20261127
+REVIEW_HEADER_KEYS = ("method_version", "date", "source_commit", "scope")
+GUARD_ONLY_KEYS = ("schema_version", "rubric_version", "assessment", "tracks")
 README_MARKERS = ("<!-- OS-PROGRESS:BEGIN -->", "<!-- OS-PROGRESS:END -->")
 RUBRIC_MARKERS = ("<!-- OS-RUBRIC:BEGIN -->", "<!-- OS-RUBRIC:END -->")
 IMPLEMENTATION_STATES = ("implemented", "partial", "missing", "unknown")
@@ -186,6 +195,7 @@ def load_task_assessments(data: dict) -> list[dict]:
     if not folder.exists() and not folder.is_symlink():
         return []
     require(folder.is_dir() and not folder.is_symlink(), "Assessment directory is not a plain directory")
+    gates = {gate["id"] for track in data["tracks"] for gate in track["gates"]}
     records = []
     for path in sorted(folder.iterdir()):
         where = f"{path.relative_to(ROOT)}: "
@@ -194,9 +204,14 @@ def load_task_assessments(data: dict) -> list[dict]:
         require(path.is_file() and not path.is_symlink(), where + "must be a regular file")
         require(path.stat().st_size <= ASSESSMENT_MAX_BYTES, f"{where}larger than {ASSESSMENT_MAX_BYTES} bytes")
         record = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_keys)
-        require(isinstance(record, dict) and set(record) == ASSESSMENT_KEYS,
-                where + "fields must be exactly " + ", ".join(sorted(ASSESSMENT_KEYS)))
+        require(isinstance(record, dict) and ASSESSMENT_KEYS <= set(record) <= ASSESSMENT_KEYS | ASSESSMENT_OPTIONAL_KEYS,
+                where + "fields must be exactly " + ", ".join(sorted(ASSESSMENT_KEYS))
+                + " (optional: " + ", ".join(sorted(ASSESSMENT_OPTIONAL_KEYS)) + ")")
         validate_assessment(record, where)
+        if "criteria" in record:
+            named = record["criteria"]
+            require(isinstance(named, list) and bool(named) and len(named) == len(set(named))
+                    and all(cid in gates for cid in named), where + "criteria must list distinct criterion IDs")
         require(record["date"] == match[1], where + "file name date differs from the assessment date")
         require(integer(record["previous_score"], 0, 100), where + "a task assessment records the unchanged score")
         records.append(record)
@@ -371,13 +386,117 @@ def replace_block(path: Path, markers: tuple[str, str], block: str) -> str:
     return text[:start] + block + text[stop + len(end):]
 
 
+def git(*args: str) -> subprocess.CompletedProcess:
+    """Run a read-only git query in the repository root."""
+    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=False)
+
+
+def criterion_label(value: object) -> str:
+    """Print only well-formed criterion IDs; reports never echo row text."""
+    return value if isinstance(value, str) and re.fullmatch(r"[A-Z][0-9]{2}", value) else "invalid-id"
+
+
+def row_markers(item: dict | None) -> set[str]:
+    """Return the valid `updated YYYY-MM-DD @<sha>` markers in a row's text fields."""
+    found = set()
+    for field in ROW_TEXT_FIELDS if item else ():
+        for date, sha in ROW_MARKER.findall(str(item.get(field, ""))):
+            try:
+                if dt.date.fromisoformat(date).isoformat() == date:
+                    found.add(f"{date} @{sha}")
+            except ValueError:  # not a calendar date: this marker is invalid, keep scanning
+                continue
+    return found
+
+
+def added_assessment_criteria(base: str) -> set[str]:
+    """Union of the optional `criteria` of assessment files absent at base (also on merge_group composites)."""
+    listed = git("ls-tree", "--name-only", base, ASSESSMENTS + "/")
+    require(listed.returncode == 0, "base assessment list unreadable")
+    at_base = {Path(name).name for name in listed.stdout.splitlines()}
+    folder = ROOT / ASSESSMENTS
+    named: set[str] = set()
+    for path in sorted(folder.glob("*.json")) if folder.is_dir() else ():
+        if path.name not in at_base:
+            criteria = json.loads(path.read_text(encoding="utf-8")).get("criteria", [])
+            if isinstance(criteria, list):
+                named.update(cid for cid in criteria if isinstance(cid, str))
+    return named
+
+
+def row_findings(base: dict, head: dict, named: set[str]) -> tuple[list[str], list[str]]:
+    """Compare two registers; return changed criterion IDs and findings as fixed rule names plus IDs."""
+    findings = [f"guard-only-change: {key}" for key in GUARD_ONLY_KEYS if base.get(key) != head.get(key)]
+    old_review, new_review = base["delivery_review"], head["delivery_review"]
+    findings += [f"header-changed: delivery_review.{key}" for key in REVIEW_HEADER_KEYS
+                 if old_review.get(key) != new_review.get(key)]
+    old = {c["id"]: c for c in old_review["criteria"]}
+    new = {c["id"]: c for c in new_review["criteria"]}
+    changed = sorted((cid for cid in old.keys() | new.keys() if old.get(cid) != new.get(cid)), key=str)
+    source = new_review["source_commit"]
+    # Local evidence renders as blob/<header source_commit>/<path> (delivery_block); a commit absent
+    # from this clone (shallow, or orphaned by a squash merge) is unknown, never missing.
+    have_source = (isinstance(source, str) and re.fullmatch(r"[0-9a-f]{40}", source) is not None
+                   and git("cat-file", "-e", source + "^{commit}").returncode == 0)
+    for cid in changed:
+        label_ = criterion_label(cid)
+        if cid not in named:
+            findings.append(f"criterion-not-named-in-added-assessment: {label_}")
+        if cid not in new:
+            findings.append(f"criterion-removed: {label_}")
+            continue
+        base_rows = old.get(cid, {}).get("requirements", [])
+        before = {item["description"]: item for item in base_rows}
+        # Fresh means absent from every base row of the criterion, so a renamed row cannot reuse its old marker.
+        base_markers = set().union(*map(row_markers, base_rows))
+        for index, item in enumerate(new[cid]["requirements"], 1):
+            prior = before.get(item["description"])
+            if item == prior:
+                continue
+            where = f"{label_} row {index}"
+            if not row_markers(item) - base_markers:
+                findings.append(f"row-without-new-updated-marker: {where}")
+            added = [ref for ref in item["evidence"]
+                     if not ref.startswith("https://") and ref not in (prior or {}).get("evidence", [])]
+            if added and not have_source:
+                findings.append(f"evidence-source-commit-unknown: {where}")
+            elif any(git("cat-file", "-e", f"{source}:{ref}").returncode != 0 for ref in added):
+                findings.append(f"evidence-not-at-source-commit: {where}")
+    return [criterion_label(cid) for cid in changed], findings
+
+
+def report_rows(base: str) -> int:
+    """CI-PROG-1 P1 advisory report: exit 1 with findings, 0 without; a report failure is never a gate."""
+    try:
+        require(re.fullmatch(r"[0-9a-f]{7,40}", base) is not None, "base must be a hexadecimal commit")
+        shown = git("show", f"{base}:docs/progress.json")
+        require(shown.returncode == 0, "base register unreadable")
+        changed, findings = row_findings(json.loads(shown.stdout), json.loads(DATA.read_text(encoding="utf-8")),
+                                         added_assessment_criteria(base))
+    except Exception as exc:  # advisory by design (owner, 27 Nov 2026): report, never block
+        print(f"Progress row report skipped ({type(exc).__name__}).")
+        return 0
+    print(f"Progress row report (advisory, CI-PROG-1) against {base[:12]}: changed criteria: "
+          f"{', '.join(changed) or 'none'}; {len(findings)} finding(s). Named criteria are not proof of ownership.")
+    for finding in findings:
+        print(f"- {finding}")
+    return 1 if findings else 0
+
+
 def main() -> int:
     """Check or update the generated progress views."""
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="Check rubric, evidence references, and generated views (default)")
     mode.add_argument("--write", action="store_true", help="Update README, criteria table, and local SVG")
+    mode.add_argument("--check-rows", action="store_true",
+                      help="Advisory: report delivery_review row changes against --base (ADR-PROGRESS-OWN-ROWS-20261127)")
+    parser.add_argument("--base", help="Base commit for --check-rows")
     args = parser.parse_args()
+    if args.check_rows:
+        if not args.base:
+            parser.error("--check-rows needs --base <commit>")
+        return report_rows(args.base)
     try:
         data = load_progress()
         outputs = {

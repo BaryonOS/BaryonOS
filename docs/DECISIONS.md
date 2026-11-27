@@ -335,7 +335,48 @@ the date and commit in the row text, and passes `progress.py --check`.
      list. Amendments inside an existing ADR need no slot. This comment and
      unused slots go away with the move to one file per ADR. -->
 
-<!-- adr-slot: 636 -->
+## ADR-PROGRESS-ROW-CHECK-20261127 — Advisory row-level check of the progress register and optional criterion lists in assessments
+
+**Status:** accepted by the project owner on 27 November 2026 at about 13:35 UTC, in the CI chat (#494 issuecomment-7219844497 §7):
+- P1 GO, advisory, in an existing light job;
+- P2 GO;
+- P3 two-week measurement agreed.
+
+The CI specialist proposed it in #494 issuecomment-7219480767, and G routed it (routing C, Q4, 27 November 2026 13:44 UTC). An independent D2 review (separate read-only agent, GO, 27 November 2026) and a CodeRabbit review preceded integration. It changes no required check, ruleset, score, criterion or acceptance result.
+
+**Problem:** owners edit their own `delivery_review` rows (ADR-PROGRESS-OWN-ROWS-20261127). `tools/progress.py --check` never calls git, so several rules were not checked:
+- an unchanged header;
+- guard-only fields;
+- a fresh `updated` marker on an edited row;
+- local evidence that exists at the commit the renderer links to.
+
+Assessment files also could not name criteria, so "only rows of named criteria" was not deterministic.
+
+**Decision:**
+1. `python3 -B tools/progress.py --check-rows --base <sha>` compares the register with a base commit. It reports fixed rule names and criterion IDs only, never row text. The rules:
+   - a guard-only change (`schema_version`, `rubric_version`, `assessment`, `tracks`);
+   - a changed shared `delivery_review` header field;
+   - a changed row without a new valid `updated YYYY-MM-DD @<7-40 hex>` marker anywhere in its text;
+   - an added local evidence path that is missing at the header `source_commit` (reported as unknown when that commit is absent, never as missing);
+   - a changed criterion not named in an assessment file the diff adds;
+   - a removed criterion.
+
+   The mode exits 1 with findings and 0 without. Any internal failure prints `Progress row report skipped (<Type>).` and exits 0. `--check` and `--write` are unchanged.
+2. The mode runs as one step of `ci.yml#ci-impact-shadow` on `pull_request` only, with the merge ref's first parent as base. It writes the job summary and one warning and never fails the job. It is not a required check. Promotion to required needs proven reliability and a D decision.
+3. Assessment files may carry an optional `criteria` list of existing, distinct criterion IDs. Naming a criterion is not proof of ownership or authorisation; the PR guard keeps formal acceptance and the score.
+4. P3: from 27 November to 11 December 2026, CI counts the merge-queue ejections and rebase conflicts caused by the shared count lines in `README.md` and `docs/PROGRESS.md`. Q-C (whether the README keeps the delivery counts) is decided after that measurement.
+
+**Deviations from the proposal:**
+- Rule (c) accepts the marker anywhere in the row text, as ADR-PROGRESS-OWN-ROWS-20261127 words it, not only as a leading prefix.
+- Rule (d) checks the header `source_commit`, which is where `delivery_block` links, rather than the row's cited SHA.
+
+**Source:** branch `ci/progress-check-rows-20261127`. Changed files:
+- `tools/progress.py` (`report_rows`, `row_findings`, `row_markers`, `added_assessment_criteria`);
+- `tools/tests/test_progress.py`;
+- `.github/workflows/ci.yml` (`ci-impact-shadow`);
+- `tests/test_ci_workflows.py`.
+
+**Rollback:** revert the commit. The advisory step disappears, `criteria` fields become invalid again, and `--check` and `--write` behave as before.
 
 <!-- adr-slot: 631 -->
 

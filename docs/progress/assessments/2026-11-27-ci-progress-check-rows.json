@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "52e4430a959bd058693579488c907e83682e56e9",
+  "assessment_basis": "parent_commit",
+  "branch": "ci/progress-check-rows-20261127",
+  "task": "CI (#494), CI-PROG-1 P1 and P2 (owner decision 27 Nov 2026): tools/progress.py --check-rows --base SHA reports delivery_review row changes against a base commit (guard-only and header changes, rows without a new 'updated YYYY-MM-DD @SHA' marker per ADR-PROGRESS-OWN-ROWS-20261127, added local evidence absent at the header source commit, changed criteria not named in an added assessment file). Assessment files gain an optional criteria field, validated against existing criterion IDs; a name, never proof of ownership. The report runs advisory in the existing ci-impact-shadow job on pull_request only and never fails it. --check and --write are unchanged.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. CI progress-register tooling, tests and one advisory workflow step; no criterion, native evidence or acceptance result changes."
+}
