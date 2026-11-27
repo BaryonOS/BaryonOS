@@ -1,7 +1,8 @@
 # S09 — Destination catalog v2: backup time (O5) and controlled deletion (O3) (design specification)
 
-**Status: design specification, revision 2 (27 November 2026). Nothing in this
-document is implemented, native or active.** It specifies the "separate,
+**Status: design specification, revision 3 (27 November 2026). The
+single-copy codec and host allocation and transition models are implemented.
+The service still uses catalog v1.** This document specifies the "separate,
 versioned extension" that the project owner's package-2 decisions on O3 and O5
 (24 November 2026) require. The decisions are recorded in section 8.1 of
 [S09-DESTINATION-SERVICE.md](S09-DESTINATION-SERVICE.md), called "the v1
@@ -18,9 +19,13 @@ Revision 2 records the project owner's answers of 27 November 2026 to V1–V9
 accepted; the former *[proposed; owner question Vn]* markers now read
 *[decided, Vn]*, and section 9 lists the answers. Two points are explicit
 in the answers: under V1 the owner binding of O12 is part of v2 (section 7),
-so the open item is now the O12 agreement with B and U rather than V1; under
-V3 an RTC reading of zero is stored as source 0 (4.2). No rule,
+so revision 2 left the O12 agreement with B and U open; under V3 an RTC
+reading of zero is stored as source 0 (4.2). No rule,
 transition or test of revision 1 changes otherwise.
+
+Revision 3 records the confirmed O12 representation and the isolated host
+codec in `services/destination/src/catalog/v2.rs` with tests in
+`services/destination/tests/catalog_v2.rs`.
 
 Markers follow the v1 specification: *[main]* is a fact checked on `main`
 `c04ea98d`; *[design]* is specified here and not built; *[unproven]* is an
@@ -35,13 +40,9 @@ deletion, the write-path rules that deletion changes, and the negative tests.
 
 Not in scope:
 
-- The meaning of the O12 owner principal. O12 is decided in direction (owner
-  binding per backup registration; catalog version, trusted identity and
-  access checks to be designed with the profile, key and encryption
-  contracts), and V1 puts the owner field into this v2 migration. The identity
-  belongs to the B track and the user/session owner (U); S agrees the field's
-  meaning with both before the v2 codec is built. Section 7 reserves space
-  and states the hook; it does not define the identity (V1).
+- The issuer, session plumbing and durable revocation of O12 owner IDs.
+  The B and U tracks own the identity and session interfaces. Section 7
+  records the agreed on-disk representation and the runtime boundary.
 - Time-zone conversion and the display of dates. They belong to the UI track.
   This document fixes only what the catalog stores and what the service
   reports.
@@ -111,6 +112,10 @@ the v1 mount rule, unchanged, and reports every entry as "date unknown"
 (4.3). It writes no v2 copy at mount (2.6: a mount writes nothing).
 
 ### 3.3 Upgrade commit
+
+The mixed-copy downgrade behaviour described below remains a design item.
+The legacy overwrite in the U2/U3 window must be reconciled with V2 and I1
+before migration or mount integration.
 
 Before its first content commit (SEAL, MARK, REMOVE or RECORD, section 5) on a
 mounted v1 catalog, a v2 service commits an **upgrade**: the normalised copy
@@ -208,7 +213,7 @@ sequence, the entry ID or the per-domain logical clock of v1 objects
 | 0..64 | header, as v1 (2.6), version = 2; `next_free` has the v2 meaning below |
 | 64..1344 | 16 entry records of 80 bytes, the v1 record format unchanged |
 | 1344..1728 | metadata table: 16 entries of 24 bytes; entry *i* belongs to record *i* |
-| 1728..1984 | owner table: 16 entries of 16 bytes, reserved for O12 (section 7); all zero in this revision |
+| 1728..1984 | owner table: 16 opaque 16-byte owner IDs (section 7); zero denotes unowned |
 | 1984..2040 | zero |
 | 2040..2048 | FNV-64 over 0..2040, as v1 |
 
@@ -241,7 +246,6 @@ A v2 copy is valid only if all of the following hold:
   sequence; padding zero;
 - every metadata and owner entry at index ≥ count is zero;
 - at most one record in state `deleting`;
-- the owner table is all zero (until V1 is decided);
 - bytes 1984..2040 are zero.
 
 The checksum, magic, count ≤ 16, sequence ≥ 1, next entry ID rules and label
@@ -329,8 +333,8 @@ the v1 downgrade boundary.
 
 The META record carries the entry ID so that a portal can match it with LIST.
 The verified sequence is reported only on the control lane; on an operation
-lane that field is 0. *[META carries no owner field until the O12
-owner-field meaning is agreed (V1).]* The v1 SEAL field rule (`aux` = 0,
+lane that field is 0. The current META design carries no owner field. Any
+owner exposure requires a runtime wire agreement. The v1 SEAL field rule (`aux` = 0,
 `count` = 0, `wire.rs:136,155` *[main]*) becomes, at feature level 2,
 `aux` and `count` as above with "source 0 if and only if time 0". A v1 SEAL
 (both 0) stores "unknown".
@@ -339,7 +343,8 @@ owner-field meaning is agreed (V1).]* The v1 SEAL field rule (`aux` = 0,
 states of 2.2 check 7 (failed-mount, `Corrupt`, blank candidate) as for every
 other request; no record with that ID (`NotFound` -19); a different record is
 `deleting` (`Busy` -21); any operation lane is bound to the entry (`Busy`
--21); *[pending the O12 agreement, V1]* the owner check. A DELETE of the
+-21); the owner check, whose authorization interface remains a runtime
+integration item. A DELETE of the
 entry that is already
 `deleting` resumes at phase 2. BIND of a `deleting` entry returns `NotFound`
 -19, as for an unsealed ID. An export lane in the state *sealed* for *E*
@@ -368,7 +373,8 @@ the lane grant (2.3 UNBIND), and the user sees which operation is cancelled.
 A remembered VERIFY permission (3.3, O1) that names a removed entry ID becomes
 void: BIND with that ID returns `NotFound` -19, and because a removed ID is
 never issued again (I7) it can never address another entry; the dialog removes
-the stale permission. Owner rules wait for the O12 agreement (V1).
+the stale permission. The durable profile-removal flow remains a runtime
+integration item (section 7).
 
 **FORMAT.** *[decided, V2]* A v2 service formats a v1 copy,
 exactly as 2.6, so that an empty destination stays usable by a v1 build; the
@@ -468,8 +474,7 @@ writes nothing (2.3). *[decided, V5 and V6]*
 - **Guard.** DELETE carries an origin in `count`: 1 = the user confirmed this
   entry in the trusted dialog, 2 = a retention policy; other values are
   `Invalid` -1 at check 2. A policy DELETE of the only `sealed` record with a
-  verified sequence ≠ 0 of the same owner (V6; until the O12 owner field is
-  agreed under V1, all entries count as one owner) returns `Access` -5 and
+  verified sequence ≠ 0 of the same nonzero owner (V6) returns `Access` -5 and
   changes nothing; a `deleting` record does not count as a
   remaining proven backup. A user DELETE is not
   refused by this guard; the dialog warns. The service holds no policy and
@@ -481,13 +486,21 @@ compromised portal.
 
 ## 7. Owner binding hook (O12)
 
-The owner table (5.1) reserves 16 bytes per entry for the O12 owner
-principal. In this revision it must be zero and no operation reads it. One
-catalog version change should carry time, deletion and owner together, so
-that destinations do not pass through a v2 without owners and a v3 with them.
-*[decided, V1]*: implement the v2 codec only when the owner
-field's meaning is fixed; until then, host-level work on allocation (5.5) and
-the transitions (5.3) may use a zero owner field.
+The owner table (5.1) holds one opaque 16-byte profile ID per active record.
+The issuer supplies a stable nonzero ID and never reissues a tombstoned ID.
+All-zero identifies an unowned
+entry, including a v1 entry normalised during upgrade. Unowned entries
+contribute to no profile's last-verified-backup guard. The ID serves as an
+equality key for V6 and V8. It confers no authority and is never used as
+key-derivation input.
+
+The trusted portal obtains the ID from the authenticated session for SEAL.
+Apps cannot supply or override it. Profile removal requires confirmed
+revocation of remembered VERIFY consent before the issuer tombstones the ID.
+The durable acknowledgement, retry and recovery mechanism remains a runtime
+integration item. B and U confirmed this interpretation on
+[#564 (B)](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7222108051)
+and [#564 (U)](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227275832).
 
 ## 8. Negative test matrix
 
@@ -501,7 +514,7 @@ owner's stage-count pins (O6).
 | N-V1 | I1 | two v2 copies, v1 service | `Corrupt`, no write | a v1 decoder that ignores the version |
 | N-V2 | v2 on v1 | two identical v1 copies, v2 service | mounted; META source 0 for every entry; no write at mount | an upgrade written at mount |
 | N-V3 | I2, 3.3 | crash after upgrade barrier U2 (v2 *n*+1, v1 *n*); mount with v1 and with v2 | v1: mounts the v1 copy, entries and `next_free` equal; v2: mounts *H*; the combined upgrade-and-SEAL mutant leaves a v1 mount that reserves a listed extent | a combined upgrade and content commit |
-| N-V4 | 5.2 | v2 copies with: overlapping extents; an extent ending past `formatted`; `next_free` ≠ highest end; two `deleting`; time ≠ 0 with source 0; source 3; negative time; verified sequence below the sealing sequence or above the copy's; non-zero owner or padding; a non-zero metadata or owner entry at index ≥ count | each invalid | each dropped clause |
+| N-V4 | 5.2 | v2 copies with: overlapping extents; an extent ending past `formatted`; `next_free` ≠ highest end; two `deleting`; time ≠ 0 with source 0; source 3; negative time; verified sequence below the sealing sequence or above the copy's; non-zero padding; a non-zero metadata or owner entry at index ≥ count | each invalid | each dropped clause |
 | N-V5 | 5.2 | valid copy with a gap and a newer entry below an older extent | valid | a v2 validator that keeps "ascending first sector" or contiguity |
 | N-V6 | 5.3 mount | valid pairs: *H* two commits ahead; *H* = REMOVE of *L* but with a second record dropped; *H* = MARK of two records; *H* = SEAL with next entry ID + 2; both v2 with *H* = *L* with metadata zeroed (an UPGRADE between v2 copies); *H* v1 at *L* v2's sequence + 1 | `Corrupt` each; the legitimate one-transition pair of each kind (UPGRADE only from v1, SYNC between v2) mounts *H* | the v1 prefix rule kept for v2 (it accepts the first case); a rule that accepts any shorter *H*; UPGRADE accepted between v2 copies |
 | N-V7 | pre-write check | test hook alters *N* for each transition (as N29) | `Corrupt` -18 for that request, no catalog write, no `Corrupt` mount state | a commit without the transition check |
@@ -582,14 +595,14 @@ safer allocation optimisations possible.
 
 ## 10. Route and evidence
 
-1. Owner answers V1–V9 (done, 27 November 2026), and agreement of the O12
-   owner field's meaning with the B and U tracks (open).
+1. Owner answers V1–V9 and agreement of the O12 owner field's meaning with the
+   B and U tracks (complete, 27 November 2026).
 2. Independent AI re-review of revision 2, then a revision if needed.
 3. Host implementation in `services/destination`: v2 codec and validator,
    transitions and pre-write check, v2 mount rule, allocation, DELETE, META,
    RECORD-VERIFY, and host tests N-V1 to N-V21. Oracle and R3 differential
-   extended to v2. The v2 codec is held until the O12 agreement; allocation
-   and the transitions may proceed with a zero owner field.
+   extended to v2. The single-copy codec is independently testable. Migration
+   and runtime integration require their own evidence.
 4. Native stages after the CI owner's pins (O6). R8 preconditions are
    unchanged.
 
