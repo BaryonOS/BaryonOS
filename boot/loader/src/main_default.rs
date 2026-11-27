@@ -10,7 +10,7 @@ mod memory;
 mod serial;
 #[cfg(feature = "signed-boot-test")]
 mod signed;
-#[cfg(feature = "tpm-hauth-provision-test")]
+#[cfg(feature = "tpm-hauth-verify-test")]
 mod tpm_hauth;
 #[cfg(feature = "tpm-loader-probe-test")]
 mod tpm_probe;
@@ -604,7 +604,7 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
 
     #[cfg(feature = "tpm-loader-probe-test")]
     tpm_probe::probe(&fw);
-    #[cfg(feature = "tpm-hauth-provision-test")]
+    #[cfg(feature = "tpm-hauth-verify-test")]
     tpm_hauth::run(&fw);
 
     let (needed, stride) = fw.map_size()?;

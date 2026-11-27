@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "af7415df6aa64f0f293c5e88b59970c43a2f3ff6",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "docs/h-handoff-cloud",
+  "task": "X-C1: make docs/handoffs/H/CURRENT.md sufficient without local paths (record #597, #601 and #613, the live handoff on #564, invariants and reserved error codes, owner blockers, the N and S agreements, the per-PR integrity mandate and the GraphQL enqueue procedure); refresh the H02/H04/H05/H06 delivery_review rows with deliveries since 24 Nov 2026 (#515, #556, #597, #601, #613, #507) under the owner decision of 27 Nov 2026 on own criterion rows",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: handoff pointer and own criterion-row refresh. It records that PRs #597, #601 and #613 landed, that the newest HANDOFF H comment on #564 carries the live state, the KL2/KL4 invariants and the reserved error codes (-26 owner ADR, -27 not implemented), the owner blockers, the agreements with N and S, two new lessons and the current pre-merge and enqueue procedure. The H02, H04, H05 and H06 implementation and verification snapshot rows now record #515, #556, #597, #601, #613 and #507 with date and SHA in the row text (global snapshot date unchanged). No code, test or acceptance change; H02, H05 and H06 stay open."
+}

@@ -4,15 +4,17 @@ This lightweight index grows only where current work touches the project. The ex
 [public Wiki source](../WIKI.md), canonical contracts, current status, decisions and
 version-bound evidence keep their existing authority and are linked rather than copied.
 
-This directory is a wiki maintained by an LLM: linked markdown pages, nothing outside the
-repository. The rules are in [`CLAUDE.md`](CLAUDE.md).
+This directory is a model-independent, linked documentation layer stored with the
+repository. The rules are in [`AGENTS.md`](AGENTS.md). Client-specific files such as
+`CLAUDE.md` are compatibility adapters only.
 
 ## Start here
 
-1. [Public explanatory Wiki source](../WIKI.md)
-2. [Current project status](../PROJECT-STATE.md)
-3. [CI contract](../CI-CONTRACT.md)
-4. [[ci-verification-route]]
+1. [[documentation-workflow]] -- how any AI reads, searches and maintains this layer.
+2. [Public explanatory Wiki source](../WIKI.md)
+3. [Current project status](../PROJECT-STATE.md)
+4. [CI contract](../CI-CONTRACT.md)
+5. [[ci-verification-route]]
 
 ---
 
@@ -40,6 +42,8 @@ No maintained pages yet.
 
 ## operations
 
+- [[documentation-workflow]] -- model-independent, token-efficient reading and
+  maintenance procedure.
 - [[ci-verification-route]] -- find the canonical CI contract, operating guidance,
   evidence rules and implementation sources without creating a second gate register.
 
@@ -50,7 +54,10 @@ does not migrate them.
 
 ---
 
-## Using this wiki
+## Using this layer
+
+These commands are optional compatibility aliases. Any agent can follow
+[[documentation-workflow]] directly.
 
 ```
 /docs-sync     right after a deploy or release -- reads only what changed since verified_at
@@ -59,5 +66,4 @@ does not migrate them.
 /docs-status   commits not yet reflected, stale pages, recent work
 ```
 
-Every page carries `verified_at`, the commit it was checked against. Change code, run
-`/docs-sync`.
+Every maintained page carries `verified_at`, the commit against which it was checked.
