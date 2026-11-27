@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "e236e81a8561363ce3d41152f5e0e68a0b109ce1",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-hauth-unenrolled-20261127",
+  "task": "B03 REL-05 section 7.9: TEST M1-HAUTH loader halts TPM_UNENROLLED instead of re-provisioning after a clear",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The TEST loader is split: the verify-only build tpm-hauth-verify-test halts with LOADER-HAUTH:FAIL:TPM_UNENROLLED and LOADER-HAUTH:RECOVERY:REQUIRED (raw 35) when ownerAuth is unset, without an NV or hierarchy-auth write; only the enrollment build tpm-hauth-provision-test, the TEST stand-in for S3b, provisions, and run_tpm uses it only on boots that pin MODE:PROVISION. Local native QEMU/TCG on source 5b392b72 (swtpm 0.10.1, OVMF 2025.11): all nineteen run_tpm cases exit 0, including loader-hauth-unenrolled and loader-hauth-cleared (TPM2_Clear after a provisioning boot, public state equal to a new TPM, unchanged after the halt); every other stdout hash is unchanged; test_tpm, tools/tests, compileall, boot acceptance and loader fmt pass (docs/verification/b03-rel05-hauth-unenrolled-20261127). REL-05 stays open: section 7.9 condition 2 is not met because the stand-in is chosen by build and harness and is unauthenticated, condition 1 holds only for the ownerAuth-unset class while the trial path S6 is not built, recovery currency and authority are open, swtpm 0.7.3 and hosted CI did not run, no physical TPM and no human audit; no criterion accepted."
+}

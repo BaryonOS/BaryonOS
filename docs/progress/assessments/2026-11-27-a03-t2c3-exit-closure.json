@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "bccec43236e9ca99fe32802e469e6624a665d0b4",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/a03-t2c3-exit-closure-20261127",
+  "task": "A03-T2c-3: product exit notification by reply-endpoint closure (owner option A) with a native fault case; A03 delivery_review rows refreshed under the owner decision of 27 Nov 12:50Z",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. A03 gains native evidence that grants are retired when a client's reply endpoint is revoked after exit or a ring-3 fault, replacing a kernel-written fixture. A03 remains open: the trusted permission dialog (U) is still a labelled fixture and no independent verification or human audit exists. Only QEMU x86_64 was tested."
+}

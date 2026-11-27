@@ -5,6 +5,17 @@ Check technical claims against primary sources, recording title, author/organisa
 Keep PROJECT-STATE.md current and concise. Record new decisions in DECISIONS.md, with consequences and review criteria. Do not put complete logs in permanent instructions.
 Write active public documentation in clear, professional English; technical identifiers remain unchanged. Do not invent claims of resistance to hacking, compatibility or compliance.
 
+## Token-efficient project documentation
+
+The lightweight, cross-client navigation layer is `docs/project-docs/`. Every agent
+starts at `docs/project-docs/index.md`, reads only the relevant maintained pages and
+follows their explicit links to canonical sources. Its model-independent maintenance
+contract is `docs/project-docs/AGENTS.md`; client-specific files are adapters only.
+
+Do not create a monolithic project `MEMORY.md` or preload the whole documentation tree.
+Add one focused page only when current work touches an uncovered area. Canonical status,
+decisions, contracts and evidence remain in their existing owning files.
+
 ## Writing style
 
 Use an impersonal, scientific writing style: professional, precise and testable, with short, coherent paragraphs. Describe objectives, concepts, design choices and findings from the subject's perspective. Suitable formulations include 'Public development has been selected' and 'European orientation refers to'. Do not use I, my or we, or narrate the author's actions. A concrete subject-led sentence such as 'The kernel checks permissions' is equally appropriate; unnecessary passive constructions are not required.

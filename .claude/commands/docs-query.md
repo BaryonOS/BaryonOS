@@ -1,5 +1,8 @@
 # /docs-query -- ask the docs wiki
 
+Compatibility alias. The model-independent procedure is in
+`docs/project-docs/operations/documentation-workflow.md`.
+
 Question: $ARGUMENTS
 
 ## Rules
