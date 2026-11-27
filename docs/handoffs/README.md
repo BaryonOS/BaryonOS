@@ -82,15 +82,14 @@ These duties add no new labels, systems, AI review rounds or merge blocks, and
 leave D1–D3, P0, the Security Floor, ownership and enqueue autonomy unchanged.
 Every live handoff and clear prompt restates them.
 
-Owner decision of 27 November 2026 at about 12:46Z ("Ja, eigen rijen"): as an
-explicit exception to lead ownership, the owner of a criterion may refresh the
-rows of that criterion in the `delivery_review` object of `docs/progress.json`.
-Only that row text may change; never a score, a status, a weight or another
-criterion. The shared `date` and `source_commit` header of `delivery_review`
-stays unchanged, because it dates every row; the owner writes the refresh date
-and commit into the row text itself (`updated YYYY-MM-DD @<sha>: …`). The refresh goes into the owner's next
-pull request that touches progress anyway, runs `python3 -B tools/progress.py
---write` and `--check`, falls under D2 review and cites this decision.
+ADR-PROGRESS-OWN-ROWS-20261127 (#622) gives every criterion owner, current and
+future, permission and responsibility to keep the `delivery_review` rows of its
+own criterion in `docs/progress.json` current, without asking permission for
+each update. Only those rows change, on current source-bound evidence. Score,
+status, rubric, weights and acceptance conditions stay unchanged. The shared
+`date` and `source_commit` header stays unchanged; the row text carries
+`updated YYYY-MM-DD @<sha>: …`. Views are regenerated with
+`python3 -B tools/progress.py --write` and checked with `--check`.
 
 ## Rules
 
