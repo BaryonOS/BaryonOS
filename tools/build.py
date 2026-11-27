@@ -73,7 +73,7 @@ POWER_SYSTEM_FEATURES += LOCK_SYSTEM_FEATURES
 # Every S3 profile builds the S3 TEST init (its LOCK caller); no other profile does.
 # Computed after the LOCK features so the S3 noscrub red control is included.
 S3_SYSTEM_FEATURES = tuple(feature for feature in POWER_SYSTEM_FEATURES if feature.startswith("test-system-s3"))
-NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-port-sweep", "test-net-service-dhcp", "test-net-service-link", "test-net-service-slirp")
+NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-port-sweep", "test-net-service-dhcp", "test-net-service-link", "test-net-service-slirp", "test-net-service-slirp-timeout")
 SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 # B02-T4 (ADR-B02-KEY1-RELAY-20261123): the key-state relay cases and the red manifest case.
