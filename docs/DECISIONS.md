@@ -1773,7 +1773,8 @@ accepts no criterion.
   QMP socket.
 - Revisit this decision if any of these occur:
   - a feature-off build changes `.text` or `.data`;
-  - any broker or device counter changes during a down window;
+  - any broker or device counter changes during a down window
+    *(narrowed by amendment H04-TXDOWN below)*;
   - an event appears after a latch;
   - a stale RX frame crosses an epoch.
 - Evidence is QEMU 8.2.2/TCG only. There is no physical NIC, and QEMU has no
@@ -1785,6 +1786,90 @@ accepts no criterion.
   samples are undetectable. The edge harvests are covered by host model
   tests and source inspection; no native case drives two or three
   `set_link` changes within one tick.
+
+**Amendment H04-TXDOWN, 27 November 2026: TX completed across a link edge, -27.**
+This is a technical decision of the executing hardware-track lead, of the same
+class as the decision above. The decision values were agreed with the
+network-track lead (N), who answered on 26 November 2026; N reviews this
+amendment, including the code assignment, before it merges. It is **decided,
+not implemented**. Nothing on `main` returns -27, the TXDOWN cases below are
+NOT RUN, and the amendment accepts no criterion. The same scope as the decision
+above applies: kernel features `test-system-net-link*` only, `abi_info` stays
+1.5, and no product API is created. A build without `test-system-net-link`
+must keep its `.text` and `.data` byte-identical.
+
+1. **Trigger, defined on kernel state.** At publication (`0x70` accepted) the
+   kernel records the kernel link epoch next to the pending ticket. When
+   `broker_tick` later collects the device completion through `poll_tx` and
+   the result is `Ok(length)`, the TX result is -27 `TX_EDGE` if the kernel
+   epoch then differs from the recorded one, and `Ok(length)` otherwise.
+   "Collection" means this `poll_tx` observation, not the caller's `0x71`
+   read: a result fixed before an edge stays as it was. `link::poll` runs
+   before `poll_tx` in the same tick, so a completion first seen in the tick
+   of an edge is classified -27.
+2. **Meaning.** -27 says only that the kernel observed at least one link edge
+   between publication and collection. The device did complete the descriptor,
+   but the frame may or may not have left it: QEMU completes dropped TX with
+   `used.len` 0, the same as a sent frame. Publication requires a usable link,
+   so any later epoch change includes a down edge. The descriptor and bounce
+   page stay device-owned until that completion, as today; no new reclaim or
+   DMA path exists. -27 is the first free value: -23 `LINK_DOWN`,
+   -24 quarantine, -25 the KL2 SUSPEND refusal (H05-T5d-T, PR #597) and -26
+   the post-wake remount proposal (`docs/implementation/VOLUME-POST-WAKE-REMOUNT.md`)
+   are taken or reserved. The check covered `kernel/src`, `sdk/runtime`, `docs`
+   and the diffs of open PRs #590, #593–#596 and #598 at main `bbf4df38`. `sdk/runtime`
+   gets the matching test-profile constant.
+3. **Mapping for the network broker** (N's answers of 26 November 2026; the adapter
+   is N's): -23 on `0x70` means NotPublished; -27 on `0x71` means Completed and the
+   adapter increments its "completed across a down edge" counter; `Ok` means
+   Completed. -27 is never Unknown, because Unknown quarantines and would
+   fire on every link flap. Unknown stays reserved for "no completion
+   within the deadline", which is the stop path in item 4.
+4. **Precedence; deadline unchanged (option A).** -27 applies only to an
+   `Ok(length)` collection. A `poll_tx` error, the TX deadline (-13, then
+   `stop()`), budget exhaustion, a device reset and owner exit keep their
+   existing paths. Each of them terminalizes the pending ticket with the
+   existing stop or offline code, which wins over -27. A deadline that
+   expires while the link is down still stops the broker. No reclaim path
+   while down (option B) is introduced.
+5. **Narrowed revisit trigger.** The bullet above, "any broker or device
+   counter changes during a down window", now excludes exactly one thing.
+   That is the device completion of a TX published before the down edge,
+   which increments `tx_completed` and the new `tx_edge_completed` by one each.
+   A down window still allows no publication, doorbell, RX delivery or
+   other counter change.
+6. **Epoch leak, recorded residual (G3).** A physical device that holds TX
+   across down and then up could emit an epoch-N frame on the link of epoch N+1,
+   which may be a different network. That frame crosses network N's
+   destination-permission boundary. This amendment does not close the leak
+   and claims no guarantee against it. A broker reset before the up edge is a
+   precondition for accepting physical H04 (OD-HW-*). QEMU cannot show the
+   behaviour. The amendment creates no new grant path: N04 remains the only
+   destination-permission enforcement point.
+7. **Sampling residual, unchanged.** Edges are seen at most once per PIT tick.
+   Exactly 256 configuration-generation changes between two samples are
+   undetectable; such a hidden down/up pair yields `Ok` instead of -27.
+
+**Acceptance (native QEMU, labelled, NOT RUN).** To make the edge precede
+collection, a test-only feature `test-system-net-link-txdown`, which implies
+`test-system-net-link`, holds `poll_tx` for exactly one ticket per boot (the
+first accepted TX). The hold lasts until the kernel epoch has advanced by
+the case's fixed depth (1 or 2) or the TX deadline tick arrives, whichever is
+first. A missed edge therefore ends in the existing -13 stop and fails the
+case; it can never pass by mistake. The TX deadline is `a[3]` = 500 ticks. All values
+are deltas from the snapshot taken just before the `0x70`.
+
+| Case | Profile | Link sequence | `0x71(t)` while held | `0x71(t)` after collection | Then | `tx_submitted` | `tx_completed` | `tx_edge_completed` | `timeouts` | offline / quarantined / `reset_acks` |
+|---|---|---|---|---|---|---|---|---|---|---|
+| TXDOWN-1 | txdown, depth 1 | up, `0x70`→t, off | -8 | -27 once, then -1 | `0x70` while down → -23, `denied` +1 | +1 | +1 | +1 | 0 | 0 / no / 0 |
+| TXDOWN-2 | txdown, depth 2 | up, `0x70`→t, off, on | -8; `0x70` while up → -8 | -27 once, then -1 | `0x70` while up → t+1; `0x71(t+1)` → 0 | +2 | +2 | +1 | 0 | 0 / no / 0 |
+| Control | `test-system-net-link` (no hold) | up, `0x70`→t, completed and collected, then off | n/a | 0 | `0x70` while down → -23 | +1 | +1 | 0 | 0 | 0 / no / 0 |
+
+The broker stays online and not quarantined in every row. The pending slot
+is freed only by the device completion: `0x71(t)` returns -8 until then, and
+while the link is up a second `0x70` returns -8. The existing
+`test-system-net-link` and `-storm` cases keep their current expected values,
+because none of them has a TX in flight across an edge.
 
 ## ADR-H03-SND-FIXTURE-20261119 — Kernel-only virtio-snd PCM output fixture for the fixed QEMU 8.2 profile
 
