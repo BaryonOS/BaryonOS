@@ -1,7 +1,9 @@
 """Render the static visitor documentation and primary project pages."""
 
 import argparse
+import json
 from html import escape
+from html.parser import HTMLParser
 from pathlib import Path
 from string import Template
 from textwrap import indent
@@ -9,6 +11,22 @@ from textwrap import indent
 SOURCE = Path(__file__).resolve().parent
 SITE = SOURCE.parent / "pages"
 DOCS_OUTPUT = SITE / "docs"
+
+
+class SearchTextParser(HTMLParser):
+    """Collect visible source-fragment text for the local search index."""
+
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+
+    def handle_data(self, data):
+        text = " ".join(data.split())
+        if text:
+            self.parts.append(text)
+
+    def text(self):
+        return " ".join(self.parts)
 
 # Each tuple is the URL slug, visible title, and short visitor-facing summary.
 GROUPS = {
@@ -55,16 +73,20 @@ def nav_state(active):
         "docs_current": ' aria-current="page"' if active == "docs" else "",
         "status_current": ' aria-current="page"' if active == "status" else "",
         "contribute_current": ' aria-current="page"' if active == "contribute" else "",
+        "search_current": ' aria-current="page"' if active == "search" else "",
     }
 
 
-def render_page(template, *, title, heading, description, breadcrumb, body, active):
+def render_page(template, *, title, heading, description, breadcrumb, body, active, interactive=False):
     return template.substitute(
         title=title,
         heading=heading,
         description=description,
         breadcrumb=breadcrumb,
         body=body,
+        csp_script="'self'" if interactive else "'none'",
+        csp_form="'self'" if interactive else "'none'",
+        scripts='<script src="/assets/search.js?v=site-search" defer></script>' if interactive else "",
         **nav_state(active),
     )
 
@@ -141,6 +163,61 @@ def legacy_contribute():
     </div>"""
 
 
+def source_text(path):
+    parser = SearchTextParser()
+    parser.feed(path.read_text(encoding="utf-8"))
+    return parser.text()
+
+
+def search_entries():
+    entries = [
+        {
+            "title": "Overview",
+            "route": "/",
+            "group": "Start",
+            "summary": "The independent kernel, familiar desktop, current progress and main visitor routes.",
+            "text": "Baryon OS Rust kernel familiar desktop app permissions roadmap QEMU research software",
+        },
+        {
+            "title": "Baryon OS Docs",
+            "route": "/docs/",
+            "group": "Start",
+            "summary": "Browse every visitor guide by suitability, experience, system internals, evidence or project work.",
+            "text": "documentation topics guide suitability experience architecture evidence development",
+        },
+        {
+            "title": "Status",
+            "route": "/status/",
+            "group": "Start",
+            "summary": "Accepted roadmap progress, current boundaries and release readiness.",
+            "text": source_text(SOURCE / "status.html"),
+        },
+        {
+            "title": "Contribute",
+            "route": "/contribute/",
+            "group": "Start",
+            "summary": "Ways to help through feedback, reports, documentation, testing or code.",
+            "text": source_text(SOURCE / "contribute.html"),
+        },
+    ]
+    for group, topics in GROUPS.items():
+        for slug, title, summary in topics:
+            entries.append({
+                "title": title,
+                "route": f"/docs/{slug}/",
+                "group": group,
+                "summary": summary,
+                "text": source_text(SOURCE / "topics" / f"{slug}.html"),
+            })
+    return entries
+
+
+def render_assets():
+    script = (SOURCE / "search.js.template").read_text(encoding="utf-8")
+    index = json.dumps(search_entries(), ensure_ascii=False, separators=(",", ":"))
+    return {SITE / "assets" / "search.js": script.replace("__SEARCH_INDEX__", index)}
+
+
 def render():
     template = Template((SOURCE / "layout.html").read_text(encoding="utf-8"))
     topics = [topic for group in GROUPS.values() for topic in group]
@@ -172,6 +249,16 @@ def render():
             breadcrumb='<p class="breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span>Contribute</p>',
             body=standalone("contribute"),
         ),
+        SITE / "search" / "index.html": render_page(
+            template,
+            title="Search · Baryon OS",
+            heading="Search",
+            description="Find a project page by question, capability, evidence level or technical term.",
+            active="search",
+            interactive=True,
+            breadcrumb='<p class="breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span>Search</p>',
+            body=standalone("search"),
+        ),
         DOCS_OUTPUT / "contribute" / "index.html": render_page(
             template,
             title="Contribute has moved · Baryon OS",
@@ -201,8 +288,10 @@ def main():
     parser.add_argument("--check", action="store_true", help="Check committed pages without writing")
     args = parser.parse_args()
     pages = render()
+    assets = render_assets()
+    outputs = pages | assets
     if args.check:
-        stale = [path for path, content in pages.items() if not path.is_file() or path.read_text(encoding="utf-8") != content]
+        stale = [path for path, content in outputs.items() if not path.is_file() or path.read_text(encoding="utf-8") != content]
         expected_docs = {path for path in pages if DOCS_OUTPUT in path.parents}
         unexpected = set(DOCS_OUTPUT.rglob("index.html")) - expected_docs
         if stale or unexpected:
@@ -210,10 +299,11 @@ def main():
                 print(f"Stale or unexpected visitor page: {path.relative_to(SITE)}")
             return 1
     else:
-        for path, content in pages.items():
+        for path, content in outputs.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
-    print(f"{len(pages)} static visitor pages {'match the sources' if args.check else 'rendered'}.")
+    state = "match the sources" if args.check else "rendered"
+    print(f"{len(pages)} static visitor pages and {len(assets)} local asset(s) {state}.")
     return 0
 
 

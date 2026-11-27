@@ -44,6 +44,7 @@ class PagesSiteTests(unittest.TestCase):
             SITE / "docs" / "progress" / "index.html": 'href="/docs/" aria-current="page"',
             SITE / "status" / "index.html": 'href="/status/" aria-current="page"',
             SITE / "contribute" / "index.html": 'href="/contribute/" aria-current="page"',
+            SITE / "search" / "index.html": 'href="/search/" aria-current="page"',
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -60,6 +61,8 @@ class PagesSiteTests(unittest.TestCase):
             self.assertIn('>Status</a>', header)
             self.assertIn('href="/contribute/"', header)
             self.assertIn('>Contribute</a>', header)
+            self.assertIn('href="/search/"', header)
+            self.assertIn('>Search</a>', header)
             self.assertNotIn('href="/docs/progress/">Status</a>', header)
             self.assertNotIn('href="/docs/contribute/">Contribute</a>', header)
 
@@ -93,6 +96,37 @@ class PagesSiteTests(unittest.TestCase):
         ):
             with self.subTest(heading=heading):
                 self.assertIn(heading, choices)
+
+    def test_search_page_uses_a_local_index_and_minimum_csp(self):
+        search = self.pages[SITE / "search" / "index.html"]
+        status = self.pages[SITE / "status" / "index.html"]
+        script = self.builder.render_assets()[SITE / "assets" / "search.js"]
+
+        self.assertIn('<form class="site-search" role="search"', search)
+        self.assertIn('<label for="site-search-input">', search)
+        self.assertIn('id="search-result-status" aria-live="polite"', search)
+        self.assertIn('<noscript>', search)
+        self.assertIn('href="/docs/#topics"', search)
+        self.assertIn("script-src 'self'", search)
+        self.assertIn("form-action 'self'", search)
+        self.assertIn('<script src="/assets/search.js?v=site-search" defer></script>', search)
+        self.assertIn("script-src 'none'", status)
+        self.assertIn("form-action 'none'", status)
+        self.assertNotIn("fetch(", script)
+
+        for group in self.builder.GROUPS.values():
+            for slug, title, _ in group:
+                with self.subTest(slug=slug):
+                    self.assertIn(f'"route":"/docs/{slug}/"', script)
+                    self.assertIn(f'"title":"{title}"', script)
+
+    def test_faq_and_search_tips_use_native_disclosures(self):
+        faq = self.pages[SITE / "docs" / "faq" / "index.html"]
+        search = self.pages[SITE / "search" / "index.html"]
+        self.assertEqual(faq.count('<details class="disclosure">'), 7)
+        self.assertIn('<summary>Can it be installed on a personal computer?</summary>', faq)
+        self.assertIn('<details class="disclosure search-tips">', search)
+        self.assertIn('<summary>Search tips</summary>', search)
 
     def test_committed_generated_output_matches_rendered_pages(self):
         for path, content in self.pages.items():
