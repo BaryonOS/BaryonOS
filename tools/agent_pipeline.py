@@ -39,7 +39,7 @@ LABELS = {"pipeline:serial": "serial", "pipeline:parallel": "parallel"}
 # Agents never change the rules that judge them; such changes need a human PR.
 PROTECTED = (
     ".agents/", ".claude/", ".codex/", "tools/tests/test_agent_governance.py",
-    ".github/", ".codex/config.toml", "tools/agent_gate.py", "tools/agent_pipeline.py",
+    ".github/", ".codex/config.toml", "tools/agent_gate.py", "tools/agent_pipeline.py", "tools/agent_adapters.py",
     "tools/roadmap_runner.py", "tools/tests/test_agent_pipeline.py",
     "tools/tests/test_roadmap_runner.py", "tools/common.py", "tools/progress.py",
     "AGENTS.md", "CLAUDE.md", "docs/progress.json", "docs/PROJECT-STATE.md",
