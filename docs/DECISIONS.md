@@ -1,5 +1,7 @@
 # Design decisions
 
+> From 27 November 2026 new ADRs are separate files in [`decisions/`](decisions/README.md) (ADR-ADR-FILES-20261127). This file is the historical register.
+
 **Project owner:** Simon van Ieperen.
 This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original

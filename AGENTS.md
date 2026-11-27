@@ -121,7 +121,7 @@ The CI workflows in `.github/workflows/` define the actual hosted gates. `python
 - Kernel, boot, drivers, services, SDK and core crates are `#![no_std]` (or `cfg_attr(not(test), no_std)`). Keep existing `#![forbid(unsafe_code)]` and `#![deny(unsafe_op_in_unsafe_fn)]`; every `unsafe` block has a local `// SAFETY:` comment.
 - Tests: Rust `#[cfg(test)]` and `tests/*.rs`; Python `unittest` in `tests/`, `tools/tests/`, `userspace/tests/`; native gates pair a `tools/build.py` profile with a `tools/run_*.py` runner. Run Python as `python3 -B`; reuse existing entry points.
 - Commits use `type(scope): summary`. PRs follow `.github/pull_request_template.md`: a verification table with command, exit status and evidence, plus a Not run list.
-- New ADRs go at the top of docs/DECISIONS.md as `ADR-<TOPIC>-<YYYYMMDD>`. Workflow actions are pinned to a full commit SHA with `persist-credentials: false`. Licensing follows LICENSING.md and MPL-2.0-FILES.txt.
+- New ADRs are separate files `docs/decisions/ADR-<TOPIC>-<YYYYMMDD>.md` (see docs/decisions/README.md); docs/DECISIONS.md is the historical register. Workflow actions are pinned to a full commit SHA with `persist-credentials: false`. Licensing follows LICENSING.md and MPL-2.0-FILES.txt.
 
 ## Protected files
 
