@@ -208,3 +208,26 @@ Evidence limits:
 4. A04-T2: run the scoped BR0 Chromium/Gecko comparison with B, N and G.
 
 Report any kernel write set on #536 before committing under `kernel/`.
+
+## A02-T2 source-anchor host model (work in progress)
+
+At base `73fa43d9df68045cbf45583e92f4509229255b87`, B answered
+Q-B1–Q-B6 in issuecomment-7226871474. The project owner subsequently extended
+A's write set to `sdk/app-management/**` for the A02-T2 host model. The
+claimed files are recorded in issuecomment-7227073471.
+
+`sdk/app-management/tests/source_registry_anchor.rs` is an executable fixture
+model, not an implementation of source management or authenticated storage.
+It reuses the actual `SourceRegistry` snapshot and anchor chain helpers. Eight
+host tests cover A1/X crash recovery, uncertain extend, stale/foreign and
+unauthenticated fixtures, budget exhaustion, chain-domain separation, missing
+and invalid stores, source generations and revocation tombstones. The fixture
+models authentication as a boolean: it does not verify a MAC, bind a real
+kernel actor, perform disk I/O, instantiate a TPM or establish native domain
+allocation. It does not close A02 or establish product recovery/security.
+
+The model is partial: bounded actor authorization, all store failure modes,
+source rotation during install, power-cut behavior and native domain capability
+escape remain unverified. Review by B and the remaining contract tests are
+needed before a source-management adapter or product claim. A03 ownership-source
+question is issuecomment-7227046940; do not assume its answer.
