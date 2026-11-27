@@ -3,8 +3,10 @@
 Compact resume pointer for the local system AI and quantum runtime specialist
 (L01, L02). This file is not a backlog: tasks come from `docs/progress.json`,
 issues and pull requests. Newer ADRs and live evidence take precedence over it.
-The canonical live state is the latest `HANDOFF L` comment on issue #534 and the
-open L pull requests; this file is sufficient to resume from the repository and
+The canonical live state is the latest `HANDOFF L` comment on issue #534
+(as of 27 November 2026:
+[issuecomment-7217095082](https://github.com/BaryonOS/BaryonOS/issues/534#issuecomment-7217095082))
+and the open L pull requests; this file is sufficient to resume from the repository and
 GitHub alone. Local paths below are optional additions for a local session.
 
 ## Scope, mandate and working agreements (recorded once)
@@ -42,6 +44,13 @@ GitHub alone. Local paths below are optional additions for a local session.
 | Coordination | K (#602, C3 scheduler): whichever of #598 and #602 lands second re-measures the `JOB_IRQS` ranges in `kernel/src/m2/m3/ai_job.rs` and `tools/run_ai_job.py` (hosted minimum plus margin) |
 | Score | L01 open; L02 accepted |
 
+## Resuming
+
+A resuming agent, whatever its client, first verifies branch, exact HEAD,
+`git status --short`, ownership and the freshness of the latest `HANDOFF L`
+comment against GitHub, and never redoes completed work. Graphify is optional
+context; client-specific notes are adapters and hold no state.
+
 ## Model data and oracle
 
 The model is not committed. The pin is public: Qwen2.5-0.5B-Instruct at
@@ -52,6 +61,10 @@ sweep read the downloaded files through `NOS_QWEN_DIR` (and the sweep corpus
 through `NOS_TOKENIZER_SWEEP`); without them only the committed fixtures run.
 
 ## Next action
+
+The single next safe action is stated in the latest `HANDOFF L` comment; the
+longer-term order is:
+
 
 1. Land #599 and #598 through the merge queue; after each landing, report the
    landing SHA in a `HANDOFF L` comment on #534. After #598, CodeQL alert #51
