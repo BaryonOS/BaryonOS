@@ -288,8 +288,15 @@ calls, and outside the `native-ai-artifact` profile every `0xA*` number returns
 `ARTIFACT_VERIFY`. No address, length, offset or digest of the artifact itself is
 accepted from user space: the kernel returns base and exact length, keeps the read
 cursor in the artifact state, and `artifact_read` copies at most one fixed chunk
-(64 KiB) per call into the caller's private buffer through `bounded_copy_plan`,
-so every call is bounded (contract §3) and the user-space loop is resumable.
+(64 KiB) per call into the caller's private buffer. It needs a separate bounded
+output plan with 17 page chunks: an unaligned 64 KiB destination can span 17
+4-KiB pages. The plan checks the full destination range and every page for
+caller ownership, user access, writable permission and valid frame alignment
+before copying any byte. The existing two-chunk `CopyPlan` and its 320-byte IPC
+and 512-byte sector limits remain unchanged; merely raising its byte maximum
+would overrun its chunk array. A length above 64 KiB or a failed page check
+returns an error without copying. This keeps each call bounded (contract §3)
+and the user-space loop resumable.
 `artifact_read` with a buffer in the artifact window returns `-3` (Fault) without
 writing, because the copy plan requires writable, caller-owned user pages below
 `0x80000000` (K, #534 issuecomment-7220170046).
@@ -367,7 +374,9 @@ Native (QEMU, one CPU):
     maps successfully, proving it is not charged to the process quota.
 15. A syscall that takes a user buffer, given a pointer into `0x80000000..`,
     returns an error; no bytes are copied and the kernel does not fault (I2a)
-    (including `artifact_read` into the artifact window).
+    (including `artifact_read` into the artifact window). An unaligned 64 KiB
+    `artifact_read` destination spanning 17 pages is validated in full; a bad
+    last page or a 64 KiB + 1 request is refused before any byte is copied.
 16. Access after unlink faults (#PF); a second link is refused; `Paging::destroy`
     with a linked window asserts; `artifact_read` or `artifact_verify` without
     `ARTIFACT_VERIFY` is refused before any state change (K's list,
