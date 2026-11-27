@@ -22,6 +22,7 @@
 //! sole domain-0 client. Evidence: 48 set after the startup STATs, then the
 //! broker waits for the kernel to set 416; 424 volume calls during startup,
 //! 432 volume calls in total, 520.. volume calls caused by each served request.
+//! Both modes take the boot epoch from word 32 (the volume service reads the same word).
 
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("task-grant-broker is only for the Baryon OS x86_64-unknown-none target");
@@ -30,7 +31,7 @@ mod support;
 
 use nieuw_os_sdk_runtime::{native, Handle, Outgoing, ReceiveEndpoint, SendEndpoint};
 use nieuw_os_task_grant_broker_example::{
-    decode_request, encode_reply, Broker, FixtureVolume, DATA_MAX, EPOCH, OP_CLOSE, OP_READ,
+    decode_request, encode_reply, Broker, FixtureVolume, DATA_MAX, OP_CLOSE, OP_READ,
     STATUS_BAD_REQUEST, STATUS_DENIED, STATUS_GO, STATUS_OK, STATUS_RESUME, TAG,
 };
 use volume_core::{client::Transport, wire, Status};
@@ -148,13 +149,11 @@ fn run() -> Result<(), ()> {
     if support::word(32) == 0 || owner == 0 || helper == 0 || owner == helper {
         return Err(());
     }
+    // Both modes use the kernel-supplied boot epoch, never the host-test constant.
+    let epoch = support::word(32);
     if support::word(80) == 0 {
         // FIXTURE volume for `native-task-grant`; T2c-2 uses the real domain 0.
-        return serve(
-            Broker::new(FixtureVolume { epoch: EPOCH }, EPOCH),
-            owner,
-            helper,
-        );
+        return serve(Broker::new(FixtureVolume { epoch }, epoch), owner, helper);
     }
     let service = support::word(408);
     if service == 0 {
@@ -165,7 +164,7 @@ fn run() -> Result<(), ()> {
         receive: ReceiveEndpoint::from_handle(endpoint(88)?),
         service,
     };
-    let broker = Broker::new(volume, support::word(32));
+    let broker = Broker::new(volume, epoch);
     support::put(424, support::word(VOLUME_CALLS));
     support::put(48, 1);
     // The kernel snapshots the volume's own counters before any request.

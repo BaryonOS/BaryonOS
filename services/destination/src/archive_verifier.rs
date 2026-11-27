@@ -39,6 +39,8 @@ fn from_volume(status: volume_core::Status) -> Status {
         volume_core::Status::NotFound => Status::NotFound,
         volume_core::Status::Busy => Status::Busy,
         volume_core::Status::Quota => Status::Corrupt,
+        // Lane 0 only (H05-T5c): terminal device loss, never retried.
+        volume_core::Status::Quarantined => Status::NoDevice,
     }
 }
 

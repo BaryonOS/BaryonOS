@@ -9,8 +9,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Mandate: specialist owner under ADR-MERGE-DELEGATION-20261123. May commit, push,
   open and repair PRs, resolve review threads with evidence and squash-merge
   (expected-head procedure). No direct main push, force-push, admin bypass,
-  auto-merge without proven checks, or weakened tests. Old roadmap runner and
-  merge queue stay disabled.
+  auto-merge without proven checks, or weakened tests. The old roadmap runner stays
+  disabled; the merge queue is active (ADR-MERGE-QUEUE-AUTONOMY-20261126).
 - At most one primary open PR (plus one managed child only when demonstrably needed).
 - TEST keys/profiles grant no release signing, production anchors or new trust boundaries.
 - Extra AI review is not external human audit (B05).
@@ -28,20 +28,63 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: local again (25 Nov, hand-back through #503); the cloud B session stopped and no longer writes.
-- cycle_id: b03-f1-floor-crash-20261125 (previous b05-t6-virtio-caps-20261125 closed: #512 merged as ea38dcc6, tree-equal to head b0966d7a).
-- task: B03-F1 native characterization of REL-05 (anti-rollback floor raised before kernel health); not a fix.
-- branch: claude/b03-floor-crash-20261123
-- PR: see the HANDOFF comment for the number and expected head
-- state: RESUME_REQUIRED until the PR is squash-merged and verified on main.
-- result: `tools/characterize_update_floor.py` + 9 host tests; evidence `docs/verification/b03-floor-crash-20261123/`.
-  Re-run on main-merged source 25 Nov (QEMU 8.2.2, pc-q35-8.2): hazard observed, all four boots as expected.
+- Session: local "BaryonOS - Specialist B" (26 Nov, resumed after the 21:20Z rotation from the #573 HANDOFF comment
+  7203525158). Merge queue autonomy (ADR-MERGE-QUEUE-AUTONOMY-20261126): B enqueues its own merge-ready PRs; the PR
+  guard coordinates and does not approve.
+- #524 (B03-REL05 trial boot with a TPM anchor, M1-HAUTH, ADR-B03-REL05-TPM-20261125 with C665 and the §7.9
+  fail-closed decision) landed on `main` as ce562ddc on 26 Nov. REL-05 stays open (§7.9 loader conditions below).
+- cycle: B01-LOCK L1 (issue #564; contract `docs/implementation/B01-KEYRING-LOCK.md`, ADR-KEYRING-LOCK-20261126 via #563).
+- branch: claude/b01-lock-l1-20261126, worktree ~/projects/BaryonOS-worktrees/b01-lock-l1.
+- PR: #573. Live head, checks and evidence: the PR body and the newest HANDOFF comment on #573.
+- Review fix round (26 Nov): `latch()` defers while the exit-path scrub is pending, so a ring-3 `0x92` cannot halt in
+  its own kernel entry; the fixture calls `latch()` right after its successful LOCK in that order (a mutant without
+  the deferral halts with `LOCK_CANARY_RESIDUE`); `teardown`, `fixture` and `check_and_print` hold no `LOCK_STATE`
+  borrow across nested accessors.
 
-## Evidence / NOT RUN
+## Evidence / NOT RUN (B03-REL05, landed via #524)
 
-- Evidence: the README above (original run at a91d5ade + re-run section). Host tests 9/9 OK.
-- NOT RUN: physical hardware; human audit. B03 stays accepted on main; REL-05 is an open design hazard that needs an
-  owner policy decision (trial boot / health confirmation) before any loader change.
+- Evidence: host model `crates/update-core/tests/anchor_chain_model.rs`, `drivers/tpm-crb` codec and transport
+  tests, swtpm probes under `docs/verification/b03-rel05-*-20261125/`, native `tools/run_tpm.py` normal/absent and
+  loader-probe (S6 step 1: firmware TCG2 works through the loader's own binding; `EFI_RNG_PROTOCOL` absent on the
+  current TEST QEMU line), loader-rng (S6 step 4: present with an opt-in TEST virtio-rng device on OVMF 2025.11;
+  `docs/verification/b03-rel05-loader-rng-20261125/`), U26 loader record `LREC` (`0x0100B305`, `NV_LREC` with
+  frozen Names, swtpm probe `docs/verification/b03-rel05-lrec-probe-20261125/`), TEST loader M1-HAUTH BOUND provisioning
+  (`tpm-hauth-provision-test`, `run_tpm.py --case loader-hauth`: provision, then verify on a second boot of the same swtpm
+  state; PCR 13 `CLOSED` through `HashLogExtendEvent`, SHA-256 bank = `P_CLOSED`; policy read and empty-ownerAuth refused;
+  no secret residue in the CRB buffer; `docs/verification/b03-rel05-hauth-bound-20261125/`, local commits 8f45c07e, 1a46fa21), DA lockout counter `0x20E` unchanged around the refused owner command, native halt case `loader-hauth-no-rng`
+  (CLOSED extend, then `RNG_ABSENT`, raw 35, no kernel; `docs/verification/b03-rel05-hauth-halt-20261125/`, local commit 89d00679),
+  pre-seeded cases via `tools/tpm_seed.py` (platform `HAUTH` squat `0x149`, foreign ownerAuth `0x18B`, owner `HAUTH`
+  squat under a foreign ownerAuth halts `PUBLIC`, unbound `LREC` after a provisioning boot, power-cut leftovers repaired;
+  `docs/verification/b03-rel05-hauth-seeded-20261125/`, local commits 4e2eda89, e1c749a3, 38453a5f), the owner squat
+  under the empty ownerAuth (removed, boots identical to `loader-hauth`) and DA-counter sensitivity (seeded `0x20E` = 1,
+  loader `DA:1:1`, all other provisioned boots 0; `docs/verification/b03-rel05-hauth-da-squat-20261125/`, local commit 06b7528a),
+  PCR 13 read-back of every active bank (SHA-1/256/384/512 equal `H(0^n || H(CLOSED))` on OVMF 2025.11;
+  thirteen native cases at source 16ff8409; `docs/verification/b03-rel05-pcr13-banks-20261125/`, local commit 2c9fdec9),
+  the seeded cut between the ownerAuth and lockoutAuth changes (`loader-hauth-lockout-cut`: `MODE:EXISTING`, `BOUND`,
+  `LOCKOUT:SET` at PERMANENT `0x401`, only lockoutAuthSet changes, boot 1 identical to `loader-hauth`; fourteen native
+  cases at source 6817b4e7; `docs/verification/b03-rel05-hauth-lockout-cut-20261125/`, local commit 94acc222),
+  the remaining cut points (`HAUTH` defined, `HAUTH` written, `LREC` written: each re-provisions with `loader-hauth`
+  output, and `check_state` requires a fresh `LREC`; seventeen native cases at source 2816266d;
+  `docs/verification/b03-rel05-hauth-cut-points-20261125/`, local commit fa2d7f58),
+  the firmware event log check (the last entry of the crypto-agile log is the loader's PCR 13 `EV_IPL` `CLOSED`
+  event with one `H(CLOSED)` digest per active bank, no earlier PCR 13 entry; seventeen native cases at source
+  42e48d3c; `docs/verification/b03-rel05-hauth-eventlog-20261126/`, local commit 477674bf).
+- NOT RUN: a fault-injected interruption of a real loader boot and a torn NV write (every provisioning step is
+  covered by a host-seeded cut), the event log on halt paths, the SHA-1-format log and the final events table, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
+  the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
+- Licensing register: `boot/loader/src/tpm_probe.rs`, `tpm_hauth.rs`, `tools/tpm_seed.py` and `drivers/tpm-crb/src/event_log.rs`,
+  `tests/event_log.rs` are not listed in
+  `MPL-2.0-FILES.txt` (no test enforces it); the register is an owner/lead decision, so it is reported, not changed.
+- CI risks for the seeded slice: `TpmSeedTests` and the seeds use `--server`, `--ctrl ...,mode=0600` and
+  `--flags not-need-init,startup-clear`, verified only on swtpm 0.10.1. `ci.yml#host-quality` installs no swtpm, so
+  they skip there, but `native-system.yml` runs `tools.tests.test_tpm` with the pinned swtpm 0.7.3, so they run on
+  the first lane push; the post-boot state checks
+  are unit-tested through `run_tpm.check_state()`; ci-impact selects host-quality through the `tools/**` glob.
+- Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
+  staging and both-copies-lost revival (now a binding open condition of REL-05 §7.9); the §7.9 loader conditions
+  (no M1-HAUTH re-provisioning after a clear, recovery currency, recovery authority, user-visible recovery text;
+  owner decided §7.9 fail closed on 26 Nov, host model done); the TEST loader does not check
+  ownerAuth against `HAUTH[..32]` (a foreign owner planting a well-formed `HAUTH`/`LREC` would bind); U25 on the hosted OVMF image and real firmware.
 
 ## Merge procedure lesson (25 Nov)
 
@@ -59,8 +102,13 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Queued B work (no PR yet)
 
-- REL-05 fix (floor raised before kernel health) needs an owner policy decision (trial boot / health
-  confirmation); B drafts a proposal, no silent change to anti-rollback semantics.
+- After #573 lands: one small PR for H05-T5d-T: kernel feature `test-system-s3-lock-noscrub = ["test-system-s3",
+  "native-system-lock"]` in `kernel/Cargo.toml`, its `tools/build.py` entry, and the `cfg` at the `m3_scrub_pending`
+  write in `system_lock.rs` widened to it (B owns all three; H waits for it and otherwise marks the case NOT RUN).
+- Then the TEST M1-HAUTH loader (`boot/loader/src/tpm_hauth.rs`) must halt with `BOOT:FAIL:TPM_ANCHOR` +
+  `BOOT:RECOVERY:REQUIRED` on a cleared provisioned TPM instead of re-provisioning (§7.9 conditions 1 and 2).
+- Later: B02-T3 cold rollback anchor consumers and B04 production custody (both need owner decisions); SUSPEND and
+  UNLOCK for B01-LOCK (UNLOCK blocked on O2, O5 and O8; no production LOCK before O5).
 
 ## Lessons
 
@@ -70,6 +118,9 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- Finish the B03-F1 PR (gates, merge-hold re-run, expected-head squash merge, verify on main, post
-  `HANDOFF B b03-f1-floor-crash-20261125`). REL-05 policy proposal: `docs/implementation/B03-REL05-FLOOR-POLICY-PROPOSAL.md`
-  (owner decision A/B/C pending; no loader change before it).
+- #573: after the hosted gates are green, 0 unresolved threads, `mergeStateStatus` CLEAN/HAS_HOOKS/BEHIND,
+  `autoMergeRequest` null and the open-run check `[]`: enqueue with GraphQL `enqueuePullRequest` (never `gh pr merge`
+  while BLOCKED). Report the landing SHA to the PR guard; H starts T5d-T on it.
+- Then the queued items above, one PR at a time. TEST/QEMU/swtpm only; the progress score stays 43/100.
+- The detailed #524 slice history (M1-HAUTH provisioning, seeded cases, PCR 13 banks, event log) is in the #524
+  HANDOFF/CHECKPOINT comments and the `docs/verification/b03-rel05-*` directories.

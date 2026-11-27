@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (DEVICE_ORDER, KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
                         S5_TAIL, COLD_CASES, cold_image, evaluate_cold, evaluate, expected_markers, record_plaintext,
-                        BLK_CASES)
+                        BLK_CASES, BOOT, evaluate_lock_red)
 import volume_disk
 
 
@@ -370,7 +370,7 @@ def power_transcript(case="power", tail=None, **changes):
     """H05 power run in the kernel's real order: the wake evidence and the
     counters, BROKERS, teardown, CLEANUP, the post-wake device evidence, then
     the gate, case marker and S5 tail."""
-    ok = case in ("power", "power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
+    ok = case in ("power", "power-lock", "power-s3", "power-s3-reinit", "power-s3-held-completion", *BLK_CASES)
     values = dict(POWER_INIT_REFUSALS=3 if ok else 4, POWER_APP_REFUSALS=2,
                   POWER_NOT_DURABLE=0 if ok else 1, DISK_FLUSHES=4)
     held = int(case == "power-s3-held-completion")
@@ -1254,6 +1254,81 @@ class RelayHarnessTests(unittest.TestCase):
 
 BOOT_LINES = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
 
+
+
+# B01-LOCK: the values of the first passing native power-lock run.
+LOCK_VALUES = dict(LOCK_COUNT=1, LOCK_REFUSALS=6, LOCK_STACK_SCRUBS=1, LOCK_STACK_RESIDUE=0,
+                   LOCK_CANARY_BEFORE=6, LOCK_CANARY_AFTER=0, LOCK_ENTROPY_OBJECTS_BEFORE=1,
+                   LOCK_ENTROPY_OBJECTS_AFTER=0, LOCK_FRAMES_ZEROED=65, LOCK_GRANT_HOLDS=724,
+                   LOCK_APP_SEND=10, LOCK_APP_RECEIVE=8)
+
+
+def lock_transcript(locked=("SYSTEM:LOCK:LOCKED",), admin=(6, 4), **changes):
+    """power-lock in the kernel's order: LOCKED during the run, the LOCK
+    evidence after BROKERS, then CLEANUP and the S5 tail."""
+    values = {key: value for key, value in {**LOCK_VALUES, **changes}.items() if value is not None}
+    evidence = "".join(f"SYSTEM:{key}:{value:020d}\n" for key, value in values.items())
+    text = power_transcript("power-lock", ADMIN_REQUESTS=admin[0], ADMIN_DENIED=admin[1])
+    text = text.replace("SYSTEM:MANIFEST:PASS\n", "SYSTEM:MANIFEST:PASS\n" + "".join(
+        f"{line}\n" for line in locked), 1)
+    return text.replace("SYSTEM:BROKERS:PASS\n", f"SYSTEM:BROKERS:PASS\n{evidence}SYSTEM:LOCK:PASS\n", 1)
+
+
+def lock_red_transcript(reason, locked=1, extra=()):
+    return "\n".join((*BOOT, "SYSTEM:MANIFEST:PASS", *["SYSTEM:LOCK:LOCKED"] * locked, *extra,
+                      f"SYSTEM:FAIL:{reason}")) + "\n"
+
+
+class PowerLockHarnessTests(unittest.TestCase):
+    def test_power_lock_passes_with_exact_evidence(self):
+        found = evaluate("power-lock", lock_transcript(), 0, False)
+        self.assertEqual((found["LOCK_COUNT"], found["LOCK_CANARY_AFTER"], found["ADMIN_REQUESTS"]), (1, 0, 6))
+
+    def test_power_lock_refuses_weaker_evidence(self):
+        for change in (dict(LOCK_CANARY_AFTER=1), dict(LOCK_CANARY_BEFORE=0), dict(LOCK_STACK_SCRUBS=0),
+                       dict(LOCK_STACK_RESIDUE=8), dict(LOCK_REFUSALS=5), dict(LOCK_COUNT=2),
+                       dict(LOCK_ENTROPY_OBJECTS_AFTER=1), dict(LOCK_FRAMES_ZEROED=None),
+                       dict(LOCK_GRANT_HOLDS=0), dict(LOCK_APP_SEND=0), dict(LOCK_APP_RECEIVE=0),
+                       dict(LOCK_APP_SEND=None)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-lock", lock_transcript(**change), 0, False)
+
+    def test_power_lock_needs_one_locked_marker_in_order(self):
+        for locked in ((), ("SYSTEM:LOCK:LOCKED",) * 2):
+            with self.subTest(locked=locked), self.assertRaises(ValueError):
+                evaluate("power-lock", lock_transcript(locked=locked), 0, False)
+        late = lock_transcript(locked=()).replace("SYSTEM:BROKERS:PASS\n",
+                                                  "SYSTEM:BROKERS:PASS\nSYSTEM:LOCK:LOCKED\n", 1)
+        with self.assertRaises(ValueError):
+            evaluate("power-lock", late, 0, False)
+
+    def test_power_lock_pins_the_extra_refused_admin_request(self):
+        for admin in ((5, 3), (6, 3), (7, 4)):
+            with self.subTest(admin=admin), self.assertRaises(ValueError):
+                evaluate("power-lock", lock_transcript(admin=admin), 0, False)
+
+    def test_lock_evidence_outside_power_lock_is_refused(self):
+        text = power_transcript().replace("SYSTEM:MANIFEST:PASS\n", "SYSTEM:MANIFEST:PASS\nSYSTEM:LOCK:LOCKED\n", 1)
+        with self.assertRaises(ValueError):
+            evaluate("power", text, 0, False)
+
+    def test_red_lock_cases_need_their_exact_refusal(self):
+        # F1: without the scrub LOCKED never latches, so no LOCKED marker either.
+        noscrub = evaluate_lock_red("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0),
+                                    35, False)
+        self.assertEqual(noscrub["fail"], "SYSTEM:FAIL:LOCK_CANARY_RESIDUE")
+        own_exit = evaluate_lock_red("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT", locked=0), 35, False)
+        self.assertEqual(own_exit["fail"], "SYSTEM:FAIL:UNEXPECTED_EXIT")
+        for case, text, raw in (
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_ABSENT", locked=0), 35),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE"), 35),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0), 33),
+                ("power-lock-noscrub", lock_red_transcript("LOCK_CANARY_RESIDUE", locked=0,
+                                                           extra=("SYSTEM:LOCK_COUNT:" + "0" * 19 + "1",)), 35),
+                ("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT"), 35),
+                ("power-lock-exit", lock_red_transcript("UNEXPECTED_EXIT", locked=0, extra=("M1:PASS",)), 35)):
+            with self.subTest(case=case, text=text, raw=raw), self.assertRaises(ValueError):
+                evaluate_lock_red(case, text, raw, False)
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,11 +5,11 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 
 | Field | Value |
 |---|---|
-| cycle_id | `h05-t5c-20261126` |
+| cycle_id | `h05-t5c-verified-20261126` |
 | Location | local H session; the latest `HANDOFF H` comment is on #515 |
 | Task | H05-T5c virtio-blk re-initialisation after an S3 wake: slice 1 (kernel re-init, quarantine `-24`, O13 latch carryover) merged; slices 2–4 open |
-| Branch | none active; slice 1 came from `claude/h05-t5c-blk-reinit-20261125` |
-| PR | #556 merged as `945847d8` (26 Nov 2026); ledger H05-T5c stays `active` |
+| Branch | `claude/h05-t5c-verified-20261126` (ledger follow-up); slice 1 came from `claude/h05-t5c-blk-reinit-20261125` |
+| PR | #556 merged as `945847d8` (26 Nov 2026); ledger H05-T5c is `verified` (hosted gates green on `0e9e1b91`) |
 | Previous | #515 (H02-T5) merged as `744f1b75`; ledger H02-T5 is `verified`; native evidence bound to `f8662109`. T5c evidence: [h05-s3-blk-reinit-20261125](../../verification/h05-s3-blk-reinit-20261125/README.md) |
 | Score | 43/100 unchanged; H02, H05 and H06 stay open |
 
@@ -42,7 +42,7 @@ reported in the PR comment `HANDOFF H <cycle_id>`, not here.
 H02-T5 is done; its evidence is in
 [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md).
 
-H05-T5c slice 1 is merged (#556, `945847d8`).
+H05-T5c slice 1 is merged (#556, `945847d8`) and `verified` in the ledger.
 
 Slices 2–4 of T5c wait for the following:
 

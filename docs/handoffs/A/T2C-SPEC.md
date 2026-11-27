@@ -20,11 +20,15 @@ next main merge.
 
 A task's IPC causes a volume READ of object O only while the broker holds a live
 task-grant-core grant with actor = kernel-supplied sender PID, object (O, rev)
-where rev is O's current volume revision, and right READ. Apps hold no volume
-ingress handle and no block right. The broker constructs every volume request
-itself (STAT at startup and after Stale, READ selector 0; nothing else) and
-never relays app bytes; denial happens before
-any volume message is sent.
+and right READ, where rev is the revision the broker last observed by STAT.
+Content is returned only when rev is still O's current volume revision: if the
+revision changed after registration, the volume service rejects that READ with
+Stale, the broker answers DENIED and re-STATs. Apps hold no volume ingress
+handle and no block right. The broker constructs every volume request itself
+(STAT at startup and after Stale, READ selector 0; nothing else) and never
+relays app bytes. An authorisation denial (no live grant, wrong actor, object
+or right) happens before any volume message is sent; a stale-revision denial
+follows one rejected READ and one STAT.
 
 ## Design
 
@@ -67,8 +71,11 @@ T2c-2 native cases: VOLUME_READ_OK, UNGRANTED_OBJECT_DENIED (0 volume
 requests), FORGED_ACTOR_DENIED, FORGED_GRANT_DENIED, NO_VOLUME_HANDLE,
 CLOSE_THEN_READ_DENIED, EXIT_RETIRES + READ_AFTER_RETIREMENT_DENIED, optional
 STALE_REVISION_DENIED; counters: volume READ requests > 0 only after an authorised READ and 0 for
-every denied case (startup STATs, the post-Stale re-STAT and multi-READ objects
-over 160 B make 'requests == authorised READs' false), volume `rejected` == 0; mutations (skip authorise, skip retire) must fail the gate.
+every authorisation denial; the optional STALE_REVISION_DENIED case expects
+exactly one READ (answered Stale) followed by one re-STAT (startup STATs, the post-Stale re-STAT and multi-READ objects
+over 160 B make 'requests == authorised READs' false), volume `rejected` == 1
+after startup and unchanged by every served request (the startup STAT of
+absent object 2 answers NotFound on the service's dispatch error path); mutations (skip authorise, skip retire) must fail the gate.
 Regression: `native-task-grant` normal/denied and `native-system-nas-probe`.
 CI job addition is a `.github` change for the CI owner.
 
@@ -110,9 +117,10 @@ No process-exit wait interest or kernel-to-user event queue exists today
 (`m3.rs:1705,2788-2807`) -> `m4::process_exit` -> `Engine::exit`, which closes
 endpoints the exiting PID owns (capability-core `lib.rs:1588-1640`).
 
-- **A (recommended): reply-endpoint closure.** The broker's reply SEND targets a
-  client-owned endpoint; on exit it resolves `Closed` (`lib.rs:1697-1699`,
-  test :3116) and the broker retires that client's grants. No new ABI. A client
+- **A (recommended, owner-approved 25 Nov): reply-endpoint closure.** The
+  broker's reply SEND targets a client-owned endpoint; after the owner's exit it
+  resolves `Revoked` (-10, see "Verified 25 Nov" above; `Closed` -9 only while
+  the owner lives) and the broker retires that client's grants on either error. No new ABI. A client
   dropping its own RECV only retires its own grants (fail-closed). Requires the
   owner to accept "an owned endpoint closes no later than its owner's exit" as a
   product contract with a pinned capability-core test. Detection is polled.
@@ -122,8 +130,10 @@ endpoints the exiting PID owns (capability-core `lib.rs:1588-1640`).
 - **C: kernel exit-event channel** (new capability/ABI, ADR, kernel owner).
   Cleanest semantics, also covers fault/kill; largest change.
 
-Unverified: exact `ipc_wait` error on a closed endpoint; whether fault/kill
-paths reach the same cleanup (looks shared; only normal exit is tested).
+Status: the error after owner exit (`Revoked`) and the shared fault/kill
+cleanup path are verified by code reading (above); natively only normal exit is
+tested so far. Remaining checks: the T2c-3 native fault case and the pinned
+capability-core test.
 
 ## Evidence limits
 

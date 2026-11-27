@@ -718,11 +718,11 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_all_jobs_use_standard_hosted_ubuntu(self):
         """No custom label, dynamic selector or persistent runner can return."""
-        # ubuntu-26.04 is a standard hosted image; the K06 matrix pins QEMU 10.2.1 there.
+        # ubuntu-26.04 pins QEMU 10.2.1 for K06; ubuntu-slim (1 vCPU, hard 15-minute cap) only for short jobs.
         self.assertTrue(self.workflows)
         for path, job_id, job in self.jobs():
             with self.subTest(path=path, job=job_id):
-                self.assertIn(job.get("runs-on"), ("ubuntu-24.04", "ubuntu-26.04"))
+                self.assertTrue(job.get("runs-on") in ("ubuntu-24.04", "ubuntu-26.04") or "baryon-heavy-16" in str(job.get("runs-on")) or (job.get("runs-on") == "ubuntu-slim" and int(job.get("timeout-minutes", 360)) <= 15), job.get("runs-on"))
 
     def test_volume_gate_stage_counts_match_plan(self):
         """Pin the volume report count and step label to the real gate PLAN."""
@@ -1578,7 +1578,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         # Entries ahead count as finished once this job's own name completed on them;
         # the walk ahead stops only at one that succeeded (tools/tests/test_merge_hold.py).
         self.assertRegex(source, r'(?m)^AHEAD_CHECKS = WAIT_CHECKS \+ \("merge-hold",\)$')
-        self.assertLess(int(job["timeout-minutes"]), 60)
+        self.assertLess(int(job["timeout-minutes"]), 100)  # the planned queue check timeout
         checkout, load, decide = job["steps"]
         self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
         self.assertEqual(checkout["with"], {"persist-credentials": "false", "fetch-depth": "0"})
@@ -1623,7 +1623,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         with open(ROOT / ".github/ci-impact.toml", "rb") as handle:
             catalogue = tomllib.load(handle)
         self.assertEqual(catalogue["policy"]["budgets"],
-                         {"pull_request_wait_minutes": 0, "merge_group_wait_minutes": 45})
+                         {"pull_request_wait_minutes": 0, "merge_group_wait_minutes": 80})
         spec = importlib.util.spec_from_file_location("merge_hold_recheck", ROOT / "tools/merge_hold_recheck.py")
         recheck = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(recheck)
@@ -2112,7 +2112,7 @@ class NativeWindowSessionLayoutTests(unittest.TestCase):
     def test_native_legs_are_independent_isolated_and_bounded(self):
         job = self.jobs["native-window-session"]
         self.assertNotIn("needs", job)
-        self.assertEqual(job["strategy"]["max-parallel"], "3")
+        self.assertEqual(job["strategy"]["max-parallel"], "5")
         self.assertEqual(job["strategy"]["fail-fast"], "false")
         self.assertEqual(job["timeout-minutes"], "${{ matrix.timeout }}")
         legs = {entry["leg"]: entry for entry in matrix_combinations(job)}
@@ -2803,6 +2803,38 @@ class CiImpactShadowTests(unittest.TestCase):
                 "BASE_SHA": "--output=/dev/null"}, "push-bad-base")
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(outputs["mode"], "full")
+
+
+HEAVY_RUNNER = "baryon-heavy-16"
+HEAVY_RUNNER_EXPRESSION = (
+    "${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' "
+    "&& matrix.leg == 'native-scale2' && vars.BARYON_HEAVY_ENABLED == 'true' "
+    "&& 'baryon-heavy-16' || 'ubuntu-24.04' }}")
+
+
+class HeavyRunnerRoutingTests(unittest.TestCase):
+    """The larger runner is reachable only from one guarded, default-off expression."""
+
+    def test_only_the_guarded_window_session_leg_names_the_larger_runner(self):
+        users = []
+        for path in sorted((ROOT / ".github" / "workflows").glob("*.y*ml")):
+            text = path.read_text(encoding="utf-8")
+            jobs = (yaml.safe_load(text) or {}).get("jobs") or {}
+            users += [(path.name, job_id, job.get("runs-on")) for job_id, job in jobs.items()
+                      if HEAVY_RUNNER in str(job.get("runs-on"))]
+            # Any other mention (a label list, a group, an env value) would bypass this pin.
+            self.assertEqual(text.count(HEAVY_RUNNER), 1 if path.name == "native-window-session.yml" else 0,
+                             path.name)
+        self.assertEqual(users, [("native-window-session.yml", "native-window-session", HEAVY_RUNNER_EXPRESSION)])
+
+    def test_the_expression_falls_back_to_the_standard_runner(self):
+        # Missing, empty or any value other than 'true' selects ubuntu-24.04 before scheduling;
+        # pull_request, merge_group and push never reach the larger runner.
+        self.assertTrue(HEAVY_RUNNER_EXPRESSION.endswith("|| 'ubuntu-24.04' }}"))
+        for guard in ("github.event_name == 'workflow_dispatch'", "github.ref == 'refs/heads/main'",
+                      "vars.BARYON_HEAVY_ENABLED == 'true'"):
+            self.assertIn(guard, HEAVY_RUNNER_EXPRESSION)
+        self.assertNotIn("inputs.", HEAVY_RUNNER_EXPRESSION)
 
 
 if __name__ == "__main__":

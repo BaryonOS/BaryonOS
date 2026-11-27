@@ -8,11 +8,12 @@
 //! Security invariant (A03-T2c): a client's request causes a volume READ of
 //! object O only while the broker holds a live task-grant-core grant with
 //! actor == the kernel-supplied sender, object (O, rev) where rev is O's
-//! current volume revision, and right READ. Every denial is decided before,
-//! and makes zero, transport calls. The broker builds every volume request
-//! itself and only ever sends STAT (startup registration, and re-registration
-//! after a Stale READ) and READ with selector 0; it has no write path and
-//! never relays client bytes to the volume.
+//! current volume revision, and right READ. Every grant-decision denial is
+//! decided before, and makes zero, transport calls. The broker builds every
+//! volume request itself and only ever sends STAT (startup registration,
+//! re-registration after a Stale READ, and the revision check that replaces
+//! READ for an empty object) and READ with selector 0; it has no write path
+//! and never relays client bytes to the volume.
 
 use nieuw_os_task_grant_core::{Actor, Duration, Error, Grants, Handle, Object, Operation, Rights};
 use volume_core::client::{Client, Transport};
@@ -258,14 +259,23 @@ impl<T: Transport> Broker<T> {
         // shortcut: streams the whole object to return its first DATA_MAX
         // bytes (`Client::read` needs the exact length); add a bounded read
         // when objects grow beyond fixture size.
-        let result = self
-            .volume
-            .read(granted.id, granted.revision, length, |offset, bytes| {
-                if offset < DATA_MAX {
-                    let count = bytes.len().min(DATA_MAX - offset);
-                    data[offset..offset + count].copy_from_slice(&bytes[..count]);
-                }
-            });
+        let result = if length == 0 {
+            // `Client::read` sends nothing for an empty object; STAT still
+            // checks that (O, rev) is O's current state.
+            match self.volume.stat(granted.id) {
+                Ok(stat) if stat.revision == granted.revision => Ok(0),
+                Ok(_) => Err(Status::Stale),
+                Err((status, _)) => Err(status),
+            }
+        } else {
+            self.volume
+                .read(granted.id, granted.revision, length, |offset, bytes| {
+                    if offset < DATA_MAX {
+                        let count = bytes.len().min(DATA_MAX - offset);
+                        data[offset..offset + count].copy_from_slice(&bytes[..count]);
+                    }
+                })
+        };
         match result {
             Ok(_) => (STATUS_OK, data, length.min(DATA_MAX)),
             Err(status) => {
@@ -889,6 +899,31 @@ mod tests {
         assert!(broker
             .trusted_grant(OWNER, OBJECT_ONE, REVISION, RIGHT_READ, DURATION_SESSION)
             .is_err());
+        broker
+            .trusted_grant(OWNER, OBJECT_ONE, revision, RIGHT_READ, DURATION_SESSION)
+            .unwrap();
+        assert_eq!(
+            read(&mut broker, OWNER, OBJECT_ONE),
+            (STATUS_OK, b"rewritten".to_vec())
+        );
+        assert_read_only(&broker);
+    }
+
+    #[test]
+    fn empty_object_read_is_revision_checked() {
+        let (mut broker, mut seeder) = setup_with(b"");
+        broker
+            .trusted_grant(OWNER, OBJECT_ONE, REVISION, RIGHT_READ, DURATION_SESSION)
+            .unwrap();
+        assert_eq!(read(&mut broker, OWNER, OBJECT_ONE), (STATUS_OK, vec![]));
+        assert_eq!(ops(&broker), [wire::STAT, wire::STAT, wire::STAT]);
+        let revision = seed(&mut seeder, OBJECT_ONE, REVISION, b"rewritten");
+        assert!(revision > REVISION);
+        assert_eq!(
+            read(&mut broker, OWNER, OBJECT_ONE),
+            (STATUS_DENIED, vec![])
+        );
+        assert_eq!(broker.live_grants(OWNER), 0);
         broker
             .trusted_grant(OWNER, OBJECT_ONE, revision, RIGHT_READ, DURATION_SESSION)
             .unwrap();

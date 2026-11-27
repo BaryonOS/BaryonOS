@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "1a46fa2106be7138ea3a30c27d011066a1ace43d",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05 M1-HAUTH: TEST loader BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend through HashLogExtendEvent on QEMU/swtpm, two boots on one TPM state (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The loader feature tpm-hauth-provision-test provisions and re-verifies the M1-HAUTH BOUND state on swtpm 0.10.1 (run_tpm.py --case loader-hauth, both boots raw exit 33; docs/verification/b03-rel05-hauth-bound-20261125); the four existing cases keep their stdout hashes. TEST-only and unauthorised: no S3b, genesis, ACCEPTED, UEFI copy, native negative cases, non-SHA-256 bank read-back, hosted CI, hardware or human audit; 5A stays in force, no criterion accepted."
+}

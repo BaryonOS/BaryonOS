@@ -16,55 +16,38 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   delegation's conditions hold, following the PR guard's merge-lane protocol.
 - Keep host prototype, host simulation and native QEMU evidence separate.
 
-## Current cycle
+## Last landed cycle: P04-T1 (PR #533)
 
-- task: P04-T1 native LP-25 interrupted purge (criterion P04)
-- branch: `claude/p04-t1-interrupted-purge-20261125`; PR number, tested
-  source SHA and hosted runs are in the pull request description
-- delivered: `tools/test_nas.py` stages `interrupt` (NAS exits between evict's
-  volume WRITE and its history PURGE; one Revoked 96-byte copy retained) and
-  `repair` (first recover refuses with `ReopenRequired`, then
-  `VolumeStorage::finish_cleanup` purges history, then recovery). The repair
-  stage boots only on the exact passing interrupt image. Contract:
+- P04-T1 native LP-25 interrupted purge (criterion P04) landed on main as
+  e68612f5 (26 Nov 11:01:56Z, squash of tested head 0b688369; tree equal).
+  Issue #532 is closed; Project #5 shows Done for #532 and #533.
+- delivered: `tools/test_nas.py` stages `interrupt` and `repair`; contract in
   `services/nas/native-probe/CONTRACT.md` "Interrupted purge and repair".
+- evidence: local native gate on 0b688369 4/4, raw QEMU exit 33; all hosted
+  gates passed on that head (72 pass, 11 skipped, merge-hold success).
 - evidence limit: a controlled NAS process exit with the volume service alive.
   Not power loss, torn writes, disk errors, the revoke-PURGE window, remote
-  sessions or physical erasure.
+  sessions or physical erasure. Criterion P04 stays open until the lead
+  records acceptance; the score is unchanged.
 - ledger: `docs/roadmap-pipeline/ledger.json` P04-T1 is lead/Codex-owned; the
-  proposed write set, checks and acceptance are in the pull request for the
-  lead to record.
+  write set, checks and acceptance are in PR #533 for the lead to record.
 
-- state (25 Nov ~17:30Z): PR #533 is ready for review at f7fa786f (main
-  a571d87c), and the local native gate passes there (4/4, raw exit 33). The
-  GitHub incident reruns were accepted at 16:34Z (runs 45644871049 coverage,
-  45644871306 CodeQL). merge-hold failed only on a wait timeout (unchanged
-  head). At ~18:10Z main was de242a3f (#542 merged) and #533 was BEHIND, so
-  merge-hold is not rerun on f7fa786f: the catch-up head re-runs it with the
-  #542 poll fix. Reviews are handled:
-  the CodeRabbit race is fixed, and the AI review and Graphify findings are
-  answered. Codex and Copilot have no quota, so they are not retriggered.
-- Freeze lifted (PR guard, 20:19Z; main 0fe66b51): the merge-lane protocol
-  still holds (one lane holder; no catch-up outside the lane). Order #515 →
-  #539 → #533; the guard announces the lane explicitly. Since B9, merge-hold
-  first fails with only "Pending:" lines and restarts itself; only "Failed:"
-  needs action, then `gh run rerun --failed` if it is an infra failure.
-- GitHub Enterprise Cloud (PR guard, ~20:30Z): the hosted job limit is now
-  up to 500; the merge lane stays until the merge queue is authorized. Merge
-  promptly once holding the lane with applicable gates and reviews done.
-  Report upgrade-related problems (unusual runners, missing required checks,
-  permission or billing errors) to the PR guard.
-- Superseded P0 CI-first mode (owner, ~17:25Z; corrected ~18:05Z): CI keeps priority
-  until all CI batches are resolved, so the main freeze continues after #544
-  lands. #533 gets the lane only when a CI PR is genuinely blocked (non-infra
-  failure, 15 min without progress, or 60 min) or the CI exit criterion is
-  met; order #515 → #539 → #533. No push that triggers hosted CI. Local
-  handoff commits stay local and go out in the single catch-up push when the
-  PR guard grants #533 the lane.
+## Working rules (merge lane)
 
-- Lane (26 Nov): the PR guard granted #533 the lane at 10:20Z. The catch-up
-  head 8a8348e0 (main 29a159cc) passed the local native gate 4/4, raw exit
-  33. #552 (CI priority) then moved main to c44134c6; the lane was reset to
-  11:29Z and main is merged in once more.
+- One lane holder at a time; the PR guard announces each lane explicitly. No
+  catch-up push outside the lane. Since B9, merge-hold first fails with only
+  "Pending:" lines and restarts itself; act only on "Failed:", and rerun only
+  infra failures with `gh run rerun --failed`.
+- Before `gh pr merge` (owner, 26 Nov): every workflow run for the full head
+  SHA, other than "Merge hold", must be completed. Query exhaustively, since
+  `gh run list` returns 20 runs by default:
+  `gh api --paginate "repos/BaryonOS/BaryonOS/actions/runs?head_sha=<sha>&per_page=100" --jq '.workflow_runs[] | select(.status != "completed" and .name != "Merge hold") | .id'`
+  must print nothing. A Copilot "Agent Merge" run started through the owner
+  account counts too (seen on #533 at 10:59Z). Squash with `--match-head-commit`; never
+  `--admin` or auto-merge.
+- After a squash of a branch that another local branch stacks on, merge the
+  tested head first, then main with `-s ours` once main's tree equals that
+  head (otherwise every shared hunk conflicts against the old merge-base).
 
 ## Local stacked cycle: P02-T3 slice 1 (not pushed)
 
@@ -192,17 +175,14 @@ restarts processes.
 
 ## Next
 
-1. #533 holds the merge lane (granted 26 Nov 10:20Z, reset to 11:29Z after
-   #552 moved main to c44134c6). The live checkpoint is the PR: its head
-   already merges main, so do not merge or push again unless main moves and
-   the PR guard says so. Wait for the gates on that head; act only on
-   "Failed:" (rerun infra failures with `gh run rerun --failed`). The
-   open-run check must return exactly `[]`; then squash with
-   `--match-head-commit <head>`, check the tree, set Project #5 to Done and
-   report the landing to the PR guard. A native gate rerun needs
-   `NOS_BUILD_DIR` inside the checkout, e.g. `build/<name>`, or
-   `private_path` refuses it.
-2. P02-T3 slices 1, 2a and 2b are committed locally on
-   `claude/p02-t3-nasp-head-20261125` (stacked on this branch). It becomes its
-   own PR after #533 lands; merge main in, never rebase. Slice 3 (guest queue
-   persistence) is an OWNER question before any code.
+1. P02-T3 slices 1, 2a and 2b sit on `claude/p02-t3-nasp-head-20261125`
+   (worktree `~/projects/BaryonOS-worktrees/p02-t3-head`), tracking issue
+   #554, with main ffea3883 merged in. Under the owner's autonomous merge
+   queue decision (26 Nov ~20:10Z) P opens and queues its own merge-ready PR;
+   the PR guard coordinates order but grants no per-PR approval. Re-run the
+   six-stage native gate (`NOS_BUILD_DIR` inside the checkout, e.g.
+   `build/<name>`, or `private_path` refuses it) and the nas-workspace steps
+   on 1.100.0 after every main catch-up. The progress assessment is
+   `docs/progress/assessments/2026-11-26-p02-t3-offline-resume.json`.
+2. Slice 3 (guest queue persistence across a guest restart) is an OWNER
+   question before any code.

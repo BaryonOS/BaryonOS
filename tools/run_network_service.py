@@ -35,12 +35,15 @@ FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "r
 # their existing inclusive 6,000-tick boundary and 90-second host default.
 EXHAUSTION_TICK_DEADLINE = 12_000
 # Port sweep: two full 65,535-port TCP sweeps plus the app checks within the
-# 320-second budget (32,000 ticks at 100 Hz, also enforced by the kernel fixture).
-# Local TCG runs: kernel PASS at ticks 24,817 (249.6 s) and 23,455 (236.0 s), so
-# the budget leaves 28.9% over the slower run. Wall time tracked ticks / 100 plus
+# 480-second budget (48,000 ticks at 100 Hz, also enforced by the kernel fixture).
+# Local TCG runs: kernel PASS at ticks 24,817 (249.6 s) and 23,455 (236.0 s).
+# Hosted runs on 25 November 2026: about 180 s on fast runners and up to about
+# 325 s on slow ones (two #539 runs hit the old 32,000-tick deadline 97.6% and
+# 98.4% through the post sweep), so the budget leaves about 47% over the slowest
+# measured run. Wall time tracked ticks / 100 plus
 # about 1.4 s, so the host watchdog stays 40 s above the guest budget and the
 # kernel's own deadline fails the run first.
-PORT_SWEEP_TICK_DEADLINE = 32_000
+PORT_SWEEP_TICK_DEADLINE = 48_000
 PORT_SWEEP_TIMEOUT = SWEEP_LIFETIME
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
@@ -584,7 +587,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=tuple(FEATURES), default="normal")
     parser.add_argument("--timeout", type=int,
-                        help="host timeout seconds (default: port-sweep 360, exhaustion 150, other cases 90)")
+                        help="host timeout seconds (default: port-sweep 520, exhaustion 150, other cases 90)")
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
     args = parser.parse_args()
     if not args.no_build:
