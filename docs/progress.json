@@ -1631,7 +1631,7 @@
       },
       {
         "id": "B04",
-        "remaining": "Release chain/rotation implementation and evidence; Build divergence and complete provenance; Complete independent release-profile review.",
+        "remaining": "Release chain and rotation implementation and evidence. Complete release provenance and independent reproduction. Independent release-profile review.",
         "requirements": [
           {
             "description": "Verified firmware-to-loader and loader-to-image chain",
@@ -1654,10 +1654,10 @@
             "verification": [
               "source"
             ],
-            "observation": "Target architecture D1-D7 adopted; canonical policy/successor validation and TEST probe exist. Secure Boot runner explicitly excludes PK/KEK/db/dbx updates/rotation and rollback.",
+            "observation": "updated 2026-11-27 @ee29246b: The project owner approved D1-D7 for design and bounded synthetic work in #631. Canonical policy and successor validation and the immutable TEST probe exist. The Secure Boot runner excludes PK/KEK/db/dbx updates, rotation and rollback.",
             "remaining": "End-to-end release-profile key rotation/revocation/trust-failure execution and custodians/anchor decisions not complete.",
             "evidence": [
-              "docs/DECISIONS.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/ee29246b3d45472aeac8021eff87da8c5101eedb/docs/DECISIONS.md",
               "crates/update-core/src/policy_envelope.rs",
               "boot/loader/src/signed.rs",
               "docs/verification/b04-secure-boot-20261123/README.md"
@@ -1669,12 +1669,13 @@
             "verification": [
               "host"
             ],
-            "observation": "Pinned manifests/lockfiles/provenance records and repro checker exist. Actual recorded double build finished but loader/image_payload differ; exit1 is correct detection, not reproducibility success.",
-            "remaining": "Resolve recorded build divergence and complete release provenance evidence; no independent-environment reproducibility result.",
+            "observation": "updated 2026-11-27 @ae735e2c: #493 resolved the recorded UEFI loader divergence. Two isolated default builds on the same host and checkout path matched the kernel, loader and canonical ESP payload manifest at tested source 0c590f13 (exit 0).",
+            "remaining": "Complete release provenance and reproduction across independent environments remain open. The comparison covered the default profile and the ESP payload manifest.",
             "evidence": [
               "docs/DEPENDENCIES.md",
               "tools/repro_check.py",
-              "docs/roadmap-pipeline/receipts/B04-T2.json"
+              "https://github.com/BaryonOS/BaryonOS/blob/ae735e2ce66fbf44a9b7535b4b2b10a969b15d04/docs/verification/b04-repro-loader-20261124/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/ae735e2ce66fbf44a9b7535b4b2b10a969b15d04/docs/verification/b04-repro-loader-20261124/repro/4-head-green.json"
             ]
           },
           {
