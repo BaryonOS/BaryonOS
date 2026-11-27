@@ -77,8 +77,9 @@ class ProbeArtifact(unittest.TestCase):
         # RDI deliberately contains the exit code and is not cleared here.
         expected = bytes.fromhex('b8 02 00 00 00 31 f6 31 d2 45 31 d2 45 31 c0 45 31 c9 cd 80 0f 0b')
         self.assertTrue(self.code.endswith(expected), self.code[-len(expected):].hex())
-        # Normal/unknown/invalid-argument prelude, yield, invalid-RSP and exit.
-        self.assertEqual(self.code.count(bytes.fromhex('cd 80')), 6)
+        # Normal/unknown/invalid-argument prelude, yield, the four IPC sites
+        # (send, receive, wait and its clock read), invalid-RSP and exit.
+        self.assertEqual(self.code.count(bytes.fromhex('cd 80')), 10)
 
     def test_negative_syscall_and_direction_flag_prelude_is_in_actual_binary(self):
         for label, opcode in [
