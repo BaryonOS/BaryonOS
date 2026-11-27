@@ -1853,8 +1853,11 @@ must keep its `.text` and `.data` byte-identical.
    The existing RX path also stays allowed. An RX completion polled while the
    link is down or unknown is dropped as today: `rx_completed` and
    `rx_dropped` increase by one each, the copy is zeroed, and `post_rx`
-   hands the same pinned page back to the device. That repost is not counted
-   as a down-window publication (`docs/implementation/VIRTIO-NET.md`).
+   hands the same pinned page back to the device. That repost advances the RX
+   available index and therefore adds one to `window_delta` at the next up
+   edge. The existing cases expect `window_delta` 0 because QEMU 8.2 delivers
+   no RX while the link is down. An RX completion inside a down window would
+   therefore show as a nonzero `window_delta` rather than be hidden.
    Apart from these two paths, a down window allows no TX publication, no
    RX delivery and no other counter change. Further revisit triggers: a -27 outside
    `test-system-net-link*`, and a -27 counted in `denied`.
