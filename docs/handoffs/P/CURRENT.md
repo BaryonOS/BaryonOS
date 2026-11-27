@@ -7,10 +7,10 @@ conveniences and never the source of truth. Tasks come from
 `docs/progress.json`, the roadmap ledger, issues and pull requests; newer ADRs
 and live evidence take precedence.
 
-State as of 27 Nov 2026 11:30Z (main 8ee0d501).
+State as of 27 Nov 2026 11:45Z (main be1fd9ac).
 
 **Live handoff:** the newest "HANDOFF" comment on issue #592, currently
-https://github.com/BaryonOS/BaryonOS/issues/592#issuecomment-7217096041
+https://github.com/BaryonOS/BaryonOS/issues/592#issuecomment-7217363475
 (HEADs, commands and exit codes, not-run list, next safe action). Graphify is
 optional context only; every fact here and in that comment can be reproduced
 from the repository and GitHub. On resume, first verify branch, HEAD,
@@ -76,21 +76,15 @@ worktree status, ownership and freshness against that comment.
     reconcile via Head).
 
   Native gate 6/6 raw 33; P02 stays open.
-
-## In flight
-
-- #595 (issue #592), the follow-ups from the #577 review:
+- P02-T3 follow-ups from the #577 review: #595 → be1fd9ac (issue #592,
+  closed).
   - `NaspRemote` drops a late reply with an older correlation after a receive
     timeout. The drop is bounded by earlier `Unknown` outcomes and never
     resends.
   - The `native-client` README limits `Unknown` to a Commit that was sent.
 
-  Head 5a8f5263, all checks green, in the merge queue since 11:14Z. After
-  landing:
-  1. verify the squash against that head;
-  2. close #592 if it is still open;
-  3. post `@graphify good` on the #577 thread `PRRT_kwDOVZC91s68kBB8`;
-  4. post a HANDOFF comment on #592.
+  Verified IDENTICAL to the tested head 5a8f5263. `@graphify good` is posted
+  on the #577 thread.
 
 ## Open and blocked
 
@@ -119,9 +113,8 @@ worktree status, ownership and freshness against that comment.
 
 ## Next
 
-1. Finish the #595 landing steps above.
-2. Pick the next P row only if it has no owner or cross-track gate. Otherwise
+1. Pick the next P row only if it has no owner or cross-track gate. Otherwise
    raise the OWNER questions on the tracking issue and wait.
 
-Handoff threads: #592 (current slice, live HANDOFF), #554 (P02-T3). Update
+Handoff threads: #592 (live HANDOFF), #554 (P02-T3). Update
 the live handoff before an ownership change or a stop.
