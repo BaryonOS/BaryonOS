@@ -509,8 +509,9 @@ and the Security Floor retain their existing behaviour.
 Negative tests must prove refusal on each of the four endpoints and
 unchanged ordinary IPC elsewhere. The full-receiver case must leave
 resources unchanged and allow subsequent capless control and data
-delivery. K and B must each review and give GO on the implementation
-diff. This approval narrows the fixture ingress and establishes no
+delivery. Native tests must demonstrate bounded control progress,
+including Flush, when the data queues are saturated. K and B must each
+review and give GO on the implementation diff. This approval narrows the fixture ingress and establishes no
 runtime or acceptance evidence. The decision is
 [recorded on #564](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7227712309).
 
