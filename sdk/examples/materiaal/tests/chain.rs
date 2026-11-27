@@ -151,6 +151,10 @@ struct Host {
     drop_commit: bool,
     drop_input: bool,
     fail_blit: bool,
+    /// Tick clock of a surface transport that blocks on replies (the native
+    /// `ipc_wait` path); `None` keeps nonblocking yield polling.
+    reply_wait: Option<u64>,
+    surface_waits: u64,
     closed: Vec<u64>,
     clipboard_fault: ClipboardFault,
     clipboard_request: Option<clip::Header>,
@@ -222,6 +226,8 @@ impl Host {
             drop_commit: false,
             drop_input: false,
             fail_blit: false,
+            reply_wait: None,
+            surface_waits: 0,
             closed: vec![],
             clipboard_fault: ClipboardFault::None,
             clipboard_request: None,
@@ -501,6 +507,17 @@ impl Transport for Port {
     fn yield_now(&mut self) -> Result<(), RuntimeError> {
         Ok(())
     }
+    fn reply_deadline(&mut self, ticks: u64) -> Result<Option<u64>, RuntimeError> {
+        let h = self.0.borrow();
+        Ok(h.reply_wait.filter(|_| self.1 == 2).map(|now| now + ticks))
+    }
+    fn wait_receive(&mut self, _: ReceiveEndpoint, at: u64) -> Result<bool, RuntimeError> {
+        // Only a reply arrival could wake the waiter early; none is pending.
+        let mut h = self.0.borrow_mut();
+        h.surface_waits += 1;
+        h.reply_wait = h.reply_wait.map(|now| now.max(at));
+        Ok(false)
+    }
 }
 fn configured_app<'a>(
     h: &Rc<RefCell<Host>>,
@@ -739,6 +756,61 @@ fn lost_surface_reply() {
         a.step().unwrap();
     }
     assert_eq!(h.borrow().blits, blits);
+}
+/// A blocking surface transport whose replies never arrive fails the surface
+/// once at the client reply deadline; input closes and the document is kept.
+fn silent_surface_reply_deadline() {
+    let h = Host::new();
+    let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+    let mut a = app(
+        &h,
+        Buffers {
+            draft: &mut d,
+            original: &mut o,
+            staging: &mut s,
+        },
+    );
+    new_text(&h, &mut a);
+    let before = a.evidence();
+    let pairs = h.borrow().pairs;
+    {
+        let mut h = h.borrow_mut();
+        h.drop_blit = true;
+        h.reply_wait = Some(1000);
+    }
+    assert!(matches!(
+        a.step(),
+        Err(Error::Surface(surface::client::Error::Interrupted {
+            delivery: nieuw_os_catalog_client::Delivery::Enqueued,
+            runtime: None,
+            ..
+        }))
+    ));
+    {
+        let h = h.borrow();
+        assert_eq!(h.surface_waits, 1);
+        assert_eq!(
+            h.reply_wait,
+            Some(1000 + surface::client::REPLY_DEADLINE_TICKS)
+        );
+        assert_graphics_closed(&h, pairs);
+    }
+    assert!(!a.is_visible());
+    assert!(!a.can_idle());
+    assert_eq!(a.evidence().errors, before.errors + 1);
+    assert_eq!(a.evidence().frames, 0);
+    assert_eq!(a.evidence().save_acks, 0);
+    assert!(a.controller().view().dirty);
+    assert_eq!(a.controller().view().contents, Some("hi"));
+    assert!(!a.controller().document().is_closed());
+    // The failed surface is not retried: no further waits or blits.
+    let blits = h.borrow().blits;
+    for _ in 0..5 {
+        a.step().unwrap();
+    }
+    assert_eq!(h.borrow().surface_waits, 1);
+    assert_eq!(h.borrow().blits, blits);
+    assert_eq!(a.evidence().errors, before.errors + 1);
 }
 fn lost_commit_reply() {
     let h = Host::new();
@@ -1114,6 +1186,10 @@ scenario!(
 scenario!(
     lost_surface_ack_does_not_present_or_drop_draft,
     lost_surface_reply
+);
+scenario!(
+    silent_blocking_surface_fails_at_the_reply_deadline_and_keeps_the_draft,
+    silent_surface_reply_deadline
 );
 scenario!(lost_document_commit_never_claims_saved, lost_commit_reply);
 scenario!(
