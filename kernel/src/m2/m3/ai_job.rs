@@ -22,9 +22,10 @@ const MIN_ITERATIONS: u64 = 2000;
 const MIN_TICKS: u64 = 50;
 /// Timer IRQs that must land on the job itself in each run; the job also
 /// yields every 64 iterations, so its self-reported duration alone does not
-/// prove preemption. Measured passes see about 23 per run locally (KVM/TCG) and
-/// 12-17 on hosted TCG runners, so the bound is a small absolute count with a
-/// 3x margin below the hosted minimum, not a ratio of `MIN_TICKS`.
+/// prove preemption. Measured passes see 20-81 per run locally (TCG, idle and
+/// under host load) and 8-65 on hosted TCG runners (minimum 8 on 93b6a23e; the
+/// yield cadence decides how many ticks land on the job rather than the canary),
+/// so the bound is a small absolute count with a 2x margin, not a ratio of `MIN_TICKS`.
 const MIN_JOB_TIMER_IRQS: u64 = 4;
 /// 100 Hz PIT ticks (20 s); a measured pass needs about 110. The host
 /// runner's 60 s timeout is sized above this bound.
