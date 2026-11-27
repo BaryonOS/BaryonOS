@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "81e3d613d612e7cc1102b344b1285638bbefbb1b",
+  "assessment_basis": "parent_commit",
+  "branch": "g/adr-files-20261127",
+  "task": "One file per ADR in docs/decisions/ (owner directive: remove merge queue bottlenecks)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Governance documentation only: ADR directory convention and ADR-ADR-FILES-20261127; no criterion, implementation or evidence changes."
+}
