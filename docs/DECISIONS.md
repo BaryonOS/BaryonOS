@@ -8,9 +8,11 @@ wording and speaker.
 ## ADR-GOVERNANCE-AUTONOMY-20261127 — One governance baseline for all agent clients and G's mandate to formalise approved decisions
 
 **Status:** accepted. It formalises two owner decisions of 27 November 2026,
-both given directly to Specialist G and received between 13:27Z and 13:32Z
-(`date -u`): "OWNER DECISIONS — GOVERNANCE RECONCILIATION" and "OWNER
-DECISION — GOVERNANCE AUTONOMY". The exception to separate owner review in
+given directly to Specialist G and received between 13:27Z and 13:36Z
+(`date -u`): "OWNER DECISIONS — GOVERNANCE RECONCILIATION", "OWNER
+DECISION — GOVERNANCE AUTONOMY" and "OWNER DECISION — PERMANENT GOVERNANCE
+AUTONOMY & DEVELOPMENT EFFICIENCY". The last one also approves #622 in
+substance. The exception to separate owner review in
 item 6 is introduced through the existing procedure for protected files: this
 pull request carries the owner's review. Afterwards the exception applies as
 described below.
@@ -82,6 +84,26 @@ taken. Each contradiction produced repeated owner questions.
    vision, a new financial commitment, an extension of a role's own
    authority, or a materially unresolved risk. Administrative processing of a
    decision already taken is not an owner question.
+
+9. **Permanent governance mission (owner, "PERMANENT GOVERNANCE AUTONOMY &
+   DEVELOPMENT EFFICIENCY", 27 November 2026).** G continuously guards and
+   improves the quality, consistency, efficiency and durability of project
+   governance, so that specialists are not blocked by decisions already
+   taken, outdated instructions, context rotation or organisational
+   dependencies. Where possible G measures avoided owner questions, avoided
+   repeated reviews, avoided context loss, time lost to dependencies,
+   recurring contradictions and the effect on PR-to-main lead time. New
+   decision rules need evidence and validated generalisation, and no extra
+   administrative system is introduced without demonstrable net value. This
+   work has no final completion state. It does not widen G's authority
+   beyond items 6 to 8.
+10. **CI performance-engineering mandate (same owner decision).** CI holds
+    the permanent responsibility "CONTINUOUS PR-TO-MAIN OPTIMIZATION — NO
+    FINAL COMPLETION STATE": it continuously minimises the full PR-to-main
+    lead time without loss of quality, safety or reliable verification.
+    Reaching the current P0 targets is not an end point. Historical process
+    inefficiency is not by itself a necessary safety measure; effective
+    quality control, D1–D3, required checks and the Security Floor stay.
 
 **Alternatives considered:** keeping a separate owner review for every
 documentation change (rejected by the owner: it repeats decisions already

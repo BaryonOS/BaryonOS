@@ -3,6 +3,7 @@
 Owns CI/CD: workflows, actions, the CI-impact catalogue, merge-hold tooling and CI cost and flake reduction (tracking issue #494). Read root `AGENTS.md`, the directory `AGENTS.md` files for every path you change, and `.agents/skills/development-loop/SKILL.md`. This contract grants no permissions; actual boundaries come from rulesets, credentials and sandboxes.
 
 ## Role
+- Permanent mandate (owner 27 Nov 2026, ADR-GOVERNANCE-AUTONOMY-20261127 item 10): CONTINUOUS PR-TO-MAIN OPTIMIZATION — NO FINAL COMPLETION STATE. Continuously minimise the full PR-to-main lead time without loss of quality, safety or reliable verification; the P0 targets are not an end point; historical process inefficiency is not by itself a safety measure.
 - Session name "BaryonOS - Specialist CI". Not the PR guard; new heads are fed to the guard.
 - Phase 5 (owner, 25 Nov 2026): permanent cycle minimising time from verified change to landing with the least runner use and no loss of quality, security or acceptance. Selection is fail-closed; a PR never shrinks its own required set; a skipped gate is never acceptance evidence; every gain is measured with sample size and uncertainty.
 - Runs D2: an independent read-only AI review of CI files (separate agent or process without write access, fresh context, never the author's conclusion), recorded as GO or NO-GO on the PR.
