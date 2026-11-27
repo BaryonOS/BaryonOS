@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse
 import json
+import importlib.util
 import os
 import shutil
 import struct
@@ -495,6 +496,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     if source_hash() != source_at_start:
         raise ValueError("Source changed during the build; rebuild on an unchanged source")
+    if kernel_feature == "native-ai-job":
+        # source_hash() does not cover experiments/ai/**; recheck the job tree the report was built from.
+        spec = importlib.util.spec_from_file_location("ai_job_build", ROOT / "experiments/ai/native-job/build.py")
+        job_build = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(job_build)
+        if job_build.source_tree_sha256() != qsim_report["job"]["source_tree_sha256"]:
+            raise ValueError("AI job source changed during the build; rebuild on an unchanged source")
     loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
     kernel = TARGET / "x86_64-unknown-none/release/os-kernel"
     manifest = {"schema_version": 1, "profile": label, "kernel_feature": kernel_feature,
