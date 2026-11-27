@@ -74,7 +74,11 @@ def guest_expectation(phase, group):
         elif group == "large-bss-image-exceeds-old-64-mapping-limit":
             required = MILESTONE_MARKERS["m3"]
         elif group == "syscall-spin-continues-within-quantum":
-            required = MILESTONE_MARKERS["m3"] + ("M3:SYSCALL_SPIN:PASS",)
+            # Ordered match: each mode-0 round prints the spin verdict before its
+            # completion marker (KS-04 after round 0, KS-07 after round 1).
+            m3, spin = MILESTONE_MARKERS["m3"], ("M3:SYSCALL_SPIN:PASS",)
+            first, second = m3.index("KS-04:PASS"), m3.index("KS-07:PASS")
+            required = m3[:first] + spin + m3[first:second] + spin + m3[second:]
         elif group == "m1-regression-after-m3":
             required = M1_MARKERS
         else:
