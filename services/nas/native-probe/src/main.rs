@@ -712,13 +712,17 @@ fn synthetic<const N: usize>(mul: usize, add: usize) -> [u8; N] {
 const FIRST: (usize, usize) = (17, 9);
 const EDIT: (usize, usize) = (29, 3);
 
+type NaspReply = Result<[u8; SIZE], Delivery>;
+
 /// The guest's `native-client` over NASP. A send that queued nothing is
 /// `NotSent`; once queued, a missing or bad reply is `Sent` (`Unknown`).
-fn client_remote(
-    rpc: &Rpc,
-) -> NaspRemote<impl FnMut(&[u8; SIZE]) -> Result<[u8; SIZE], Delivery> + '_> {
+/// `receive` gives up after `LIMIT` yields: that is the reply timeout. `None`
+/// receives only, so `NaspRemote` can drop a late reply without resending.
+fn client_remote(rpc: &Rpc) -> NaspRemote<impl FnMut(Option<&[u8; SIZE]>) -> NaspReply + '_> {
     NaspRemote::new(LocalBinding::principal(support::word(176)), move |bytes| {
-        send(rpc.send, TAG, bytes).map_err(|_| Delivery::NotSent(NasError::Io))?;
+        if let Some(bytes) = bytes {
+            send(rpc.send, TAG, bytes).map_err(|_| Delivery::NotSent(NasError::Io))?;
+        }
         let reply: [u8; SIZE] = receive(rpc.receive, rpc.peer, TAG).map_err(|_| Delivery::Sent)?;
         bump(if reply[16..20] == [0; 4] { 400 } else { 408 });
         Ok(reply)
@@ -789,6 +793,8 @@ fn guest_resume(resume: bool) -> ! {
     );
     bump(416);
     let mut client = SyncClient::new();
+    // `Rpc::call` fails the boot on any missing or mismatched reply, so no
+    // request is outstanding on this endpoint when `NaspRemote` takes it over.
     let mut remote = client_remote(&rpc);
     // 32 bytes: the core's copy-on-write reservation counts the old 96-byte
     // revision too, and 96 + 32 is exactly the 128-byte quota.
