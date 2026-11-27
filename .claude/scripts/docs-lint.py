@@ -22,7 +22,7 @@ from pathlib import Path
 # Bumped when this file's behaviour changes. The SessionStart hook compares the copy
 # in a repository against the plugin's and says so when they differ; a translated
 # fork keeps the same number once it has the same logic.
-LINT_VERSION = "5"
+LINT_VERSION = "6"
 
 REQUIRED_FM = ("title", "type", "verified_at")
 META_PAGES = {"index", "log", "AGENTS", "CLAUDE", "README"}
@@ -356,7 +356,8 @@ def main() -> int:
             for f in scaffold_todo:
                 print(f"   ! {f}")
         if stale:
-            print(f"\n{len(stale)} stale -> run the documentation sync procedure")
+            print(f"\n{len(stale)} stale -> follow "
+                  "docs/project-docs/operations/documentation-workflow.md#synchronise-after-source-changes")
             for n, c in stale:
                 print(f"   ! {n} ({c} commits)")
         if unverified:

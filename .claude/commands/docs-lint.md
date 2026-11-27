@@ -17,7 +17,7 @@ missing frontmatter, citations past end of file, unfinished checklists,
 
 | | Meaning | What to do |
 |---|---|---|
-| **stale** | the code this page points at **changed** | run the sync procedure |
+| **stale** | the code this page points at **changed** | follow `docs/project-docs/operations/documentation-workflow.md#synchronise-after-source-changes` |
 | **unverified** | freshness **cannot be decided** | a human has to read it |
 
 Three ways a page becomes unverified:
