@@ -54,8 +54,16 @@ worktree status, ownership and freshness against that comment.
   - release build for `x86_64-unknown-none`;
   - for native-probe also
     `clippy --release --features native --bins --target x86_64-unknown-none`.
-- Probe Python unittests: `test_disk_oracle.py`, `test_replay_handoff.py`.
-- Six-stage native gate:
+- Python unittests:
+  - `test_disk_oracle.py` and `test_replay_handoff.py` (in
+    `services/nas/native-probe/tests`);
+  - `test_nas_build.py` and `test_nas_runner.py` (in `tests/`).
+- Six-stage native gate. On a fresh Cargo cache, first fetch the locked
+  dependencies:
+  `cargo +1.100.0 fetch --locked`, then the same with
+  `--manifest-path sdk/Cargo.toml` and with
+  `--manifest-path services/nas/native-probe/Cargo.toml`
+  (the native job's setup in `nas-core.yml`). Then run:
   `NOS_BUILD_DIR=$PWD/build/nas-native-ci CARGO_NET_OFFLINE=true python3 -B -u tools/test_nas.py`
   (stages: normal, recover, interrupt, repair, offline, resume).
   `NOS_BUILD_DIR` must lie inside the checkout. Only raw QEMU exit 33 per
