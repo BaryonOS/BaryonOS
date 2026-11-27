@@ -53,8 +53,9 @@ state machine: uncertain writes are observed, never automatically replayed. With
 `Local`, both operations are synchronous within one exclusively borrowed core.
 With `NaspRemote`, they are separate NASP exchanges: Head (opcode 15) and then a
 Read pinned to the revision that Head returned, so a commit between them is
-never read as that revision. A Commit whose reply is missing or malformed is
-`Unknown`.
+never read as that revision. A Commit that was sent but whose reply is missing
+or malformed is `Unknown`; one that queued nothing (`Delivery::NotSent`) keeps
+its error, such as `Io`.
 NASP is the local IPC frame format; no network transport is added.
 
 ## Checkpoint format v1
