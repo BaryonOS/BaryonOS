@@ -5,6 +5,134 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-GOVERNANCE-AUTONOMY-20261127 — One governance baseline for all agent clients and G's mandate to formalise approved decisions
+
+**Status:** accepted. It formalises two owner decisions of 27 November 2026,
+given directly to Specialist G and received between 13:27Z and 13:36Z
+(`date -u`): "OWNER DECISIONS — GOVERNANCE RECONCILIATION", "OWNER
+DECISION — GOVERNANCE AUTONOMY" and "OWNER DECISION — PERMANENT GOVERNANCE
+AUTONOMY & DEVELOPMENT EFFICIENCY". The last one also approves #622 in
+substance. The exception to separate owner review in
+item 6 is introduced through the existing procedure for protected files: this
+pull request carries the owner's review. Afterwards the exception applies as
+described below.
+
+**Problem:** role contracts, handoffs and client files held contradictory or
+outdated rules: context-rotation thresholds of 60/65/75/80–85 % next to
+70/75/80/85 %, an older instruction to ask the owner before the first push of
+a branch, no recorded writer for the guard's acceptance processing, and a
+Graphify write pause that blocked recording decisions the owner had already
+taken. Each contradiction produced repeated owner questions.
+
+**Decision:**
+
+1. **Responsibility split (confirmed).** Every formally appointed specialist
+   enqueues its own merge-ready pull requests within its own area
+   (ADR-SPECIALIST-MANDATE-20261127). Every criterion owner keeps its own
+   `delivery_review` rows current (ADR-PROGRESS-OWN-ROWS-20261127). The PR
+   guard performs formal criterion acceptance and processes it into the
+   official score after complete independent verification; for that purpose
+   only, it may commit, push and enqueue its own pull requests that change
+   criterion status and score in `docs/progress.json`, the generated views and
+   the matching assessment file, plus its own `docs/handoffs/PR-WATCHER/**`.
+   It still writes no product code and gives no review verdicts. G stays
+   independent in substance and decides routing category C. No new mandatory
+   approval layer.
+2. **One canonical role architecture.** `.agents/roles/*.md` and
+   `docs/handoffs/` are the single canonical source for Claude Code, Codex and
+   GitHub Copilot. Client files under `.claude`, `.codex` and `.github` are
+   adapters without task state. Compatibility work is preparation, not a
+   migration GO.
+3. **Context rotation.** For every specialist the thresholds are 70 % prepare
+   the checkpoint, 75 % choose the rotation moment, 80 % CLEAR_READY with a
+   verified handoff, 85 % hard limit (owner 26 November 2026 about 21:15Z,
+   confirmed 27 November). They replace the values in item 5 of
+   ADR-SPECIALIST-TEAM-20261125. The guard still rotates only at the owner's
+   request.
+4. **No separate approval per push or enqueue.** Within an existing mandate a
+   specialist pushes and enqueues without asking first. Older instructions to
+   ask the owner before a push, the first push of a branch or an enqueue are
+   void. Required checks, the pre-merge open-run check, D1–D3, rulesets and the
+   Security Floor are unchanged.
+5. **Superseded questions.** An owner question that a newer decision answers
+   is recorded as decided and is not asked again after a context rotation.
+   Hosted Graphify is the decision register; no parallel register exists.
+6. **G's governance mandate.** G may, without a second owner approval:
+   process owner decisions already taken into binding documentation; draft,
+   update and integrate ADRs that only formalise approved decisions; bring
+   `AGENTS.md`, `CLAUDE.md`, role contracts and handoff instructions in line
+   with them; correct outdated or contradictory instructions; record existing
+   authority correctly; apply approved governance decisions equally to Claude
+   Code, Codex and GitHub Copilot; and remove administrative inefficiencies
+   within this mandate. This includes protected documentation files, but only
+   when the change demonstrably stays within an approved decision. Every such
+   pull request names the decision it formalises, keeps the review required
+   for protected files by ADR-SPECIALIST-MANDATE-20261127 (outside G's own
+   workstream), and never bypasses a ruleset or technical GitHub protection.
+   G never approves its own review.
+7. **Graphify.** G manages shared decision knowledge and may accept, correct,
+   consolidate and withdraw memories after validating each one individually:
+   origin, correctness, currency, contradictions and scope. Notes keep five
+   classes apart: explicit owner decision, validated decision rule,
+   demonstrable technical fact or lesson, unconfirmed hypothesis, and new
+   policy proposal. Only validated knowledge within the mandate is published;
+   a policy proposal goes to the owner. This replaces the earlier G write
+   pause and the rule that G accepts only 1:1 traceable candidates.
+8. **Escalation to the owner** only for: a fundamental new architecture
+   choice, a material change to a binding contract not yet approved,
+   relaxation of a safety or acceptance condition, a change of product
+   vision, a new financial commitment, an extension of a role's own
+   authority, or a materially unresolved risk. Administrative processing of a
+   decision already taken is not an owner question.
+
+9. **Permanent governance mission (owner, "PERMANENT GOVERNANCE AUTONOMY &
+   DEVELOPMENT EFFICIENCY", 27 November 2026).** G continuously guards and
+   improves the quality, consistency, efficiency and durability of project
+   governance, so that specialists are not blocked by decisions already
+   taken, outdated instructions, context rotation or organisational
+   dependencies. Where possible G measures avoided owner questions, avoided
+   repeated reviews, avoided context loss, time lost to dependencies,
+   recurring contradictions and the effect on PR-to-main lead time. New
+   decision rules need evidence and validated generalisation, and no extra
+   administrative system is introduced without demonstrable net value. This
+   work has no final completion state. It does not widen G's authority
+   beyond items 6 to 8.
+10. **CI performance-engineering mandate (same owner decision).** CI holds
+    the permanent responsibility "CONTINUOUS PR-TO-MAIN OPTIMIZATION — NO
+    FINAL COMPLETION STATE": it continuously minimises the full PR-to-main
+    lead time without loss of quality, safety or reliable verification.
+    Reaching the current P0 targets is not an end point. Historical process
+    inefficiency is not by itself a necessary safety measure; effective
+    quality control, D1–D3, required checks and the Security Floor stay.
+
+11. **Continuous optimisation (owner, "CONTINUOUS BARYONOS OPTIMIZATION",
+    27 November 2026, 13:37Z in the PR guard's log, relayed to CI, G, K and
+    R).** Permanent mandates with no final completion state:
+    - CI minimises PR-to-main lead time.
+    - G minimises organisational delay, repeated owner questions,
+      unnecessary review rounds, conflicting instructions and context loss.
+    - K maximises safe kernel performance, scalability and robustness.
+    - R identifies and measures runtime bottlenecks and maximises real
+      runtime performance and user experience. Kernel changes stay with K.
+    - The PR guard maximises safe integration throughput and tracks real
+      project gain.
+
+    The cycle is measure, analyse, prioritise, implement, verify, integrate,
+    and measure again. Work is chosen by net project value, without duplicate
+    research or overlapping ownership. Existing measurements, infrastructure
+    and Graphify are reused. CI, virtualisation and OS runtime performance
+    are kept separate. No role becomes an approval layer, and necessary
+    checks stay.
+
+**Alternatives considered:** keeping a separate owner review for every
+documentation change (rejected by the owner: it repeats decisions already
+taken); a separate decision register next to Graphify (rejected: it would
+duplicate the register).
+
+**Rollback:** the owner withdraws or narrows item 6 or 7 by a later decision;
+G then stops the affected actions, and documentation already integrated stays
+until a correcting pull request lands.
+
 ## ADR-B02-T3-ANCHOR-20261127 — B02 cold rollback anchor as storage domain 1 of the B anchor service
 
 **Status:** project-owner decision of 27 November 2026, given directly to
@@ -213,7 +341,116 @@ the date and commit in the row text, and passes `progress.py --check`.
 
 <!-- adr-slot: 629 -->
 
-<!-- adr-slot: 632 -->
+## ADR-R02-L1-BUDGETS-20261127 — R02 performance budgets: product targets and profile-bound acceptance
+
+**Status:** accepted. Project-owner decision of 27 November 2026, 13:27 UTC, recorded
+verbatim in #530 issuecomment-7219541052. The owner delegates profile-bound technical
+budgeting to Specialist R, in consultation with U, K and H, provided that the product
+targets below are not silently weakened. Drafted by Specialist R. It closes the
+decision part of R02-L1. It does not accept R02. It changes no FR-R02 text and no P0
+CI performance target; those targets remain fully in force.
+
+**Problem:** FR-R02 (`docs/FULL-TEST-RELEASE.md`) requires endurance, workload, p50,
+p95, energy, memory and latency limits fixed in advance, and these are never relaxed
+afterwards. No such limit existed. The existing R02 evidence consists of local KVM
+host timings on a 0.2 s screendump retry grid
+(`docs/verification/r02-*-2026112*/`). The single-CPU guest clock that applications
+read runs at a nominal 100 Hz (10 ms per tick, `kernel/src/m2/m3.rs`). Neither can
+resolve targets of 50 to 100 ms.
+
+**Decision, tier 1: product targets (project owner; binding on every acceptance
+profile and never relaxed per profile):**
+
+| Area | Target |
+|---|---|
+| First visible feedback on regular local interactions | p50 ≤ 50 ms, p95 ≤ 100 ms, p99 ≤ 200 ms |
+| Completion of regular light interactions without an external I/O dependency | p95 ≤ 250 ms |
+| Graphical output | stable and smooth at no less than 60 Hz as the base profile; no architectural cap at 60 Hz; work towards 120, 144 and 240 Hz on suitable hardware |
+| Frame pacing | matched to the actual refresh rate; missed frames and latency recorded separately |
+| Idle CPU load | at most 1 % of one CPU core on suitable physical reference hardware (target) |
+| Memory | no persistent growth after warm-up during a stable, repeated workload |
+| Behaviour under pressure | no starvation, lost input, data loss or instability |
+| Endurance | 100 cold starts and 24 hours of combined product use (FR-R02, unchanged) |
+
+**Decision, tier 2: profiles.** Physical hardware, KVM, WHPX and TCG are separate
+profiles. QEMU host timings never replace physical input-to-display measurements.
+
+| Profile | Role | What it can evaluate | Timing source |
+|---|---|---|---|
+| Physical reference hardware | acceptance of tier 1 latency, refresh rate, frame pacing, idle CPU and energy | all tier 1 targets | input-to-display with an external or hardware timestamp; method open |
+| KVM (local Linux host) | optimisation A/B and regression guard | relative change, ordering, guest-side intervals once a ≤ 1 ms guest timestamp exists | guest timestamps (open); host phase times on the 0.2 s grid are diagnostic only |
+| WHPX (Windows developer host) | idle and responsiveness regression guard | relative change of QEMU host-process CPU | host-process accounting; not physical idle CPU |
+| TCG (hosted CI) | functional gates and the separate P0 CI targets | pass or fail of native gates; no tier 1 latency judgement | none for tier 1 |
+
+**Rules:**
+
+1. **Freeze before measuring.** Before an acceptance measurement on a profile, its
+   workload, resolution, hardware, measurement method, percentile definition, minimum
+   sample count, and memory and energy budgets are recorded in a dated amendment of
+   this ADR or in a frozen file under a new `docs/verification/r02-*-<date>/`
+   directory. An open cell blocks acceptance on that profile. A frozen budget is never
+   relaxed after a failed measurement.
+2. **VM thresholds are regression guards, not product targets.** A KVM, WHPX or TCG
+   number never substitutes for a tier 1 target. It is set before the measurement
+   that uses it and is never derived from the values a candidate already reaches.
+3. **Metric definitions.** *First visible feedback* is the interval from the input
+   event (physical input, or its delivery to the guest input driver on a VM) to the
+   presentation of the first frame that visibly reflects it. *Completion* is the
+   interval to the presentation of the frame that shows the finished result. The
+   current `last_input_to_verified_app_image_s` is a host-side completion proxy on a
+   0.2 s grid. No first-feedback metric exists yet.
+4. **Percentiles.** Nearest-rank over the pooled per-interaction samples of one
+   profile and one workload. A reported p50 needs at least 10 samples, a p95 at least
+   20, and a p99 at least 100. With fewer samples only the maximum is reported. Five
+   runs of one phase cannot yield a p95 or p99.
+5. **Frame pacing.** Each presented frame is recorded against the display's actual
+   refresh interval. Missed or late frames are counted separately from input latency.
+   A 60 Hz pass does not imply readiness for 120, 144 or 240 Hz.
+6. **Existing evidence.** The KVM medians of 0.37 to 0.70 s for
+   `last_input_to_verified_app_image_s` (`docs/verification/r02-sur1-ipc-wait-20261127/`)
+   indicate a gap to the 250 ms completion target for full-window repaints. They are
+   coarse proxies, not an evaluation. The 99.37 % to 11.67 % WHPX result
+   (`docs/verification/gui-idle-20261102/windows-ab/`) is QEMU host-process CPU and is
+   not comparable with the 1 % physical idle target.
+7. **Work order.** No new general baseline. Optimisations are ranked by the largest
+   evidenced gap against tier 1 that a profile can resolve. Each optimisation is
+   verified by its own A/B run.
+
+**User-interface classes (Specialist U, under ADR-U-OWNER-20261127, #629; proposal
+#530 issuecomment-7219594221, adopted here):** U02 uses the tier 1 targets unchanged.
+U supplies the interaction classes and the measurement points; R owns the measurement
+method and the profile split.
+
+- Regular local feedback: p50 ≤ 50 ms, p95 ≤ 100 ms, p99 ≤ 200 ms.
+- Light interaction completion: p95 ≤ 250 ms.
+- Actions with an external I/O dependency: visible feedback and a progress indication
+  within 250 ms.
+- Frame pacing: at the active refresh rate, with 60 Hz as the base and no 60 Hz cap.
+- HiDPI: the same targets. The UI thread never blocks.
+- Guest measurement points (KVM, WHPX, TCG; diagnostic only):
+  - input acceptance to the first compositor commit with changed tiles (first feedback);
+  - input acceptance to `SHELL_READY` where it applies;
+  - present intervals.
+- Only physical input-to-display measurement is product evidence.
+
+**Open cells, frozen before the corresponding acceptance measurement:**
+
+- physical reference hardware, resolution and refresh rates (H, with the open HW-FR
+  decision);
+- input-to-display method and energy method and budget on physical hardware (H);
+- a guest timestamp source with at least 1 ms resolution (K);
+- a present or scanout timestamp at the compositor, starting with the first commit with
+  changed tiles (U);
+- the final combined workload and the memory budget per profile (R with U).
+
+**Source:** #530 issuecomment-7219541052 (owner text); `docs/FULL-TEST-RELEASE.md`
+(FR-R02); `docs/verification/r02-window-baseline-20261126/`,
+`docs/verification/r02-sur1-ipc-wait-20261127/`,
+`docs/verification/gui-idle-20261102/windows-ab/`; `kernel/src/m2/m3.rs` (100 Hz clock).
+
+**Rollback:** only through a new project-owner decision. Tier 1 cannot be relaxed by
+an executing role.
+
 
 <!-- adr-slot: 624 -->
 

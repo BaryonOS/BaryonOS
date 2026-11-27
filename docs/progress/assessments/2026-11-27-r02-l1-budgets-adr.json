@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "52e4430a959bd058693579488c907e83682e56e9",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/r02-l1-budgets-adr-20261127",
+  "task": "R02-L1: record the project owner's R02 performance budget decision as ADR-R02-L1-BUDGETS-20261127 with profile rules",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Decision record only: the tier 1 product targets and profile rules are fixed, but per-profile cells, the final workload and all physical and endurance measurements are open, so R02 is not accepted."
+}
