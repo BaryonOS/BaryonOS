@@ -61,7 +61,7 @@ First run the linter. It compares every page against all of its named `sources[]
 including sources under documentation and client-adapter directories:
 
 ```bash
-python3 -B .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs --quiet
+python3 -B .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs
 ```
 
 Separately, take the oldest `verified_at` value and discover product-code changes that

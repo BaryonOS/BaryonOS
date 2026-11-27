@@ -28,3 +28,5 @@ Append-only. Newest entries at the bottom.
 - Separated unclassified product-change discovery from explicit page-source freshness,
   so documentation and adapter sources cannot be hidden by the product-code filter.
 - Kept unverified freshness open for judgement instead of treating it as clean or stale.
+- Kept stale and unverified diagnostics visible in the documented status and sync
+  commands, so their no-sync decision cannot silently discard freshness warnings.

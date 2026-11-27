@@ -20,7 +20,7 @@ First run the linter. It checks every page's explicit `sources[].code`, includin
 documentation and adapter sources:
 
 ```bash
-python3 -B .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs --quiet
+python3 -B .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs
 ```
 
 Then discover product changes that may not have a maintained page. Do not count general

@@ -33,7 +33,7 @@ Stale and unverified pages, unprocessed `raw/` material, unfinished `- [ ]` item
 last 3 entries of `docs/project-docs/log.md`.
 
 ```bash
-python3 .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs --quiet
+python3 -B .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs
 ```
 
 ## 6. Size
