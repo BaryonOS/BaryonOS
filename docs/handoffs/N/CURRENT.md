@@ -47,29 +47,39 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Current cycle
 
-- No N cycle is in flight; there is no open N pull request.
-- Last cycle `N-20261126-n04-extend-chain` (tracking issue #529) landed in
-  two parts: the extend-chain port of the N04 durable-store freshness model
-  (#575, `4ad35157`) and the two-slot crash-consistent store replacement for
-  a torn A1 write (C143, #584, `20d9089f`).
-- Evidence: host tests only. `durable.rs` computes the real SHA-256 extend
-  chain in a fake anchor, reproduces B's golden vectors, passes the M1
-  regression tests against a hostile extend and recovers from a torn slot
-  write. No kernel anchor service or swtpm run exists; N04 stays open and
-  5A remains the product behaviour.
-- Deferred finding from the #584 review: the store assumes a single writer;
-  concurrent commits are out of scope until a native caller exists. The
-  requirement is recorded on #529.
+Checkpoint **2026-11-27T21:15:40Z**. The latest dated [HANDOFF N on
+#529](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7228196375)
+carries the live branch, worktree and log locations. N01 remains accepted. N02, N03
+and N04 remain open at 43/100.
 
-## Blockers
-
-- N02 stays open: libslirp is still QEMU user networking on the same host; no
-  physical NIC, operator router or internet HTTP endpoint. Timeout,
-  truncation and stale-response cases against a real resolver are not run;
-  a silent real resolver runs in a network namespace (owner decision above;
-  not built yet).
-- N04 durable store: waits for B's protected slot and extend-chain kernel
-  side (#524) for native evidence.
+- **N02.** The clean published branch
+  [`codex/n02-slirp-timeout-20261127`](https://github.com/BaryonOS/BaryonOS/commit/ca06b111b8e60b81e61abdf76e78a73c846ec415)
+  implements ring-3 mode 8 and a loopback-only network namespace containing libslirp,
+  DNS and HTTP controls. Host oracle/DHCP suites, formatting, target Clippy and
+  namespace checks passed. Existing libslirp and N01 controls passed at raw QEMU exit
+  33. The [N02
+  checkpoint](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7227579418)
+  records the evidence. Native mode 8 still requires the [K kernel
+  fixture](https://github.com/BaryonOS/BaryonOS/issues/614#issuecomment-7228025405)
+  and the [CI build-selector
+  hunk](https://github.com/BaryonOS/BaryonOS/issues/494#issuecomment-7227450699).
+- **N03.** [B1
+  preflight](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7227862853)
+  records ML-KEM validation against NIST vectors, strict Ed25519 and portable target
+  compilation. A scratch host TLS oracle exercised the strict verifier for both the
+  certificate and CertificateVerify. Native provider integration, native handshake,
+  trusted calendar and independent security review remain open.
+- **N04.** The extend-chain host model and two-slot torn-write recovery landed in
+  #575 and #584. B's [#649](https://github.com/BaryonOS/BaryonOS/pull/649)
+  establishes the S7 host foundation. The independent [network regression
+  review](https://github.com/BaryonOS/BaryonOS/pull/649#issuecomment-7227967069)
+  covers head `c680505e` and eleven native QEMU network cases. Native S7 still needs
+  the authorized TEST grant, authenticated loader binding, TPM compare/read-back and
+  source-bound swtpm evidence. The [U13c
+  decision](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7227825311)
+  authorizes staging the signed TEST record at a second path and promotion after both
+  accepted-serial copies advance. Decision 5A stays in force pending joint native 5B
+  acceptance. The store model assumes a single writer.
 
 ## Lessons
 
@@ -92,9 +102,13 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Next executable task
 
-1. N04 S5 native verification on swtpm: blocked on B's kernel anchor
-   service. Confirm its status with B before starting.
-2. H04 in-flight TX: review H's amendment to ADR-H04-LINK-20261119 when H
-   opens it. N's recorded answers: Q1 a distinct completion code that maps to
-   `Completed` plus a counter (never -23, never `Unknown`); Q2 option A; Q3 H
-   writes the amendment and N reviews.
+1. Start N04 S5 when B publishes the native S7 interface and TEST/QEMU/swtpm proof.
+  Verify the domain-0 grant, instance and extend budget, and B02 protected-slot route
+  before binding the separate policy process. Preserve broker authority and exercise
+  the condition 9 cold, torn-write, replay and lost-reply cases.
+2. If K and CI release N02 wiring first, integrate their exact commits, verify mode 8
+  and the unchanged controls, then open one N PR with source-bound evidence. Physical
+  NIC, router and authorized internet acceptance remain open.
+3. Review H04's in-flight TX amendment when H releases it. Preserve the distinct
+  completion mapping to `Completed` and its counter. H owns the driver and kernel
+  implementation.
