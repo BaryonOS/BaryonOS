@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "e5b2a0c7a20e8ca934463ecb631b1f643bd7d163",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-hauth-unenrolled-20261127",
+  "task": "B01 criterion wording rectification: the B01-LOCK assessments of 26 and 27 November said B01 stays open",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Rectifies the sentence B01 stays open in the assessments 2026-11-26-b01-lock-a6, 2026-11-26-b01-lock-l1, 2026-11-26-b01-lock-threads and 2026-11-27-b01-lock-s3-noscrub. B01 (Entropy and key management) stays accepted as reassessed on 24 November: its acceptance text covers native entropy and the key lifecycle with recovery restricted to manifest-bound management ingress, it does not include keyring LOCK or UNLOCK, and nothing it covers regressed. The open items those assessments listed (UNLOCK blocked on owner questions O2, O5 and O8, SUSPEND gating, ring-3 callers of 0x92, physical S3, human audit) belong to the B01-LOCK workstream on issue 564 and count towards H05 (power management and sleep/wake), which stays open. No criterion status, weight or acceptance text changes."
+}
