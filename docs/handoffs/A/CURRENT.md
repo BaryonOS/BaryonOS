@@ -60,6 +60,22 @@ paths are optional convenience only.
   `docs/handoffs/A/T2C-SPEC.md` ("Owner decision for T2c-3"). The capability-core
   pin landed as #579 (95553a22).
 
+## Per-PR progress duties (owner, 27 Nov)
+
+Every A PR carries its own:
+- labels, milestone and Project #5 fields (Status, Subsystem, Work Type), plus
+  the final status;
+- `Part of #N` or `Refs #N`;
+- a D3 assessment in `docs/progress/assessments/<date>-<slug>.json`, also for
+  docs and handoff PRs;
+- source-bound evidence;
+- an update of this file.
+
+The PR body names the functionality and acceptance criteria it touches, and the
+evidence that carries any progress claim. The score rises only for a fully
+accepted criterion; a merge is not acceptance. A missing assessment is repaired
+in the next own PR.
+
 ## Criteria status
 
 | Criterion | Status | Ledger |
