@@ -122,11 +122,16 @@ client adapters:
 code = repository - { docs, .agents, .claude, .codex, AGENTS.md, CLAUDE.md }
 ```
 
-This is a judgement filter, not a version-control exclusion. All documentation and
-adapters remain committed with the repository.
+This filter discovers unclassified product changes; it does not filter page dependencies.
+Every explicit `sources[].code` path is always compared with its page's `verified_at`,
+even when that path is under `docs/`, `.agents/`, `.claude/` or another excluded adapter
+location. All documentation and adapters remain committed with the repository.
 
 > ⚠️ A documentation-only commit still moves `HEAD`. Counting it as a product-code
 > change creates false staleness and teaches agents to ignore the freshness signal.
+
+> ⚠️ Never use the product-code filter to suppress an explicit `sources[].code`
+> dependency. Product-change discovery and named-source freshness are separate signals.
 
 ## Common operations
 

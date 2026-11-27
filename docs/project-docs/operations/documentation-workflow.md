@@ -57,8 +57,15 @@ The linter treats root-level `AGENTS.md`, `CLAUDE.md`, `index.md`, `log.md` and
 
 ## Check freshness
 
-Take the oldest `verified_at` value from maintained pages, then separate product-code
-changes from documentation and adapter changes:
+First run the linter. It compares every page against all of its named `sources[].code`,
+including sources under documentation and client-adapter directories:
+
+```bash
+python3 -B .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs --quiet
+```
+
+Separately, take the oldest `verified_at` value and discover product-code changes that
+may not yet belong to a maintained page:
 
 ```bash
 git log <baseline>..HEAD --oneline -- . \
@@ -66,14 +73,20 @@ git log <baseline>..HEAD --oneline -- . \
   ':(exclude).codex' ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md'
 ```
 
-If this is empty, no documentation sync is needed. Then inspect stale and unverified
-pages with the linter and read the last entries in `docs/project-docs/log.md`.
+No synchronisation is needed only when this product-code query is empty **and** the
+linter reports no stale page caused by a named source. An unverified result still needs
+human judgement. Read the last entries in `docs/project-docs/log.md` for recent work.
+
+> ⚠️ Product-change discovery may exclude documentation and adapters, but named page
+> sources may not. Treating one filter as both signals can hide a stale page.
 
 ## Synchronise after source changes
 
 1. Find the oldest relevant `verified_at` commit.
-2. Collect only product files changed since that commit.
-3. Match them to each page's `sources[].code` paths.
+2. Collect changes to every named `sources[].code` path, including documentation and
+   adapters, and match them to affected pages.
+3. Separately collect product files changed since that commit; unmatched files may need
+   a new focused page.
 4. Read the actual source diff for affected pages.
 5. Correct prose and `updated`, or move only `verified_at` if the body remains true.
 6. Propose one focused page for an uncovered area actually touched by the task.

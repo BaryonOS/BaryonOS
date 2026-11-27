@@ -25,3 +25,5 @@ Append-only. Newest entries at the bottom.
   Ollama, OpenCode and other agents.
 - Kept the grow-on-use model and existing canonical documents in place; no project facts
   or historical records were migrated or duplicated.
+- Separated unclassified product-change discovery from explicit page-source freshness,
+  so documentation and adapter sources cannot be hidden by the product-code filter.

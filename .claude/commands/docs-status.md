@@ -5,8 +5,9 @@ Compatibility alias. The model-independent procedure is in
 
 ## 1. Commits not yet reflected (first)
 
-Against the oldest `verified_at` across all pages. **Count code and docs separately** --
-a docs-only commit is not something `/docs-sync` acts on.
+Against the oldest `verified_at` across all pages, count product code and docs separately.
+This count discovers unclassified work; the linter below independently checks every
+named page source, including sources inside docs and adapter directories.
 
 ```bash
 git log <baseline>..HEAD --oneline -- . \
@@ -16,12 +17,13 @@ git log <baseline>..HEAD --oneline -- docs .agents .claude .codex AGENTS.md CLAU
 ```
 
 ```
-<baseline>..HEAD   code 0 commits - docs 1 commit    -> /docs-sync not needed
+<baseline>..HEAD   code 0 commits - docs 1 commit    -> check named-source staleness
 <baseline>..HEAD   code 4 commits - docs 0 commits   -> /docs-sync recommended
 ```
 
-**If code is 0, do not recommend `/docs-sync`.** Recommending work that does not exist is
-how people stop trusting `/docs-status`.
+Recommend `/docs-sync` when product code changed or the linter reports a stale page.
+Recommend no sync only when both signals are empty. A docs-only commit that does not
+touch any named source is not work for `/docs-sync`.
 
 ## 2-5
 

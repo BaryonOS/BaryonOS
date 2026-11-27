@@ -14,11 +14,17 @@ Compatibility alias. Follow the model-independent procedure in
 
 The **oldest** `verified_at` sha across `docs/project-docs/**/*.md` frontmatter.
 
-### 2. First check whether any code changed
+### 2. Check named sources and product changes separately
 
-**Do not count docs commits.** The docs live in the same repository, so editing only
-docs still moves HEAD. Without this filter you keep seeing "N commits behind" when
-there is nothing to do.
+First run the linter. It checks every page's explicit `sources[].code`, including named
+documentation and adapter sources:
+
+```bash
+python3 -B .claude/scripts/docs-lint.py --root . --docs-dir docs/project-docs --quiet
+```
+
+Then discover product changes that may not have a maintained page. Do not count general
+docs commits here: editing only unrelated docs still moves HEAD.
 
 ```bash
 git log <baseline>..HEAD --oneline -- . \
@@ -26,8 +32,8 @@ git log <baseline>..HEAD --oneline -- . \
   ':(exclude).codex' ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md'
 ```
 
-**If it is empty, stop: "no code changes, /docs-sync not needed".**
-Leave `verified_at` alone -- the code has not moved, so it is still valid.
+Stop only when this product query is empty **and** the linter reports no stale page.
+Otherwise process the named stale pages and any changed product files.
 
 ### 2-1. Collect changed files
 
@@ -38,14 +44,18 @@ git log <baseline>..HEAD --name-only --pretty=format: -- . \
   | sort -u | grep -v '^$'
 ```
 
+Also collect changes to every stale page's named `sources[].code` paths, even when those
+paths are excluded by the product query above.
+
 > Git quotes non-ASCII paths by default (`core.quotepath`), so a path with
 > non-Latin characters comes back escaped and a naive `grep '^docs/'` misses it.
 > Use `-z`, or `git -c core.quotepath=false`, when a filename might not be ASCII.
 
 ### 3. Select affected pages
 
-Match changed file paths against each page's `sources[].code` by **prefix**.
-Report the selection first: N changed files -> M affected pages.
+Use the linter result and match named-source paths by **prefix**. Keep unmatched product
+files as the separate unclassified set. Report N changed product files plus N changed
+named sources -> M affected pages.
 
 ### 4. Update
 
