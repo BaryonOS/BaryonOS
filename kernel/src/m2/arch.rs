@@ -762,6 +762,30 @@ m3_user_entry:
  call m3_event
 .global m3_restore
 m3_restore:
+ .if {lock_scrub}
+ // B01-LOCK KL4: after a LOCK, zero the whole service stack before the next
+ // ring-3 instruction. Every path here has finished all Rust on that stack,
+ // and RAX points to the saved context in STATE, not into the stack.
+ cmp byte ptr [rip+m3_scrub_pending],0
+ je 7f
+ mov rdx,rax
+ mov rdi,[rip+m3_service_stack]
+ sub rdi,{scrub_bytes}
+ mov rcx,{scrub_bytes}
+ xor eax,eax
+ rep stosb
+ mov rdi,[rip+m3_service_stack]
+ sub rdi,{scrub_bytes}
+ mov rcx,{scrub_bytes}/8
+ repe scasq
+ je 6f
+ inc qword ptr [rip+m3_scrub_residue]
+6:
+ mov byte ptr [rip+m3_scrub_pending],0
+ inc qword ptr [rip+m3_scrubs]
+ mov rax,rdx
+7:
+ .endif
  mov rsp,rax
  .if {fpu_context}
  cmp qword ptr [rsp+144],0x23
@@ -810,6 +834,8 @@ m3_terminal:
     ),
     fpu_context = const cfg!(feature = "fpu-context") as u8,
     smp_m3 = const cfg!(feature = "native-smp-m3") as u8,
+    lock_scrub = const cfg!(feature = "native-system-lock") as u8,
+    scrub_bytes = const 32768,
     lapic_eoi = const LAPIC_EOI,
     m3_deferred = const M3_DEFERRED_OFFSET,
     m3_resched = const M3_RESCHED_OFFSET,

@@ -5,6 +5,196 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-MERGE-GROUP-SELECT-20261126 — merge-hold judges a merge group by the gates selected from its trusted main base
+
+**Status:** accepted (binding acceptance contract). The project owner
+approved the design on 26 November 2026 in the CI specialist chat at about
+20:20 UTC. At about 21:10 UTC the owner approved leaving out workflows that are
+not applicable, on the condition that only workflows whose non-applicability
+is established are left out and any doubt stays fail-closed (the two-source
+rule under Judging), with a renewed independent D2 review. Proposed by the CI specialist for issue #494 on 26 November 2026,
+after the owner's P0 request that a merge-queue group whose
+combined change is, for example, documentation only no longer waits for every
+native suite. It amends ADR-CI-SELECTION-20261124 and
+ADR-CI-MERGE-GROUP-GATES-20261126 in the sentences listed below; those
+sentences now point here. It changes no required check name, no workflow
+trigger, no ruleset and no `host-quality` or `qemu-smoke` behaviour, and it
+does not enable the merge queue.
+
+**Source:** branch `ci/merge-group-select-20261126` on base `main` `e6547bce`
+("PR A"). Skipping the unselected jobs inside each workflow on `merge_group`
+is a later change ("PR B"); until then those jobs still run but no longer
+decide.
+
+**Problem:** on `merge_group` the selector planned in full (fallback
+`merge-group`) and merge-hold expected every applicable gate of the queue
+commit, so a documentation-only group waited for, and could be ejected by,
+every native suite. Narrowing from `merge_group.base_sha` would be unsafe. In
+a stacked queue that base is the queue commit of the entry ahead, which has
+not landed: its selector and catalogue are not protected, and the diff from
+it omits the entries ahead. This was observed on queue ref
+`gh-readonly-queue/main/pr-571-9508ebfa…`, whose base `9508ebfa` is the queue
+commit of #572.
+
+**Decision:**
+
+- **Trusted base T.** T is `git merge-base <merge_group.head_sha>
+  refs/remotes/origin/main`, with `refs/heads/main` fetched from origin in the
+  same merge-hold job. `merge-hold.yml` loads `tools/merge_hold.py` and
+  `tools/ci_impact.py` from T, never from `merge_group.base_sha`. Before it
+  loads them it requires T to be a well-formed commit, an ancestor of the
+  fetched main, and an ancestor of (or equal to) `merge_group.base_sha`, and
+  that base to be an ancestor of the queue commit. `merge_hold.py` repeats
+  these checks against the same fetched ref, without fetching again, and
+  requires `BASE_SHA` to equal T and `TESTED_SHA` the queue commit.
+- **Plan.** `policy.events.merge_group` may be `select` or `full`; `manual`
+  stays invalid, and `push` and `schedule` remain forced full. Both catalogues
+  set `select` (revision 21). Under `select` the `merge_group` plan narrows
+  from the diff T..queue commit exactly as a `pull_request` plan does, with
+  the same fail-closed rules: an `always_full` path anywhere in that diff (for
+  example `.github/**`, `tools/ci_impact.py`, `tools/merge_hold.py`) or an
+  unknown path makes it full. Because T is an ancestor of the queue commit,
+  the diff covers every entry ahead in the stack as well as the group's own
+  pull request. `full` remains the rollback and keeps the fallback code
+  `merge-group`. The `select` jobs of the three narrowing workflows still
+  refuse to narrow on any event but `pull_request`.
+- **Binding.** The plan must name T as its base and merge base, the queue
+  commit as head and tested commit, `main` as target, and the catalogue and
+  selector of T (trusted). The wait budget is read from T's catalogue. The
+  report line records T, `merge_group.base_sha` and the queue commit.
+- **Judging.** The expected gates are the selected `core` and `rwa` gates of
+  that plan. A selected gate that is skipped, missing, failed or still running
+  blocks as before. Under a `select` plan a workflow is neither awaited nor
+  judged on the queue commit only when its non-applicability is established
+  by two sources: a `core` or `rwa` gate of it is excluded as
+  `no-input-match` and none is selected (catalogue), and its own
+  `pull_request` path filter, as T's catalogue records it, certainly keeps
+  it from starting for the diff T..queue commit. The selector of T lists the
+  latter workflows in the plan as `pull_request_filter_blocked`. Any doubt
+  leaves a workflow judged: no `pull_request` trigger, no path filter, a
+  negated pattern, both `paths` and `paths-ignore`, no or more than 300
+  changed paths, or a plan without the list. The queue therefore never
+  ignores a workflow that the same change would start, and be judged by, on
+  `pull_request`. Its runs, including a failed or still running one, then do
+  not affect the decision, and the report names these workflows. A workflow with a selected gate is judged whole, as before, with
+  its other jobs and unregistered jobs, and so is a workflow without any
+  `core` or `rwa` gate (advisory or trigger-only). A `full` plan is judged as
+  before. `WAIT_CHECKS` (`host-quality`, `qemu-smoke`), the walk
+  over the entries ahead, the member rules and `entry_hold_passed` are
+  unchanged.
+- **Fail-closed rules.** Where no trusted copy of the tools can be identified,
+  or the inputs contradict the queue, merge-hold fails; where T is valid but
+  the diff from it is indeterminate, the plan is full:
+
+  | Condition | Result |
+  |---|---|
+  | main cannot be fetched, no merge base exists, or T is malformed | the job fails before loading any tool |
+  | T is not on main or not an ancestor of `merge_group.base_sha`, or that base is not an ancestor of the queue commit | the job fails before loading any tool; `merge_hold.py` fails before any wait |
+  | `BASE_SHA` is not T, `TESTED_SHA` is not the queue commit, or the plan's recorded merge base is not T (a `select` plan must record one) | merge-hold fails before any wait |
+  | shallow or missing history, an ambiguous merge base, a diff error or more than 5,000 changed paths from a valid T | full plan with that fallback code; every applicable gate is expected |
+  | an `always_full` or unknown path in T..queue commit | full plan (`always-full`, `unknown-path`) |
+  | an unusable fallback (`fetch-failed`, an untrusted selector, an invalid trusted catalogue) | merge-hold fails, as before |
+
+**Amended sentences:**
+
+- ADR-CI-SELECTION-20261124: "`push`, `merge_group`, `schedule` and
+  `workflow_dispatch` always run in full." becomes "`push`, `merge_group`,
+  `schedule` and `workflow_dispatch` still run every job; on `merge_group`
+  merge-hold requires only the gates that the plan from the trusted base
+  selects (ADR-CI-MERGE-GROUP-SELECT-20261126)."
+- ADR-CI-MERGE-GROUP-GATES-20261126, Problem: "also runs on `merge_group`, at
+  full scope." becomes "also runs on `merge_group`, every job of it (which of
+  those gates merge-hold requires is decided by
+  ADR-CI-MERGE-GROUP-SELECT-20261126)."
+- ADR-CI-MERGE-GROUP-GATES-20261126, Decision: "`BASE_SHA` must equal
+  `merge_group.base_sha` … the base must be an ancestor of the queue commit.
+  The base selector recomputes the plan with `--event=merge_group` (mode
+  full)." becomes "`BASE_SHA` must equal the trusted base T and `TESTED_SHA`
+  `merge_group.head_sha`, with the ancestry checks of
+  ADR-CI-MERGE-GROUP-SELECT-20261126. The selector of T recomputes the plan
+  with `--event=merge_group` from the diff T..queue commit (mode `select` or
+  `full`)."
+
+**Consequences:**
+
+- With the catalogue at revision 21, the selector run locally on a scratch
+  clone gives a documentation-only queue commit a `select` plan that leaves
+  19 workflows out, every integrated native suite among them; the group no
+  longer waits for them or depends on them. For a change to `LICENSE`,
+  `.coveragerc`, `.c8rc.json` or a non-Markdown file under `.agents/`, the
+  path filters of `native-hid-input`, `native-xhci` and `resource-pressure`
+  would start them on `pull_request` although no catalogue input matches, so
+  they stay judged and 16 are left out. That mismatch between catalogue
+  inputs and historical path filters is resolved fail-closed here; narrowing
+  such filters is separate work. It still waits for
+  the workflows that have a selected core gate and are therefore judged
+  whole: `ci.yml`, CodeQL and the three workflows with a `select` job
+  (component-leaves, app-management-quality, net-tls-quality), all of whose
+  jobs run on `merge_group` until PR B. A `kernel/**` change selects 23
+  workflows. Until PR B the unselected suites also still start and use
+  runners on the queue commit.
+- A failure in a workflow left out this way no longer ejects the group, as
+  it would not have run on `pull_request` either. The `push` run on `main`,
+  which stays full, remains the post-merge backstop. The two-source rule is a
+  transitional safety mechanism until PR B skips the unselected jobs on
+  `merge_group` and the selection logic is consolidated.
+- **Landing constraint.** merge-hold runs the copy of `tools/merge_hold.py`
+  at T. While this change is itself queued, T still holds the former copy,
+  which requires `BASE_SHA` to equal `merge_group.base_sha`. The change
+  therefore passes only as an unstacked group, and entries stacked behind it
+  fail closed until it has landed.
+- The three `select` jobs still plan `merge_group` from
+  `merge_group.base_sha`; they never narrow on it, so this is harmless here.
+  PR B must plan them from T before any job is skipped on `merge_group`.
+
+**Revise when:** the first queue trial shows a stacked group's base or run
+payloads that differ from the above; PR B lands; or GitHub documents the
+queue ref and base of stacked groups.
+
+**Primary sources:** none retrieved for this decision; `git merge-base` and
+`git merge-base --is-ancestor` behave as documented in git-merge-base(1). The
+stacked base is a repository observation of 26 November 2026, not GitHub
+documentation.
+
+## ADR-MERGE-QUEUE-AUTONOMY-20261126 — mandated workstreams enqueue their own pull requests
+
+**Status:** decided by the project owner on 26 November 2026 (CI specialist chat)
+and recorded by the CI specialist. It amends ADR-MERGE-DELEGATION-20261123 and
+ADR-SPECIALIST-TEAM-20261125 for the merge queue that is active on `main`
+(ruleset 25967588). ADR-MERGE-HOLD-20261113, ADR-CI-MERGE-GROUP-GATES-20261126
+and D1–D3 stay in force.
+
+**Problem:** with the merge queue active, workstreams still asked for a separate
+approval or lane signal before each queue entry. That approval step slows the
+queue down and conflicts with the delegated merge mandate.
+
+**Decision:**
+
+- Workstreams with a merge mandate under ADR-MERGE-DELEGATION-20261123, as
+  extended by ADR-SPECIALIST-TEAM-20261125, add their own merge-ready pull
+  requests to the merge queue themselves. They ask no approval per pull request,
+  push, queue entry or regular merge. The command is
+  `gh pr merge <N> --squash --match-head-commit <sha>`, run only after no
+  workflow run on that head is still open and every merge condition in
+  AGENTS.md holds.
+- The CI specialist enqueues its own regular CI pull requests once the
+  applicable D2 review and the other merge conditions hold.
+- The PR guard (integration coordinator) coordinates dependencies, priorities and
+  exceptions. It is not an approval layer. Its dependency and priority calls are
+  still followed.
+- Explicit owner approval remains necessary only for protected policy changes,
+  changes to binding acceptance contracts, reserved architecture decisions,
+  security exceptions, costs that are not authorised, and ruleset changes outside
+  an earlier mandate. Once the owner has approved such a change in substance, no
+  second approval is needed to enqueue it.
+- Unchanged: the required checks, the applicable acceptance gates and holds,
+  dependency order, protected-file review, the Security Floor, D1–D3,
+  `--match-head-commit`, and the prohibitions on `--admin`, bypasses and
+  auto-merge outside a delegation.
+
+**Consequence:** only real exceptions and substantive owner decisions reach the
+project owner; regular integration within the mandate is autonomous.
+
 ## ADR-KEYRING-LOCK-20261126 — Key erasure before S3 by kernel teardown of the Key Service instance
 
 **Status:** this ADR records decisions at two levels of authority.
@@ -85,7 +275,8 @@ to the round 6 head `763f25d9`. `7671b20d` merges `main` `60b1aac7` (#558)
 and changes none of the merge-hold files.
 
 **Problem:** since D1 step 1, every workflow with an automatic `core` or `rwa`
-job also runs on `merge_group`, at full scope. On `merge_group`, however,
+job also runs on `merge_group`, every job of it (which of those gates
+merge-hold requires is decided by ADR-CI-MERGE-GROUP-SELECT-20261126). On `merge_group`, however,
 merge-hold waited only for `host-quality` and `qemu-smoke`. It judged each
 member's gates on that member's own `pull_request` head and required its queue
 entry to land a tree equal to that head. The tree that actually lands was never
@@ -94,9 +285,10 @@ judged as a whole, and a queue with more than one entry ahead failed closed.
 **Decision:**
 
 - **Inputs, bound before any wait.** On `merge_group`, `BASE_SHA` must equal
-  `merge_group.base_sha` and `TESTED_SHA` must equal `merge_group.head_sha`. Both
-  must be well-formed, and the base must be an ancestor of the queue commit.
-  The base selector recomputes the plan with `--event=merge_group` (mode full).
+  the trusted base T and `TESTED_SHA` `merge_group.head_sha`, with the
+  ancestry checks of ADR-CI-MERGE-GROUP-SELECT-20261126. The selector of T
+  recomputes the plan with `--event=merge_group` from the diff T..queue
+  commit (mode `select` or `full`; amended by ADR-CI-MERGE-GROUP-SELECT-20261126).
   The plan must describe that event, that base, the queue commit and `main`.
   Any doubt fails at once.
 - **Run binding.** A run counts only with:
@@ -394,11 +586,274 @@ recovery; native verification is required in addition to host tests. 5A stays
 in force until the protected slot and the complete 5B integration are
 demonstrably safe.
 
+**Amendment (25 November 2026): the protected slot is an extend chain.** B
+implements the M1 route as a per-domain `TPM_NT_EXTEND` hash chain (contract
+`docs/implementation/COLD-FRESHNESS-ANCHOR.md` on #524, basis `5db011cc`;
+P1–P3 agreed with N). The generation counter, the rewritable slot binding and
+the `Pending` state above are replaced: a store records `prev`, the chain value
+it was committed on top of; the kernel derives `E(S)` from the domain and
+`D(S)`; startup accepts `chain == H(S.prev ‖ E(S))`, rolls forward once on
+`chain == S.prev` (a never-acknowledged store) and otherwise denies the store
+as `Stale`; `Foreign` covers an instance mismatch. `services/net-broker/src/durable.rs`
+follows this contract in a host model whose fake computes the real SHA-256
+chain and reproduces B's golden vectors. The M1 regression tests are kept
+under B's names and now pass against a hostile extend:
+`hostile_extend_cannot_revive_a_stale_store_at_the_same_position` (formerly
+`hostile_slot_write_cannot_revive_a_stale_store_at_the_same_generation`),
+`crashed_sibling_cannot_displace_a_rolled_forward_store` (the two
+`reseal_multi_boot_*` cases and the multi-boot protected-slot case),
+`every_crash_prefix_of_a_commit` and
+`replaced_tpm_rejects_the_store_until_authorised_genesis`. A stray extend now
+denies every store until authorised genesis (fail closed). Host evidence only;
+native S5 verification on swtpm, torn-A1 store recovery (C143, #529) and the
+residuals listed in B's contract remain open, and 5A stays in force. One
+residual passes N04's own checks: if both copies of the accepted pair are
+lost (TPM clear plus UEFI NVRAM reset, open U13c item), the old `ENROLL`
+authorises a second genesis under the old instance, so the instance check
+does not reject that instance's revived first store.
+
 **Consequences:** issuer, subgrant and regrant code (N04-T3) is no longer held.
 N04 stays open until its native evidence exists; the score is unchanged.
 
 **Rollback:** reverting this entry restores the 23 November hold; no shipped
 grant format depends on it yet.
+
+## ADR-B03-REL05-TPM-20261125 — Trial boot with TPM 2.0 health confirmation (REL-05 option A)
+
+**Status:** the requirements (option A, items 1–9 on issue #41) were decided
+by the project owner on 25 November 2026. The mechanism below (PCR 13, NV
+layout, kernel confirmation grant, amendment of ADR-049 decision 4) is
+**adopted by the B workstream under the owner's execution mandate of the same
+day, for the TEST profile only**; the specification
+is [B03-REL05-TRIAL-BOOT-TPM.md](implementation/B03-REL05-TRIAL-BOOT-TPM.md).
+Design only: nothing is implemented or tested. It would amend ADR-049
+decisions 2 and 4 for a new loader feature `signed-boot-trial`; `signed-boot`
+keeps ADR-049 semantics, including the REL-05 hazard, until gate migration.
+On 26 November 2026 the project owner approved this ADR in substance for the
+strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH (last
+amendment below).
+
+**Problem:** the signed loader raises `NieuwOsMinVersion` when a slot
+verifies, before the kernel runs, so a signed but broken release makes the
+previous good release a permanent `DOWNGRADE` (REL-05).
+
+**Decision:**
+
+1. The floor is raised only by the loader, before ExitBootServices, on the
+   boot **after** a durable TPM-held health confirmation that binds the exact
+   generation, version, slot and manifest digest of the trial (owner items
+   5–6). It is never raised at selection time and never lowered.
+2. A candidate (verified slot above the effective floor and above every
+   rejected version) runs at most three times; each attempt is made durable in
+   TPM NV before the candidate executes. After three unconfirmed attempts it is
+   recorded as rejected and the known-good release boots; user data is not
+   touched (items 3, 7).
+3. TPM objects (TEST profile, disposable swtpm): loader-only `TRIAL` and
+   `FLOOR` records and a `GEN` counter, writable only while PCR 13 is at its
+   reset value; a `CONFIRM` record writable only while PCR 13 holds the fixed
+   trial-open value. The loader always extends PCR 13 before handover. The
+   effective floor is `max(UEFI copy, TPM FLOOR)`.
+4. The kernel calls no UEFI runtime service (item 2). In profile
+   `native-update-trial` it performs, as narrowly scoped privileged policy
+   recorded by this ADR (`kernel/AGENTS.md`), one confirmation write and one PCR seal per trial boot through a
+   one-shot capability held by a ring-3 health service. The kernel copies the
+   loader-supplied binding; ring-3 supplies only a verdict for the versioned
+   list `HEALTH-LIST-1`. The kernel still contains no cryptography.
+5. While a trial is pending the update service does not write slots (amends
+   ADR-049 decision 4).
+6. *(Superseded in full: C665 takes precedence, and the REL-05 §7.9
+   amendment of 26 November 2026 below removes `DEGRADED`.)* A missing, faulty, cleared, replaced or
+   inconsistent TPM gives a degraded
+   boot (known-good only, no trial, no floor write, explicit markers), except
+   that a reachable TPM whose phase PCR cannot be extended halts the boot
+   (`BOOT:FAIL:TPM_EXTEND`): handing over with PCR 13 at its reset value would
+   grant the kernel loader-phase write rights, so halting is the fail-closed
+   choice. This TEST-profile grant is not a product kernel TPM grant
+   (`docs/contracts/TPM2-CRB.md`). TPM state
+   behind the UEFI copy is treated as rollback. A TPM counter alone is not
+   full rollback protection: clearing the TPM together with the firmware
+   variables, or a boot-path attacker before B04, defeats it (item 9).
+
+**Not authorized:** production keys, signing or activation; physical TPM or
+firmware changes; a production TPM provisioning or owner-authorization
+procedure; CI workflow changes without a separate owner-reviewed request. TPM 2.0 is the
+intended D3 backend of ADR-B03-B04-TARGET for this TEST profile only; its
+production approval remains open. Use of the anchor for N04 is authorized
+separately by ADR-NET-ISSUER-20261125 Decision 5B (owner, 25 November 2026)
+under its conditions 1–9; the contract is
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
+
+**Amendment, 25 November 2026 (owner decision C665, PR #524):** the owner
+authorises a strictly bounded extension of the trust architecture: TPM
+identity binding (U13) through an authorised enrollment record signed under
+the compiled-in update trust anchors (an anchor independent of TPM, UEFI
+variables and disk), with an EK-salted session per boot. Until that binding
+is demonstrably reliable, an unknown, replaced, reset or unverifiable TPM
+blocks the normal boot route (`BOOT:FAIL:TPM_IDENTITY`; an unenrolled TPM halts
+with `BOOT:FAIL:TPM_UNENROLLED`, since a deleted record cannot be told apart from
+no enrollment; an NVRAM reset halts with `BOOT:FAIL:UEFI_FLOOR_MISSING` instead
+of healing automatically) and only an authenticated recovery proceeds. The UEFI floor is
+never raised from an unverified TPM and the anti-rollback floor is never
+lowered silently. Legitimate TPM or motherboard replacement and NVRAM reset
+go through authorised recovery without touching user data. The anchor domains
+B02, B03/B04 and N04 stay separate; N04 re-anchors from genesis after
+recovery (agreed with workstream N). Native tests C23–C30 are required before
+acceptance. Specification section 10.5; TEST profile only.
+
+**Amendment M1-HAUTH, 25 November 2026 (project-owner decision, option 1,
+PR #524):** relayed by the PR guard session at about 11:58Z and confirmed by
+the project owner in the B session. Quoted decision:
+
+> I explicitly approve option 1: changing ownerAuth and lockoutAuth within
+> the isolated TEST/QEMU/swtpm profile to address the M1
+> undefine/redefine/replay vulnerability. This is a strictly bounded
+> extension of the previously approved TPM trust architecture. The following
+> requirements are binding: Preserve the per-domain TPM_NT_EXTEND hash-chain
+> architecture and logical separation between B02, B03/B04 and N04. Protect
+> TPM hierarchy authorization against unauthorized runtime access. Generate
+> appropriate authorization secrets using approved entropy. Never hardcode,
+> log or expose them to ordinary services. Preserve authorized loader-phase
+> recovery, including undefine and re-genesis with a fresh, authenticated
+> anchor instance. Ensure that recovery cannot revive previously revoked
+> grants or silently lower anti-rollback protection. Verify that the
+> PCR13-based loader-phase policy provides the intended protection. Do not
+> treat PCR phase separation alone as proof of trusted boot, TPM identity or
+> protection against a compromised kernel. Preserve the previously approved
+> U13 TPM identity binding. Test unauthorized undefine/redefine/replay, TPM
+> clear, TPM replacement, foreign boot environments, interrupted
+> provisioning and authorized recovery. Retain the existing failing M1
+> regression cases and demonstrate that the revised implementation prevents
+> the targeted revival scenario. Coordinate P1–P3 with N and finalize the
+> shared anchor contract. Keep N04 operating under 5A until the complete 5B
+> integration passes native security acceptance. Explicitly document
+> remaining threat-model limitations. Do not accept the demonstrated revival
+> vulnerability as a residual risk merely to complete the implementation.
+> This authorization applies exclusively to disposable TEST/QEMU/swtpm
+> environments. It does not authorize modification of physical TPMs,
+> production credentials or host security settings.
+
+Mechanism: a loader-generated secret (`EFI_RNG_PROTOCOL`, U25) is stored in
+the policy-read NV index `HAUTH` (`0x0100B304`, readable only under
+`PolicyPCR(13 = 0³²) + CC_NV_Read`) and set as `ownerAuth ‖ lockoutAuth` by
+`HierarchyChangeAuth`; `endorsementAuth` and platformAuth are not changed.
+Evidence so far: swtpm 0.10.1 feasibility probe
+(`docs/verification/b03-rel05-hauth-probe-20261125/`) and host model; the
+native loader path and S5 are open. Limitation, reported to the project
+owner and not accepted as a residual by B: code that runs at PCR 13 = 0³²
+(boot path before B04, foreign OS) can read `HAUTH` and revive an older
+store one reboot later; the revival is refused at run time within a boot,
+not across a hostile boot path. 5A stays in force. Contract:
+[COLD-FRESHNESS-ANCHOR.md](implementation/COLD-FRESHNESS-ANCHOR.md).
+
+**Amendment, 26 November 2026 (project-owner decision on PR #524: approval
+and C665 precedence):** the project owner approved this ADR in substance for
+the strictly bounded TEST/QEMU/swtpm profile, including C665 and M1-HAUTH, and
+decided (translated from Dutch) that C665 takes precedence over decision 6: an
+unknown, replaced, reset or unverifiable TPM must not bypass the identity
+binding through `DEGRADED`; the controlled halt and authenticated recovery
+stay. REL-05 §7.9 was decided separately the same day (amendment below). The
+boot-path revival at PCR 13 = 0³² before B04 stays an open security problem,
+not an accepted residual risk. N04 stays under 5A until the full 5B
+integration passes native security acceptance. All open implementation and
+acceptance conditions (C23–C30, native S5, U13c) remain; no production
+credentials, no physical TPM change and no progress score change.
+
+Verbatim decision (project owner, Dutch, 26 November 2026 19:55 UTC, pasted
+into the workstream B chat, session `ea7388`):
+
+> EIGENAARBESLUIT — #524
+>
+> Ik keur ADR-B03-REL05-TPM-20261125 inhoudelijk goed voor het strikt afgebakende TEST/QEMU/swtpm-profiel, inclusief C665 en M1-HAUTH.
+>
+> Verduidelijk vóór de eerstvolgende push dat C665 voorrang heeft op het oorspronkelijke besluit 6: een onbekende, vervangen, geresette of onverifieerbare TPM mag niet via DEGRADED alsnog de identiteitsbinding omzeilen. Behoud gecontroleerde halt en geauthenticeerd herstel. Stem de toepasselijke testverwachtingen daarop af, zonder de nog openstaande §7.9-beslissing stilzwijgend in te vullen.
+>
+> De bekende boot-path-revival vóór B04 blijft een open beveiligingsprobleem en wordt niet geaccepteerd als definitief restrisico. N04 blijft onder 5A totdat volledige 5B-acceptatie is aangetoond.
+>
+> Behoud alle openstaande implementatie- en acceptatievoorwaarden. Geen productiecredentials, fysieke TPM-wijzigingen of verhoging van de voortgangsscore.
+>
+> Verwerk deze verduidelijking in de reeds voorbereide lokale wijzigingen. Stem één gebundelde push af met de PR-bewaker en integreer #524 via de merge queue zodra alle geldende voorwaarden zijn vervuld.
+>
+> Geen nieuwe algemene onderzoeks- of reviewronde. Ga daarna zelfstandig verder met de resterende implementatie.
+
+Application by workstream B (the mapping of TPM classes below is B's reading
+of the owner's precedence decision, recorded for the owner to confirm or
+reverse; it is not itself an owner decision), TEST profile:
+
+- A TPM that is absent, fails before or during the
+  identity proof, or shows PCR 13 dirty at loader start has no verified
+  identity: the loader prints the class marker, halts with
+  `BOOT:FAIL:TPM_IDENTITY`, writes nothing and runs no kernel. A failed TPM
+  write or read-back after a verified identity re-steps as a fault and halts
+  the same way. An absent TPM therefore means no boot in this profile. An unenrolled
+  TPM (`BOOT:FAIL:TPM_UNENROLLED`), another or unproven endorsement key,
+  including a replaced TPM or one reset to new seeds (`BOOT:FAIL:TPM_IDENTITY`),
+  and an NVRAM reset (`BOOT:FAIL:UEFI_FLOOR_MISSING`) halt as before. A failed
+  extend still halts with `BOOT:FAIL:TPM_EXTEND`. Recovery is authenticated
+  only (section 10.5).
+- *(Superseded by the REL-05 §7.9 amendment below.)* Decision 6 kept
+  `DEGRADED` only for a verified TPM whose anchor is lost or behind
+  (`ANCHOR_LOST`, `ANCHOR_BEHIND`), with the cleared-TPM case left open.
+  "Reset" is read as a TPM with new seeds (a new
+  endorsement key); that `TPM2_Clear` keeps the endorsement key and a fresh
+  swtpm state does not is TPM 2.0 Part 1 hierarchy semantics, not probed on
+  swtpm *[unverified]*.
+
+**Amendment, 26 November 2026 (project-owner decision REL-05 §7.9: TPM clear
+and anchor loss):** the project owner chose fail closed (translated from
+Dutch): a TPM that was cleared but keeps its original endorsement key gets a
+controlled halt with authenticated recovery; a matching endorsement key
+proves identity, not continuity of the protected state. Binding conditions:
+no regular or `DEGRADED` boot once a TPM clear or the loss of required anchor
+state is detected; no automatic re-provisioning based only on a matching
+endorsement key; recovery only through an authenticated, demonstrably current
+recovery procedure; keep the highest reliably established anti-rollback
+floor; prevent reactivation of revoked keys, grants and older anchor
+instances; when every reliable freshness record is lost, independently
+authorised recovery is mandatory; preserve user data; give a clear recovery
+message. The permission holds only within the existing TEST/QEMU/swtpm
+mandate. REL-05 stays open until every acceptance condition is met; the
+progress score stays 43/100.
+
+Verbatim decision (project owner, Dutch, 26 November 2026 20:07 UTC, pasted
+into the workstream B chat, session `ea7388`):
+
+> EIGENAARBESLUIT — REL-05 §7.9
+> Kies fail-closed: gecontroleerde halt met geauthenticeerd herstel wanneer een TPM is gewist maar zijn oorspronkelijke EK behoudt.
+> Een overeenkomende EK bewijst identiteit, niet continuïteit van de beveiligde toestand.
+> Bindende voorwaarden:
+>
+> * Geen reguliere of DEGRADED-boot wanneer een TPM-clear of verlies van noodzakelijke anchorstatus is vastgesteld.
+> * Geen automatische herprovisioning op basis van uitsluitend een overeenkomende EK.
+> * Herstel uitsluitend via een geauthenticeerde, aantoonbaar actuele recoveryprocedure.
+> * Behoud de hoogste betrouwbaar vastgestelde anti-rollback-floor.
+> * Voorkom heractivering van ingetrokken sleutels, grants en oudere anchor-instances.
+> * Wanneer alle betrouwbare freshness-records verloren zijn, is onafhankelijk geautoriseerd herstel verplicht.
+> * Behoud gebruikersgegevens.
+> * Geef een duidelijke herstelmelding.
+>
+> Deze toestemming geldt uitsluitend binnen het bestaande TEST/QEMU/swtpm-mandaat.
+> Leg dit besluit vast in §7.9 en de toepasselijke ADR. Implementeer en verifieer gericht, zonder nieuwe algemene onderzoeksronde.
+> Laat REL-05 open totdat alle acceptatievoorwaarden zijn vervuld. De voortgangsscore blijft 43/100.
+
+Consequence for this ADR: decision 6 is replaced in full. `DEGRADED` no
+longer exists. Every `ANCHOR_LOST` and `ANCHOR_BEHIND` class with a verified
+identity halts with `BOOT:FAIL:TPM_ANCHOR`; every halt that only
+authenticated recovery resolves (identity mismatch, `TPM_UNENROLLED`,
+`UEFI_FLOOR_MISSING`, `TPM_ANCHOR`) also prints `BOOT:RECOVERY:REQUIRED`, and
+an absent, faulty or dirty-PCR TPM halts without it. The
+host model and its tests implement this; the loader does not yet. Section 7.9
+of the specification records each condition with its status. Open binding
+conditions include: the TEST loader's M1-HAUTH path provisions and boots
+whenever `ownerAuth` is unset, which is also the state after a clear, so the
+TEST loader currently violates the first two conditions and must halt on a
+cleared provisioned TPM before acceptance (B's first follow-up); the currency of a recovery
+record; the recovery authority for the case where both copies of the
+accepted pair are lost; and the user-visible recovery text.
+
+**Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
+extension, kernel profile and health service; the characterization of PR #514
+must fail under the trial profile. Issue #41, B03 and REL-05 remain open;
+scores are unchanged.
 
 ## ADR-SPECIALIST-TEAM-20261125 — Permanent specialists A, P, L and R; handoffs, naming and context rotation
 
@@ -649,7 +1104,9 @@ and, for the leaves, into the matrix. The catalogue becomes the single source
 of the leaves matrix.
 
 The integrated native suites, CodeQL and `ci.yml` stay unselected. `push`,
-`merge_group`, `schedule` and `workflow_dispatch` always run in full. merge-hold
+`merge_group`, `schedule` and `workflow_dispatch` still run every job; on
+`merge_group` merge-hold requires only the gates that the plan from the trusted
+base selects (ADR-CI-MERGE-GROUP-SELECT-20261126). merge-hold
 remains the decision point: it does not trust the `select` jobs and blocks when
 an expected gate did not pass.
 

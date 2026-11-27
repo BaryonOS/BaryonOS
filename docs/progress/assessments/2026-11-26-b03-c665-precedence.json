@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "e0bd1690df90aed683f0fd84fd72b20e81b5e25b",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b03-rel05-tpm-20261125",
+  "task": "B03-REL05: project-owner approval of ADR-B03-REL05-TPM-20261125 for the TEST/QEMU/swtpm profile and C665 precedence over decision 6 (#524)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. At source e0bd1690 the S1 host model halts with BOOT:FAIL:TPM_IDENTITY, without a write, for every TPM without a verified identity (absent, faulty, PCR 13 dirty, unenrolled, replaced or reset); DEGRADED follows only a verified identity with a lost or behind anchor. update-core host tests and clippy pass. The ADR amendment, the REL-05 specification and the anchor contract record the precedence; the cleared-TPM case with a kept EK (REL-05 section 7.9) stays open and is not decided. Host model only: no loader, native QEMU/swtpm case, C23-C30, native S5, U13c, hosted CI, hardware or human audit; the boot-path revival before B04 stays open, N04 stays under 5A; no criterion accepted."
+}

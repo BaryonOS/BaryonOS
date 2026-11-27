@@ -24,6 +24,10 @@
 # once they have finished (#494 B9). On merge_group (D1 step 2) it recomputes
 # the plan for the queue commit and judges every applicable gate there, from
 # runs bound to the merge_group event, the queue commit and the queue branch.
+# There the base is the trusted base T, the merge base of the queue commit and
+# freshly fetched protected main, never merge_group.base_sha, which can be the
+# unlanded queue commit of the entry ahead; the plan selects from the diff
+# T..queue commit, which covers the entries ahead (ADR-CI-MERGE-GROUP-SELECT-20261126).
 # This file may add environment variables, but must keep every one an older
 # base merge_hold.py reads.
 name: Merge hold
@@ -80,7 +84,21 @@ jobs:
               exit 1
             fi
           else
-            base="$MERGE_GROUP_BASE_SHA"
+            # T: the merge base of the queue commit and protected main. Any doubt fails closed,
+            # because no trusted copy of the tools could be identified.
+            main=refs/remotes/origin/main
+            if ! git fetch --no-tags --quiet origin "+refs/heads/main:$main"; then
+              echo "::error::Could not fetch main; failing closed."
+              exit 1
+            fi
+            base="$(git merge-base "$tested" "$main")" || base=""
+            if ! [[ "$base" =~ ^[0-9a-f]{40}$ ]] \
+                || ! git merge-base --is-ancestor "$base" "$main" \
+                || ! git merge-base --is-ancestor "$base" "$MERGE_GROUP_BASE_SHA" \
+                || ! git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"; then
+              echo "::error::The queue commit, merge group base and main do not descend from one main commit; failing closed."
+              exit 1
+            fi
           fi
           if ! [[ "$base" =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error::No usable base commit; failing closed."
