@@ -208,3 +208,56 @@ Evidence limits:
 4. A04-T2: run the scoped BR0 Chromium/Gecko comparison with B, N and G.
 
 Report any kernel write set on #536 before committing under `kernel/`.
+
+## A02-T2 source-anchor host model (work in progress)
+
+At base `73fa43d9df68045cbf45583e92f4509229255b87`, B answered
+Q-B1–Q-B6 in issuecomment-7226871474. The project owner subsequently extended
+A's write set to `sdk/app-management/**` for the A02-T2 host model. The
+claimed files are recorded in issuecomment-7227073471.
+
+`sdk/app-management/tests/source_registry_anchor.rs` is an executable fixture
+model, not an implementation of source management or authenticated storage.
+It reuses the actual `SourceRegistry` snapshot and anchor chain helpers. Eleven
+host tests cover A1/X crash recovery, uncertain extend, stale/foreign and
+unauthenticated fixtures, budget exhaustion, chain-domain separation, missing
+and invalid stores, source generations, transition fencing and revocation
+tombstones. A pending revocation conservatively closes the entire fixture
+registry. The fixture
+models authentication as a boolean: it does not verify a MAC, bind a real
+kernel actor, perform disk I/O, instantiate a TPM or establish native domain
+allocation. It does not close A02 or establish product recovery/security.
+
+The model is partial: bounded actor authorization, all store failure modes,
+source rotation during install, power-cut behavior and native domain capability
+escape remain unverified. Review by B and the remaining contract tests are
+needed before a source-management adapter or product claim. A03 ownership-source
+question is issuecomment-7227046940; do not assume its answer.
+
+
+## A handoff — 2026-11-27T21:12:27Z
+
+- PR #650 is draft/BEHIND at remote `d5f580bcb66986fad288d4dd1de3535cf7484fc4`.
+  Local worktree `~/projects/BaryonOS-worktrees/a02-t2-source-anchor`, branch
+  `codex/a02-t2-source-anchor`, contains `611aaf66b2c45f7d8f2baae2bf4513040b6c7b66`
+  on top: a tested fixture-nonce repair not yet pushed or CodeQL-verified.
+- B reviewed the single-source model at d5f580bc (issuecomment-7227351536).
+  Exact authenticated intent, multi-source revoke settlement and install-time
+  reauthorization remain open (issuecomment-7227360867). A02 is not accepted.
+- Host tests, clippy and fmt on 611aaf66: exit 0, local logs
+  `build/a02-t2/all-tests-codeql.log`, `clippy-codeql.log`, `fmt-codeql.log`.
+  Serial/soft freestanding build on the prior source: exit 0; initial build
+  without CI flags failed (101, LLVM SIGILL). Progress check: 43/100, exit 0.
+- Remote CodeQL flags a test fixture nonce critical; do not dismiss it.
+  `host-quality` fails strict impact coverage; CI owns the repair (#494
+  issuecomment-7228001908). `merge-hold` failed; no queue preconditions met.
+- Next: after CI supplies its reviewed fix, fetch and inspect the board,
+  merge current main once, retain 611aaf66, validate, push once, then verify
+  exact-head CodeQL, review threads and all required gates before enqueue.
+- A02-T3: K's source review is issuecomment-7227735977; B's review is
+  pending. A03 session identity proposal is issuecomment-7227628903; exact
+  lifecycle hooks and object scope remain open. No native TPM, hardware or
+  independent human audit is claimed. Local resume record:
+  `~/projects/BaryonOS-scratch/BaryonOS-Codex-Handoff/01-SPECIALIST-A.md`.
+
+**Handoff update 2026-11-27T22:16:11Z:** owner requested all completed scoped work be pushed before transfer. The nonce repair and this handoff were pushed as PR #650 head `2f7637f9`; the earlier statement that they remain unpushed is superseded. Hosted checks and CodeQL on that head are pending. CI PR #657 is queued; after it lands, integrate current main and rerun exact-head gates. The actual final head is the commit containing this update.

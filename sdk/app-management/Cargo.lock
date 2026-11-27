@@ -244,6 +244,7 @@ dependencies = [
  "artifact-store-core",
  "nieuw-os-sdk-runtime",
  "sha2 0.10.9",
+ "update-core",
 ]
 
 [[package]]
@@ -371,6 +372,15 @@ name = "unicode-ident"
 version = "1.0.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
+
+[[package]]
+name = "update-core"
+version = "0.1.0"
+dependencies = [
+ "ed25519-dalek",
+ "ml-dsa",
+ "sha2 0.10.9",
+]
 
 [[package]]
 name = "version_check"

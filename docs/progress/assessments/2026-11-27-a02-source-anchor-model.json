@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "73fa43d9df68045cbf45583e92f4509229255b87",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/a02-t2-source-anchor",
+  "task": "A02-T2 source-registry snapshot and anchor host fixture model",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Eleven host fixture tests exercise existing snapshot and anchor helpers with simulated authentication and storage. No native service, TPM, production authentication, physical recovery or independent human evidence; A02 remains open."
+}
