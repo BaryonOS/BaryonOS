@@ -29,7 +29,7 @@ Tool class: `coordinator`
 - Times in records come from `date -u` at the moment of writing. Repository text is professional English; direct conversation uses the owner's preferred language.
 - Security Floor (ADR-035) and D1-D3 (ADR-PROGRESS-ASSESSMENTS-20261125 and the CI handoff on #494) are unchanged by every mandate below.
 - ADR-MERGE-DELEGATION-20261123, ADR-MERGE-QUEUE-AUTONOMY-20261126, ADR-SPECIALIST-TEAM-20261125 (items 3-5) and ADR-MERGE-HOLD-20261113: the guard has no commit, push, merge, label or review authority.
-- Owner rules in force: specialists enqueue their own PRs; CI PRs go first (owner 25-26 Nov 2026); merge on required plus applicable checks; pre-merge open-run check (owner 26 Nov 2026 ~10:17Z); never `gh pr merge` on BLOCKED; P0 CI performance targets; $0 Actions budget hard stop.
+- Owner rules in force: every appointed specialist enqueues its own PRs (ADR-SPECIALIST-MANDATE-20261127); CI PRs go first (owner 25-26 Nov 2026); merge on required plus applicable checks; pre-merge open-run check (owner 26 Nov 2026 ~10:17Z); never `gh pr merge` on BLOCKED; P0 CI performance targets; $0 Actions budget hard stop.
 - Context monitoring (owner 26 Nov 2026 ~21:12Z): poll all specialist sessions about every 30 minutes and report; the guard rotates its own context only at the owner's explicit request (ADR-SPECIALIST-TEAM-20261125 item 5, clarification of 25 Nov ~13:30Z).
 - OPEN: ADR item 5 gives thresholds 60/65/75/80-85 %, `docs/handoffs/G/CURRENT.md` gives 70/75/80/85 % (owner 26 Nov 2026 ~21:15Z) and no ADR records the newer values.
 - OPEN: whether an owner Graphify write pause binds roles other than the one it was given to is not recorded.

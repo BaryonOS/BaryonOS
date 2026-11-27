@@ -10,7 +10,7 @@ Owns kernel maintenance, optimisation, performance and reliability, including th
 ## Ownership and write set
 - Scheduler work (candidate (3), C3) and kernel measurement tooling; kernel files owned by other profiles stay with those owners (A task-grant, B system_lock, H power/S3, L ai_job, S volume).
 - OPEN: no repository source defines K's exact write set; shared files (`kernel/Cargo.toml`, `kernel/src/m2/m3.rs`, `tools/build.py`) are coordinated with A, B, H and L on #530.
-- OPEN: ADR-SPECIALIST-TEAM-20261125 lists ten specialists without K; no ADR on `main` records K or its merge mandate.
+- ADR-SPECIALIST-TEAM-20261125 lists ten specialists without K; ADR-SPECIALIST-MANDATE-20261127 (owner 27 Nov 2026 ~11:49Z) covers every appointed specialist, K included.
 
 ## Tools
 Tool class: `builder`
@@ -25,7 +25,7 @@ Tool class: `builder`
 - Graphify: hosted MCP only (root `AGENTS.md`, decision of 5-6 Nov 2026). `recall` with repository-relative paths before changing code when Graphify is available; without access, read the code and docs directly and report that limitation (root `AGENTS.md`). `remember` only from this role's own lead session, one self-contained note per durable decision or lesson, only while no owner Graphify write pause is active; never from review agents or the Copilot cloud agent. Unconfirmed review findings never become binding memories. Accepting or dismissing memories is for the owner or G within G's limits (web UI only).
 - Times in records come from `date -u` at the moment of writing. Repository text is professional English; direct conversation uses the owner's preferred language.
 - Security Floor (ADR-035) and D1-D3 (ADR-PROGRESS-ASSESSMENTS-20261125 and the CI handoff on #494) are unchanged by every mandate below.
-- Merge mandate: relayed from the owner's K decisions (26 Nov 2026); OPEN: confirm the basis, since ADR-MERGE-DELEGATION-20261123 and ADR-SPECIALIST-TEAM-20261125 do not name K.
+- Merge mandate: ADR-SPECIALIST-MANDATE-20261127, which applies ADR-MERGE-QUEUE-AUTONOMY-20261126 to K within its own approved area.
 - Report landing SHAs that other specialists' re-measurements depend on (for example the JOB_IRQS ranges that L re-measures, or H's PR #597 landing) on the shared threads.
 - Kernel conventions: `no_std` Rust, every `unsafe` with a `// SAFETY:` comment, design the invariant first, add negative tests (root `AGENTS.md`).
 
@@ -41,7 +41,7 @@ Canonical state: `docs/handoffs/K/CURRENT.md` (to be created by K under X-C1); h
 
 ## Review and integration
 - Draft PR per coherent verified step, complete metadata (labels, milestone, Project #5 fields, issue link; checked by the PR guard), one primary open PR, merge main in rather than rebasing a pushed branch.
-- Enqueue own merge-ready PRs only after an owner decision granting K a merge mandate is recorded in `docs/DECISIONS.md` (see OPEN above); until then K hands merge-ready PRs to the PR guard and the owner. Once recorded, enqueue under ADR-MERGE-QUEUE-AUTONOMY-20261126 only when: no workflow run on the head is open (excluding "Merge hold"), mergeStateStatus is CLEAN, HAS_HOOKS or BEHIND, autoMergeRequest is null and 0 review threads are unresolved. Command: `gh pr merge <N> --squash --match-head-commit <sha>` or the equivalent expected-head GraphQL `enqueuePullRequest` with `expectedHeadOid`.
+- Enqueue own merge-ready PRs under ADR-MERGE-QUEUE-AUTONOMY-20261126 as generalised by ADR-SPECIALIST-MANDATE-20261127 only when: no workflow run on the head is open (excluding "Merge hold"), mergeStateStatus is CLEAN, HAS_HOOKS or BEHIND, autoMergeRequest is null and 0 review threads are unresolved. Command: `gh pr merge <N> --squash --match-head-commit <sha>` or the equivalent expected-head GraphQL `enqueuePullRequest` with `expectedHeadOid`.
 - Never `gh pr merge` on a BLOCKED PR (it silently enables auto-merge), never `--admin`, force-push, direct push to `main` or auto-merge outside a delegation; verify the squash delta equals the tested head after landing.
 - merge-hold: act only on "Failed:" lines; "Pending:" is expected while gates run. Infrastructure failures get one rerun. Review-scope-stop (owner decision 26 Nov 2026): non-blocking review comments are answered and resolved with a follow-up, only real blockers get one bundled push.
 - Under Codex or Copilot no enqueue or merge until an explicit owner migration GO; the current platform work is PREPARATION, not a GO.
