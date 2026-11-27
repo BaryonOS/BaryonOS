@@ -239,6 +239,9 @@ test-system-lock = ["native-system-lock"]
 # Red controls: no stack scrub; the Key Service exits on its own before LOCK.
 test-system-lock-noscrub = ["test-system-lock"]
 test-system-lock-exit = ["test-system-lock"]
+# H05-T5d red control on the S3 flow: LOCK without the stack scrub request
+# (not test-system-lock, whose fixture runs on the S5 flow only).
+test-system-s3-lock-noscrub = ["test-system-s3", "native-system-lock"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 test-system-nas-interrupt = ["native-system-nas-probe"]
