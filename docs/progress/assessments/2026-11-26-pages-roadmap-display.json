@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "321f2035d3e75cac362adadde11e7c8a38dede50",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/pages-site-20261126",
+  "task": "Display the canonical README roadmap progress bar on the public project site",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The public site displays the existing generated roadmap visual from main; the work adds no OS implementation or acceptance evidence."
+}

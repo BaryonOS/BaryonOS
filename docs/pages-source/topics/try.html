@@ -1,0 +1,19 @@
+<h2>Can Baryon OS be installed on a personal device?</h2>
+<p>No supported installation on a physical PC or phone is available. The documented route is an isolated QEMU virtual machine for development and testing. It is not a daily-use release or an installer.</p>
+
+<h2>How can a development build be started?</h2>
+<p>First follow the current <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/DEVELOPMENT.md">development guide</a> for the pinned toolchain, firmware and host setup. From a repository checkout, run the basic checks in order:</p>
+<ol class="guide-steps">
+  <li><code>python3 -B tools/preflight.py --strict</code></li>
+  <li><code>python3 -B tools/build.py</code></li>
+  <li><code>python3 -B tools/run.py --smoke</code></li>
+</ol>
+<p>Use only disposable virtual images, never a real host disk. The selected development profile and its documented output determine whether the smoke test passed. Preflight checks tools; compilation checks a build; neither alone proves runtime behaviour.</p>
+
+<h2>What does the smoke test show?</h2>
+<p>A passing smoke run establishes a bounded native path in the recorded QEMU configuration. It does not establish a complete desktop, supported hardware, safe personal-data use or release acceptance. Consult <a href="/docs/progress/">roadmap and evidence</a> before interpreting a result.</p>
+<div class="guide-links">
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/DEVELOPMENT.md">Development setup <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/TEST-STRATEGY.md">What tests demonstrate <span aria-hidden="true">↗</span></a>
+  <a href="https://github.com/BaryonOS/BaryonOS/blob/main/docs/FULL-TEST-RELEASE.md">Release acceptance <span aria-hidden="true">↗</span></a>
+</div>
