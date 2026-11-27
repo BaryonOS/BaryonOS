@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "fc6bc0856e58683d155e8df3bc6d2861fe108664",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/ui-u05-compact-actions",
+  "task": "UI-U U05 compact workspace footer labels (#630)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Rename and Organize use context-equivalent shorter visible action labels only when the full text does not fit the actual button width. Existing full semantic labels and behavior remain unchanged. The UI native host suite, clippy and format checks passed; an independent AI source review identified and verified the width-based correction. History labels, dynamic collection names, native evidence and human accessibility review remain open; this partial correction does not complete U05."
+}

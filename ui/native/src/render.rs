@@ -2214,13 +2214,21 @@ impl Paint<'_> {
                         );
                     }
                 }
+                let (full_label, compact_label) = if view.screen == Screen::Rename {
+                    ("Naam toepassen", "Toepassen")
+                } else {
+                    ("Bewaren in collectie", "Bewaren")
+                };
+                let label = if self.measure(full_label, Size::Body, Weight::Semibold)
+                    > l.form_confirm.width.saturating_sub(16)
+                {
+                    compact_label
+                } else {
+                    full_label
+                };
                 self.button(
                     l.form_confirm,
-                    if view.screen == Screen::Rename {
-                        "Naam toepassen"
-                    } else {
-                        "Bewaren in collectie"
-                    },
+                    label,
                     view.focus == Focus::FormConfirm,
                     view.can_save && !workspace.form().is_empty(),
                     ButtonStyle::Primary,
