@@ -2,16 +2,19 @@
 title: CI verification route
 type: operation
 created: 2026-11-26
-updated: 2026-11-26
+updated: 2026-11-27
 sources:
   - code: .github/workflows/merge-hold-recheck.yml
   - code: tools/merge_hold_recheck.py
-verified_at: c6e8cb5c
+verified_at: d1d055f
 ---
 
 # CI verification route
 
 This operation page directs CI investigations to their canonical owners. It defines no status, policy, acceptance evidence, gate result, or merge authority; exact-head verification, merge-hold freshness, the Security Floor, and existing gates remain governed by those sources.
+
+Runner selection and implementation commentary remain source-owned operational details;
+this route intentionally does not restate them.
 
 | Need | Canonical source |
 |---|---|
