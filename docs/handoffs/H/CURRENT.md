@@ -71,8 +71,11 @@ path or specific tool is needed to resume.
   to `f8662109`; evidence
   [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md)).
 - **Decision record:** PR #634 places `ADR-H-AUDIO-HW-OWNER-20261127`
-  in the slot introduced by #642 (`c5867e45`). The live handoff
-  records the current PR head and queue or landing status.
+  in the slot introduced by #642 (`c5867e45`), and landed as `77eb3090`.
+  PR #655 landed as `4dfeb283` with a tree identical to the reviewed
+  patch applied to its landing parent and 25 passing merge-group runs.
+  It records the owner-approved four-endpoint H03 narrowing. Scope and
+  review evidence are in [the landing handoff](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7228853836).
 - **Live handoff:** the newest comment starting with `HANDOFF — Specialist H`
   on issue #564 (task, invariants, write set, branch and HEAD, decisions,
   commands with exit codes, not run, risks, next safe action, acceptance
@@ -85,7 +88,10 @@ path or specific tool is needed to resume.
 ### Local work
 
 The live handoff records the TXDOWN branch and its source commit. The
-feature-off baseline waits for K's linker pin on main.
+feature-off baseline waits for K's linker pin on main and precedes any
+TXDOWN source edit. K confirmed [standalone gate feasibility](https://github.com/BaryonOS/BaryonOS/pull/602#issuecomment-7229194974)
+at the patch level. A standalone change would need its own exact-source
+ELF layout checks and native S3 regressions. #602 remains held.
 
 ### Invariants and reserved values
 
@@ -204,17 +210,19 @@ feature-off baseline waits for K's linker pin on main.
 
 ## Next executable task
 
-1. Verify #634's landing against the tested head. Then fast-forward the
-   H04-TXDOWN branch to `origin/main` after K's linker pin (#602) lands.
+1. Verify K's linker pin is present on `origin/main` and fast-forward the
+   clean H04-TXDOWN branch to that verified head after landing.
    Capture the feature-off byte-identity baseline before editing.
    Implement #600 according to issue comments 7219928487, 7222111549 and
    7222382170, with N review on #529. T5f follows TXDOWN. K-9 follows
    #602, #634 and TXDOWN.
 2. H03-T3b: coordinate the approved four-endpoint ingress write set with
-   B and K. After the reviewed ingress path is verified, implement the
-   output-only broker using the AUDIO right and the reserved syscall
-   range. Preserve the transport oracle in §7 and the Security Floor
-   review of mint, use, transfer and revocation.
+   B and K. The [native fixture plan](https://github.com/BaryonOS/BaryonOS/issues/564#issuecomment-7229052695)
+   records the per-endpoint refusals, ordinary IPC control, saturated
+   Flush and revocation observations. After verifying the reviewed ingress
+   path, implement the output-only broker using the AUDIO right and the
+   reserved syscall range. Preserve the transport oracle in §7 and the
+   Security Floor review of mint, use, transfer and revocation.
 3. H05-T5c slices 2–4: slice 2 needs B's LOCK/UNLOCK key erasure
    (`ADR-KEYRING-LOCK-20261126`, UNLOCK still open); slice 3 is S's
    post-wake remount; slice 4 is the ring-3 re-grant. Also T5e with B and S,
