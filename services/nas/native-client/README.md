@@ -1,5 +1,16 @@
 # NAS-RESUME-1 — bounded client queue, host model
 
+## Serialized checkpoint coordinator model
+
+[`src/host_store.rs`](src/host_store.rs) models a user-side coordinator for
+staged checkpoint publication, current authorization, exact freshness binding
+and revocable restored-queue handles. Its tests exercise serialized revocation,
+candidate verification and uncertain publication using injected test adapters.
+The adapters do not provide cryptography, durable storage or an independent
+native anchor. The existing client commit path does not yet require a durable
+checkpoint before sending. Native grants, recovery custody and guest restart
+evidence remain open.
+
 `no_std`, allocator-free, `forbid(unsafe_code)`. Reuses only the
 local `nieuw-os-nas-core` interface, `Session`, `Upload`, revisions and errors.
 No new identity/wire/crypto ABI, transport or provider implementation.
