@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "f79e58150f1e16d7a46622ae0391f0cdd0dbefc8",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/l01-tokenizer-20261126",
+  "task": "L01: no_std byte-level BPE tokenizer for the pinned Qwen2.5 tokenizer, host oracle comparison and shared oracle test store",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. L01 stays open: the tokenizer has host evidence only (819 committed cases, five oracle prompts and 164 additional CJK cases from an uncommitted sweep, piece- and id-equal with tokenizers 0.23.2); no native tokenizer use, ChatML template, Qwen inference, task quality, SMP or sleep/wake acceptance."
+}

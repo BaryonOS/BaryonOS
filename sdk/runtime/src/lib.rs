@@ -31,6 +31,18 @@ pub trait Transport {
     fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, Error>;
     fn yield_now(&mut self) -> Result<(), Error>;
     fn close(&mut self, handle: Handle) -> Result<(), Error>;
+    /// Absolute monotonic tick `ticks` from now for one reply wait, computed
+    /// once per reply. `None` (default) keeps nonblocking `yield_now` polling.
+    fn reply_deadline(&mut self, ticks: u64) -> Result<Option<u64>, Error> {
+        let _ = ticks;
+        Ok(None)
+    }
+    /// Wait until `endpoint` may hold a message or `deadline` passes. `false`
+    /// means the deadline elapsed; `true` is only a hint to retry `receive`.
+    fn wait_receive(&mut self, endpoint: ReceiveEndpoint, deadline: u64) -> Result<bool, Error> {
+        let _ = (endpoint, deadline);
+        self.yield_now().map(|()| true)
+    }
 }
 
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
@@ -49,6 +61,54 @@ impl Transport for NativeTransport {
     }
     fn close(&mut self, handle: Handle) -> Result<(), Error> {
         native::close(handle)
+    }
+}
+
+/// `NativeTransport` whose reply waits block in ABI 1.10 `ipc_wait` on the
+/// caller's own receive endpoint. Other ABI profiles keep `yield_now` polling.
+/// The wait grants no authority; the kernel still checks the endpoint handle.
+#[cfg(all(target_arch = "x86_64", target_os = "none"))]
+pub struct NativeReplyWait {
+    wait: bool,
+}
+
+#[cfg(all(target_arch = "x86_64", target_os = "none"))]
+impl NativeReplyWait {
+    pub const fn new(abi: u64) -> Self {
+        Self {
+            wait: supports_ipc_wait(abi),
+        }
+    }
+}
+
+#[cfg(all(target_arch = "x86_64", target_os = "none"))]
+impl Transport for NativeReplyWait {
+    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), Error> {
+        native::send(endpoint, message)
+    }
+    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, Error> {
+        native::receive(endpoint)
+    }
+    fn yield_now(&mut self) -> Result<(), Error> {
+        native::yield_now()
+    }
+    fn close(&mut self, handle: Handle) -> Result<(), Error> {
+        native::close(handle)
+    }
+    fn reply_deadline(&mut self, ticks: u64) -> Result<Option<u64>, Error> {
+        if !self.wait {
+            return Ok(None);
+        }
+        clock::now_monotonic()?
+            .checked_add(ticks)
+            .map(Some)
+            .ok_or(Error::InvalidReturn)
+    }
+    fn wait_receive(&mut self, endpoint: ReceiveEndpoint, deadline: u64) -> Result<bool, Error> {
+        if !self.wait {
+            return self.yield_now().map(|()| true);
+        }
+        Ok(native::ipc_wait(&[WaitCondition::receive(endpoint)], deadline)? != 0)
     }
 }
 

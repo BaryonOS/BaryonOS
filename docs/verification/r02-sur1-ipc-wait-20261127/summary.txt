@@ -1,0 +1,51 @@
+A commit 16071bdc kernel.elf 95d223793292917c
+A raw_qemu_exit [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+A duration_s [36.53, 37.21, 37.96, 36.86, 36.74] median 36.86; qemu_host_cpu_s [24.63, 24.19, 25.07, 24.11, 23.81] median 24.19
+B commit 20d9089f kernel.elf a5005cbc953b5296
+B raw_qemu_exit [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+B duration_s [37.21, 38.27, 37.79, 37.6, 37.23] median 37.6; qemu_host_cpu_s [24.93, 25.94, 25.01, 24.28, 24.66] median 24.93
+phase: A median (min-max) | B median (min-max) | B-A median, last_input_to_verified_app_image_s
+document-menu-high-contrast: 0.49 (0.49-0.70) | 0.70 (0.68-0.70) | +0.20
+document-menu-contrast-restored: 0.49 (0.47-0.70) | 0.70 (0.70-0.70) | +0.21
+reopened: 0.42 (0.39-0.44) | 0.44 (0.42-0.44) | +0.02
+editor: 0.40 (0.40-0.40) | 0.40 (0.40-0.45) | -0.00
+list: 0.37 (0.37-0.42) | 0.42 (0.42-0.42) | +0.05
+calculator-high-contrast: 0.29 (0.28-0.29) | 0.28 (0.26-0.29) | -0.00
+calculator-contrast-restored: 0.28 (0.27-0.29) | 0.29 (0.29-0.29) | +0.00
+clipboard-recovered-empty: 0.28 (0.28-0.28) | 0.28 (0.10-0.29) | +0.00
+clipboard-empty: 0.28 (0.28-0.28) | 0.28 (0.28-0.28) | -0.00
+clipboard-numeric: 0.27 (0.17-0.33) | 0.33 (0.28-0.35) | +0.05
+clipboard-copied: 0.27 (0.25-0.32) | 0.27 (0.27-0.28) | +0.00
+document-menu-mouse-cancelled: 0.26 (0.24-0.27) | 0.26 (0.26-0.26) | +0.00
+restored-editor: 0.26 (0.24-0.26) | 0.26 (0.26-0.26) | -0.00
+clipboard-reset: 0.26 (0.05-0.31) | 0.29 (0.05-0.31) | +0.03
+document-menu-write: 0.25 (0.25-0.25) | 0.25 (0.25-0.25) | -0.00
+document-menu-next: 0.25 (0.25-0.26) | 0.25 (0.25-0.25) | -0.00
+read-tool: 0.25 (0.25-0.25) | 0.25 (0.25-0.25) | +0.00
+document-menu-read: 0.25 (0.25-0.26) | 0.25 (0.25-0.25) | -0.00
+clipboard-rejected: 0.25 (0.07-0.28) | 0.07 (0.07-0.28) | -0.18
+write-tool-restored: 0.25 (0.25-0.25) | 0.25 (0.25-0.25) | -0.00
+document-menu: 0.23 (0.23-0.25) | 0.25 (0.23-0.25) | +0.02
+document-menu-cancelled: 0.23 (0.03-0.25) | 0.25 (0.25-0.25) | +0.02
+saved: 0.13 (0.13-0.16) | 0.13 (0.11-0.13) | +0.00
+clipboard-back: 0.13 (0.12-0.15) | 0.12 (0.12-0.15) | -0.00
+clipboard-pasted: 0.12 (0.12-0.12) | 0.12 (0.12-0.12) | -0.00
+document-menu-mouse: 0.10 (0.10-0.11) | 0.06 (0.06-0.10) | -0.04
+clipboard-calculator-copied: 0.10 (0.07-0.12) | 0.09 (0.09-0.26) | -0.00
+rebound-editor: 0.08 (0.05-0.08) | 0.08 (0.08-0.09) | +0.00
+dirty: 0.07 (0.03-0.10) | 0.05 (0.05-0.07) | -0.02
+window-restored: 0.07 (0.07-0.10) | 0.10 (0.06-0.10) | +0.03
+document-menu-blocked: 0.05 (0.05-0.05) | 0.05 (0.05-0.05) | +0.00
+read-tool-blocked: 0.05 (0.05-0.05) | 0.05 (0.05-0.05) | -0.00
+initial: 0.05 (0.05-0.05) | 0.07 (0.05-0.07) | +0.02
+delta calculated->recovered s: A 2.21 (2.16-2.23) | B 2.25 (2.23-2.33)
+delta workspace-arranged->recovered s: A 1.37 (1.32-1.39) | B 1.43 (1.42-1.50)
+delta recovered->calculator-restored s: A 1.71 (1.66-1.78) | B 1.71 (1.68-1.74)
+frame_sha256 phases compared 66, differing ['workspace-work', 'workspace-search', 'workspace-notice-copied', 'workspace-window-menu', 'lock-veld-overlay-open', 'lock-unlocked']
+oracle files_sha256 distinct sets 1; paint_isolation_baseline distinct 1
+split workspace-work taskbar/content: A1:7107/5f05 A2:7107/98d1 A3:7107/53d0 A4:7107/1e9f A5:7107/87e5 B1:7107/9c57 B2:7107/a410 B3:7107/6093 B4:7107/43fc B5:7107/9fa1
+split workspace-search taskbar/content: A1:7107/eee1 A2:7107/65dd A3:7107/65dd A4:7107/65dd A5:7107/65dd B1:7107/65dd B2:7107/65dd B3:7107/65dd B4:7107/30f3 B5:7107/65dd
+split workspace-notice-copied taskbar/content: A1:e483/6dfc A2:e483/a8df A3:e483/a8df A4:e483/a8df A5:e483/a8df B1:e483/a8df B2:e483/a8df B3:e483/a8df B4:e483/a8df B5:e483/a8df
+split workspace-window-menu taskbar/content: A1:e483/0db4 A2:e483/9b8b A3:e483/6e9b A4:e483/5b4c A5:e483/ed45 B1:e483/9b8b B2:e483/d348 B3:e483/9b8b B4:e483/9b8b B5:e483/9b8b
+split lock-veld-overlay-open taskbar/content: A1:7107/b708 A2:7107/2046 A3:7107/6a55 A4:7107/fa7c A5:7107/fa9e B1:7107/2046 B2:7107/9a69 B3:7107/fa7c B4:7107/be46 B5:7107/ccb7
+split lock-unlocked taskbar/content: A1:7107/7c8e A2:7107/7c8e A3:7107/f5b7 A4:7107/7c8e A5:7107/7c8e B1:7107/7c8e B2:7107/7c8e B3:7107/7c8e B4:7107/7c8e B5:7107/f5b7
