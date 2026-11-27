@@ -4,12 +4,14 @@ from __future__ import annotations
 import json
 import re
 import sys
+import tempfile
 import tomllib
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
+import agent_adapters
 import agent_pipeline
 import roadmap_runner
 
@@ -67,6 +69,51 @@ class AgentGovernanceTests(unittest.TestCase):
                 spec = "```json\n" + json.dumps({"targets": [path], "reads": []}) + "\n```"
                 with self.assertRaises(ValueError):
                     agent_pipeline.parse_spec(spec)
+
+    def test_specialist_adapters_are_generated_without_drift(self):
+        contracts = sorted((ROOT / ".agents/roles").glob("specialist_*.md"))
+        self.assertTrue(contracts)
+        self.assertEqual(agent_adapters.drift(ROOT), [])
+        for contract in contracts:
+            role, description, tool_class = agent_adapters.parse(contract)
+            slug = role.replace("_", "-")
+            with self.subTest(role=role):
+                codex = tomllib.loads((ROOT / f".codex/agents/{role}.toml").read_text())
+                self.assertEqual((codex["name"], codex["description"]), (role, description))
+                claude = (ROOT / f".claude/agents/{slug}.md").read_text()
+                self.assertEqual(json.loads(re.search(r"^description: (.+)$", claude, re.M)[1]),
+                                 description)
+                copilot = ROOT / f".github/agents/{slug}.agent.md"
+                self.assertEqual(copilot.is_file(), tool_class == "builder")
+                if copilot.is_file():
+                    tools = json.loads(re.search(r"^tools: (.+)$", copilot.read_text(), re.M)[1])
+                    self.assertEqual(tools[:4], ["read", "search", "edit", "execute"])
+                    self.assertTrue(all(t.startswith("graphify/") for t in tools[4:]))
+                    self.assertNotIn("graphify/remember", tools)
+                for path in (f".codex/agents/{role}.toml", f".claude/agents/{slug}.md",
+                             f".github/agents/{slug}.agent.md"):
+                    self.assertTrue(agent_pipeline.is_protected(path))
+
+    def test_specialist_tool_class_is_fail_closed(self):
+        body = "# specialist_x\n\nOwns x. More text.\n\n## Tools\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / ".agents/roles").mkdir(parents=True)
+            role = root / ".agents/roles/specialist_x.md"
+            for text in (body, body + "Tool class: `read-only`\n", body + "Tool class: `admin`\n",
+                         body + "Tool class: builder\n",
+                         body + "Tool class: `builder`\nTool class: `coordinator`\n",
+                         "# specialist_y\n\nOwns x.\nTool class: `builder`\n"):
+                role.write_text(text)
+                with self.subTest(text=text), self.assertRaises(ValueError):
+                    agent_adapters.expected(root)
+            role.write_text(body + "Tool class: `coordinator`\n")
+            self.assertEqual(sorted(agent_adapters.expected(root)),
+                             [".claude/agents/specialist-x.md", ".codex/agents/specialist_x.toml"])
+            orphan = root / ".github/agents/specialist-x.agent.md"
+            orphan.parent.mkdir(parents=True)
+            orphan.write_text("hand-written\n")
+            self.assertIn("orphan: .github/agents/specialist-x.agent.md", agent_adapters.drift(root))
 
 
 if __name__ == "__main__":
