@@ -39,6 +39,13 @@ path or specific tool is needed to resume.
   change the global snapshot date or `source_commit`; put the date and SHA
   in the row text. Regenerate with `python3 tools/progress.py --write`, then
   `--check`, and use D3 assessment files to avoid conflicts.
+- **Criterion acceptance (owner decision of 27 November 2026, 13:14Z,
+  correcting 13:12Z; G records it on #622):** H stays the technical owner of
+  its criteria: implementation, its own snapshot rows (score unchanged),
+  verification and delivery of the acceptance evidence. The formal
+  acceptance and any score increase are done by the PR guard, never by H.
+  When every acceptance condition is met and the independent verification is
+  complete, H reports the criterion ID and the evidence links to the guard.
 - **Working rules:** every cycle starts on a fresh branch from `origin/main`
   with an isolated `NOS_BUILD_DIR` inside the checkout; native evidence is
   bound to the tested head and stored in a new `docs/verification/` child
@@ -46,14 +53,16 @@ path or specific tool is needed to resume.
 
 ## Current cycle
 
-- **cycle_id:** `h05-s3-noscrub-20261127`.
+- **cycle_id:** `h-owner-audio-hw-20261127`.
 - **Landed on `main` (27 November 2026):** H05-T5d-T, S3 SUSPEND requires a
   LOCKED, erased keyring (KL2 -25; PR #597, `8b00a9c0`); the H04-TXDOWN ADR
   amendment, -27 TX_EDGE, documentation only (PR #601, `8ee0d501`);
   the S3 noscrub red control, where `test-system-s3-lock-noscrub` now gets
   the S3 TEST init and the power gate case `power-s3-noscrub` expects
   `LOCK_STACK_RESIDUE` (PR #613, `af7415df`; ledger H05-T5d-T `verified`;
-  evidence [h05-s3-noscrub-20261127](../../verification/h05-s3-noscrub-20261127/README.md)).
+  evidence [h05-s3-noscrub-20261127](../../verification/h05-s3-noscrub-20261127/README.md));
+  the agent-neutral handoff pointer and the H02/H04/H05/H06 snapshot rows
+  (PR #620, `a5ae23bf`, tree-identical).
 - **Earlier:** H05-T5c slice 1, virtio-blk re-initialisation after S3 with
   quarantine -24 and O13 latch carryover (PR #556, `945847d8`; ledger
   `verified`, hosted gates green on `0e9e1b91`; evidence
@@ -61,7 +70,8 @@ path or specific tool is needed to resume.
   and H02-T5 (PR #515, `744f1b75`; ledger `verified`, native evidence bound
   to `f8662109`; evidence
   [h02-usb-refusal-20261125](../../verification/h02-usb-refusal-20261125/README.md)).
-- **Open PRs:** this handoff refresh only.
+- **Open PRs:** this decision record, `ADR-H-AUDIO-HW-OWNER-20261127`
+  (branch `docs/h-owner-audio-hw`).
 - **Live handoff:** the newest comment starting with `HANDOFF — Specialist H`
   on issue #564 (task, invariants, write set, branch and HEAD, decisions,
   commands with exit codes, not run, risks, next safe action, acceptance
@@ -77,6 +87,8 @@ None outside the open PRs listed above.
 
 ### Invariants and reserved values
 
+- AUDIO syscall block `0xC0`–`0xCF` (agreed with K on #530,
+  issuecomment-7219621427); ABI stays 1.0 until K's coordinated bump.
 - KL2: SUSPEND (0x91) returns -25 unless the keyring is LOCKED and the
   instance erased (`ADR-KEYRING-LOCK-20261126`).
 - KL4/F1: LOCKED latches only after the verified exit-path stack scrub;
@@ -86,17 +98,36 @@ None outside the open PRs listed above.
   decision O5.
 - Error codes: -24 QUARANTINED, -25 KL2 SUSPEND, -26 reserved for the
   project owner's ADR (S proposes it for `RemountRefused`), -27 TX_EDGE
-  (decided in #601, not implemented).
+  (decided in #601, not implemented), -28 proposed by H and B for T5f-1
+  "authentication absent" (pending S and B's ADR #631).
 
 ### Owner questions and blockers
 
-- -26 value (owner ADR); O5 blocks H05-T5d-P (production LOCK).
-- OD-HW-TARGETS, -BOOT, -CAPTURE, -SIGNERS, -INV-ROUTE
-  (`docs/drivers/hardware-matrix.json`) before any physical HW-INV run; the
-  GPT/FAT32 image layout is an assumption until OD-HW-BOOT.
+- Owner decisions of 27 November 2026 on H03 audio (B1, B2, B4) and on all
+  nine OD-HW-* are recorded on #564 (issuecomment-7219592317) and in
+  `ADR-H-AUDIO-HW-OWNER-20261127`. OD-HW-BOOT, -DISKS, -CAPTURE, -PUBLISH and
+  -INV-ROUTE are decided. OD-HW-TARGETS (no target identity), -SIGNERS (no
+  named identity), -FAMILIES (R03 install transport) and -POWER (wake
+  source) stay open with partial answers; every physical protocol stays
+  blocked. The open parts, plus input-to-display capture equipment for R's
+  R02-L1 cells (#530), go to the owner as one bundle.
+- B01-LOCK owner decisions O2, O5, O7, O8 and OQ1 (#564,
+  issuecomment-7219397369) are drafted by B in #631. H's T5f constraints are
+  on #564 (issuecomment-7219429976). The order is authentication → T5f-1 →
+  UNLOCK → T5f-2. T5f-1 needs a native authentication mechanism and owner,
+  which are not chosen. H implements T5f only after #631 is on `main`.
+- -26 value (owner ADR); H05-T5d-P (production LOCK) waits for B's O5
+  freeze implementation.
 - B04 loader reproducibility (PR #493) before an image hash can be
   reproduced from an independent clean checkout.
-- H03-T3b audio broker waits for owner decisions B1/B2/B4.
+- H03-T3b audio broker: owner decisions given; B reviews the AUDIO right
+  against its checklist (kernel-only mint, non-delegation in every transfer
+  path, kind + holder + generation checks, revocation, no app DMA, MMIO or
+  IRQ) once H opens the implementation PR. U's client requirements are on
+  #564 (issuecomment-7219663903).
+- K measures whether #602 (C3 scheduler) slows the H04-T3 net-link gates
+  (27–52 % on hosted TCG; #602 issuecomment-7218963989); #602 is held until
+  the cause is known.
 
 ### Agreements
 
@@ -161,16 +192,27 @@ None outside the open PRs listed above.
     `test-system-s3-lock-noscrub` profile built the plain init until #613);
     `tests/test_system_harness.py` pins this plumbing.
 
+15. `tools/hw_matrix.py` refuses `OD-HW-TARGETS` as `decided` while the
+    HW-FR target is null, and every `decided` owner decision needs a
+    `reference`. `tools/tests/test_hw_matrix.py` pins the committed open
+    count.
+
 ## Next executable task
 
 1. H04-TXDOWN implementation PR (#600): -27 `syscall()` exemption, txdown
    hold, TXDOWN-1/2 and control cases, `NET_TX_EDGE` in
    `sdk/runtime/src/native.rs`; N review on #529.
-2. H05-T5c slices 2–4: slice 2 needs B's LOCK/UNLOCK key erasure
+2. H03-T3b: ring-3 audio broker with the AUDIO right and syscalls in
+   `0xC0`–`0xCF`. Post the broker IPC interface on #564 for U's review
+   first; output only; keep the TRANSPORT.md §7 oracle; send B the PR link
+   for the Security Floor review.
+3. H05-T5c slices 2–4: slice 2 needs B's LOCK/UNLOCK key erasure
    (`ADR-KEYRING-LOCK-20261126`, UNLOCK still open); slice 3 is S's
    post-wake remount; slice 4 is the ring-3 re-grant. Also T5e with B and S,
    and H05-T5d-P after O5.
-3. Physical H02–H06 work after the owner decisions above.
+4. Physical H02–H06 work once the owner names a target machine (one
+   bundled request: target identity, signer, wake source, R03 transport,
+   capture equipment).
 
 Merge procedure: when every applicable gate is green and no review thread is
 unresolved, mark the PR ready (Project #5 Status In Review). Immediately
