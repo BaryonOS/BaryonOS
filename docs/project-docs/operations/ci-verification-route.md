@@ -6,6 +6,7 @@ updated: 2026-11-27
 sources:
   - code: .github/workflows/merge-hold-recheck.yml
   - code: tools/merge_hold_recheck.py
+  - code: tools/validate_adrs.py
 verified_at: 14fa8014
 ---
 
@@ -24,5 +25,6 @@ this route intentionally does not restate them.
 | Source-bound audit behind PR #552 | [Stale-green audit evidence](../../verification/ci-audit-stale-green-20261126/README.md) |
 | Re-check event definition | [`.github/workflows/merge-hold-recheck.yml:1`](../../../.github/workflows/merge-hold-recheck.yml) |
 | Re-check implementation | [`tools/merge_hold_recheck.py:1`](../../../tools/merge_hold_recheck.py) |
+| Advisory ADR-file validation | [`tools/validate_adrs.py:1`](../../../tools/validate_adrs.py) |
 
 > ⚠️ This navigation page and a stale green label are not acceptance evidence. Confirm the current pull-request head, latest applicable gate attempts, merge-hold freshness, and source-bound evidence in the canonical sources before relying on a result.

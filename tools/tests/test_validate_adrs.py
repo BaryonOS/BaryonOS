@@ -68,6 +68,10 @@ class ValidateAdrs(unittest.TestCase):
                              "**Status:** decided\n**Decision:** text\n**Rollback:** undo\n")
         self.assertEqual(validate(self.root), [])
 
+    def test_symlink_cannot_hide_an_adr(self):
+        (self.root / "docs/decisions/linked").symlink_to(self.root / "docs", target_is_directory=True)
+        self.assertTrue(any("symlink" in issue for issue in validate(self.root)))
+
     def test_historical_id_collision_fails(self):
         old = self.root / "docs/decisions/ADR-OLD-20261127.md"
         old.write_text(self.valid.replace("ADR-NEW", "ADR-OLD"))

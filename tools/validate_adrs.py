@@ -16,10 +16,15 @@ def validate(root: Path) -> list[str]:
     errors: list[str] = []
     historical = set(HISTORICAL.findall((root / "docs/DECISIONS.md").read_text(encoding="utf-8")))
     directory = root / "docs/decisions"
+    if directory.is_symlink():
+        return [f"{directory}: decision directory must not be a symlink"]
     if not directory.exists():
         return errors
     seen: set[str] = set()
     for path in sorted(directory.rglob("*")):
+        if path.is_symlink():
+            errors.append(f"{path}: symlinks are not ADR files")
+            continue
         if path.is_dir():
             continue
         if path == directory / "README.md":
