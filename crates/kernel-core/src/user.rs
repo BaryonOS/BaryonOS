@@ -1,5 +1,5 @@
 //! Host-testable ELF/user-ABI policy. All addresses remain integers.
-use crate::{Error, PAGE};
+use crate::{Error, Frames, Owner, ARTIFACT_QUOTA, PAGE};
 pub const MAX_SEGMENTS: usize = 8;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Segment {
@@ -191,6 +191,33 @@ pub type CopyPlan = ChunkPlan<2>;
 pub const ARTIFACT_READ_MAX: u64 = 64 * 1024;
 /// An unaligned 64 KiB range spans at most 17 pages.
 pub type ArtifactReadPlan = ChunkPlan<17>;
+/// Validate the ordered page list for one sealed artifact before any page
+/// tables or aliases are created. The phase-1 artifact quota bounds the
+/// duplicate scan without a kernel-stack bitmap or reordered model bytes.
+pub fn artifact_pages_preflight<const N: usize>(
+    frames: &Frames<N>,
+    id: u16,
+    generation: u32,
+    pages: &[u64],
+) -> Result<(), Error> {
+    if id == 0 || pages.is_empty() || pages.len() > ARTIFACT_QUOTA {
+        return Err(Error::Range);
+    }
+    let expected = Owner::Artifact {
+        id,
+        generation,
+        sealed: true,
+    };
+    for (index, &pa) in pages.iter().enumerate() {
+        if pages[..index].contains(&pa) {
+            return Err(Error::Range);
+        }
+        if frames.owner(pa)? != expected {
+            return Err(Error::Owner);
+        }
+    }
+    Ok(())
+}
 pub fn copy_plan(
     pointer: u64,
     length: u64,
@@ -258,6 +285,49 @@ fn bounded_copy_plan<const N: usize>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{Kind, Range};
+    #[test]
+    fn artifact_pages_preflight_rejects_wrong_owner_generation_and_duplicates() {
+        let mut frames = Frames::<32>::new();
+        frames.admit(Range::pages(PAGE, 31).unwrap(), 7, 0x0f, &[]);
+        let owner = Owner::Artifact {
+            id: 7,
+            generation: 3,
+            sealed: false,
+        };
+        let first = frames.allocate(owner, |_| {}).unwrap();
+        let second = frames.allocate(owner, |_| {}).unwrap();
+        let user = frames.allocate(Owner::User(1, Kind::Data), |_| {}).unwrap();
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[first, second]),
+            Err(Error::Owner)
+        );
+        frames.seal_artifact(7, 3, 2).unwrap();
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[first, second]),
+            Ok(())
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 4, &[first]),
+            Err(Error::Owner)
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[first, user]),
+            Err(Error::Owner)
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[first, first]),
+            Err(Error::Range)
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 7, 3, &[]),
+            Err(Error::Range)
+        );
+        assert_eq!(
+            artifact_pages_preflight(&frames, 0, 3, &[first]),
+            Err(Error::Range)
+        );
+    }
     #[test]
     fn artifact_read_plan_validates_all_seventeen_pages_before_copy() {
         let start = 0x4001_0001;

@@ -27,9 +27,12 @@ pub const ARTIFACT_ASID: u16 = u16::MAX;
 #[cfg(feature = "native-ai-artifact")]
 pub fn build_artifact_tables(
     frames: &mut Frames<FRAME_COUNT>,
+    id: u16,
+    generation: u32,
     pages: &[u64],
     tables: &mut [u64],
 ) -> Result<(u64, usize), kernel_core::Error> {
+    kernel_core::user::artifact_pages_preflight(frames, id, generation, pages)?;
     let count = 1 + pages.len().div_ceil(512);
     if count > tables.len() || pages.len() > 512 * 512 {
         return Err(kernel_core::Error::Range);
