@@ -16,6 +16,9 @@ or saving a note is no longer an adequate end goal. A partial commit, passing bu
 or partial probe does not complete that assignment.
 
 Start with the branch, HEAD and `git status --short`; preserve unfinished user work. In a new session, read docs/STATUS.md and the current relevant checkpoint at the top of docs/PROJECT-STATE.md. Read README.md and docs/LOCAL-PRIVACY-CONTRACT.md once for missing product or security context; do not reload unchanged history. Then read the relevant decisions in docs/DECISIONS.md, implementation specifications and all local AGENTS.md files beneath the directories being changed. Extend this reading when dependencies or a changed trust boundary require it; a short reading route is not a reason to skip security contracts.
+For topic lookup, start at `docs/project-docs/index.md` and open only the relevant
+maintained pages. That navigation layer links to canonical sources; it does not replace
+the state, decision, contract or evidence files named above.
 For continued work in the same session, compare source versions and read changes and missing context, rather than rereading the entire repository or unchanged historical status. START-CODING.md and FIRST-BATCH.md describe the original implementation baseline; first check what current code and acceptance evidence already provide. An old research assignment is not a new implementation assignment.
 For OS development tasks, use the repository skill `.agents/skills/os-dev/SKILL.md`; retrieve only the relevant OSDev or book passages. Not every client automatically loads nested instructions from the root. Start from source versions and existing code; research proposals are not automatically implemented. Practical test selection, measurement and handoff are in CODEX-WORKFLOW.md; read only the required section.
 

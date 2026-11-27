@@ -1,7 +1,11 @@
 //! TEST-only REL-05 M1-HAUTH BOUND provisioning (B03, ADR-B03-REL05-TPM-20261125,
 //! owner decision option 1): QEMU/swtpm only. First provisioning is
 //! unauthorised here because S3b (EK, signed `ENROLL`), genesis, ACCEPTED and
-//! the UEFI copy are out of scope; with ownerAuth already set the loader only
+//! the UEFI copy are out of scope. With ownerAuth unset a cleared TPM looks
+//! exactly like a never-provisioned one, so only the separate enrollment build
+//! (`tpm-hauth-provision-test`, a TEST stand-in for S3b) provisions; the
+//! verify-only build halts `TPM_UNENROLLED` with a recovery marker (REL-05
+//! §7.9, section 10.1). With ownerAuth already set the loader only
 //! reads and verifies, and halts on anything it cannot bind. PCR 13 is
 //! extended (`CLOSED`, every active bank through firmware) on every path that
 //! reached the TPM, before the loader continues or stops; on the pass path the
@@ -14,7 +18,7 @@ use super::Firmware;
 use crate::serial;
 use core::{ffi::c_void, mem::size_of, ptr, slice};
 use nieuw_os_tpm_crb::codec::{
-    encode, Auth, Hierarchy, NvDefinition, NvIndex, Password, PolicySession, Request, Response,
+    encode, Hierarchy, NvIndex, Password, PolicySession, Request, Response,
     ALG_SHA1, ALG_SHA256, ALG_SHA384, ALG_SHA512, MAX_COMMAND, MAX_NV_DATA, MAX_RESPONSE,
 };
 use nieuw_os_tpm_crb::event_log::{self, Log};
@@ -27,6 +31,7 @@ use update_core::trial_tpm::{self as rel05, NvSpec};
 const OWNER_AUTH_SET: u32 = 1 << 0;
 const LOCKOUT_AUTH_SET: u32 = 1 << 2;
 /// Exact "not defined" answer to an owner undefine: `TPM_RC_HANDLE` on handle 2.
+#[cfg(feature = "tpm-hauth-provision-test")]
 const RC_UNDEFINED: u64 = 0x28b;
 /// `TPM_RC_POLICY_FAIL` on session 1 (probe U1).
 const RC_POLICY_FAIL: u64 = 0x99d;
@@ -105,6 +110,9 @@ fn fail((code, detail): Fail) -> ! {
     serial::write(b":");
     serial::hex(detail);
     serial::write(b"\n");
+    if code == b"TPM_UNENROLLED" {
+        serial::write(b"LOADER-HAUTH:RECOVERY:REQUIRED\n");
+    }
     serial::exit(0x11)
 }
 
@@ -120,48 +128,11 @@ fn bind(fw: &Firmware, tpm: &Tpm, secret: &mut [u8; MAX_NV_DATA]) -> Result<(), 
     let lrec = index(&rel05::NV_LREC)?;
     let none = Password::new(&[]).map_err(codec_fail)?;
     if permanent & OWNER_AUTH_SET == 0 {
-        serial::write(b"LOADER-HAUTH:MODE:PROVISION\n");
-        // Leftovers of a cut and owner squats; only "not defined" is tolerated.
-        for index in [hauth, lrec] {
-            match tpm.command(Request::NvUndefineSpace {
-                index,
-                owner_auth: none,
-            }) {
-                Err(f) if f == (&b"TPM_RC"[..], RC_UNDEFINED) => {}
-                other => {
-                    other?;
-                }
-            }
-        }
-        random(fw, secret)?;
-        tpm.command(define(&rel05::NV_HAUTH)?)?;
-        tpm.check_public(&rel05::NV_HAUTH, &rel05::NAME_HAUTH)?;
-        tpm.command(Request::NvWriteOwner {
-            index: hauth,
-            owner_auth: none,
-            data: secret,
-        })?;
-        tpm.command(define(&rel05::NV_LREC)?)?;
-        let record = LoaderRecord {
-            accepted: None,
-            binding: hauth_binding(secret),
-        }
-        .encode();
-        let session = tpm.policy(fw, rel05::TPM_CC_NV_WRITE)?;
-        tpm.authorized(
-            session,
-            Request::NvWrite {
-                index: lrec,
-                auth: Auth::Policy(session),
-                data: &record,
-                offset: 0,
-            },
-        )?;
-        tpm.command(Request::HierarchyChangeAuth {
-            hierarchy: Hierarchy::Owner,
-            auth: none,
-            new_auth: Password::new(&secret[..32]).map_err(codec_fail)?,
-        })?;
+        // §7.9: a matching EK is identity, not continuity; nothing is written here.
+        #[cfg(not(feature = "tpm-hauth-provision-test"))]
+        return Err((b"TPM_UNENROLLED", 0));
+        #[cfg(feature = "tpm-hauth-provision-test")]
+        provision(fw, tpm, secret, hauth, lrec)?;
     } else {
         serial::write(b"LOADER-HAUTH:MODE:EXISTING\n");
     }
@@ -197,6 +168,61 @@ fn bind(fw: &Firmware, tpm: &Tpm, secret: &mut [u8; MAX_NV_DATA]) -> Result<(), 
     } else {
         serial::write(b"LOADER-HAUTH:LOCKOUT:KEPT\n");
     }
+    Ok(())
+}
+
+/// The TEST enrollment step: fresh `HAUTH`, a bound `LREC`, then ownerAuth.
+#[cfg(feature = "tpm-hauth-provision-test")]
+fn provision(
+    fw: &Firmware,
+    tpm: &Tpm,
+    secret: &mut [u8; MAX_NV_DATA],
+    hauth: NvIndex,
+    lrec: NvIndex,
+) -> Result<(), Fail> {
+    let none = Password::new(&[]).map_err(codec_fail)?;
+    serial::write(b"LOADER-HAUTH:MODE:PROVISION\n");
+    // Leftovers of a cut and owner squats; only "not defined" is tolerated.
+    for index in [hauth, lrec] {
+        match tpm.command(Request::NvUndefineSpace {
+            index,
+            owner_auth: none,
+        }) {
+            Err(f) if f == (&b"TPM_RC"[..], RC_UNDEFINED) => {}
+            other => {
+                other?;
+            }
+        }
+    }
+    random(fw, secret)?;
+    tpm.command(define(&rel05::NV_HAUTH)?)?;
+    tpm.check_public(&rel05::NV_HAUTH, &rel05::NAME_HAUTH)?;
+    tpm.command(Request::NvWriteOwner {
+        index: hauth,
+        owner_auth: none,
+        data: secret,
+    })?;
+    tpm.command(define(&rel05::NV_LREC)?)?;
+    let record = LoaderRecord {
+        accepted: None,
+        binding: hauth_binding(secret),
+    }
+    .encode();
+    let session = tpm.policy(fw, rel05::TPM_CC_NV_WRITE)?;
+    tpm.authorized(
+        session,
+        Request::NvWrite {
+            index: lrec,
+            auth: nieuw_os_tpm_crb::codec::Auth::Policy(session),
+            data: &record,
+            offset: 0,
+        },
+    )?;
+    tpm.command(Request::HierarchyChangeAuth {
+        hierarchy: Hierarchy::Owner,
+        auth: none,
+        new_auth: Password::new(&secret[..32]).map_err(codec_fail)?,
+    })?;
     Ok(())
 }
 
@@ -294,10 +320,11 @@ fn index(spec: &NvSpec) -> Result<NvIndex, Fail> {
     NvIndex::new(spec.handle).map_err(codec_fail)
 }
 
+#[cfg(feature = "tpm-hauth-provision-test")]
 fn define(spec: &'static NvSpec) -> Result<Request<'static>, Fail> {
     Ok(Request::NvDefineSpace {
         owner_auth: Password::new(&[]).map_err(codec_fail)?,
-        public: NvDefinition {
+        public: nieuw_os_tpm_crb::codec::NvDefinition {
             index: index(spec)?,
             attributes: spec.attributes,
             auth_policy: spec.auth_policy.as_ref(),
