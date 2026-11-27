@@ -24,9 +24,15 @@ Floor unchanged. H coordinates with K, B, N and S.
 - **B2:** K and H choose a demonstrably free syscall number and matching ABI
   version themselves, record the choice and verify that no existing number
   conflicts, including `0x73`.
-  - On `main` `52e4430a` the dispatch tables already use `0x70`–`0x74`,
-    `0x80`–`0x84` and `0x90`–`0x92`. The number is chosen in the
-    implementation PR after a full survey and K's confirmation (#530).
+  - Choice (H and K, 27 November 2026; survey on #530,
+    issuecomment-7219621427): block `0xC0`–`0xCF` is reserved for the AUDIO
+    output path. No dispatch arm, SDK constant or open PR uses `0xC*`.
+    `0xA0`–`0xAF` belongs to L01 and `0xB0`–`0xBF` to B.
+  - The calls are gated by the AUDIO right and the kernel feature profile,
+    and return ENOSYS where absent. The ABI stays 1.0. K makes one
+    coordinated minor bump once a stable set is frozen. The concrete rows
+    go into the §4 table of `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md`
+    in the implementation PR.
 - **B4:** `00:08.0` is reserved for virtio-snd in the controlled VM-FR
   profile only. It is not a physical hardware assumption.
   - The QEMU runners on `52e4430a` place devices at `0x5`, `0x6`, `0x7` and
