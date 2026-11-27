@@ -6,8 +6,9 @@ history, private memory or a specific MCP; Graphify is optional context. Local
 paths are optional convenience only.
 
 - **Live state:** the newest comment beginning with `HANDOFF A` on issue #536.
-  The current one is https://github.com/BaryonOS/BaryonOS/issues/536#issuecomment-7217812075.
-- **Last updated:** 2026-11-27 (UTC), main 9efd5739 (A03-T2c-3 branch).
+  The current one is https://github.com/BaryonOS/BaryonOS/issues/536#issuecomment-7222141699.
+- **Last updated:** 2026-11-27 (UTC), main bbdbea88 (A03-T2c-3 landed as #635,
+  2f9df421).
 
 ## Resume procedure
 
@@ -111,14 +112,15 @@ in the next own PR.
 | Criterion | Status | Ledger |
 |---|---|---|
 | A01 SDK and API | accepted | — |
-| A02 install/update | open | A02-T1 verified (host); A02-T2 unblocked (owner 27 Nov; needs B freshness-anchor interface); A02-T3 GO with K and B (owner 27 Nov) |
-| A03 permissions | open | T1 host core verified; T2a #531 aa6d1c70; T2b #535 a004e3dc; T2c-1 #583 28e7ee1a; T2c-3 pin #579 95553a22; T2c-2 #593 7ee91d92; T2c-3 exit/fault retirement (this branch); trusted dialog (U) still missing |
+| A02 install/update | open | A02-T1 verified (host); A02-T2 unblocked (owner 27 Nov); anchor-domain request R1–R7 and Q-B1–Q-B6 sent to B (#536 issuecomment-7222118861); A02-T3 GO with K and B (owner 27 Nov) |
+| A03 permissions | open | T1 host core verified; T2a #531 aa6d1c70; T2b #535 a004e3dc; T2c-1 #583 28e7ee1a; T2c-3 pin #579 95553a22; T2c-2 #593 7ee91d92; T2c-3 exit/fault retirement #635 2f9df421; trusted dialog: interface draft issuecomment-7219926332, K answered Q4, U (Q1–Q3) and B (Q2, Q5) open |
 | A04 everyday apps | open | A04-T2 BR0 Chromium/Gecko comparison GO (owner 27 Nov); A04-T3 blocked (H03 audio, S09, P01) |
 
 Score: 43/100, unchanged by A since 25 Nov. Assessments
 `2026-11-25-a03-volume-read-broker-host.json`,
-`2026-11-26-a03-volume-native.json` and
-`2026-11-27-a03-t2c3-exit-closure.json`.
+`2026-11-26-a03-volume-native.json`,
+`2026-11-27-a03-t2c3-exit-closure.json` and
+`2026-11-27-a-handoff-refresh.json`.
 
 ## A03-T2c-2 summary (landed as #593, 7ee91d92)
 
@@ -181,19 +183,27 @@ Evidence limits:
   - Kill, orphan kill and invalid-RSP share the cleanup path by code reading
     only.
   - On SMP kill, grants end at the actual exit, not at the KILL request.
-- **CI.** The hosted gate step for `--case fault` is requested from CI.
+- **CI.** The hosted gate step for `--case fault` runs in `ci.yml#qemu-smoke`
+  (CI lead commit 3bb60eef, landed in #635).
 
 ## Open follow-ups (non-blocking)
 
-- The broker's `volume-core` dependency is not gated behind the `native`
-  feature (Graphify note on #583).
+- The Graphify note on #583 about gating the broker's `volume-core` dependency
+  behind `native` does not apply: the host library (`src/lib.rs`) itself uses
+  `volume_core::client` and `volume_core::wire`, so the dependency is needed
+  without `native`. No change is planned.
 
 ## Next safe action
 
-1. Land A03-T2c-3. Then deliver the A03 evidence to the PR guard only after U's
-   trusted dialog replaces the fixture and independent verification is done.
-2. A02-T2 with B: agree the freshness-anchor and rollback-floor interfaces, then
-   specify the source registry against `APP-SOURCE-RECOVERY.md`.
+1. A03 trusted dialog: implement the draft (issuecomment-7219926332) only
+   after U answers Q1–Q3 and B answers Q2 and Q5. Until then, make no changes
+   under `kernel/**` or the broker. Deliver the A03 evidence to the PR guard only
+   after the dialog replaces the fixture and independent verification is done.
+2. A02-T2 with B: wait for B's answers to Q-B1–Q-B6 (#536
+   issuecomment-7222118861), in particular the domain allocation and whether
+   A may start the host model of the registry store against
+   `crates/update-core/src/anchor.rs` before S7 lands. Then specify the source
+   registry against `APP-SOURCE-RECOVERY.md`.
 3. A02-T3 with K and B: draft the `AuthorizedImage` launch ADR.
 4. A04-T2: run the scoped BR0 Chromium/Gecko comparison with B, N and G.
 
