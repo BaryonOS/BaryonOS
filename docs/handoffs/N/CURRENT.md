@@ -47,22 +47,21 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Current cycle
 
-Checkpoint **2026-11-27T21:15:40Z**. The latest dated [HANDOFF N on
-#529](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7228196375)
-carries the live branch, worktree and log locations. N01 remains accepted. N02, N03
+Checkpoint **2026-11-27T21:32:54Z**. [HANDOFF N on
+#529](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7228304319)
+carries the branch, worktree and log locations. Check #529 for later updates. N01 remains accepted. N02, N03
 and N04 remain open at 43/100.
 
 - **N02.** The clean published branch
-  [`codex/n02-slirp-timeout-20261127`](https://github.com/BaryonOS/BaryonOS/commit/ca06b111b8e60b81e61abdf76e78a73c846ec415)
+  [`codex/n02-slirp-timeout-20261127`](https://github.com/BaryonOS/BaryonOS/commit/d9ec9616bfbae9033a9ebf9ff5bc15d8ae4f9c3d)
   implements ring-3 mode 8 and a loopback-only network namespace containing libslirp,
   DNS and HTTP controls. Host oracle/DHCP suites, formatting, target Clippy and
   namespace checks passed. Existing libslirp and N01 controls passed at raw QEMU exit
   33. The [N02
   checkpoint](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7227579418)
-  records the evidence. Native mode 8 still requires the [K kernel
-  fixture](https://github.com/BaryonOS/BaryonOS/issues/614#issuecomment-7228025405)
-  and the [CI build-selector
-  hunk](https://github.com/BaryonOS/BaryonOS/issues/494#issuecomment-7227450699).
+  records the evidence. N has added the [build selector](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7228526798)
+  under CI's scoped assignment. Native mode 8 still requires the [K kernel
+  fixture](https://github.com/BaryonOS/BaryonOS/issues/614#issuecomment-7228025405).
 - **N03.** [B1
   preflight](https://github.com/BaryonOS/BaryonOS/issues/529#issuecomment-7227862853)
   records ML-KEM validation against NIST vectors, strict Ed25519 and portable target
@@ -70,8 +69,8 @@ and N04 remain open at 43/100.
   certificate and CertificateVerify. Native provider integration, native handshake,
   trusted calendar and independent security review remain open.
 - **N04.** The extend-chain host model and two-slot torn-write recovery landed in
-  #575 and #584. B's [#649](https://github.com/BaryonOS/BaryonOS/pull/649)
-  establishes the S7 host foundation. The independent [network regression
+  #575 and #584. B's open [#649](https://github.com/BaryonOS/BaryonOS/pull/649)
+  carries the S7 host foundation. The independent [network regression
   review](https://github.com/BaryonOS/BaryonOS/pull/649#issuecomment-7227967069)
   covers head `c680505e` and eleven native QEMU network cases. Native S7 still needs
   the authorized TEST grant, authenticated loader binding, TPM compare/read-back and
@@ -106,9 +105,9 @@ and N04 remain open at 43/100.
   Verify the domain-0 grant, instance and extend budget, and B02 protected-slot route
   before binding the separate policy process. Preserve broker authority and exercise
   the condition 9 cold, torn-write, replay and lost-reply cases.
-2. If K and CI release N02 wiring first, integrate their exact commits, verify mode 8
-  and the unchanged controls, then open one N PR with source-bound evidence. Physical
-  NIC, router and authorized internet acceptance remain open.
+2. If K releases the N02 fixture first, integrate the exact K and N commits, verify
+   mode 8 and the unchanged controls, then open one N PR with source-bound evidence.
+   Physical NIC, router and authorized internet acceptance remain open.
 3. Review H04's in-flight TX amendment when H releases it. Preserve the distinct
   completion mapping to `Completed` and its counter. H owns the driver and kernel
   implementation.
