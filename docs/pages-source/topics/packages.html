@@ -1,5 +1,5 @@
 <h2>How is package provenance checked?</h2>
-<p>The current verification core binds a versioned manifest to an application image and checks its length, digest, ABI range and two signatures against keys from an explicitly selected source. The package cannot name its own trusted key. Verification establishes integrity and provenance under that policy, not safety or permission.</p>
+<p>The host-tested verification core binds a versioned manifest to an application image and checks its length, digest, ABI range and two signatures against keys from an explicitly selected source. The package cannot name its own trusted key. Verification establishes integrity and provenance under that policy, not safety or permission.</p>
 
 <h2>What happens during installation?</h2>
 <p>The intended installer reserves space, streams the verified immutable image, commits it transactionally and updates a durable catalogue. Interruption and uncertain I/O must fail closed and recover from authoritative state. Installation grants no document, network, device or administrative capability.</p>

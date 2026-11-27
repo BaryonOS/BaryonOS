@@ -2,10 +2,10 @@
 <p>Core tasks are intended to work on local storage. Documents, collections, metadata and revisions belong to the Material model. Confirmed changes need explicit durability and recovery behavior; an uncertain write must not be reported as safely stored.</p>
 
 <h2>How can a personal or shared NAS be used?</h2>
-<p>A user may explicitly pair a personal NAS or receive capacity from family or friends. The client encrypts content before transfer. The NAS administrator can set quotas, revoke access and remove hosted copies, but should receive no content keys or permission to erase the user's local copies.</p>
+<p>A user may explicitly pair a personal NAS or receive capacity from family or friends. The client is designed to encrypt content, names and sensitive metadata before transfer. The NAS administrator can set quotas, revoke access and remove hosted copies, but should receive no content keys or permission to erase the user's local copies.</p>
 
 <h2>Can an external storage provider be selected?</h2>
-<p>Yes, as an optional opaque storage layer. The provider receives encrypted objects and limited metadata needed for storage, not Baryon OS content keys or automatic access to other data. It is not a silent fallback or a source of key escrow. Availability, rollback and metadata leakage remain part of the threat model.</p>
+<p>Yes, as an optional opaque storage layer. The provider receives encrypted objects and necessary storage and connection metadata, such as account usage, object sizes, timing and IP address, not Baryon OS content keys or automatic access to other data. It is not a silent fallback or a source of key escrow. Availability, rollback and metadata leakage remain part of the threat model.</p>
 
 <h2>How should synchronization behave?</h2>
 <p>Previously authorized devices should resume within the selected scope, prefer an available local route when appropriate and preserve offline work. Concurrent changes, interrupted transfers, quota exhaustion, revocation and identity changes require explicit conflict or recovery outcomes. Native multi-device integration remains open.</p>
