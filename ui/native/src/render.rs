@@ -429,16 +429,25 @@ impl<'a> Frame<'a> {
     }
     /// Painted and announced status text: the full label where it fits its
     /// area, else the one-line compact copy (ADR-U-OWNER-20261127), so a
-    /// status is never clipped below the viewport.
+    /// status is never clipped below the viewport or elided.
     pub fn status_text(&self) -> &'static str {
-        let full = status_label(self.view.status);
-        let width = self
-            .view
-            .viewport
-            .logical_width()
-            .saturating_sub(self.status_x() + d::PAD);
-        let needed = wrapped_lines(full, width, self.view.viewport.scale()) * d::LINE_HEIGHT;
-        if needed <= self.status_area_for(full).height {
+        let view = self.view;
+        let full = status_label(view.status);
+        let scale = view.viewport.scale();
+        let fits = if is_workspace(view.screen) {
+            // `Paint::workspace` draws the status as one Small line instead.
+            Font::new(Size::Small, Weight::Regular, scale == Scale::Percent200)
+                .measure(full)
+                .div_ceil(scale.factor())
+                <= view.viewport.logical_width().saturating_sub(48)
+        } else {
+            let width = view
+                .viewport
+                .logical_width()
+                .saturating_sub(self.status_x() + d::PAD);
+            wrapped_lines(full, width, scale) * d::LINE_HEIGHT <= self.status_area_for(full).height
+        };
+        if fits {
             full
         } else {
             compact_status_label(self.view.status)
@@ -1068,11 +1077,8 @@ impl<'a> Frame<'a> {
                 p.accent,
             );
         }
-        if matches!(
-            self.view.screen,
-            Screen::Rename | Screen::Organize | Screen::History | Screen::Filter
-        ) {
-            paint.workspace(self.view, layout);
+        if is_workspace(self.view.screen) {
+            paint.workspace(self.view, layout, self.status_text());
         }
         if self.view.screen == Screen::ConfirmClose {
             // Opaque application-local backdrop: no half-obscured controls or
@@ -1964,10 +1970,12 @@ pub fn status_label(status: Status) -> &'static str {
 }
 const FAILED: &str = "Handeling mislukt. Je tekst blijft open.";
 
-/// One-line copy for a status rect with no room to wrap (ADR-U-OWNER-20261127):
-/// the same facts and recovery route as `status_label`, at most 272 logical
-/// px wide (the narrowest status width). Full, Quota, I/O and the generic
-/// failure stay distinct (UX-SR07). Labels that already fit map to themselves.
+/// One-line copy for a status rect with no room to wrap (ADR-U-OWNER-20261127),
+/// at most 272 logical px wide (the narrowest status width). It keeps the
+/// failure and its recovery route; some secondary facts are dropped (see
+/// UX-MATERIAAL-SAVE-RECOVERY.md, SR11) pending the human trials. Full, Quota,
+/// I/O and the generic failure stay distinct (UX-SR07). Labels that already
+/// fit map to themselves.
 pub fn compact_status_label(status: Status) -> &'static str {
     use nieuw_os_document_session::volume::Error as S;
     use volume_core::Status as V;
@@ -1988,9 +1996,9 @@ pub fn compact_status_label(status: Status) -> &'static str {
         Status::Failed(UiError::Storage(S::ContentTooLarge)) => "Tekst past niet in de ruimte.",
         Status::Failed(UiError::Storage(S::Conflict)) => "Nieuwe versie. Je tekst blijft open.",
         Status::Failed(UiError::Storage(S::Closed)) => "Opslag verbroken. Tekst blijft open.",
-        Status::Failed(UiError::Storage(S::Service(V::Full))) => "Vol: niet bewaard. Tekst open.",
+        Status::Failed(UiError::Storage(S::Service(V::Full))) => "Opslag vol. Tekst niet bewaard.",
         Status::Failed(UiError::Storage(S::Service(V::Quota))) => {
-            "Quotum: niet bewaard. Tekst open."
+            "Je ruimte is op. Tekst niet bewaard."
         }
         Status::Failed(UiError::Storage(S::Service(V::Io))) => {
             "Lees- of opslagfout. Niets bevestigd."
@@ -2116,7 +2124,7 @@ impl Paint<'_> {
             );
         }
     }
-    fn workspace(&mut self, view: View<'_>, l: Layout) {
+    fn workspace(&mut self, view: View<'_>, l: Layout, status: &str) {
         use core::fmt::Write;
         let palette = self.palette;
         self.fill(
@@ -2340,7 +2348,7 @@ impl Paint<'_> {
         self.elided(
             24,
             view.viewport.logical_height() - 40,
-            status_label(view.status),
+            status,
             view.viewport.logical_width() - 48,
             (Size::Small, Weight::Regular),
             if matches!(view.status, Status::Failed(_)) {
@@ -3513,6 +3521,12 @@ impl Paint<'_> {
     }
 }
 /// Line count of `Paint::wrapped` for a body-text label; keep both in step.
+fn is_workspace(screen: Screen) -> bool {
+    matches!(
+        screen,
+        Screen::Rename | Screen::Organize | Screen::History | Screen::Filter
+    )
+}
 fn wrapped_lines(label: &str, width: u32, scale: Scale) -> u32 {
     let font = Font::new(Size::Body, Weight::Regular, scale == Scale::Percent200);
     let (mut rest, mut lines) = (label, 0);
