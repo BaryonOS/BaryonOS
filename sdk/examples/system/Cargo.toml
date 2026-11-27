@@ -7,6 +7,9 @@ publish = false
 [features]
 native = []
 native-clock = []
+# H05-T5d: the LOCK 0x92 caller (TEST); only through test-system-s3.
+lock-caller = []
+test-system-s3 = ["native", "lock-caller"]
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }

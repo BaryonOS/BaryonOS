@@ -60,6 +60,10 @@ POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error",
 # H05-T5c: virtio-blk re-init after the wake and its labelled quarantine injections.
 POWER_SYSTEM_FEATURES += ("test-system-s3-blk-reinit", "test-system-s3-blk-reinit-busy", "test-system-s3-blk-reinit-identity",
                           "test-system-s3-blk-reinit-capacity", "test-system-s3-blk-reinit-no-reset-ack")
+# H05-T5d A7: LOCK kept busy (-8), SUSPEND -25, then S5. Every S3 profile builds the
+# S3 TEST init (its LOCK caller); no other profile does.
+POWER_SYSTEM_FEATURES += ("test-system-s3-lock-busy",)
+S3_SYSTEM_FEATURES = tuple(feature for feature in POWER_SYSTEM_FEATURES if feature.startswith("test-system-s3"))
 # B01-LOCK (ADR-KEYRING-LOCK-20261126): syscall 0x92 and its labelled fixture.
 LOCK_SYSTEM_FEATURES = ("native-system-lock", "test-system-lock", "test-system-lock-noscrub", "test-system-lock-exit")
 POWER_SYSTEM_FEATURES += LOCK_SYSTEM_FEATURES
@@ -338,6 +342,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             command = [sys.executable, "-B", str(ROOT / f"sdk/examples/{package}/build.py")]
             if package == "system" and kernel_feature in SYSTEM_CLOCK_FEATURES:
                 command.append("--native-clock")
+            if package == "system" and kernel_feature in S3_SYSTEM_FEATURES:
+                command.append("--test-system-s3")
             if package == "keyring" and kernel_feature == "test-system-lock-exit":
                 command.append("--exit-before-lock")
             run_logged(command,

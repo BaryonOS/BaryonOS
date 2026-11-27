@@ -2922,7 +2922,7 @@
       "criterion": "H05",
       "milestone": "M9",
       "executor": "lead",
-      "status": "blocked",
+      "status": "superseded",
       "title": "Q3 key-erasure SUSPEND gate for block data (slice 2, with B)",
       "goal": "Q3: a key-erasure SUSPEND gate for block data, designed with workstream B, before any post-wake block re-grant.",
       "deps": [
@@ -2932,8 +2932,71 @@
       "checks": [],
       "evidence_level": "None: planned slice, not implemented.",
       "non_claimable": "Nothing implemented; no key-erasure or SUSPEND gate change is claimed.",
-      "next": "Blocked until the preceding slice is verified and the owner/workstream design exists.",
-      "blocker": "Depends on H05-T5c and a joint design with the named workstream."
+      "next": "Split on 2026-11-27 into H05-T5d-T (TEST-profile LOCK-before-SUSPEND gate) and H05-T5d-P (production gate, blocked on O5).",
+      "blocker": null,
+      "history": [
+        {
+          "event": "superseded",
+          "at": "2026-11-27",
+          "reason": "Split into H05-T5d-T and H05-T5d-P after B01-LOCK L1 (#573, 40c10d3a) landed; the production half needs O5 (key-state durability) first."
+        }
+      ]
+    },
+    {
+      "id": "H05-T5d-T",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "ready",
+      "title": "Q3 key-erasure SUSPEND gate in the S3 TEST profiles (KL2 -25, init LOCK before SUSPEND)",
+      "goal": "Every test-system-s3 kernel profile implies native-system-lock; SUSPEND returns -25 unless the keyring is LOCKED and the instance erased (KL2, before storage_closed); the TEST init issues LOCK 0x92 before the granted SUSPEND; the re-init stage uses a kernel-owned entropy target instead of the torn-down Key Service.",
+      "deps": [
+        "H05-T5c"
+      ],
+      "write_paths": [
+        "kernel/src/m2/m3/system.rs",
+        "kernel/src/m2/m3/keyring.rs",
+        "kernel/Cargo.toml",
+        "sdk/examples/system/Cargo.toml",
+        "sdk/examples/system/build.py",
+        "sdk/examples/system/src/",
+        "tools/build.py",
+        "tools/run_system.py",
+        "tests/test_system_harness.py",
+        "tests/test_system_s3_lock_guard.py",
+        "docs/verification/h05-t5d-t-20261127/"
+      ],
+      "checks": [
+        "python3 -B -u tools/test_power_system.py",
+        "python3 -B -m unittest tests.test_system_harness tests.test_system_s3_lock_guard"
+      ],
+      "gates": [
+        "native-power.yml#power-system-gate",
+        "native-system.yml#native-system",
+        "ci.yml#host-quality"
+      ],
+      "evidence_level": "Pending: local native QEMU/TCG evidence in docs/verification/h05-t5d-t-20261127/ and hosted power-system-gate on the PR head.",
+      "non_claimable": "TEST profiles only. The unwrap secret is a public TEST constant; no key-state durability is claimed (O5 open); no production LOCK path, no ring-3 block re-grant, no remount, no physical S3. s3-noscrub (B #590) not run in this slice.",
+      "next": "After merge: ledger verified with the landing SHA; s3-noscrub case once B #590 lands; then H05-T5d-P after O5.",
+      "blocker": null
+    },
+    {
+      "id": "H05-T5d-P",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "lead",
+      "status": "blocked",
+      "title": "Q3 key-erasure SUSPEND gate for production profiles (export+commit before LOCK)",
+      "goal": "Production SUSPEND after LOCK with key state exported and committed right before LOCK (freeze or write-ahead, F2), so a wake does not lose acknowledged key state.",
+      "deps": [
+        "H05-T5d-T"
+      ],
+      "write_paths": [],
+      "checks": [],
+      "evidence_level": "None: planned slice, not implemented.",
+      "non_claimable": "Nothing implemented.",
+      "next": "Design with B after O5 (key-state durability) is decided by the owner.",
+      "blocker": "Owner decision O5 (no production LOCK before O5, keyring LOCK owner decisions 26 Nov) and H05-T5d-T verified."
     },
     {
       "id": "H05-T5e",
