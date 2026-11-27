@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "52e4430a959bd058693579488c907e83682e56e9",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/l01-artifact-s1-20261127",
+  "task": "L01 slice S1a (ADR-L01-ARTIFACT-MAP-20261127): host-tested Owner::Artifact frame policy (RO/NX user alias only after sealing, no executable alias, no writable alias after sealing, separate ARTIFACT_QUOTA), the sealed-artifact state machine with bounded verifier copy-out and links only from Verified in kernel-core, and the manifest-only ARTIFACT_MAP/ARTIFACT_VERIFY rights in capability-core and the SDK rights mask",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Host model and rights only: no kernel syscall, paging link, native profile or verifier exists yet, so no L01 capability, native evidence or acceptance changes. The native-ai-job regression still passes (raw QEMU exit 33)."
+}
