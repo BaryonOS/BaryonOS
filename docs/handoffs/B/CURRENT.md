@@ -28,18 +28,17 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Current cycle
 
-- Session: local "BaryonOS - Specialist B" (26 Nov, resumed after the 21:20Z rotation from the #573 HANDOFF comment
-  7203525158). Merge queue autonomy (ADR-MERGE-QUEUE-AUTONOMY-20261126): B enqueues its own merge-ready PRs; the PR
-  guard coordinates and does not approve.
-- #524 (B03-REL05 trial boot with a TPM anchor, M1-HAUTH, ADR-B03-REL05-TPM-20261125 with C665 and the §7.9
-  fail-closed decision) landed on `main` as ce562ddc on 26 Nov. REL-05 stays open (§7.9 loader conditions below).
-- cycle: B01-LOCK L1 (issue #564; contract `docs/implementation/B01-KEYRING-LOCK.md`, ADR-KEYRING-LOCK-20261126 via #563).
-- branch: claude/b01-lock-l1-20261126, worktree ~/projects/BaryonOS-worktrees/b01-lock-l1.
-- PR: #573. Live head, checks and evidence: the PR body and the newest HANDOFF comment on #573.
-- Review fix round (26 Nov): `latch()` defers while the exit-path scrub is pending, so a ring-3 `0x92` cannot halt in
-  its own kernel entry; the fixture calls `latch()` right after its successful LOCK in that order (a mutant without
-  the deferral halts with `LOCK_CANARY_RESIDUE`); `teardown`, `fixture` and `check_and_print` hold no `LOCK_STATE`
-  borrow across nested accessors.
+- Session: local "BaryonOS - Specialist B" (27 Nov, resumed from the #590 HANDOFF comment 7213772692). Merge queue
+  autonomy (ADR-MERGE-QUEUE-AUTONOMY-20261126): B enqueues its own merge-ready PRs; the PR guard coordinates and
+  does not approve.
+- Landed: #524 (B03-REL05, ADR-B03-REL05-TPM-20261125 with C665 and the §7.9 fail-closed decision) as ce562ddc;
+  #573 (B01-LOCK L1, issue #564) as 40c10d3a; #590 (S3 LOCK noscrub red-control profile for H05-T5d) as 9fe65ba9
+  on 27 Nov. H adds the `power-s3-noscrub` case after #597 (pitfall reported: `S3_SYSTEM_FEATURES` must include
+  the profile).
+- cycle: REL-05 §7.9 M1-HAUTH halt. branch: claude/b03-rel05-hauth-unenrolled-20261127, worktree
+  ~/projects/BaryonOS-worktrees/b03-hauth-unenrolled. Live head, checks and evidence: the PR body and the newest
+  HANDOFF comment on that PR. The verify-only TEST loader halts `TPM_UNENROLLED` with `RECOVERY:REQUIRED` on an
+  unset ownerAuth (never-provisioned or cleared); the enrollment build is the unauthenticated TEST stand-in for S3b.
 
 ## Evidence / NOT RUN (B03-REL05, landed via #524)
 
@@ -68,7 +67,10 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   `docs/verification/b03-rel05-hauth-cut-points-20261125/`, local commit fa2d7f58),
   the firmware event log check (the last entry of the crypto-agile log is the loader's PCR 13 `EV_IPL` `CLOSED`
   event with one `H(CLOSED)` digest per active bank, no earlier PCR 13 entry; seventeen native cases at source
-  42e48d3c; `docs/verification/b03-rel05-hauth-eventlog-20261126/`, local commit 477674bf).
+  42e48d3c; `docs/verification/b03-rel05-hauth-eventlog-20261126/`, local commit 477674bf),
+  the unenrolled halt (verify-only `tpm-hauth-verify-test` halts `TPM_UNENROLLED` + `RECOVERY:REQUIRED`, raw 35,
+  state unchanged, on a never-provisioned and on a cleared TPM; nineteen native cases at source 5b392b72;
+  `docs/verification/b03-rel05-hauth-unenrolled-20261127/`).
 - NOT RUN: a fault-injected interruption of a real loader boot and a torn NV write (every provisioning step is
   covered by a host-seeded cut), the event log on halt paths, the SHA-1-format log and the final events table, S3b/genesis/ACCEPTED/UEFI copy, U22 write atomicity, native S5 and joint N04 tests, hosted CI for
   the loader-* cases (the noble OVMF 2024.02 image is not on the local host), physical hardware, human audit.
@@ -82,7 +84,8 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
   are unit-tested through `run_tpm.check_state()`; ci-impact selects host-quality through the `tools/**` glob.
 - Open, reported to the owner, not accepted: boot-path revival at PCR 13 = 0 before B04; S3/U27; U13c record
   staging and both-copies-lost revival (now a binding open condition of REL-05 §7.9); the §7.9 loader conditions
-  (no M1-HAUTH re-provisioning after a clear, recovery currency, recovery authority, user-visible recovery text;
+  (authenticated first provisioning via S3b: the TEST loader halts `TPM_UNENROLLED` after a clear since 27 Nov, but
+  its enrollment stand-in is unauthenticated; recovery currency, recovery authority, user-visible recovery text;
   owner decided §7.9 fail closed on 26 Nov, host model done); the TEST loader does not check
   ownerAuth against `HAUTH[..32]` (a foreign owner planting a well-formed `HAUTH`/`LREC` would bind); U25 on the hosted OVMF image and real firmware.
 
@@ -102,11 +105,6 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Queued B work (no PR yet)
 
-- After #573 lands: one small PR for H05-T5d-T: kernel feature `test-system-s3-lock-noscrub = ["test-system-s3",
-  "native-system-lock"]` in `kernel/Cargo.toml`, its `tools/build.py` entry, and the `cfg` at the `m3_scrub_pending`
-  write in `system_lock.rs` widened to it (B owns all three; H waits for it and otherwise marks the case NOT RUN).
-- Then the TEST M1-HAUTH loader (`boot/loader/src/tpm_hauth.rs`) must halt with `BOOT:FAIL:TPM_ANCHOR` +
-  `BOOT:RECOVERY:REQUIRED` on a cleared provisioned TPM instead of re-provisioning (§7.9 conditions 1 and 2).
 - Later: B02-T3 cold rollback anchor consumers and B04 production custody (both need owner decisions); SUSPEND and
   UNLOCK for B01-LOCK (UNLOCK blocked on O2, O5 and O8; no production LOCK before O5).
 
@@ -118,9 +116,10 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-- #573: after the hosted gates are green, 0 unresolved threads, `mergeStateStatus` CLEAN/HAS_HOOKS/BEHIND,
-  `autoMergeRequest` null and the open-run check `[]`: enqueue with GraphQL `enqueuePullRequest` (never `gh pr merge`
-  while BLOCKED). Report the landing SHA to the PR guard; H starts T5d-T on it.
+- The M1-HAUTH halt PR: after the hosted gates are green (first candidate failure: the `clear` seed on swtpm 0.7.3 in
+  `native-system.yml`), 0 unresolved threads, `mergeStateStatus` CLEAN/HAS_HOOKS/BEHIND, `autoMergeRequest` null and
+  the open-run check `[]`: ready, then enqueue with GraphQL `enqueuePullRequest` (never `gh pr merge` while BLOCKED).
+  Report the landing SHA to the PR guard.
 - Then the queued items above, one PR at a time. TEST/QEMU/swtpm only; the progress score stays 43/100.
 - The detailed #524 slice history (M1-HAUTH provisioning, seeded cases, PCR 13 banks, event log) is in the #524
   HANDOFF/CHECKPOINT comments and the `docs/verification/b03-rel05-*` directories.

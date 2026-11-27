@@ -468,8 +468,8 @@ continues is the interrupted finalization of 7.3 (step 2).
 
 | Binding condition (owner) | Status on this branch |
 |---|---|
-| No regular or `DEGRADED` boot once a TPM clear or the loss of required anchor state is detected. | Host model: `Halt::TpmAnchor`; `DEGRADED` removed; the invariant checker refuses any handover without an intact anchor, checked independently of the model's classification, in the exhaustive single step, the fault-class sweep and the reachable-state search (a mutant that boots `ANCHOR_BEHIND` fails all three). Loader: the trial path is not built (S6), and the TEST M1-HAUTH loader **currently violates** this condition after a clear (next row). |
-| No automatic re-provisioning based only on a matching EK. | Host model: the halt writes nothing. **Open, currently violated by the TEST loader:** its M1-HAUTH path provisions and boots whenever `ownerAuth` is unset, which is also the state after a clear (`boot/loader/src/tpm_hauth.rs`); before acceptance it must tell first provisioning of a never-provisioned device (authorised by the signed `ENROLL` step, S3b) from a clear of a provisioned one, and halt on the latter. The TEST host tool of 10.3 is not automatic and stays limited to disposable swtpm state. |
+| No regular or `DEGRADED` boot once a TPM clear or the loss of required anchor state is detected. | Host model: `Halt::TpmAnchor`; `DEGRADED` removed; the invariant checker refuses any handover without an intact anchor, checked independently of the model's classification, in the exhaustive single step, the fault-class sweep and the reachable-state search (a mutant that boots `ANCHOR_BEHIND` fails all three). Loader: the trial path is not built (S6), so the condition is not met for the loader. For the class with `ownerAuth` unset, which includes every clear, the TEST M1-HAUTH verify-only build (`tpm-hauth-verify-test`) no longer boots: after the PCR 13 `CLOSED` extend it halts with `LOADER-HAUTH:FAIL:TPM_UNENROLLED` and `LOADER-HAUTH:RECOVERY:REQUIRED` (TEST markers, not the `BOOT:*` markers of section 10) without an NV or hierarchy-auth write (native `loader-hauth-unenrolled` and `loader-hauth-cleared`, 27 November results below). |
+| No automatic re-provisioning based only on a matching EK. | Host model: the halt writes nothing. TEST loader (27 November): the verify-only build no longer re-provisions; only the separate enrollment build (`tpm-hauth-provision-test`), the TEST stand-in for the signed `ENROLL` step S3b, provisions, and `run_tpm.py` runs it only on boots that pin `MODE:PROVISION` (`boot/loader/src/tpm_hauth.rs`). **Open, not met:** a cleared TPM is indistinguishable from a never-provisioned one, and the choice between them is made by the build feature and the harness, not by the device; the stand-in is not authenticated. Before acceptance, the signed `ENROLL` step (S3b) must authorise first provisioning of a never-provisioned device. The TEST host tool of 10.3 is not automatic and stays limited to disposable swtpm state. |
 | Recovery only through an authenticated, demonstrably current recovery procedure. | Design: the recovery record of 10.5. **Open:** currency needs a record bound to this recovery (for example a device challenge), not only a serial; specification and implementation pending (S3b, U13c). |
 | Keep the highest reliably established anti-rollback floor. | Host model: no write on the halt, so the UEFI copy survives (`power_cut_between_f1_and_f2_resumes_finalization`, `tpm_missing_faulty_cleared_replaced_or_rolled_back`). Design: the recovery floor is `≥` every surviving copy (10.5). |
 | Prevent reactivation of revoked keys, grants and older anchor instances. | Design: accepted-serial rule (U13c), N04 re-anchors from genesis and network grants are not restored (10.5). **Open:** native tests, and the rule for older recovery records once the accepted pair is lost. |
@@ -1042,3 +1042,26 @@ requires the digest lines to equal `H(CLOSED)` for exactly the active banks.
 U2 is thereby observed for the log on the local Ubuntu OVMF 2025.11 with four
 banks only. Halt paths, the SHA-1-format log, the final events table and the
 hosted OVMF image remain NOT RUN.
+
+### Loader M1-HAUTH unenrolled halt (27 November 2026)
+
+Native TEST experiment, not acceptance evidence:
+[b03-rel05-hauth-unenrolled-20261127](../verification/b03-rel05-hauth-unenrolled-20261127/README.md).
+Section 7.9 forbids re-provisioning based only on a matching EK, and with
+`ownerAuth` unset a cleared TPM is indistinguishable from a never-provisioned
+one. The TEST loader is therefore split at compile time. The verify-only
+build `tpm-hauth-verify-test` halts on an unset `ownerAuth` after the PCR 13
+`CLOSED` extend with `LOADER-HAUTH:FAIL:TPM_UNENROLLED` and
+`LOADER-HAUTH:RECOVERY:REQUIRED` (raw QEMU exit 35), without an NV or
+hierarchy-auth write. The enrollment build `tpm-hauth-provision-test`
+(verify plus provisioning) is the TEST stand-in for the signed `ENROLL` step
+S3b; `run_tpm.py` uses it only on boots that pin `MODE:PROVISION`, and the
+verify-only build on every other HAUTH boot. New cases:
+`loader-hauth-unenrolled` (a never-provisioned TPM) and `loader-hauth-cleared`
+(a provisioning boot, then `TPM2_Clear` through the platform hierarchy; the
+runner requires the cleared public state to equal a new TPM's, and the halt
+leaves it unchanged). The marker is `TPM_UNENROLLED`, not `TPM_ANCHOR`:
+section 10.1 allows `TPM_ANCHOR` only with a verified identity, which the
+TEST loader does not establish. Condition 2 of section 7.9 is not met: the
+choice between first provisioning and a clear is made by the build and the
+harness, not by the device, and the stand-in is not authenticated.

@@ -841,14 +841,18 @@ identity halts with `BOOT:FAIL:TPM_ANCHOR`; every halt that only
 authenticated recovery resolves (identity mismatch, `TPM_UNENROLLED`,
 `UEFI_FLOOR_MISSING`, `TPM_ANCHOR`) also prints `BOOT:RECOVERY:REQUIRED`, and
 an absent, faulty or dirty-PCR TPM halts without it. The
-host model and its tests implement this; the loader does not yet. Section 7.9
-of the specification records each condition with its status. Open binding
-conditions include: the TEST loader's M1-HAUTH path provisions and boots
-whenever `ownerAuth` is unset, which is also the state after a clear, so the
-TEST loader currently violates the first two conditions and must halt on a
-cleared provisioned TPM before acceptance (B's first follow-up); the currency of a recovery
-record; the recovery authority for the case where both copies of the
-accepted pair are lost; and the user-visible recovery text.
+host model and its tests implement this; the loader does not yet (the trial
+path, S6, is not built). Section 7.9 of the specification records each
+condition with its status. Since 27 November 2026 the TEST loader's
+verify-only M1-HAUTH build no longer provisions when `ownerAuth` is unset,
+which is also the state after a clear: it halts with
+`LOADER-HAUTH:FAIL:TPM_UNENROLLED` and `LOADER-HAUTH:RECOVERY:REQUIRED`
+without an NV or hierarchy-auth write, and only a separate TEST enrollment
+build provisions. Open binding conditions include: that stand-in for the
+signed `ENROLL` step (S3b) is chosen by the build and the harness, not by
+the device, and is not authenticated, so the second condition is not met;
+the currency of a recovery record; the recovery authority for the case where
+both copies of the accepted pair are lost; and the user-visible recovery text.
 
 **Consequences:** new TPM codec commands, loader TCG2 path, BootInfo
 extension, kernel profile and health service; the characterization of PR #514
