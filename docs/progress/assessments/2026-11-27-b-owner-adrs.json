@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "52e4430a959bd058693579488c907e83682e56e9",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b-owner-adrs-20261127",
+  "task": "Record the project-owner decisions of 27 November 2026 for B01-LOCK (O2 O5 O7 O8 OQ1), B02-T3 and B04 in docs/DECISIONS.md",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Documentation only: amendment to ADR-KEYRING-LOCK-20261126 (O2, O5, O7, O8, OQ1 decided; authentication signal, OQ1 split and the authentication-absent refusal value stay open), new ADR-B02-T3-ANCHOR-20261127 (storage domain 1 0x0100B311, TEST only) and ADR-B04-POLICY-DIRECTION-20261127 (D1-D7 for design and synthetic implementation only), the decided O-rows in B01-KEYRING-LOCK.md, workstream agreements (authentication ownership B and U, refusal value -28 NOT_AUTHENTICATED by H, B and S, U part of OQ1), and two PROFILES-AND-USERS.md statements corrected to O2 and OQ1. No implementation and no new evidence, so no criterion changes. B01 stays accepted; UNLOCK, B02 and B04 stay open."
+}

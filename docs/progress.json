@@ -1879,7 +1879,7 @@
       },
       {
         "id": "A03",
-        "remaining": "Updated 2026-11-27 @9efd5739 (owner decision 27 Nov 12:50Z, A-owned row): a native ring-3 grant broker now enforces per-object grants over volume domain 0 with hostile-helper and exit/fault retirement tests. Still missing: the trusted permission dialog (U, currently a labelled fixture) and an independent verification for acceptance.",
+        "remaining": "Updated 2026-11-27 @2f9df421 (owner decision 27 Nov 12:50Z, A-owned row): a native ring-3 grant broker now enforces per-object grants over volume domain 0 with hostile-helper and exit/fault retirement tests. Still missing: the trusted permission dialog (U, currently a labelled fixture) and an independent verification for acceptance.",
         "requirements": [
           {
             "description": "Native applications use Material objects",
@@ -1903,16 +1903,17 @@
               "host",
               "native"
             ],
-            "observation": "Updated 2026-11-27 @9efd5739: task-grant core binds app/process incarnation/object/revision/rights (host). A native ring-3 broker authorises every request by the kernel-supplied sender PID (T2a #531 aa6d1c70, T2b #535 a004e3dc), is the sole client of a read-only volume domain 0 with STAT/READ only (T2c-1 #583 28e7ee1a, T2c-2 #593 7ee91d92), and retires a client's grants when its reply endpoint reports Revoked after exit or fault (T2c-3, owner option A; capability-core pin #579 95553a22). Each native case gives raw QEMU exit 33.",
+            "observation": "Updated 2026-11-27 @2f9df421: task-grant core binds app/process incarnation/object/revision/rights (host). A native ring-3 broker authorises every request by the kernel-supplied sender PID (T2a #531 aa6d1c70, T2b #535 a004e3dc), is the sole client of a read-only volume domain 0 with STAT/READ only (T2c-1 #583 28e7ee1a, T2c-2 #593 7ee91d92), and retires a client's grants when its reply endpoint reports Revoked after exit or fault (T2c-3 #635 2f9df421, owner option A; capability-core pin #579 95553a22). Each native case gives raw QEMU exit 33.",
             "remaining": "The trusted permission dialog is a labelled kernel-written fixture until U delivers it; exit detection is polled; only QEMU x86_64 is tested; no independent verification or human audit yet.",
             "evidence": [
-              "https://github.com/BaryonOS/BaryonOS/blob/9efd573989749056306c7e9540b0edcf365c549a/sdk/examples/task-grant-broker/README.md",
-              "https://github.com/BaryonOS/BaryonOS/blob/9efd573989749056306c7e9540b0edcf365c549a/docs/handoffs/A/T2C-SPEC.md",
-              "https://github.com/BaryonOS/BaryonOS/blob/9efd573989749056306c7e9540b0edcf365c549a/kernel/src/m2/m3/task_grant.rs",
-              "https://github.com/BaryonOS/BaryonOS/blob/9efd573989749056306c7e9540b0edcf365c549a/kernel/src/m2/m3/task_grant_volume.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/2f9df4214a7c3fefe7a681c75c62911a7326080d/sdk/examples/task-grant-broker/README.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/2f9df4214a7c3fefe7a681c75c62911a7326080d/docs/handoffs/A/T2C-SPEC.md",
+              "https://github.com/BaryonOS/BaryonOS/blob/2f9df4214a7c3fefe7a681c75c62911a7326080d/kernel/src/m2/m3/task_grant.rs",
+              "https://github.com/BaryonOS/BaryonOS/blob/2f9df4214a7c3fefe7a681c75c62911a7326080d/kernel/src/m2/m3/task_grant_volume.rs",
               "https://github.com/BaryonOS/BaryonOS/pull/593",
               "https://github.com/BaryonOS/BaryonOS/pull/583",
-              "https://github.com/BaryonOS/BaryonOS/pull/579"
+              "https://github.com/BaryonOS/BaryonOS/pull/579",
+              "https://github.com/BaryonOS/BaryonOS/pull/635"
             ]
           },
           {
