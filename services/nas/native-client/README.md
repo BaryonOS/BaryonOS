@@ -44,12 +44,18 @@ old AEAD bytes are not
 silently reused under a different revision. `cancel` cleans up a not-yet-published
 staging via the existing core, but retains the local edit.
 Lower revisions remain blocked. Cleanup errors are returned separately.
+The `Remote` trait abstracts the NAS for one trusted caller; `Local` binds the
+in-process core and `native-probe`'s `NaspRemote` the local NASP frames. The
+`*_via` methods take any `Remote`; the older methods wrap `Local` unchanged.
 `reconcile_latest` discovers the committed revision through `Service::head` and
 reads it within the same authenticated session. It shares the existing reconciliation
-state machine: uncertain writes are observed, never automatically replayed. Both
-operations are synchronous within one exclusively borrowed local core; a future
-remote adapter must retain revision-checked reads to detect concurrent changes.
-No NASP wire opcode or transport is added.
+state machine: uncertain writes are observed, never automatically replayed. With
+`Local`, both operations are synchronous within one exclusively borrowed core.
+With `NaspRemote`, they are separate NASP exchanges: Head (opcode 15) and then a
+Read pinned to the revision that Head returned, so a commit between them is
+never read as that revision. A Commit whose reply is missing or malformed is
+`Unknown`.
+NASP is the local IPC frame format; no network transport is added.
 
 ## Checkpoint format v1
 

@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-26",
+  "source_commit": "8b45983fb5d3dfcca65f6520cc6d1f7b31bb23ca",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/b01-lock-l1-20261126",
+  "task": "B01-LOCK L1: keyring LOCK syscall 0x92 with slot-1 teardown, LOCKED state and exit-path service-stack scrub",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. TEST-profile-only slice of issue 564: init-only LOCK tears down the Key Service through cleanup, scrubs the whole service stack before the next ring-3 instruction and latches LOCKED; refusals -8 and -14 and SUSPEND are unchanged elsewhere. Evidence is local native QEMU/TCG with a labelled kernel fixture and two red controls. B01 stays open: UNLOCK is blocked on owner questions O2, O5 and O8, no ring-3 program issues 0x92, KL5 is partial, hosted CI does not run the LOCK cases, no physical S3 and no human audit."
+}

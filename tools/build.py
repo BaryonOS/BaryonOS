@@ -27,7 +27,7 @@ VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", 
                         # S09 test-only second disk (kernel feature test-volume-archive-device).
                         "archive-disk-export", "archive-disk-restore", "archive-disk-absent",
                         "archive-disk-small", "archive-disk-wrong", "archive-disk-cut", "archive-disk-verify",
-                        # S09 O13 N38 slice 1: kernel write latch on the second disk.
+                        # S09 O13 N38 slices 1 and 2: kernel write latch on the second disk.
                         "o13-latch", "o13-latch-0x44")
 # S09 phase 3 L2 portal on the device-1 disk (docs/implementation/S09-L2-NATIVE-EXPORT.md).
 VOLUME_L2_CASES = ("l2-export", "l2-restore", "l2-corrupt", "l2-used", "l2-restore-cut", "recover-l2-cut")
@@ -52,11 +52,17 @@ TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
 WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route", "native-hid-input-probe", "test-window-session-readonly")
 MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
-NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover", "test-system-nas-interrupt", "test-system-nas-repair")
+NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover", "test-system-nas-interrupt", "test-system-nas-repair", "test-system-nas-offline", "test-system-nas-resume")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout", "test-system-s3", "test-system-s3-reinit", "test-system-s3-held-completion")
+# H05-T5c: virtio-blk re-init after the wake and its labelled quarantine injections.
+POWER_SYSTEM_FEATURES += ("test-system-s3-blk-reinit", "test-system-s3-blk-reinit-busy", "test-system-s3-blk-reinit-identity",
+                          "test-system-s3-blk-reinit-capacity", "test-system-s3-blk-reinit-no-reset-ack")
+# B01-LOCK (ADR-KEYRING-LOCK-20261126): syscall 0x92 and its labelled fixture.
+LOCK_SYSTEM_FEATURES = ("native-system-lock", "test-system-lock", "test-system-lock-noscrub", "test-system-lock-exit")
+POWER_SYSTEM_FEATURES += LOCK_SYSTEM_FEATURES
 NETWORK_SERVICE_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "test-net-service-port-sweep", "test-net-service-dhcp", "test-net-service-link", "test-net-service-slirp")
 SYSTEM_FEATURES = (*NETWORK_SERVICE_FEATURES, "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *NETWORK_LINK_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
@@ -230,6 +236,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         raise ValueError("signed-policy-probe-test requires native-update-policy-probe")
     elif image_version is not None:
         raise ValueError("--image-version applies to update kernels only")
+    if loader_feature in ("tpm-loader-probe-test", "tpm-hauth-provision-test") and kernel_feature != "native-tpm-crb":
+        raise ValueError(f"{loader_feature} requires the native-tpm-crb kernel")
     extra_env = None
     sdk_selection = os.environ.get("NOS_SDK_RUNTIME", "0")
     if sdk_selection not in ("0", "1"):
@@ -330,6 +338,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             command = [sys.executable, "-B", str(ROOT / f"sdk/examples/{package}/build.py")]
             if package == "system" and kernel_feature in SYSTEM_CLOCK_FEATURES:
                 command.append("--native-clock")
+            if package == "keyring" and kernel_feature == "test-system-lock-exit":
+                command.append("--exit-before-lock")
             run_logged(command,
                        f"build-system-{component}",
                        extra_env={"CARGO_TARGET_DIR": str(component_target)})
@@ -527,7 +537,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff", "hw-inventory"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-policy-probe-test", "signed-boot", "smp-handoff", "hw-inventory", "tpm-loader-probe-test", "tpm-hauth-provision-test"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()

@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "d1475f3480cf81be969db40ab75a950656216bd1",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/a03-t2c1-volume-broker-20261125",
+  "task": "A03-T2c-1 task-grant broker authorises READ of volume objects (host)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. A03 stays open: host tests show the broker registers objects from volume STAT, reads only granted (object, revision) pairs over the volume client and fails closed on every non-OK reply, but the native broker still uses a labelled fixture transport; native volume binding (T2c-2, after S's read-only ingress), the product exit notification and the trusted dialog remain missing."
+}

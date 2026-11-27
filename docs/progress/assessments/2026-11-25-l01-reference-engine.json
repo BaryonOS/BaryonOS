@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-25",
+  "source_commit": "a04f31496d2d668d9ef5e5defd0d347ec051f601",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/l01-attention-kv-20261125",
+  "task": "L01-T4 to T6: RoPE/KV/GQA attention, BF16 decoder layer, full Qwen graph matching a pinned Candle oracle (#525)",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. L01 stays open: host evidence only (reference engine matches the Candle oracle on the real pinned model); no native inference, tokenizer, network-denial probe or task-quality acceptance."
+}

@@ -3,13 +3,17 @@
 # participant commented `acceptance-released: <head SHA>` for the current head
 # commit. A new push changes the SHA and re-arms the hold. Labels and comments
 # are read live (tools/merge_hold.py). On merge_group it first waits for
-# host-quality and qemu-smoke to complete on the queue commit, then walks the
+# host-quality and qemu-smoke to complete on the queue commit and, under an
+# enforcing plan, for every applicable gate run of that commit, then walks the
 # entries ahead from the nearest: each must have left the queue or finished
 # host-quality, qemu-smoke and merge-hold on its own commit, and the walk ends
 # at a merge-hold that succeeded, so it decides just before the group can merge.
-# It then checks every pull request in the queue commit and fails closed if
-# they cannot be identified or the 45-minute wait expires. A hold added after
-# that final read is not seen. See ADR-MERGE-HOLD-20261113.
+# Every gate poll also reads the queue: a group that was removed or rebuilt, or
+# (enforcing) a gate that has already failed, ends the wait with a failure.
+# It then judges the gates on the queue commit, checks every pull request in it
+# and fails closed if they cannot be identified or the 80-minute budget, counted
+# from before the plan and less a 3-minute decision reserve, runs out.
+# A hold added after that final read is not seen. See ADR-MERGE-HOLD-20261113.
 #
 # Phase 3 of #494 (ADR-CI-GATE-ENFORCEMENT-20261124): the decision runs the base
 # commit's tools/merge_hold.py and tools/ci_impact.py, never the pull request's
@@ -17,8 +21,11 @@
 # applicable automatic gate to have passed on the pull request head; see
 # docs/CI-CONTRACT.md "Enforcement". With the catalogue's pull_request wait budget
 # of 0 it fails "Pending" while gates run, and merge-hold-recheck.yml re-runs it
-# once they have finished (#494 B9). This file may add environment variables,
-# but must keep every one an older base merge_hold.py reads.
+# once they have finished (#494 B9). On merge_group (D1 step 2) it recomputes
+# the plan for the queue commit and judges every applicable gate there, from
+# runs bound to the merge_group event, the queue commit and the queue branch.
+# This file may add environment variables, but must keep every one an older
+# base merge_hold.py reads.
 name: Merge hold
 
 on:
@@ -40,8 +47,8 @@ jobs:
     name: merge-hold
     runs-on: ubuntu-24.04
     # Above the 30-minute host-quality and qemu-smoke budgets plus queueing,
-    # below the planned 60-minute merge-queue check timeout.
-    timeout-minutes: 50
+    # below the planned 100-minute merge-queue check timeout.
+    timeout-minutes: 90
     permissions:
       actions: read
       checks: read
