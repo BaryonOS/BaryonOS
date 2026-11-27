@@ -1038,7 +1038,10 @@ impl<'a> Frame<'a> {
             status_y,
             self.status_text(),
             status_width,
-            if matches!(self.view.status, Status::Failed(_)) {
+            if matches!(
+                self.view.status,
+                Status::Failed(_) | Status::CollectionSavedAssignmentFailed
+            ) {
                 paint.danger()
             } else {
                 p.muted
@@ -2351,7 +2354,10 @@ impl Paint<'_> {
             status,
             view.viewport.logical_width() - 48,
             (Size::Small, Weight::Regular),
-            if matches!(view.status, Status::Failed(_)) {
+            if matches!(
+                view.status,
+                Status::Failed(_) | Status::CollectionSavedAssignmentFailed
+            ) {
                 self.danger()
             } else {
                 palette.muted
