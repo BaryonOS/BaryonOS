@@ -65,6 +65,11 @@ pub trait Backend {
     /// Publish only the exact fully staged and flushed candidate bound to this
     /// manifest. On uncertainty retain the prior bytes until resolution.
     fn publish(&mut self, manifest: &Manifest) -> Result<(), StoreError>;
+    /// Make the uncertain attempt terminal before a fresh authority read. Once
+    /// this succeeds no delayed completion can modify published bytes, even
+    /// after a later attempt publishes. Repeated fences are idempotent, because
+    /// the later authority read may fail. Failure or uncertainty must return Err.
+    fn fence_attempt(&mut self, manifest: &Manifest) -> Result<(), StoreError>;
     fn open_manifest(&mut self) -> Result<Manifest, StoreError>;
     fn open_chunk(
         &mut self,
@@ -77,6 +82,8 @@ pub trait Backend {
 
 /// This authority models separately trusted state; a real independent anchor is
 /// not implemented here. An unavailable authoritative read returns an error.
+/// Observe only after a successful backend fence; return the current exact
+/// authoritative state after that fence, never a stale observation.
 pub trait IndependentAuthority {
     fn observe(
         &mut self,
@@ -87,11 +94,14 @@ pub trait IndependentAuthority {
 
 /// An unexposed staged checkpoint; its expected anchor prevents stale writers.
 pub struct Candidate {
+    instance: [u8; 32],
+    checkpoint: Checkpoint,
     manifest: Manifest,
     expected: Option<Manifest>,
 }
 /// Unexposed decoded state, rechecked at its later handoff decision.
 pub struct Prepared {
+    instance: [u8; 32],
     manifest: Manifest,
     checkpoint: Checkpoint,
 }
@@ -180,24 +190,36 @@ impl Coordinator {
         }
         backend.flush_chunks(&manifest)?;
         Ok(Candidate {
+            instance: self.instance,
+            checkpoint: cp,
             manifest,
             expected: self.anchor.clone(),
         })
     }
     /// The model's publication linearization point; revoke uses the same owner.
-    pub fn publish<B: Backend>(
+    pub fn publish<A: Authorization, B: Backend>(
         &mut self,
         candidate: Candidate,
+        auth: &mut A,
         backend: &mut B,
     ) -> Result<(), StoreError> {
         self.live(&candidate.manifest.binding)?;
+        if candidate.instance != self.instance {
+            return Err(StoreError::Unauthorized);
+        }
         if self.pending.is_some() {
             return Err(StoreError::Unknown);
         }
         if self.anchor != candidate.expected {
             return Err(StoreError::Stale);
         }
+        if !auth.authorize(&self.binding, &candidate.checkpoint) {
+            return Err(StoreError::Unauthorized);
+        }
         backend.verify_candidate(&candidate.manifest)?;
+        if !auth.authorize(&self.binding, &candidate.checkpoint) {
+            return Err(StoreError::Unauthorized);
+        }
         match backend.publish(&candidate.manifest) {
             Ok(()) => {
                 self.client = None;
@@ -216,9 +238,11 @@ impl Coordinator {
     pub fn resolve_unknown(
         &mut self,
         authority: &mut impl IndependentAuthority,
+        backend: &mut impl Backend,
     ) -> Result<(), StoreError> {
         self.live(&self.binding)?;
         let candidate = self.pending.as_ref().ok_or(StoreError::Invalid)?;
+        backend.fence_attempt(candidate)?;
         let observed = authority.observe(&self.anchor, candidate)?;
         if observed.as_ref() == Some(candidate) {
             self.anchor = observed;
@@ -263,6 +287,7 @@ impl Coordinator {
             return Err(StoreError::Unauthorized);
         }
         Ok(Prepared {
+            instance: self.instance,
             manifest,
             checkpoint,
         })
@@ -274,6 +299,9 @@ impl Coordinator {
         auth: &mut A,
     ) -> Result<Handle, StoreError> {
         self.live(&prepared.manifest.binding)?;
+        if prepared.instance != self.instance {
+            return Err(StoreError::Unauthorized);
+        }
         if self.pending.is_some() || self.anchor.as_ref() != Some(&prepared.manifest) {
             return Err(StoreError::Stale);
         }

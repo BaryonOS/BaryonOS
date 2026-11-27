@@ -55,6 +55,22 @@ struct Fake {
     unknown: bool,
     unknown_applied: bool,
     attempts: Vec<[u8; 32]>,
+    fenced: Vec<[u8; 32]>,
+    fail_fence: bool,
+    verifies: usize,
+    delayed: Option<(Manifest, Vec<Chunk>)>,
+}
+impl Fake {
+    fn complete_delayed(&mut self) -> bool {
+        let Some((manifest, chunks)) = self.delayed.take() else {
+            return false;
+        };
+        if self.fenced.contains(&manifest.attempt) {
+            return false;
+        }
+        self.published = Some((manifest, chunks));
+        true
+    }
 }
 impl Backend for Fake {
     fn begin_attempt(&mut self, attempt: &[u8; 32]) -> Result<(), StoreError> {
@@ -94,6 +110,7 @@ impl Backend for Fake {
         }
     }
     fn verify_candidate(&mut self, m: &Manifest) -> Result<(), StoreError> {
+        self.verifies += 1;
         if self.staged.len() != CHUNKS
             || self.staged.iter().enumerate().any(|(i, c)| {
                 c.manifest != *m
@@ -118,6 +135,9 @@ impl Backend for Fake {
             return Err(StoreError::Invalid);
         }
         if self.unknown {
+            if !self.unknown_applied {
+                self.delayed = Some((m.clone(), self.staged.clone()));
+            }
             if self.unknown_applied {
                 self.preserved = self.published.clone();
                 self.published = Some((m.clone(), self.staged.clone()));
@@ -125,6 +145,15 @@ impl Backend for Fake {
             return Err(StoreError::Unknown);
         }
         self.published = Some((m.clone(), self.staged.clone()));
+        Ok(())
+    }
+    fn fence_attempt(&mut self, m: &Manifest) -> Result<(), StoreError> {
+        if self.fail_fence {
+            return Err(StoreError::Backend);
+        }
+        if !self.fenced.contains(&m.attempt) {
+            self.fenced.push(m.attempt);
+        }
         Ok(())
     }
     fn open_manifest(&mut self) -> Result<Manifest, StoreError> {
@@ -202,6 +231,16 @@ impl Remote for CountingRemote {
     }
 }
 
+struct UnreachableAuthority;
+impl IndependentAuthority for UnreachableAuthority {
+    fn observe(
+        &mut self,
+        _: &Option<Manifest>,
+        _: &Manifest,
+    ) -> Result<Option<Manifest>, StoreError> {
+        panic!("authority must not be read when fencing fails")
+    }
+}
 struct Independent {
     result: Result<Option<Manifest>, StoreError>,
 }
@@ -240,7 +279,9 @@ fn setup() -> (Coordinator, Fake) {
     let mut coordinator = Coordinator::new(binding(), [11; 32]);
     let mut fake = Fake::default();
     let candidate = stage(&coordinator, &mut fake, 1, 1);
-    coordinator.publish(candidate, &mut fake).unwrap();
+    coordinator
+        .publish(candidate, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
     (coordinator, fake)
 }
 fn prepared(coordinator: &Coordinator, fake: &mut Fake) -> host_store::Prepared {
@@ -274,13 +315,15 @@ fn revocation_serializes_with_publication_in_both_orders() {
     let staged = stage(&coordinator, &mut fake, 2, 2);
     coordinator.revoke();
     assert!(matches!(
-        coordinator.publish(staged, &mut fake),
+        coordinator.publish(staged, &mut Auth { allowed: true }, &mut fake),
         Err(StoreError::Unauthorized)
     ));
     assert_eq!(fake.published.as_ref().unwrap().0.publication, 1);
     let (mut coordinator, mut fake) = setup();
     let staged = stage(&coordinator, &mut fake, 2, 2);
-    coordinator.publish(staged, &mut fake).unwrap();
+    coordinator
+        .publish(staged, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
     coordinator.revoke();
     assert!(matches!(
         coordinator.prepare(&mut Auth { allowed: true }, &mut fake),
@@ -323,7 +366,9 @@ fn replay_with_same_number_but_different_attempt_and_commitment_fails() {
     let (mut coordinator, mut fake) = setup();
     let old = fake.published.clone().unwrap();
     let staged = stage(&coordinator, &mut fake, 2, 2);
-    coordinator.publish(staged, &mut fake).unwrap();
+    coordinator
+        .publish(staged, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
     let valid = fake.published.clone().unwrap();
     let mut forged = old;
     forged.0.publication = valid.0.publication;
@@ -348,7 +393,9 @@ fn restore_handoff_rechecks_exact_anchor_and_full_object_mapping() {
     let (mut coordinator, mut fake) = setup();
     let prep = prepared(&coordinator, &mut fake);
     let staged = stage(&coordinator, &mut fake, 2, 2);
-    coordinator.publish(staged, &mut fake).unwrap();
+    coordinator
+        .publish(staged, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
     assert!(matches!(
         coordinator.handoff(prep, &mut Auth { allowed: true }),
         Err(StoreError::Stale)
@@ -408,7 +455,7 @@ fn unknown_publication_requires_exact_independent_resolution_of_both_outcomes() 
         fake.unknown = true;
         fake.unknown_applied = applied;
         assert!(matches!(
-            coordinator.publish(staged, &mut fake),
+            coordinator.publish(staged, &mut Auth { allowed: true }, &mut fake),
             Err(StoreError::Unknown)
         ));
         assert!(matches!(
@@ -416,9 +463,12 @@ fn unknown_publication_requires_exact_independent_resolution_of_both_outcomes() 
             Err(StoreError::Unknown)
         ));
         assert!(matches!(
-            coordinator.resolve_unknown(&mut Independent {
-                result: Err(StoreError::Backend)
-            }),
+            coordinator.resolve_unknown(
+                &mut Independent {
+                    result: Err(StoreError::Backend)
+                },
+                &mut fake
+            ),
             Err(StoreError::Backend)
         ));
         assert!(matches!(
@@ -428,9 +478,12 @@ fn unknown_publication_requires_exact_independent_resolution_of_both_outcomes() 
         let mut wrong = candidate.clone();
         wrong.attempt[0] ^= 1;
         assert!(matches!(
-            coordinator.resolve_unknown(&mut Independent {
-                result: Ok(Some(wrong))
-            }),
+            coordinator.resolve_unknown(
+                &mut Independent {
+                    result: Ok(Some(wrong))
+                },
+                &mut fake
+            ),
             Err(StoreError::Stale)
         ));
         assert!(matches!(
@@ -441,9 +494,12 @@ fn unknown_publication_requires_exact_independent_resolution_of_both_outcomes() 
             assert!(fake.preserved.is_some());
         }
         coordinator
-            .resolve_unknown(&mut Independent {
-                result: Ok(Some(if applied { candidate } else { prior })),
-            })
+            .resolve_unknown(
+                &mut Independent {
+                    result: Ok(Some(if applied { candidate } else { prior })),
+                },
+                &mut fake,
+            )
             .unwrap();
         let prep = prepared(&coordinator, &mut fake);
         assert!(coordinator
@@ -459,9 +515,11 @@ fn new_publication_invalidates_old_handles_and_old_candidates() {
     let h = coordinator.handoff(p, &mut Auth { allowed: true }).unwrap();
     let stale = stage(&coordinator, &mut fake, 2, 2);
     let newer = stage(&coordinator, &mut fake, 3, 3);
-    coordinator.publish(newer, &mut fake).unwrap();
+    coordinator
+        .publish(newer, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
     assert!(matches!(
-        coordinator.publish(stale, &mut fake),
+        coordinator.publish(stale, &mut Auth { allowed: true }, &mut fake),
         Err(StoreError::Stale)
     ));
     assert!(matches!(
@@ -515,19 +573,23 @@ fn competing_candidates_cannot_publish_another_attempts_chunks() {
         let b = stage(&coordinator, &mut fake, 3, 3);
         if first_a {
             assert!(matches!(
-                coordinator.publish(a, &mut fake),
+                coordinator.publish(a, &mut Auth { allowed: true }, &mut fake),
                 Err(StoreError::Invalid)
             ));
             assert_eq!(fake.published.as_ref().unwrap().0.publication, 1);
             assert!(coordinator
                 .prepare(&mut Auth { allowed: true }, &mut fake)
                 .is_ok());
-            coordinator.publish(b, &mut fake).unwrap();
+            coordinator
+                .publish(b, &mut Auth { allowed: true }, &mut fake)
+                .unwrap();
             assert_eq!(fake.published.as_ref().unwrap().0.publication, 3);
         } else {
-            coordinator.publish(b, &mut fake).unwrap();
+            coordinator
+                .publish(b, &mut Auth { allowed: true }, &mut fake)
+                .unwrap();
             assert!(matches!(
-                coordinator.publish(a, &mut fake),
+                coordinator.publish(a, &mut Auth { allowed: true }, &mut fake),
                 Err(StoreError::Stale)
             ));
             assert_eq!(fake.published.as_ref().unwrap().0.publication, 3);
@@ -543,7 +605,8 @@ fn foreign_coordinator_handle_is_not_accepted() {
     let mut b = Coordinator::new(binding(), [12; 32]);
     let mut fake_b = Fake::default();
     let staged = stage(&b, &mut fake_b, 1, 1);
-    b.publish(staged, &mut fake_b).unwrap();
+    b.publish(staged, &mut Auth { allowed: true }, &mut fake_b)
+        .unwrap();
     let prep_b = prepared(&b, &mut fake_b);
     let _handle_b = b.handoff(prep_b, &mut Auth { allowed: true }).unwrap();
     assert!(matches!(
@@ -558,10 +621,119 @@ fn changed_candidate_after_flush_cannot_replace_previous_checkpoint() {
     let candidate = stage(&coordinator, &mut fake, 2, 2);
     fake.staged[1].bytes[3] ^= 1;
     assert!(matches!(
-        coordinator.publish(candidate, &mut fake),
+        coordinator.publish(candidate, &mut Auth { allowed: true }, &mut fake),
         Err(StoreError::Invalid)
     ));
     assert_eq!(fake.published.as_ref().unwrap().0.publication, 1);
+    assert!(coordinator
+        .prepare(&mut Auth { allowed: true }, &mut fake)
+        .is_ok());
+}
+
+#[test]
+fn foreign_candidate_cannot_cross_coordinator_after_revoke() {
+    let mut a = Coordinator::new(binding(), [11; 32]);
+    let mut b = Coordinator::new(binding(), [12; 32]);
+    let mut fake = Fake::default();
+    let candidate = stage(&a, &mut fake, 1, 1);
+    a.revoke();
+    assert!(matches!(
+        b.publish(candidate, &mut Auth { allowed: true }, &mut fake),
+        Err(StoreError::Unauthorized)
+    ));
+    assert!(fake.published.is_none());
+}
+
+#[test]
+fn uncertain_attempt_must_be_fenced_before_prior_resolution_and_later_publish() {
+    let (mut coordinator, mut fake) = setup();
+    let prior = fake.published.as_ref().unwrap().0.clone();
+    let candidate = stage(&coordinator, &mut fake, 2, 2);
+    fake.unknown = true;
+    fake.unknown_applied = false;
+    assert!(matches!(
+        coordinator.publish(candidate, &mut Auth { allowed: true }, &mut fake),
+        Err(StoreError::Unknown)
+    ));
+    let mut authority = Independent {
+        result: Ok(Some(prior.clone())),
+    };
+    fake.fail_fence = true;
+    assert!(matches!(
+        coordinator.resolve_unknown(&mut UnreachableAuthority, &mut fake),
+        Err(StoreError::Backend)
+    ));
+    assert!(matches!(
+        coordinator.prepare(&mut Auth { allowed: true }, &mut fake),
+        Err(StoreError::Unknown)
+    ));
+    fake.fail_fence = false;
+    coordinator
+        .resolve_unknown(&mut authority, &mut fake)
+        .unwrap();
+    fake.unknown = false;
+    let later = stage(&coordinator, &mut fake, 3, 3);
+    coordinator
+        .publish(later, &mut Auth { allowed: true }, &mut fake)
+        .unwrap();
+    // A late backend completion is rejected after the attempt became terminal.
+    assert!(!fake.complete_delayed());
+    assert_eq!(fake.published.as_ref().unwrap().0.publication, 3);
+    assert!(coordinator
+        .prepare(&mut Auth { allowed: true }, &mut fake)
+        .is_ok());
+}
+
+#[test]
+fn prepared_restore_cannot_cross_coordinator_after_revoke() {
+    let (mut a, mut fake_a) = setup();
+    let prepared_a = prepared(&a, &mut fake_a);
+    let mut b = Coordinator::new(binding(), [12; 32]);
+    let mut fake_b = Fake::default();
+    let candidate_b = stage(&b, &mut fake_b, 1, 1);
+    b.publish(candidate_b, &mut Auth { allowed: true }, &mut fake_b)
+        .unwrap();
+    a.revoke();
+    assert!(matches!(
+        b.handoff(prepared_a, &mut Auth { allowed: true }),
+        Err(StoreError::Unauthorized)
+    ));
+}
+
+#[test]
+fn publication_reauthorizes_at_decision_without_backend_or_anchor_change() {
+    let (mut coordinator, mut fake) = setup();
+    let old = fake.published.as_ref().unwrap().0.clone();
+    let candidate = stage(&coordinator, &mut fake, 2, 2);
+    let verifies_before = fake.verifies;
+    assert!(matches!(
+        coordinator.publish(candidate, &mut Auth { allowed: false }, &mut fake),
+        Err(StoreError::Unauthorized)
+    ));
+    assert_eq!(fake.verifies, verifies_before);
+    assert!(fake.published.as_ref().unwrap().0 == old);
+    assert!(coordinator
+        .prepare(&mut Auth { allowed: true }, &mut fake)
+        .is_ok());
+}
+
+struct DenySecondAuthorization(usize);
+impl Authorization for DenySecondAuthorization {
+    fn authorize(&mut self, _: &Binding, _: &Checkpoint) -> bool {
+        self.0 += 1;
+        self.0 == 1
+    }
+}
+#[test]
+fn publication_rechecks_authority_after_candidate_verification() {
+    let (mut coordinator, mut fake) = setup();
+    let old = fake.published.as_ref().unwrap().0.clone();
+    let candidate = stage(&coordinator, &mut fake, 2, 2);
+    assert!(matches!(
+        coordinator.publish(candidate, &mut DenySecondAuthorization(0), &mut fake),
+        Err(StoreError::Unauthorized)
+    ));
+    assert!(fake.published.as_ref().unwrap().0 == old);
     assert!(coordinator
         .prepare(&mut Auth { allowed: true }, &mut fake)
         .is_ok());
