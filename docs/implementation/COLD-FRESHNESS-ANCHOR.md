@@ -260,42 +260,38 @@ names: first the TPM copy, in the same policy write of the loader record
 (PCR 13 = 0³²) that names the anchored instance, so a runtime attacker cannot
 forge "already anchored"; then the UEFI copy. The effective pair is the
 surviving copy with the higher serial, and two copies with one serial but
-different records halt. REL-05 section 10.5 orders a record replacement as
-TPM copy, UEFI copy, new ESP record; the anchor genesis is part of accepting
-the record and precedes that sequence, because the TPM copy is the same write
-that marks the genesis done. A cut before it re-runs the genesis under the
-still-fresh record; a cut after it leaves the UEFI copy and the ESP record to
-follow as in section 10.5. For a first enrolment the record is already on
+different records halt. REL-05 section 10.5 requires a durable signed record
+on the second ESP path before the TPM and UEFI accepted-pair copies advance.
+The anchor genesis precedes the TPM copy, which is the write that marks the
+genesis done. A cut before it re-runs the genesis under the staged record; a
+cut after it leaves the UEFI copy and eventual promotion to the primary ESP
+path. For a first enrolment the record is already on
 the ESP, so every cut converges on the next boot (host model
 `every_provisioning_cut_converges`, which also fixes the number of writes).
-For a record replacement, section 10.5 writes the ESP record last and does
-not say where the new record resides before that write. The host model
-presents the new record again after every cut and does not model the ESP
-write: under that assumption every cut converges
-(`every_recovery_cut_converges`); when only the old ESP record is presented
-after the TPM copy has advanced, the boot halts (`Halt::NeedsRecovery`,
-section 10.5: denial, never acceptance of the older record). **Open U13c
-item:** the location and durability of a new record between its arrival and
-the ESP write. *Proposed, awaiting the project owner* (REL-05 section 10.5,
-"Record staging"): the deliverer stages the new record at a second ESP path
-before the loader advances the TPM copy and promotes it after both copies
-advanced; the loader reads both paths, uses the newest accepted record and
-never writes the ESP. Under it every cut of the replacement and of the
+For a record replacement, the project owner approved the staged TEST route
+on 27 November 2026 (REL-05 section 10.5, issue #529). The deliverer stages
+the new signed record at a second ESP path before the loader advances the TPM
+copy and promotes it after both copies advance. The loader reads both paths,
+uses the newest accepted record and never writes the ESP. The host model
+re-presents the staged record after every cut but does not model ESP
+durability; under the approved design every cut of the replacement and of the
 promotion boots the new record (host model
 `staged_record_replacement_converges`), which makes the re-presentation
 assumption of `every_recovery_cut_converges` hold.
 Losing one copy keeps older records refused, and the loader rewrites a lost
-UEFI copy. Losing both (a TPM clear with U23 broken or by firmware, plus a UEFI
-NVRAM reset) lets the old `ENROLL` authorise a second genesis and revives that
-instance's first store: residual `accepted_pair_survives_one_lost_copy`, not
-accepted and reported to the project owner. A TPM clear keeps the endorsement
+UEFI copy. If both accepted-pair copies are lost (a TPM clear with U23 broken
+or by firmware, plus a UEFI NVRAM reset), the normal loader must halt until
+independently authorised recovery. The current host model still lets the old
+`ENROLL` authorise a second genesis and revive that instance's first store:
+`accepted_pair_survives_one_lost_copy` demonstrates the unimplemented gap,
+not acceptance evidence. A TPM clear keeps the endorsement
 primary seed, so the old `ENROLL` still proves the identity (*TPM 2.0 Part 1
 hierarchy semantics; not probed on swtpm, and the anchor model does not model
 the EK*). This residual is not the "rolling back both copies
 together with the TPM state and the disk" item of section 10.5 (T7), which
-needs a restored snapshot: this one needs only deletion, and section 10.5
-does not define a boot with both copies absent, which looks like a first
-enrolment. **Open U13c item** against C665 and C28.
+needs a restored snapshot: this one needs only deletion. The fail-closed
+both-copies-absent rule requires native implementation and negative evidence
+before C665 or C28 can be accepted.
 
 **Same-TPM recovery** (after a stray extend, P3, agreed with N) is
 `NV_UndefineSpace` authorised by the loader-phase ownerAuth, then provisioning with a **fresh instance**: every

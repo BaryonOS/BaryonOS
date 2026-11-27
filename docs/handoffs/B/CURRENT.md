@@ -26,7 +26,27 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 - Gap: neither the local gh token (no `read:project`) nor the cloud session (repository-scoped) can reach project 5, so membership and
   fields are not set; owner action needed.
 
-## Current cycle — 2026-11-27T21:15:04Z
+## Current cycle — 2026-11-27T22:17:32Z
+
+- #649 landed at `7fceb5fd494c5c56126f0cf14a778779523a3fec` on
+  27 November 2026. Exact merge-tree and patch comparisons passed; the
+  landing evidence is on #649. It remains a host-only S7 foundation, not
+  REL-05 or N04 acceptance. The score remains 43/100.
+- Active primary B PR: #665, branch `codex/b03-s7-native-20261127`, worktree
+  `/home/simon/projects/BaryonOS-worktrees/b03-s7-native`. Its first pushed
+  head is `8b7710bf4393536d29d5bafd697d8586a0254da1`, based on #649's
+  landed main. It records the project owner's approved U13c TEST staged-record
+  route and the fail-closed both-copies-lost rule in the two implementation
+  specifications. `docs/progress/assessments/2026-11-27-b03-u13c-approved-route.json`
+  records the unchanged 43/100 assessment. JSON parsing, `progress.py --check`
+  and `git diff --check` exited 0. Native tests are NOT RUN because #665
+  changes specifications only. Hosted CI and exact-head review remain open.
+- K confirmed on #529 that `kernel/src/m2/m3/tpm_fixture.rs` is free for B's
+  scoped TEST S7 slice. Preserve K's live scheduler/return hunks in `m3.rs`;
+  compare exact diffs on integration. No native S7 code has been written in
+  this branch.
+
+## Prior cycle — 2026-11-27T21:15:04Z
 
 - Active primary B PR: #649, branch codex/b03-s7-anchor-20261127,
   worktree /home/simon/projects/BaryonOS-worktrees/b03-s7-anchor.
@@ -148,19 +168,13 @@ tasks live in `docs/roadmap-pipeline/ledger.json` and criteria in `docs/progress
 
 ## Next executable task
 
-1. On #649, wait for all exact-head hosted workflows to finish. If
-   merge-hold failed solely because checks were pending, rerun its
-   failed job once after the other applicable jobs finish. Repair
-   substantive failures before queueing.
-2. Recheck the exact head, all required and applicable checks, open
-   run list [], zero unresolved review threads, mergeStateStatus in
-   CLEAN/HAS_HOOKS/BEHIND, and autoMergeRequest null. Enqueue via
-   GraphQL enqueuePullRequest(expectedHeadOid). Wait for and verify
-   its landing; report it to PR guard, N, K and CI.
-3. Then take a new B PR for the native S7 path and owner-approved
-   U13c TEST record flow, with disjoint ownership on shared files.
-   Keep REL-05 section 7.9 fail closed. No score increase until
-   every acceptance condition is met.
+1. On #665, inspect exact-head CI and reviews. Repair substantive failures;
+   after all applicable checks pass, require open runs `[]`, zero unresolved
+   threads, `mergeStateStatus` CLEAN/HAS_HOOKS/BEHIND and null
+   `autoMergeRequest`, then enqueue with expected head. Verify landing.
+2. Start a new B PR for the native S7 path and owner-approved U13c TEST
+   record flow. K's #529 hunk ownership applies. Keep REL-05 section 7.9
+   fail closed; do not count host or documentation evidence as native N04.
 
 ## External dependencies and limits
 
