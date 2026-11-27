@@ -341,7 +341,116 @@ the date and commit in the row text, and passes `progress.py --check`.
 
 <!-- adr-slot: 629 -->
 
-<!-- adr-slot: 632 -->
+## ADR-R02-L1-BUDGETS-20261127 — R02 performance budgets: product targets and profile-bound acceptance
+
+**Status:** accepted. Project-owner decision of 27 November 2026, 13:27 UTC, recorded
+verbatim in #530 issuecomment-7219541052. The owner delegates profile-bound technical
+budgeting to Specialist R, in consultation with U, K and H, provided that the product
+targets below are not silently weakened. Drafted by Specialist R. It closes the
+decision part of R02-L1. It does not accept R02. It changes no FR-R02 text and no P0
+CI performance target; those targets remain fully in force.
+
+**Problem:** FR-R02 (`docs/FULL-TEST-RELEASE.md`) requires endurance, workload, p50,
+p95, energy, memory and latency limits fixed in advance, and these are never relaxed
+afterwards. No such limit existed. The existing R02 evidence consists of local KVM
+host timings on a 0.2 s screendump retry grid
+(`docs/verification/r02-*-2026112*/`). The single-CPU guest clock that applications
+read runs at a nominal 100 Hz (10 ms per tick, `kernel/src/m2/m3.rs`). Neither can
+resolve targets of 50 to 100 ms.
+
+**Decision, tier 1: product targets (project owner; binding on every acceptance
+profile and never relaxed per profile):**
+
+| Area | Target |
+|---|---|
+| First visible feedback on regular local interactions | p50 ≤ 50 ms, p95 ≤ 100 ms, p99 ≤ 200 ms |
+| Completion of regular light interactions without an external I/O dependency | p95 ≤ 250 ms |
+| Graphical output | stable and smooth at no less than 60 Hz as the base profile; no architectural cap at 60 Hz; work towards 120, 144 and 240 Hz on suitable hardware |
+| Frame pacing | matched to the actual refresh rate; missed frames and latency recorded separately |
+| Idle CPU load | at most 1 % of one CPU core on suitable physical reference hardware (target) |
+| Memory | no persistent growth after warm-up during a stable, repeated workload |
+| Behaviour under pressure | no starvation, lost input, data loss or instability |
+| Endurance | 100 cold starts and 24 hours of combined product use (FR-R02, unchanged) |
+
+**Decision, tier 2: profiles.** Physical hardware, KVM, WHPX and TCG are separate
+profiles. QEMU host timings never replace physical input-to-display measurements.
+
+| Profile | Role | What it can evaluate | Timing source |
+|---|---|---|---|
+| Physical reference hardware | acceptance of tier 1 latency, refresh rate, frame pacing, idle CPU and energy | all tier 1 targets | input-to-display with an external or hardware timestamp; method open |
+| KVM (local Linux host) | optimisation A/B and regression guard | relative change, ordering, guest-side intervals once a ≤ 1 ms guest timestamp exists | guest timestamps (open); host phase times on the 0.2 s grid are diagnostic only |
+| WHPX (Windows developer host) | idle and responsiveness regression guard | relative change of QEMU host-process CPU | host-process accounting; not physical idle CPU |
+| TCG (hosted CI) | functional gates and the separate P0 CI targets | pass or fail of native gates; no tier 1 latency judgement | none for tier 1 |
+
+**Rules:**
+
+1. **Freeze before measuring.** Before an acceptance measurement on a profile, its
+   workload, resolution, hardware, measurement method, percentile definition, minimum
+   sample count, and memory and energy budgets are recorded in a dated amendment of
+   this ADR or in a frozen file under a new `docs/verification/r02-*-<date>/`
+   directory. An open cell blocks acceptance on that profile. A frozen budget is never
+   relaxed after a failed measurement.
+2. **VM thresholds are regression guards, not product targets.** A KVM, WHPX or TCG
+   number never substitutes for a tier 1 target. It is set before the measurement
+   that uses it and is never derived from the values a candidate already reaches.
+3. **Metric definitions.** *First visible feedback* is the interval from the input
+   event (physical input, or its delivery to the guest input driver on a VM) to the
+   presentation of the first frame that visibly reflects it. *Completion* is the
+   interval to the presentation of the frame that shows the finished result. The
+   current `last_input_to_verified_app_image_s` is a host-side completion proxy on a
+   0.2 s grid. No first-feedback metric exists yet.
+4. **Percentiles.** Nearest-rank over the pooled per-interaction samples of one
+   profile and one workload. A reported p50 needs at least 10 samples, a p95 at least
+   20, and a p99 at least 100. With fewer samples only the maximum is reported. Five
+   runs of one phase cannot yield a p95 or p99.
+5. **Frame pacing.** Each presented frame is recorded against the display's actual
+   refresh interval. Missed or late frames are counted separately from input latency.
+   A 60 Hz pass does not imply readiness for 120, 144 or 240 Hz.
+6. **Existing evidence.** The KVM medians of 0.37 to 0.70 s for
+   `last_input_to_verified_app_image_s` (`docs/verification/r02-sur1-ipc-wait-20261127/`)
+   indicate a gap to the 250 ms completion target for full-window repaints. They are
+   coarse proxies, not an evaluation. The 99.37 % to 11.67 % WHPX result
+   (`docs/verification/gui-idle-20261102/windows-ab/`) is QEMU host-process CPU and is
+   not comparable with the 1 % physical idle target.
+7. **Work order.** No new general baseline. Optimisations are ranked by the largest
+   evidenced gap against tier 1 that a profile can resolve. Each optimisation is
+   verified by its own A/B run.
+
+**User-interface classes (Specialist U, under ADR-U-OWNER-20261127, #629; proposal
+#530 issuecomment-7219594221, adopted here):** U02 uses the tier 1 targets unchanged.
+U supplies the interaction classes and the measurement points; R owns the measurement
+method and the profile split.
+
+- Regular local feedback: p50 ≤ 50 ms, p95 ≤ 100 ms, p99 ≤ 200 ms.
+- Light interaction completion: p95 ≤ 250 ms.
+- Actions with an external I/O dependency: visible feedback and a progress indication
+  within 250 ms.
+- Frame pacing: at the active refresh rate, with 60 Hz as the base and no 60 Hz cap.
+- HiDPI: the same targets. The UI thread never blocks.
+- Guest measurement points (KVM, WHPX, TCG; diagnostic only):
+  - input acceptance to the first compositor commit with changed tiles (first feedback);
+  - input acceptance to `SHELL_READY` where it applies;
+  - present intervals.
+- Only physical input-to-display measurement is product evidence.
+
+**Open cells, frozen before the corresponding acceptance measurement:**
+
+- physical reference hardware, resolution and refresh rates (H, with the open HW-FR
+  decision);
+- input-to-display method and energy method and budget on physical hardware (H);
+- a guest timestamp source with at least 1 ms resolution (K);
+- a present or scanout timestamp at the compositor, starting with the first commit with
+  changed tiles (U);
+- the final combined workload and the memory budget per profile (R with U).
+
+**Source:** #530 issuecomment-7219541052 (owner text); `docs/FULL-TEST-RELEASE.md`
+(FR-R02); `docs/verification/r02-window-baseline-20261126/`,
+`docs/verification/r02-sur1-ipc-wait-20261127/`,
+`docs/verification/gui-idle-20261102/windows-ab/`; `kernel/src/m2/m3.rs` (100 Hz clock).
+
+**Rollback:** only through a new project-owner decision. Tier 1 cannot be relaxed by
+an executing role.
+
 
 <!-- adr-slot: 624 -->
 
