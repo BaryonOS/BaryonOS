@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "20d9089fe78a400143272aa34aa73cfb19f2e992",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "claude/p02-t3-late-reply-20261127",
+  "task": "P02-T3 follow-up (#592): NaspRemote drops stale NASP replies after a receive timeout; native-client README limits Unknown to a sent Commit",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. NaspRemote gains a receive-only path: after a bounded receive gave up on a queued send (Delivery::Sent, Unknown), a late reply with an older correlation is dropped without resending, at most once per earlier Unknown, so later exchanges stay aligned; a newer correlation, a wrong opcode or an undecodable frame stays Unknown. Host regression test plus the unchanged six-stage native NAS gate. P02 stays open: no client persistence, in-boot NAS restart, real transport, identity or power loss; no native late-reply stage."
+}
