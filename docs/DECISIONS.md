@@ -5,6 +5,66 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-L01-ARTIFACT-MAP-20261127 — sealed, verified, read-only model weights mapped by capability
+
+**Status:** accepted by the project owner on 27 November 2026 (answers to Q0–Q6 of
+`docs/implementation/LOCAL-AI-L01-MODEL-MAPPING.md`, given in the Specialist L session);
+recorded by Specialist L. Nothing is implemented by this ADR. Interface owners: K (kernel
+paging, process lifecycle, syscall numbers) and B (Security Floor review of the new rights);
+R for later measured performance work.
+
+**Problem:** the pinned Qwen2.5-0.5B-Instruct weights (988,097,824 bytes) cannot reach the
+native ring-3 AI process: `USER_QUOTA` is 8 MiB, the frame pool is 256 MiB, the user window
+is 1 GiB, page tables and mapping records are bounded per process, every user frame has a
+writable kernel identity alias, and no shared memory exists. The design document lists the
+nine limits and three options with sources.
+
+**Decision (owner):**
+1. **Q0 ADR, bounded mechanism.** A bounded, reusable mechanism for *immutable* shared memory
+   is introduced; generic writable shared memory is not.
+2. **Q1 verification in ring 3.** SHA-256 runs in a trusted ring-3 verifier holding a
+   distinct, manifest-only `ARTIFACT_VERIFY` right; no cryptography in the kernel. The kernel
+   enforces rights, object identity, the verification state and the byte comparison with the
+   trusted reference digest. The frames are made immutable (sealed: no writable alias, no DMA
+   target) before verification; the verifier reads the same frames that are later mapped; the
+   verdict is bound to object identity, length, generation and digest; any deviation fails
+   closed. The verifier is part of the trusted base for integrity, because the reference
+   digest is public.
+3. **Q2 dedicated weight pool.** Weight frames come from a logically separate pool built from
+   kernel-validated available physical memory, reusing the existing frame allocator, with no
+   hardcoded physical addresses, separate accounting and a hard quota sized to the artifact.
+   Private process frames, kernel frames and weight frames stay strictly separate. A larger
+   QEMU memory profile is introduced only for the relevant AI tests.
+4. **Q3 ring-3 loader.** Bytes arrive through a ring-3 loader using the existing block
+   service. The boot protocol is not changed; the kernel stays independent of model formats
+   and tensor parsing. Loading is bounded, avoids unnecessary full copies, and ends in seal,
+   verify and read-only mapping.
+5. **Q4 own native profile.** The mechanism gets its own native test profile; `native-ai-job`
+   and the `milestone-m4` profiles keep their current guarantees. Minimum native coverage:
+   correct verification and mapping; a wrong digest; writes to sealed frames; access by an
+   unauthorised process; quota and address-bound overruns; revocation, process exit and frame
+   reclamation; SMP and TLB correctness where applicable.
+6. **Q5 private memory.** The authorised AI process gets a profile-bound private cap of at most
+   64 MiB, enforced by the kernel and not reserved up front; the general `USER_QUOTA` stays
+   8 MiB; shared weights are accounted separately. The 24 MiB f32 KV cache at 1,024 tokens fits;
+   the remaining scratch, stack and image needs must be justified. No silent context truncation
+   or unbounded growth. 64 MiB is an initial phase bound, not a product limit.
+7. **Q6 window.** `0x80000000..0xC0000000` (PDPT entry 2) is approved as the phase-1 read-only
+   window, checked for overlap, alignment, bounds and guard regions. It is not a public ABI
+   constant: the kernel returns base and length, so a larger model can later use a controlled
+   extension of the memory model.
+
+**Invariants kept:** process isolation, capability enforcement (manifest-only, non-delegable,
+PID- and generation-bound), W^X (weights are never writable or executable for users and have no
+writable kernel alias after sealing), fail-closed behaviour, D1–D3 and all existing acceptance
+conditions. L01 stays open until its formal acceptance conditions are met.
+
+**Source:** `docs/implementation/LOCAL-AI-L01-MODEL-MAPPING.md` (sections 2–7), pull request
+#624, issue #534.
+
+**Rollback:** the mechanism is feature-gated in its own profile; reverting its commits removes
+it without changing existing profiles.
+
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
 **Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the

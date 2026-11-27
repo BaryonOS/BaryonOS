@@ -58,7 +58,7 @@ GitHub alone. Local paths below are optional additions for a local session.
 | cycle_id | `L-20261127-codeql52-and-qwen-mapping` |
 | Landed | #538 native SSE2 ring-3 AI job (`ac495b2f`); #598 native job hardening, CodeQL #51 fixed (`41955c86`); #599 no_std BPE tokenizer (`8d079547`); #609 resume pointer (`a98e64f9`) |
 | In queue | #619 fix for CodeQL alert #52 (`py/overly-permissive-file` in `experiments/ai/native-job/tests/test_gate.py`); after landing, #52 must show as fixed on `main` |
-| Open | full-Qwen model-mapping design, branch `claude/l01-model-mapping-design-20261127`, `docs/implementation/LOCAL-AI-L01-MODEL-MAPPING.md`; draft pull request awaiting owner answers to Q0–Q6 |
+| Open | full-Qwen model-mapping design, branch `claude/l01-model-mapping-design-20261127`, `docs/implementation/LOCAL-AI-L01-MODEL-MAPPING.md`; draft pull request with the owner's Q0–Q6 answers and the ADR |
 | Tracking | issue #534 (L01); tested heads, hosted runs and D3 assessments are recorded in each pull request |
 | Coordination | K (#602, C3 scheduler) re-measured `JOB_IRQS` locally (28–41 job IRQs, inside the documented 20–81) and reports the hosted range before any change; K and B are interface owners for the mapping design's first slice |
 | Score | L01 open; L02 accepted |
@@ -87,9 +87,12 @@ longer-term order is:
 
 1. Land #619 through the merge queue, report the landing SHA in a `HANDOFF L`
    comment on #534 and confirm CodeQL alert #52 is fixed on `main` (never dismiss it).
-2. Obtain the owner's answers to Q0–Q6 of the model-mapping design; then an ADR (if
-   Q0 is yes) and the first slice S1 (synthetic artifact, own profile) with K and B.
-   Full Qwen remains blocked by the frame pool and private-memory limits (Q2, Q5).
+2. The owner answered Q0–Q6 on 27 November 2026 (GO; `ADR-L01-ARTIFACT-MAP-20261127`).
+   Land #624, then implement slice S1 (host-tested `Owner::Artifact`, seal/verify state
+   machine, `ARTIFACT_MAP`/`ARTIFACT_VERIFY` rights, PDPT-2 link/unlink and audit, own
+   native profile with a synthetic artifact) with K as kernel interface owner and B for
+   the rights; then S2 (ring-3 verifier, ring-3 loader via the block service) and S3
+   (weight pool, AI memory profile, 64 MiB private cap with a justified budget).
 3. LP-05 network denial for the AI process.
 4. L02: no reopen without a concrete technical trigger.
 

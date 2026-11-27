@@ -1,7 +1,8 @@
 # L01 model mapping: read-only verified weights for the native AI process
 
-**Status:** design proposal (task L01-MAP-D1). Nothing is implemented, built or run
-by this document. **Baseline:** `origin/main` `af7415df` (drafted at `7c32e6c7`; no file
+**Status:** design accepted by the project owner on 27 November 2026 (answers to Q0–Q6 in
+section 7; decision record `ADR-L01-ARTIFACT-MAP-20261127` in `docs/DECISIONS.md`). Nothing is
+implemented, built or run by this document. **Baseline:** `origin/main` `af7415df` (drafted at `7c32e6c7`; no file
 cited below changed in between except `docs/DECISIONS.md`, whose references were
 re-anchored). **Owner of L01:** Specialist L; decisions marked as owner questions belong
 to the project owner. Interface owners for the first slice: K (kernel paging, process
@@ -358,7 +359,23 @@ file is not committed and must be read through `NOS_QWEN_DIR` as in
 
 ## 7. Owner questions and ADR need
 
-`docs/DECISIONS.md` is lead/owner-owned and is not edited here.
+**Owner answers, 27 November 2026** (binding; recorded in `ADR-L01-ARTIFACT-MAP-20261127`):
+Q0 yes, a focused ADR, for a bounded reusable *immutable* shared-memory mechanism without
+generic writable shared memory. Q1 V2: a trusted ring-3 verifier; the kernel enforces rights,
+identity, state and the digest comparison; frames are sealed before verification, the verified
+frames are the mapped frames, the verdict binds identity, length, generation and digest, and
+every deviation fails closed. Q2 a logically separate weight pool from kernel-validated
+available memory, reusing the frame allocator, with separate accounting and a hard quota, no
+hardcoded physical addresses, and a larger QEMU profile only for the AI tests. Q3 a ring-3
+loader through the existing block service; no boot-protocol change; bounded loading without
+unnecessary full copies. Q4 an own native profile; `native-ai-job` and the `milestone-m4`
+profiles stay as they are; the minimum native coverage adds revocation and SMP/TLB correctness
+where applicable to tests 7–15. Q5 a profile-bound, kernel-enforced private cap of at most
+64 MiB for the authorised AI process, not reserved up front, `USER_QUOTA` unchanged; the
+scratch, stack and image needs beyond the 24 MiB KV cache must be justified before S3. Q6 the
+window is approved for phase 1 and stays a kernel-returned base, not a public ABI constant.
+
+The questions as put to the owner:
 
 - **Q0.** Does the owner agree that an ADR is required before S1 merges, since S1
   adds an owner class, the first shared user mapping class (none exists today,

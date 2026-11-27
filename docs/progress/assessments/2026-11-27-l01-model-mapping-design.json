@@ -1,9 +1,9 @@
 {
   "date": "2026-11-27",
-  "source_commit": "af7415df6aa64f0f293c5e88b59970c43a2f3ff6",
+  "source_commit": "c6e8cb5c0f920dc759fd5ef8d0cc73eb4c5bccd3",
   "assessment_basis": "parent_commit",
   "branch": "claude/l01-model-mapping-design-20261127",
-  "task": "L01: design proposal for mapping the pinned Qwen2.5-0.5B weights read-only and verified into the native AI process (L01-MAP-D1), plus the L resume pointer refresh",
+  "task": "L01: design for mapping the pinned Qwen2.5-0.5B weights read-only and verified into the native AI process (L01-MAP-D1), the owner-accepted ADR-L01-ARTIFACT-MAP-20261127, and the L resume pointer refresh",
   "previous_score": 43,
-  "summary": "43/100 unchanged. Design document and resume pointer only; nothing implemented, built or run, so no L01 capability, native evidence or acceptance changes."
+  "summary": "43/100 unchanged. Design document, ADR and resume pointer only; nothing implemented, built or run, so no L01 capability, native evidence or acceptance changes."
 }
