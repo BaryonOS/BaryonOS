@@ -976,7 +976,9 @@ fn k05_rights_constants_and_known_mask() {
     assert_eq!(POWER, 16384);
     assert_eq!(ARTIFACT_MAP, 32768);
     assert_eq!(ARTIFACT_VERIFY, 65536);
-    assert_eq!(KNOWN_RIGHTS, 131071);
+    assert_eq!(ANCHOR, 131072);
+    assert_eq!(KNOWN_RIGHTS, 262143);
+    assert_eq!(ANCHOR & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(POWER_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(ARTIFACT_MAP_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(ARTIFACT_VERIFY_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
@@ -1926,5 +1928,79 @@ fn artifact_generation_exhaustion_retires_objects_without_wrap() {
         assert_atomic(e, Error::Quota, |e| e.create_artifact_verify(2));
         assert_atomic(e, Error::BadHandle, |e| e.check_artifact_map(1, map));
         assert_atomic(e, Error::BadHandle, |e| e.check_artifact_verify(1, verify));
+    });
+}
+
+#[test]
+fn anchor_domain_is_bound_to_the_callers_object() {
+    run(|e| {
+        setup(e, 3);
+        let network = e.create_anchor(1, 0).unwrap();
+        let storage = e.create_anchor(2, 1).unwrap();
+        // A raw handle can coincide in two tables. Each lookup still selects
+        // that process's own object and its manifest-bound domain.
+        assert_eq!(network, storage);
+        let (network_domain, network_key) = e.check_anchor(1, network).unwrap();
+        let (storage_domain, storage_key) = e.check_anchor(2, storage).unwrap();
+        assert_eq!((network_domain, storage_domain), (0, 1));
+        assert_ne!(network_key, storage_key);
+        assert_atomic(e, Error::BadHandle, |e| e.check_anchor(3, network));
+        assert_atomic(e, Error::BadHandle, |e| {
+            e.check_anchor(1, network ^ (1 << 32))
+        });
+        assert_atomic(e, Error::Quota, |e| e.create_anchor(3, 0));
+        assert_atomic(e, Error::Invalid, |e| e.create_anchor(3, 8));
+        let last = e.create_anchor(3, 7).unwrap();
+        assert_eq!(e.check_anchor(3, last).unwrap().0, 7);
+        let artifact = e.create_artifact_verify(1).unwrap();
+        assert_atomic(e, Error::Type, |e| e.check_anchor(1, artifact));
+        assert_atomic(e, Error::Type, |e| e.check_artifact_verify(1, network));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, network, SEND));
+        assert_eq!(e.stats().anchor_objects, 3);
+        assert_eq!(e.process_usage(1).unwrap().anchor_objects, 1);
+    });
+}
+
+#[test]
+fn anchor_right_cannot_derive_delegate_transfer_or_revoke() {
+    run(|e| {
+        setup(e, 2);
+        let anchor = e.create_anchor(1, 0).unwrap();
+        let endpoint = e.create_endpoint(1).unwrap();
+        let (_, send) = destination(e);
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, endpoint, ANCHOR));
+        assert_atomic(e, Error::Invalid, |e| {
+            e.bootstrap_delegate(1, endpoint, 2, ANCHOR)
+        });
+        assert_atomic(e, Error::Invalid, |e| e.derive(1, anchor, ANCHOR));
+        assert_atomic(e, Error::Invalid, |e| {
+            e.bootstrap_delegate(1, anchor, 2, ANCHOR)
+        });
+        assert_atomic(e, Error::Invalid, |e| e.check_delegation(1, anchor, ANCHOR));
+        assert_atomic(e, Error::Invalid, |e| {
+            e.send(1, send, &cap_message(anchor, ANCHOR))
+        });
+        assert_atomic(e, Error::Invalid, |e| e.revoke(1, anchor));
+    });
+}
+
+#[test]
+fn anchor_close_and_exit_end_authority_without_generation_wrap() {
+    run(|e| {
+        setup(e, 2);
+        e.anchors[1].generation = u32::MAX;
+        let network = e.create_anchor(1, 0).unwrap();
+        let storage = e.create_anchor(1, 1).unwrap();
+        let old = e.check_anchor(1, network).unwrap();
+        e.close(1, network).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_anchor(1, network));
+        let new = e.create_anchor(2, 0).unwrap();
+        assert_ne!(old, e.check_anchor(2, new).unwrap());
+        e.exit(1).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_anchor(1, storage));
+        assert_atomic(e, Error::Quota, |e| e.create_anchor(2, 1));
+        assert_eq!(e.check_anchor(2, new).unwrap().0, 0);
+        assert_eq!(e.stats().anchor_objects, 1);
+        assert_eq!(e.stats().retired_anchor_objects, 1);
     });
 }

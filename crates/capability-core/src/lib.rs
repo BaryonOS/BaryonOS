@@ -54,6 +54,8 @@ pub const ARTIFACT_MAP_RIGHTS: u64 = ARTIFACT_MAP;
 /// Manifest-only, non-delegable; distinct from and not implied by `ARTIFACT_MAP`.
 pub const ARTIFACT_VERIFY: u64 = 65536;
 pub const ARTIFACT_VERIFY_RIGHTS: u64 = ARTIFACT_VERIFY;
+/// Cold-freshness operations on one manifest-bound domain.
+pub const ANCHOR: u64 = 1 << 17;
 pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS
     | BLOCK_RIGHTS
     | LAUNCH_RIGHTS
@@ -64,7 +66,8 @@ pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS
     | INPUT_RIGHTS
     | POWER_RIGHTS
     | ARTIFACT_MAP_RIGHTS
-    | ARTIFACT_VERIFY_RIGHTS;
+    | ARTIFACT_VERIFY_RIGHTS
+    | ANCHOR;
 pub const MAX_LAUNCH_OBJECTS: usize = 8;
 pub const MAX_PROCESS_OBJECTS: usize = MAX_PROCESSES;
 pub const MAX_ENTROPY_OBJECTS: usize = 4;
@@ -83,7 +86,9 @@ pub const MAX_ARTIFACT_MAP_OBJECTS: usize = 1;
 pub const MAX_ARTIFACT_VERIFY_OBJECTS: usize = 1;
 const ARTIFACT_MAP_BASE: usize = POWER_BASE + MAX_POWER_OBJECTS;
 const ARTIFACT_VERIFY_BASE: usize = ARTIFACT_MAP_BASE + MAX_ARTIFACT_MAP_OBJECTS;
-const OBJECT_COUNT: usize = ARTIFACT_VERIFY_BASE + MAX_ARTIFACT_VERIFY_OBJECTS;
+const ANCHOR_BASE: usize = ARTIFACT_VERIFY_BASE + MAX_ARTIFACT_VERIFY_OBJECTS;
+pub const MAX_ANCHOR_DOMAINS: usize = 8;
+const OBJECT_COUNT: usize = ANCHOR_BASE + MAX_ANCHOR_DOMAINS;
 /// Lifecycle state of a spawned child as reported through `OBSERVE`.
 pub const PROCESS_RUNNING: u8 = 1;
 pub const PROCESS_EXITED: u8 = 2;
@@ -649,6 +654,8 @@ pub struct Stats {
     pub retired_artifact_map_objects: usize,
     pub artifact_verify_objects: usize,
     pub retired_artifact_verify_objects: usize,
+    pub anchor_objects: usize,
+    pub retired_anchor_objects: usize,
     pub state_digest: u64,
 }
 
@@ -674,6 +681,7 @@ pub struct ProcessUsage {
     pub power_objects: usize,
     pub artifact_map_objects: usize,
     pub artifact_verify_objects: usize,
+    pub anchor_objects: usize,
     pub available_handle_slots: usize,
     pub remaining_owned_endpoint_quota: usize,
 }
@@ -693,6 +701,7 @@ pub struct Engine {
     power: [EntropyObject; MAX_POWER_OBJECTS],
     artifact_map: [EntropyObject; MAX_ARTIFACT_MAP_OBJECTS],
     artifact_verify: [EntropyObject; MAX_ARTIFACT_VERIFY_OBJECTS],
+    anchors: [EntropyObject; MAX_ANCHOR_DOMAINS],
     last_pid: u64,
 }
 /// Caller-owned comparison storage. Never used as an authority engine or
@@ -791,6 +800,7 @@ impl Engine {
             power,
             artifact_map,
             artifact_verify,
+            anchors,
             last_pid,
         } = self;
         let out = &mut destination.state;
@@ -807,6 +817,7 @@ impl Engine {
         out.power.copy_from_slice(power);
         out.artifact_map.copy_from_slice(artifact_map);
         out.artifact_verify.copy_from_slice(artifact_verify);
+        out.anchors.copy_from_slice(anchors);
         out.last_pid = *last_pid;
     }
     /// Use directly in a static initializer in the kernel, not as a stack local.
@@ -825,6 +836,7 @@ impl Engine {
             power: [EntropyObject::EMPTY; MAX_POWER_OBJECTS],
             artifact_map: [EntropyObject::EMPTY; MAX_ARTIFACT_MAP_OBJECTS],
             artifact_verify: [EntropyObject::EMPTY; MAX_ARTIFACT_VERIFY_OBJECTS],
+            anchors: [EntropyObject::EMPTY; MAX_ANCHOR_DOMAINS],
             last_pid: 0,
         }
     }
@@ -936,6 +948,38 @@ impl Engine {
     pub fn create_artifact_verify(&mut self, owner: u64) -> Result<u64, Error> {
         self.create_console_source(owner, ARTIFACT_VERIFY)
     }
+    /// Manifest-only: one live, non-delegable object per domain.
+    /// Only kernel bootstrap may select which domains receive a grant.
+    pub fn create_anchor(&mut self, owner: u64, domain: u8) -> Result<u64, Error> {
+        let index = usize::from(domain);
+        let object = self.anchors.get(index).ok_or(Error::Invalid)?;
+        if object.live || object.retired {
+            return Err(Error::Quota);
+        }
+        let generation = object.generation;
+        let process = self.process(owner)?;
+        let slot = self.slots(process, 1)?[0];
+        let node = self.free_nodes(1)?[0];
+        self.anchors[index] = EntropyObject {
+            generation,
+            live: true,
+            open: true,
+            owner,
+            ..EntropyObject::EMPTY
+        };
+        self.make_node(
+            node,
+            Id {
+                index: (ANCHOR_BASE + index) as u16,
+                generation,
+            },
+            Id::NONE,
+            owner,
+            ANCHOR,
+            0,
+        );
+        Ok(self.attach(process, slot, self.node_id(node)))
+    }
     fn create_console_source(&mut self, owner: u64, rights: u64) -> Result<u64, Error> {
         if ![DISPLAY, INPUT, POWER, ARTIFACT_MAP, ARTIFACT_VERIFY].contains(&rights) {
             return Err(Error::Invalid);
@@ -999,9 +1043,15 @@ impl Engine {
         self.check_console_source(
             pid,
             handle,
-            ARTIFACT_VERIFY_BASE..OBJECT_COUNT,
+            ARTIFACT_VERIFY_BASE..ANCHOR_BASE,
             ARTIFACT_VERIFY,
         )
+    }
+    /// Returns the manifest-bound domain and the object-generation key.
+    pub fn check_anchor(&self, pid: u64, handle: u64) -> Result<(u8, u64), Error> {
+        let key = self.check_console_source(pid, handle, ANCHOR_BASE..OBJECT_COUNT, ANCHOR)?;
+        let domain = (key as u32 as usize - ANCHOR_BASE) as u8;
+        Ok((domain, key))
     }
     fn check_console_source(
         &self,
@@ -1719,6 +1769,7 @@ impl Engine {
             .chain(self.power.iter_mut())
             .chain(self.artifact_map.iter_mut())
             .chain(self.artifact_verify.iter_mut())
+            .chain(self.anchors.iter_mut())
         {
             if e.live && e.owner == pid {
                 e.open = false;
@@ -1852,8 +1903,11 @@ impl Engine {
         } else if i < ARTIFACT_VERIFY_BASE {
             let n = self.artifact_map[i - ARTIFACT_MAP_BASE];
             n.live && n.generation == id.generation
-        } else if i < OBJECT_COUNT {
+        } else if i < ANCHOR_BASE {
             let n = self.artifact_verify[i - ARTIFACT_VERIFY_BASE];
+            n.live && n.generation == id.generation
+        } else if i < OBJECT_COUNT {
+            let n = self.anchors[i - ANCHOR_BASE];
             n.live && n.generation == id.generation
         } else {
             false
@@ -1881,8 +1935,10 @@ impl Engine {
             self.power[i - POWER_BASE].open
         } else if i < ARTIFACT_VERIFY_BASE {
             self.artifact_map[i - ARTIFACT_MAP_BASE].open
-        } else {
+        } else if i < ANCHOR_BASE {
             self.artifact_verify[i - ARTIFACT_VERIFY_BASE].open
+        } else {
+            self.anchors[i - ANCHOR_BASE].open
         }
     }
     fn allowed_rights(&self, id: Id) -> u64 {
@@ -1907,8 +1963,10 @@ impl Engine {
             POWER_RIGHTS
         } else if i < ARTIFACT_VERIFY_BASE {
             ARTIFACT_MAP_RIGHTS
-        } else {
+        } else if i < ANCHOR_BASE {
             ARTIFACT_VERIFY_RIGHTS
+        } else {
+            ANCHOR
         }
     }
     fn object_refs(&mut self, id: Id) -> &mut u32 {
@@ -1933,8 +1991,10 @@ impl Engine {
             &mut self.power[i - POWER_BASE].nodes
         } else if i < ARTIFACT_VERIFY_BASE {
             &mut self.artifact_map[i - ARTIFACT_MAP_BASE].nodes
-        } else {
+        } else if i < ANCHOR_BASE {
             &mut self.artifact_verify[i - ARTIFACT_VERIFY_BASE].nodes
+        } else {
+            &mut self.anchors[i - ANCHOR_BASE].nodes
         }
     }
     fn attach(&mut self, p: usize, s: usize, node: Id) -> u64 {
@@ -2119,6 +2179,7 @@ impl Engine {
             .chain(self.power.iter_mut())
             .chain(self.artifact_map.iter_mut())
             .chain(self.artifact_verify.iter_mut())
+            .chain(self.anchors.iter_mut())
         {
             if e.live && e.nodes == 0 {
                 let (generation, retired) = advance(e.generation);
@@ -2175,6 +2236,8 @@ impl Engine {
             retired_artifact_map_objects: 0,
             artifact_verify_objects: 0,
             retired_artifact_verify_objects: 0,
+            anchor_objects: 0,
+            retired_anchor_objects: 0,
             state_digest: self.state_digest(),
         };
         for p in &self.processes {
@@ -2249,6 +2312,10 @@ impl Engine {
         for e in &self.artifact_verify {
             s.artifact_verify_objects += usize::from(e.live);
             s.retired_artifact_verify_objects += usize::from(e.retired);
+        }
+        for e in &self.anchors {
+            s.anchor_objects += usize::from(e.live);
+            s.retired_anchor_objects += usize::from(e.retired);
         }
         s
     }
@@ -2352,6 +2419,11 @@ impl Engine {
             .count();
         usage.artifact_verify_objects = self
             .artifact_verify
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.anchor_objects = self
+            .anchors
             .iter()
             .filter(|object| object.live && object.owner == pid)
             .count();
@@ -2472,6 +2544,7 @@ impl Engine {
             .chain(self.power.iter())
             .chain(self.artifact_map.iter())
             .chain(self.artifact_verify.iter())
+            .chain(self.anchors.iter())
         {
             for x in [
                 u64::from(e.generation),
@@ -2599,6 +2672,7 @@ impl Engine {
             .chain(self.power.iter())
             .chain(self.artifact_map.iter())
             .chain(self.artifact_verify.iter())
+            .chain(self.anchors.iter())
         {
             for x in [
                 u64::from(e.generation),
@@ -2732,6 +2806,7 @@ impl Engine {
             .chain(self.power.iter())
             .chain(self.artifact_map.iter())
             .chain(self.artifact_verify.iter())
+            .chain(self.anchors.iter())
         {
             for x in [
                 u64::from(e.generation),
@@ -2859,6 +2934,7 @@ impl Engine {
             .chain(self.power.iter())
             .chain(self.artifact_map.iter())
             .chain(self.artifact_verify.iter())
+            .chain(self.anchors.iter())
         {
             for x in [
                 u64::from(e.generation),
@@ -3086,6 +3162,7 @@ impl Engine {
             (POWER_BASE, self.power.as_slice()),
             (ARTIFACT_MAP_BASE, self.artifact_map.as_slice()),
             (ARTIFACT_VERIFY_BASE, self.artifact_verify.as_slice()),
+            (ANCHOR_BASE, self.anchors.as_slice()),
         ] {
             for (i, e) in device.iter().enumerate() {
                 if e.generation == 0
