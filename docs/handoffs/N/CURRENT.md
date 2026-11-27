@@ -47,20 +47,19 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Current cycle
 
-- cycle_id: `N-20261126-n04-extend-chain`
-- task: port the host-only N04 durable-store freshness model to B's
-  extend-chain anchor contract (`docs/implementation/COLD-FRESHNESS-ANCHOR.md`
-  on #524, basis `5db011cc`); amendment to ADR-NET-ISSUER-20261125
-- branch: `claude/n04-durable-extend-chain-20261125`; tracking issue #529
-- pull request, tested source SHA, hosted runs: recorded in the pull request
-  description, not in this file
-- evidence: host tests only. `durable.rs` computes the real SHA-256 extend
-  chain in a fake anchor and reproduces B's golden vectors; the M1
-  regression tests now pass against a hostile extend. No kernel anchor
-  service, swtpm run or torn-A1 store recovery (C143) exists; N04 stays open
-  and 5A remains the product behaviour.
-- previous cycle `N-20261125-n03-n04-adr` (N03/N04 ADRs, N03-T2 host
-  handshake) merged as `657f522f` (#543).
+- No N cycle is in flight; there is no open N pull request.
+- Last cycle `N-20261126-n04-extend-chain` (tracking issue #529) landed in
+  two parts: the extend-chain port of the N04 durable-store freshness model
+  (#575, `4ad35157`) and the two-slot crash-consistent store replacement for
+  a torn A1 write (C143, #584, `20d9089f`).
+- Evidence: host tests only. `durable.rs` computes the real SHA-256 extend
+  chain in a fake anchor, reproduces B's golden vectors, passes the M1
+  regression tests against a hostile extend and recovers from a torn slot
+  write. No kernel anchor service or swtpm run exists; N04 stays open and
+  5A remains the product behaviour.
+- Deferred finding from the #584 review: the store assumes a single writer;
+  concurrent commits are out of scope until a native caller exists. The
+  requirement is recorded on #529.
 
 ## Blockers
 
@@ -93,6 +92,9 @@ and pull requests. Newer ADRs and live evidence take precedence over it.
 
 ## Next executable task
 
-After this merge: torn-A1 store recovery (C143, #529), stacked on this
-port on `claude/n04-store-slots-20261125`. Native S5 verification on swtpm
-waits for B's kernel anchor service.
+1. N04 S5 native verification on swtpm: blocked on B's kernel anchor
+   service. Confirm its status with B before starting.
+2. H04 in-flight TX: review H's amendment to ADR-H04-LINK-20261119 when H
+   opens it. N's recorded answers: Q1 a distinct completion code that maps to
+   `Completed` plus a counter (never -23, never `Unknown`); Q2 option A; Q3 H
+   writes the amendment and N reviews.
