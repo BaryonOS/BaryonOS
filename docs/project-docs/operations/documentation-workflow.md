@@ -73,9 +73,11 @@ git log <baseline>..HEAD --oneline -- . \
   ':(exclude).codex' ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md'
 ```
 
-No synchronisation is needed only when this product-code query is empty **and** the
-linter reports no stale page caused by a named source. An unverified result still needs
-human judgement. Read the last entries in `docs/project-docs/log.md` for recent work.
+An automatic no-sync conclusion is allowed only when this product-code query is empty
+and the linter reports neither stale nor unverified pages. An unverified result requires
+judgement first: determine why freshness cannot be computed, then either re-verify the
+page or record that its non-code sources make the result intentionally undecidable. Read
+the last entries in `docs/project-docs/log.md` for recent work.
 
 > ⚠️ Product-change discovery may exclude documentation and adapters, but named page
 > sources may not. Treating one filter as both signals can hide a stale page.

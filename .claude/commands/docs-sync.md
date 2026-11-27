@@ -32,8 +32,10 @@ git log <baseline>..HEAD --oneline -- . \
   ':(exclude).codex' ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md'
 ```
 
-Stop only when this product query is empty **and** the linter reports no stale page.
-Otherwise process the named stale pages and any changed product files.
+Stop automatically only when this product query is empty and the linter reports neither
+stale nor unverified pages. A stale page needs synchronisation; an unverified page needs
+judgement before any no-sync result. Otherwise process the named stale pages, judge the
+unverified pages and inspect any changed product files.
 
 ### 2-1. Collect changed files
 

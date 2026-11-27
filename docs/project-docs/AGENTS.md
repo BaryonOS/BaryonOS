@@ -133,6 +133,10 @@ location. All documentation and adapters remain committed with the repository.
 > ⚠️ Never use the product-code filter to suppress an explicit `sources[].code`
 > dependency. Product-change discovery and named-source freshness are separate signals.
 
+> ⚠️ `unverified` is neither clean nor stale. It blocks an automatic no-sync conclusion
+> until an agent has judged why freshness cannot be computed; it does not by itself mean
+> that prose must change.
+
 ## Common operations
 
 The client-neutral procedure is in [[documentation-workflow]]. Clients that support the

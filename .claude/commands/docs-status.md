@@ -22,8 +22,10 @@ git log <baseline>..HEAD --oneline -- docs .agents .claude .codex AGENTS.md CLAU
 ```
 
 Recommend `/docs-sync` when product code changed or the linter reports a stale page.
-Recommend no sync only when both signals are empty. A docs-only commit that does not
-touch any named source is not work for `/docs-sync`.
+Recommend no sync automatically only when product changes, stale pages and unverified
+pages are all absent. An unverified page remains open for judgement; do not treat it as
+stale or clean. A docs-only commit that does not touch any named source is not work for
+`/docs-sync`.
 
 ## 2-5
 

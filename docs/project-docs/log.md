@@ -27,3 +27,4 @@ Append-only. Newest entries at the bottom.
   or historical records were migrated or duplicated.
 - Separated unclassified product-change discovery from explicit page-source freshness,
   so documentation and adapter sources cannot be hidden by the product-code filter.
+- Kept unverified freshness open for judgement instead of treating it as clean or stale.
