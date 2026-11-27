@@ -5,7 +5,7 @@ Compact resume pointer for the local system AI and quantum runtime specialist
 issues and pull requests. Newer ADRs and live evidence take precedence over it.
 The canonical live state is the latest `HANDOFF L` comment on issue #534
 (as of 27 November 2026:
-[issuecomment-7217095082](https://github.com/BaryonOS/BaryonOS/issues/534#issuecomment-7217095082))
+[issuecomment-7218440165](https://github.com/BaryonOS/BaryonOS/issues/534#issuecomment-7218440165))
 and the open L pull requests; this file is sufficient to resume from the repository and
 GitHub alone. Local paths below are optional additions for a local session.
 
@@ -36,12 +36,12 @@ GitHub alone. Local paths below are optional additions for a local session.
 
 | Field | Value |
 |---|---|
-| cycle_id | `L-20261127-hardening-tokenizer` |
-| Landed | #538 native SSE2 ring-3 AI job and `native-ai-job` kernel profile (`ac495b2f`) |
-| Open | #598 native job hardening, branch `claude/l01-native-job-hardening-20261126` (int3/no-return-call gate, symlink rejection, `MaybeUninit` memmove, failure report, fix for CodeQL alert #51) |
-| Open | #599 no_std byte-level BPE tokenizer, branch `claude/l01-tokenizer-20261126`, checked id-for-id against the host oracle |
+| cycle_id | `L-20261127-codeql52-and-qwen-mapping` |
+| Landed | #538 native SSE2 ring-3 AI job (`ac495b2f`); #598 native job hardening, CodeQL #51 fixed (`41955c86`); #599 no_std BPE tokenizer (`8d079547`); #609 resume pointer (`a98e64f9`) |
+| In queue | #619 fix for CodeQL alert #52 (`py/overly-permissive-file` in `experiments/ai/native-job/tests/test_gate.py`); after landing, #52 must show as fixed on `main` |
+| Open | full-Qwen model-mapping design, branch `claude/l01-model-mapping-design-20261127`, `docs/implementation/LOCAL-AI-L01-MODEL-MAPPING.md`; draft pull request awaiting owner answers to Q0–Q6 |
 | Tracking | issue #534 (L01); tested heads, hosted runs and D3 assessments are recorded in each pull request |
-| Coordination | K (#602, C3 scheduler): whichever of #598 and #602 lands second re-measures the `JOB_IRQS` ranges in `kernel/src/m2/m3/ai_job.rs` and `tools/run_ai_job.py` (hosted minimum plus margin) |
+| Coordination | K (#602, C3 scheduler) re-measured `JOB_IRQS` locally (28–41 job IRQs, inside the documented 20–81) and reports the hosted range before any change; K and B are interface owners for the mapping design's first slice |
 | Score | L01 open; L02 accepted |
 
 ## Resuming
@@ -66,11 +66,11 @@ The single next safe action is stated in the latest `HANDOFF L` comment; the
 longer-term order is:
 
 
-1. Land #599 and #598 through the merge queue; after each landing, report the
-   landing SHA in a `HANDOFF L` comment on #534. After #598, CodeQL alert #51
-   must show as fixed on `main` (never dismiss it).
-2. A verified artifact-mapping design for full Qwen, which is blocked by
-   USER_QUOTA (8 MiB per process).
+1. Land #619 through the merge queue, report the landing SHA in a `HANDOFF L`
+   comment on #534 and confirm CodeQL alert #52 is fixed on `main` (never dismiss it).
+2. Obtain the owner's answers to Q0–Q6 of the model-mapping design; then an ADR (if
+   Q0 is yes) and the first slice S1 (synthetic artifact, own profile) with K and B.
+   Full Qwen remains blocked by the frame pool and private-memory limits (Q2, Q5).
 3. LP-05 network denial for the AI process.
 4. L02: no reopen without a concrete technical trigger.
 
