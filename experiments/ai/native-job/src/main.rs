@@ -27,7 +27,7 @@ const MIN_ITERATIONS: u64 = 2000;
 const MIN_TICKS: u64 = 50;
 const YIELD_EVERY: u64 = 64;
 // The bit dump must fit the 512-byte header and `as_chunks::<2>` must not drop a logit.
-const _: () = assert!(OUTPUT % 2 == 0 && BITS + 8 * (OUTPUT / 2) <= 512);
+const _: () = assert!(OUTPUT.is_multiple_of(2) && BITS + 8 * (OUTPUT / 2) <= 512);
 
 global_asm!(
     r#"
