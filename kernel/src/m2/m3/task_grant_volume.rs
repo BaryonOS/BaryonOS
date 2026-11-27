@@ -5,11 +5,11 @@
 //! client ELF as the owner). Apps hold endpoint rights only; the volume holds a
 //! BLOCK_READ-only grant and runs with the read-only startup word set.
 //!
-//! FIXTURES, as in `task_grant.rs`: the bootstrap grant words in the broker's
+//! FIXTURE, as in `task_grant.rs`: the bootstrap grant words in the broker's
 //! DATA page stand in for the trusted permission dialog (omitted by
-//! `test-task-grant-volume-denied`), and the kernel writes each client's exit
-//! PID into the broker's private page in place of a product exit
-//! notification. Domain 1 of the volume names the helper's PID with its send
+//! `test-task-grant-volume-denied`). Exit detection is the product path of
+//! A03-T2c-3: the broker probes each client-owned reply endpoint and retires
+//! on Revoked or Closed. Domain 1 of the volume names the helper's PID with its send
 //! handle closed (the `nas.rs` pattern), so no process can reach it.
 //! This module replaces `system` via a path attribute in m3.rs.
 use super::*;
@@ -313,11 +313,12 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _counter: u64) {
         statuses,
         content: [word(s, slot, 320), word(s, slot, 328)],
     };
-    // FIXTURE lifecycle notice into the broker's private page.
-    let notices = word(s, BROKER, 448);
-    require(notices < 2, b"EXIT_NOTICES");
-    put(s, BROKER, 456 + notices * 8, s.processes[slot].pid);
-    put(s, BROKER, 448, notices + 1);
+    // A03-T2c-3: no lifecycle notice; the broker learns of the owner's end
+    // only from its reply endpoint's revocation, which runs after this hook.
+    require(
+        slot != OWNER || word(s, BROKER, 152) == 0,
+        b"RETIRED_BEFORE_END",
+    );
 }
 
 pub(super) fn observe_fault(_: &mut State, slot: usize, _: &[u64; 22], _: u64) {
@@ -428,9 +429,12 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
             && word(s, BROKER, 232) == held
             && word(s, BROKER, 240) == held
             && word(s, BROKER, 248) == 0
-            && word(s, BROKER, 448) == 2
+            // The owner's reply endpoint reported Revoked after its exit.
+            && word(s, BROKER, 448) == -10i64 as u64
             && word(s, BROKER, 456) == owner
-            && word(s, BROKER, 464) == helper,
+            && word(s, BROKER, 440) == 0
+            // At least one probe saw the live helper, so the live branch ran.
+            && word(s, BROKER, 464) != 0,
         b"EXIT_RETIREMENT",
     );
     require(
