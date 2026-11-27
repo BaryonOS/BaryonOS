@@ -239,7 +239,18 @@ impl Mailboxes {
             .get_mut(usize::from(domain))
             .ok_or(Error::Invalid)?;
         *entry = match *entry {
-            Entry::Running(delivery, _) | Entry::Writing(delivery) if delivery.ticket == ticket => {
+            Entry::Running(delivery, _) if delivery.ticket == ticket => {
+                if now >= delivery.expires_at {
+                    Entry::Empty
+                } else if delivery.operation == Operation::Extend
+                    && completion == Completion::Extended
+                {
+                    Entry::Ready(delivery, Completion::Failed(Failure::Corrupt))
+                } else {
+                    Entry::Ready(delivery, completion.checked_for(delivery.operation))
+                }
+            }
+            Entry::Writing(delivery) if delivery.ticket == ticket => {
                 if now < delivery.expires_at {
                     Entry::Ready(delivery, completion.checked_for(delivery.operation))
                 } else {
@@ -485,6 +496,33 @@ mod tests {
             .complete(0, ticket, 2, Completion::Extended)
             .unwrap();
         assert!(mailboxes.submit(NETWORK, Request::Read, 2).is_ok());
+    }
+
+    #[test]
+    fn prewrite_extend_cannot_publish_success_but_can_report_terminal_failure() {
+        let mut mailboxes = Mailboxes::new();
+        let request = Request::Extend {
+            expected: [1; 32],
+            store: [2; 32],
+        };
+        let ticket = mailboxes.submit(NETWORK, request, 0).unwrap();
+        mailboxes.begin(0, 0, |_| true).unwrap();
+        mailboxes
+            .complete(0, ticket, 1, Completion::Extended)
+            .unwrap();
+        assert_eq!(
+            mailboxes.collect(NETWORK, Operation::Extend, ticket, 1, |_| panic!()),
+            Ok(Failure::Corrupt as u64)
+        );
+        let ticket = mailboxes.submit(NETWORK, request, 2).unwrap();
+        mailboxes.begin(0, 2, |_| true).unwrap();
+        mailboxes
+            .complete(0, ticket, 3, Completion::Failed(Failure::Conflict))
+            .unwrap();
+        assert_eq!(
+            mailboxes.collect(NETWORK, Operation::Extend, ticket, 3, |_| panic!()),
+            Ok(Failure::Conflict as u64)
+        );
     }
 
     #[test]
