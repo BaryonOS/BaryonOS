@@ -1,8 +1,13 @@
 # Specialist P — resume pointer
 
-Compact resume pointer for the personal-storage specialist (P01–P04).
-This file is not a backlog: tasks come from `docs/progress.json`, the roadmap
-ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
+Compact resume pointer for the personal-storage specialist (P01–P04). This
+file is the canonical P state and stands on its own: a session with only the
+repository and GitHub can resume from it. Local worktree paths are optional
+conveniences and never the source of truth. Tasks come from
+`docs/progress.json`, the roadmap ledger, issues and pull requests; newer ADRs
+and live evidence take precedence.
+
+State as of 27 Nov 2026 11:30Z (main 8ee0d501).
 
 ## Scope and working agreements
 
@@ -10,179 +15,105 @@ ledger, issues and pull requests. Newer ADRs and live evidence take precedence.
   synchronisation and conflicts, P03 multiple devices and key lifecycle, P04
   offering, revoking and removing storage. Crypto choices are coordinated with
   B (keys, trust) and N (transport); P designs no cryptography.
-- Session: "BaryonOS - Specialist P", coordinated by "BaryonOS - PR Bewaker".
-- Merge: `ADR-SPECIALIST-TEAM-20261125` extends `ADR-MERGE-DELEGATION-20261123`
-  to P. P squash-merges its own PR with `--match-head-commit` once the
-  delegation's conditions hold, following the PR guard's merge-lane protocol.
 - Keep host prototype, host simulation and native QEMU evidence separate.
+- Write set: `services/nas/**`, `tools/test_nas.py` and its runner tests,
+  this file, and new files under `docs/progress/assessments/`. Protected and
+  lead-owned files stay out of P PRs (see `AGENTS.md`).
+- Merge: `ADR-SPECIALIST-TEAM-20261125` extends
+  `ADR-MERGE-DELEGATION-20261123` to P. Under the owner's autonomous merge
+  queue decision (26 Nov ~20:10Z), P enqueues its own merge-ready PR. Before
+  `gh pr merge <n> --squash --match-head-commit <sha>`:
+  - the paginated open-run check prints nothing:
+    `gh api --paginate "repos/BaryonOS/BaryonOS/actions/runs?head_sha=<sha>&per_page=100" --jq '.workflow_runs[] | select(.status != "completed" and .name != "Merge hold") | .id'`;
+  - `mergeStateStatus` is CLEAN;
+  - `autoMergeRequest` is null (`gh pr merge` on a BLOCKED PR silently enables
+    auto-merge);
+  - there are 0 unresolved review threads.
 
-## Last landed cycle: P04-T1 (PR #533)
+  Never use `--admin` or auto-merge. A merge-hold failure with only `Pending:`
+  lines restarts itself; act only on `Failed:`. A queue squash does not
+  auto-close `Closes #N` issues, so check them after landing.
+- Review scope stop: a non-blocking review comment gets a reply, a resolve and
+  a follow-up on the tracking issue, with no push. Only real blockers get one
+  bundled push. Graphify feedback follows GR-12 (`@graphify wrong` with a
+  one-line reason, or `@graphify good` once fixed).
 
-- P04-T1 native LP-25 interrupted purge (criterion P04) landed on main as
-  e68612f5 (26 Nov 11:01:56Z, squash of tested head 0b688369; tree equal).
-  Issue #532 is closed; Project #5 shows Done for #532 and #533.
-- delivered: `tools/test_nas.py` stages `interrupt` and `repair`; contract in
-  `services/nas/native-probe/CONTRACT.md` "Interrupted purge and repair".
-- evidence: local native gate on 0b688369 4/4, raw QEMU exit 33; all hosted
-  gates passed on that head (72 pass, 11 skipped, merge-hold success).
-- evidence limit: a controlled NAS process exit with the volume service alive.
-  Not power loss, torn writes, disk errors, the revoke-PURGE window, remote
-  sessions or physical erasure. Criterion P04 stays open until the lead
-  records acceptance; the score is unchanged.
-- ledger: `docs/roadmap-pipeline/ledger.json` P04-T1 is lead/Codex-owned; the
-  write set, checks and acceptance are in PR #533 for the lead to record.
+## Gates
 
-## Working rules (merge lane)
+- `services/nas/*` crates (`nas-core.yml` nas-workspace) on Rust 1.100.0:
+  - test, debug and release;
+  - clippy `--all-targets` with `-D warnings`, debug and release;
+  - `fmt --check`;
+  - release build for `x86_64-unknown-none`;
+  - for native-probe also
+    `clippy --release --features native --bins --target x86_64-unknown-none`.
+- Probe Python unittests: `test_disk_oracle.py`, `test_replay_handoff.py`.
+- Six-stage native gate:
+  `NOS_BUILD_DIR=$PWD/build/nas-native-ci CARGO_NET_OFFLINE=true python3 -B -u tools/test_nas.py`
+  (stages: normal, recover, interrupt, repair, offline, resume).
+  `NOS_BUILD_DIR` must lie inside the checkout. Only raw QEMU exit 33 per
+  stage counts.
+- Pitfall: `services/nas/native-probe/target/` is not ignored. Set
+  `CARGO_TARGET_DIR` under `build/` for host cargo runs and never stage
+  `services/nas` wholesale.
 
-- One lane holder at a time; the PR guard announces each lane explicitly. No
-  catch-up push outside the lane. Since B9, merge-hold first fails with only
-  "Pending:" lines and restarts itself; act only on "Failed:", and rerun only
-  infra failures with `gh run rerun --failed`.
-- Before `gh pr merge` (owner, 26 Nov): every workflow run for the full head
-  SHA, other than "Merge hold", must be completed. Query exhaustively, since
-  `gh run list` returns 20 runs by default:
-  `gh api --paginate "repos/BaryonOS/BaryonOS/actions/runs?head_sha=<sha>&per_page=100" --jq '.workflow_runs[] | select(.status != "completed" and .name != "Merge hold") | .id'`
-  must print nothing. A Copilot "Agent Merge" run started through the owner
-  account counts too (seen on #533 at 10:59Z). Squash with `--match-head-commit`; never
-  `--admin` or auto-merge.
-- After a squash of a branch that another local branch stacks on, merge the
-  tested head first, then main with `-s ours` once main's tree equals that
-  head (otherwise every shared hunk conflicts against the old merge-base).
+## Landed
 
-## Local stacked cycle: P02-T3 slice 1 (not pushed)
+- P04-T1 native LP-25 interrupted purge and repair: #533 → e68612f5.
+  Stages `interrupt` and `repair`; contract "Interrupted purge and repair" in
+  `services/nas/native-probe/CONTRACT.md`.
+- P02-T3 slices 1, 2a and 2b: #577 → d5022f9b (issue #554).
+  - NASP opcode 15 Head;
+  - the `native-client` `Remote` trait and the `NaspRemote` adapter;
+  - native stages `offline` and `resume` (cross-boot NAS cold restart,
+    reconcile via Head).
 
-- branch `claude/p02-t3-nasp-head-20261125`, worktree
-  `~/projects/BaryonOS-worktrees/p02-t3-head`, stacked on this branch because
-  it touches the same probe files. Local only under the CI-first freeze; it
-  becomes its own PR after #533 lands (merge main in, never rebase).
-- row reconciliation (25 Nov ~18:30Z, origin/main de242a3f): P01-T2 waits on
-  the owner's context-mapping disposition; P01-T3 waits on P01-T2, B02-T1/T3
-  and N03-T3 (all blocked); P03-T2 waits on the owner's authority model
-  (P03-T1). P02-T3 is the only P row without an owner or cross-track gate.
-- proposed spec for the lead (ledger P02-T3 is skeletal):
-  - goal: slice 1 adds NASP opcode 15 Head, delegating to the existing
-    `Service::head`; slice 2 adds a native guest stage that edits offline,
-    survives a NAS cold restart and reconciles via Head; slice 3 (guest
-    checkpoint persistence) needs a guest storage grant and is an OWNER
-    question before any code.
-  - invariant: Head is read-only, session-scoped and caller-bound by the
-    kernel-supplied sender; staging is invisible; no new capability and no
-    core, snapshot, volume or checkpoint format change.
-  - write set (slice 1): `services/nas/native-probe/src/lib.rs`,
-    `services/nas/native-probe/tests/ipc.rs`,
-    `services/nas/native-probe/CONTRACT.md`.
-  - acceptance: the `nas-core.yml` nas-workspace steps for the probe on Rust
-    1.100.0 (debug and release test and clippy `--all-targets`, `fmt --check`,
-    `x86_64-unknown-none` build, native `clippy --features native --bins`);
-    probe and NAS Python unittests; the unchanged four-stage native gate.
-  - local result (b5d1221f): probe host tests 8+2+3 pass, clippy/fmt pass,
-    native clippy pass, Python unittests OK, native gate 4/4 raw 33
-    (normal, recover, interrupt, repair; source 72b890a4…).
-  - evidence limit: host dispatch tests plus a native regression run; slice 1
-    makes no native Head call and no offline reconcile in QEMU.
+  Native gate 6/6 raw 33; P02 stays open.
 
-## P02-T3 slice 2 (2a and 2b implemented and committed locally, not pushed)
+## In flight
 
-Finding: `native-client` drives `Service<S>` in-process (`prepare`, `commit`,
-`cancel`, `reconcile`, `reconcile_latest` take `&mut Service` and a
-`Principal`); it cannot run in the guest over NASP as is. The native probe has
-no in-boot NAS restart; only the separate `native-supervisor` profile
-restarts processes.
+- #595 (issue #592), the follow-ups from the #577 review:
+  - `NaspRemote` drops a late reply with an older correlation after a receive
+    timeout. The drop is bounded by earlier `Unknown` outcomes and never
+    resends.
+  - The `native-client` README limits `Unknown` to a Commit that was sent.
 
-- 2a (host, P-owned crates): a `Remote` trait in `native-client` covering
-  open/stage/commit/cancel/close/read/head. `Service` plus the trusted caller
-  implements it with unchanged behaviour and tests; `native-probe` adds a NASP
-  adapter over a caller-supplied request/reply function. Host tests drive the
-  client through encoded frames and `dispatch`.
-  - write set: `services/nas/native-client/src/lib.rs` and its tests;
-    `services/nas/native-probe/{src/lib.rs,tests/ipc.rs,Cargo.toml,Cargo.lock}`
-    (local path dependency on `nieuw-os-nas-client`, no external crate);
-    `services/nas/native-probe/CONTRACT.md`.
-  - invariants: a Commit whose request was sent but whose reply is missing or
-    malformed is `Unknown`, never `Io` or success (same rule as the volume
-    transport); no replay of an uncertain commit; payloads above the 104-byte
-    probe limit fail `Invalid` before sending; the caller principal never
-    travels in the frame.
-  - acceptance: nas-workspace steps on 1.100.0 for native-client and
-    native-probe, including a lost-Commit-reply regression.
-  - local result (321cfdaa): nas-workspace steps on 1.100.0 pass for all
-    four NAS crates (client 21 tests, probe 16 incl. 3 new client-over-NASP
-    tests), native probe clippy passes, NAS Python unittests OK, native gate
-    4/4 raw 33. `source_hash` covers `services/`, so the gate binds
-    native-client too. The probe `Cargo.lock` gains only the local path crate
-    `nieuw-os-nas-client` (no external crate). Not run: hosted CI, a native
-    NaspRemote call.
-- 2b finding (owner-approved in-boot restart, ~19:10Z): a second NAS process
-  in the same boot needs a runtime re-grant. The NAS ingress and volume-reply
-  endpoints are owned by the NAS pid and `observe_exit` calls
-  `process_died`; admin, guest and volume hold bootstrap-delegated send caps
-  and pin the NAS pid in word 160. The `native-supervisor` profile restarts
-  workers through launch capabilities and endpoints that survive the worker,
-  so in-boot restart means redesigning NAS endpoint ownership: capability
-  design for an OWNER decision, not P code. Zero-re-grant alternative: the
-  cross-boot cold restart, which needs a write-enabled stage (`RECOVER` maps
-  the block device read-only) and carries the guest edit through the test
-  harness handoff. A NAS-process-internal `Service::recover` is not what was
-  approved: requests would queue, so the not-delivered path never runs.
-  Either way the 2b spec must map a timeout after a queued send to
-  `Delivery::Sent`, and must decide who drops a late reply with an older
-  correlation (today it would make every later exchange `Unknown`).
-- 2b owner choice (~19:15Z): cross-boot cold restart ("Herstart over twee
-  boots"). Implemented as stages `offline` (4, root, fresh writable disk) and
-  `resume` (5, child of the exact passing offline image, writable); no token
-  handoff. Offline: the guest commits revision 1 through `NaspRemote`; the
-  admin sends Shutdown; only kernel `observe_exit(NAS)`, after
-  `process_died`, sets guest word 216, and the guest's next `prepare_via`
-  cannot deliver Open (`Io`), so the edit stays `NeedsReconcile`. Resume: plain
-  `Service::recover`; a base-0 edit reconciles via Head to `Conflict`; the
-  offline edit, re-created from fixed probe constants (no client persistence),
-  reconciles to `Ready` and commits revision 2. The edit is 32 bytes because the
-  core's copy-on-write reservation counts the old 96 bytes against quota 128.
-  Oracle `check_resume_image`: core generation 4/5, volume 7/9, Active epoch 1,
-  no history. Counts admin/NAS/guest: offline 3/0, 8/2, 5/2; resume 3/0,
-  15/2, 12/2. `nas-core.yml` needs no change (it runs `tools/test_nas.py`).
-  Open: a late reply with an older correlation still makes later exchanges
-  `Unknown` (no late-reply drop); the probe never times out a queued send.
-  Local result (272c064f): native gate 6/6 raw 33 (normal, recover,
-  interrupt, repair, offline, resume; source dee0df1f…); probe host tests,
-  clippy (debug/release, native `x86_64-unknown-none`) and fmt pass on 1.100.0;
-  NAS runner/build/oracle/replay unittests OK. Not run: hosted CI.
-  Evidence limit: local QEMU IPC, a controlled NAS exit and a second boot on
-  the same disk; not real transport, identity, power loss, an in-boot NAS
-  restart or client persistence.
-- 2b (native, original in-boot proposal, superseded): new root stage `resume` (startup word 112 = 4, feature
-  `test-system-nas-resume`, fresh disk). The guest commits revision 1, the NAS
-  process exits at a coordinated point, the guest queues an offline edit
-  (prepare fails, edit stays `NeedsReconcile`), the fixture kernel observes the
-  NAS exit and starts a fresh NAS instance with the same role grants, which
-  runs `Service::recover`. The guest's old session is `Stale`; it reopens,
-  reconciles via Head and commits revision 2; the admin checks usage and the
-  disk oracle checks the generations.
-  - write set: `services/nas/native-probe/src/main.rs`,
-    `kernel/src/m2/m3/nas.rs` (feature-gated fixture only), the build profile
-    in `tools/build.py` and the kernel feature list, `tools/test_nas.py`,
-    `services/nas/native-probe/disk_oracle.py` and its tests,
-    `tests/test_nas_build.py` and `tests/test_nas_runner.py`, and
-    `nas-core.yml`, which is protected (CI owner D2 pin change).
-  - design choice: an in-boot NAS restart (recommended; models the NAS going
-    down while the client device stays up) versus a cross-boot restart that
-    would carry the guest edit through a harness handoff. That handoff is
-    test-only state, and real client persistence stays slice 3, an OWNER
-    question.
-  - evidence limit: local QEMU IPC and process restart with the volume
-    service alive; not real transport, identity, power loss or client
-    persistence.
+  Head 5a8f5263, all checks green, in the merge queue since 11:14Z. After
+  landing:
+  1. verify the squash against that head;
+  2. close #592 if it is still open;
+  3. post `@graphify good` on the #577 thread `PRRT_kwDOVZC91s68kBB8`;
+  4. post a HANDOFF comment on #592.
+
+## Open and blocked
+
+- OWNER questions (no code before an answer):
+  - P02-T3 slice 3: persisting the client queue across a guest restart. This
+    needs a guest storage grant.
+  - In-boot NAS restart: the NAS ingress and volume-reply endpoints are owned
+    by the NAS pid. A second NAS process in the same boot therefore means
+    redesigning endpoint ownership, which is a capability decision.
+- Waiting on dependencies:
+  - P01-T2: the owner's context-mapping disposition.
+  - P01-T3: P01-T2, B02-T1/T3 and N03-T3.
+  - P03-T2: the owner's authority model (P03-T1).
+- Not implemented: a native late-reply stage (host test only), client
+  persistence, a real transport, identity, power loss.
+
+## Durable pitfalls
+
+- The nas-core `stage()` reserves copy-on-write space for the old object too:
+  a 96-byte revision under quota 128 allows at most a 32-byte replacement.
+- After a kernel `process_died(NAS)`, a guest send on its NAS ingress fails
+  with a non-again error, so `NaspRemote` maps it to `Delivery::NotSent(Io)`,
+  never `Unknown`.
+- A new `tools/test_nas.py` stage or failure label must extend the
+  `safe_serial_evidence` allowlists.
 
 ## Next
 
-1. P02-T3 slices 1, 2a and 2b sit on `claude/p02-t3-nasp-head-20261125`
-   (worktree `~/projects/BaryonOS-worktrees/p02-t3-head`), tracking issue
-   #554, with main ffea3883 merged in. Under the owner's autonomous merge
-   queue decision (26 Nov ~20:10Z) P opens and queues its own merge-ready PR;
-   the PR guard coordinates order but grants no per-PR approval. Re-run the
-   six-stage native gate (`NOS_BUILD_DIR` inside the checkout, e.g.
-   `build/<name>`, or `private_path` refuses it) and the nas-workspace steps
-   on 1.100.0 after every main catch-up. The progress assessment is
-   `docs/progress/assessments/2026-11-26-p02-t3-offline-resume.json`.
-2. Slice 3 (guest queue persistence across a guest restart) is an OWNER
-   question before any code.
+1. Finish the #595 landing steps above.
+2. Pick the next P row only if it has no owner or cross-track gate. Otherwise
+   raise the OWNER questions on the tracking issue and wait.
+
+Handoff threads: #592 (current slice), #554 (P02-T3).
