@@ -12,13 +12,16 @@ separate, non-required job.
 The oracle is (1) one HTTP server on 127.0.0.1:8090 that accepts exactly one
 connection, checks app B's exact request and answers app B's exact response,
 and (2) a bounded parser of the netdev's filter-dump pcap, which is the wire
-record the runner binds to the broker counters and to app A's DNS answers
-(the positive one for NAME and the NXDOMAIN for NEGATIVE).
+record the runner binds to the broker counters and to app A's DNS results.
+The isolated variant forwards the negative query to a silent endpoint.
 """
 from __future__ import annotations
+from contextlib import contextmanager
 import ipaddress
+import os
 import socket
 import struct
+import subprocess
 import threading
 from pathlib import Path
 
@@ -30,6 +33,9 @@ HTTP_PORT = 8090
 NAME = "example.com"
 # RFC 6761 reserves .invalid: a conforming resolver answers NXDOMAIN without an address.
 NEGATIVE = "missing.invalid"
+ISOLATED_RESOLVER = "198.51.100.53"
+SILENT_UPSTREAM = "198.51.100.54"
+FIXTURE_ADDRESS = "93.184.216.34"
 MAX_PCAP_BYTES = 4 * 1024 * 1024
 MAX_FRAMES = 4096
 
@@ -110,6 +116,84 @@ class SlirpOracle:
 
     def finish(self) -> dict:
         return dict(self.result, http_port=HTTP_PORT, name=NAME)
+
+
+def namespace_ids():
+    return tuple(os.readlink(f"/proc/self/ns/{kind}") for kind in ("net", "mnt"))
+
+
+def _ready(resolver):
+    query = (struct.pack("!HHHHHH", 1, 0x0100, 1, 0, 0, 0)
+             + b"\x07example\x03com\0\0\x01\0\x01")
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as client:
+        client.settimeout(0.2)
+        for _ in range(10):
+            if resolver.poll() is not None:
+                raise RuntimeError("Isolated DNS resolver exited during startup")
+            client.sendto(query, (ISOLATED_RESOLVER, 53))
+            try:
+                reply, sender = client.recvfrom(4096)
+            except TimeoutError:
+                continue
+            if (sender == (ISOLATED_RESOLVER, 53) and reply[:2] == query[:2]
+                    and dns_answers(reply, NAME) == (0, [FIXTURE_ADDRESS])):
+                return
+    raise RuntimeError("Isolated DNS resolver did not answer the readiness query")
+
+
+@contextmanager
+def silent_resolver(directory, parent_namespaces):
+    """Configure the disposable loopback-only namespace before launching QEMU."""
+    if (parent_namespaces is None or os.getpid() != 1
+            or any(current == parent for current, parent in zip(namespace_ids(), parent_namespaces, strict=True))
+            or [name for _, name in socket.if_nameindex()] != ["lo"]):
+        raise RuntimeError("The silent resolver requires private PID, network and mount namespaces")
+    for args in (("link", "set", "lo", "up"), ("address", "add", ISOLATED_RESOLVER + "/32", "dev", "lo"),
+                 ("address", "add", SILENT_UPSTREAM + "/32", "dev", "lo")):
+        subprocess.run(["ip", *args], timeout=5, check=True)
+    for family in ("-4", "-6"):
+        if subprocess.check_output(["ip", family, "route", "show", "default"], timeout=5).strip():
+            raise RuntimeError("The silent resolver namespace has a default route")
+    config = directory / "resolv.conf"
+    config.write_text(f"nameserver {ISOLATED_RESOLVER}\n", encoding="ascii")
+    resolver_config = Path("/etc/resolv.conf").resolve(strict=True)
+    subprocess.run(["mount", "--bind", str(config), str(resolver_config)], timeout=5, check=True)
+    if resolver_config.read_bytes() != config.read_bytes():
+        raise RuntimeError("The isolated resolver configuration was not mounted")
+
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as upstream, (directory / "dnsmasq.log").open("wb") as log:
+        upstream.bind((SILENT_UPSTREAM, 53))
+        upstream.setblocking(False)
+        resolver = subprocess.Popen(
+            ["dnsmasq", "--no-daemon", "--conf-file=/dev/null", "--no-hosts", "--no-resolv", "--bind-interfaces",
+             f"--listen-address={ISOLATED_RESOLVER}", "--cache-size=0", f"--address=/{NAME}/{FIXTURE_ADDRESS}",
+             f"--server=/{NEGATIVE}/{SILENT_UPSTREAM}", f"--pid-file={directory / 'dnsmasq.pid'}", "--log-queries"],
+            stdout=log, stderr=subprocess.STDOUT,
+        )
+        try:
+            _ready(resolver)
+            yield upstream
+            if resolver.poll() is not None:
+                raise RuntimeError("The isolated resolver stopped before the guest completed")
+        finally:
+            resolver.terminate()
+            try:
+                resolver.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                resolver.kill()
+                resolver.wait(timeout=3)
+
+
+def upstream_queries(upstream):
+    """At most two observations suffice to distinguish the exact one-query case."""
+    names = []
+    for _ in range(2):
+        try:
+            payload, _, flags, _ = upstream.recvmsg(4096)
+        except BlockingIOError:
+            break
+        names.append(None if flags & socket.MSG_TRUNC else _qname(payload))
+    return names
 
 
 def dns_answers(payload: bytes, question: str):
@@ -202,7 +286,7 @@ def parse_pcap(path: Path) -> dict:
         raise ValueError("pcap link type is not Ethernet")
     at, frames, guest, slirp, other = 24, 0, 0, 0, 0
     acks, dns, http_syns, foreign = [], [], 0, []
-    queries, other_ip = {}, 0
+    queries, query_names, reply_packets, other_ip = {}, [], 0, 0
     network = ipaddress.ip_network(NET)
     while at < len(data):
         if at + 16 > len(data):
@@ -249,13 +333,17 @@ def parse_pcap(path: Path) -> dict:
                                  mask=four(1), lease_s=struct.unpack("!I", options[51])[0]
                                  if len(options.get(51, b"")) == 4 else None))
         elif dport == 53 and dst == DNS and source == GUEST_MAC and len(payload) >= 2:
-            queries[(payload[:2], sport)] = _qname(payload)
+            question = _qname(payload)
+            queries[(payload[:2], sport)] = question
+            query_names.append(question)
         elif sport == 53 and src == DNS and destination == GUEST_MAC:
+            reply_packets += 1
             # Bind each answer to a guest query seen earlier: same ID, port and name.
             question = queries.get((payload[:2], dport))
             answer = dns_answers(payload, question) if question in (NAME, NEGATIVE) else None
             if answer is not None:
                 dns.append(dict(name=question, rcode=answer[0], addresses=answer[1]))
     return dict(frames=frames, guest_frames=guest, slirp_frames=slirp, other_frames=other,
-                dhcp_acks=acks, dns_responses=dns, http_syns=http_syns, foreign=foreign,
+                dhcp_acks=acks, dns_responses=dns, dns_queries=query_names, dns_reply_packets=reply_packets,
+                http_syns=http_syns, foreign=foreign,
                 other_ip=other_ip)

@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "d9ec9616bfbae9033a9ebf9ff5bc15d8ae4f9c3d",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/n02-slirp-timeout-20261127",
+  "task": "Exercise the N02 DNS timeout through an isolated libslirp profile.",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Host fixture, selector and N01 regression evidence pass. N02 native timeout awaits the kernel feature and guest-mode fixture. Physical and full real Internet acceptance remain open."
+}
