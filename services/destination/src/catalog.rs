@@ -11,6 +11,8 @@ use crate::{
     MIN_ARCHIVE, SECTOR,
 };
 
+pub mod v2;
+
 pub const COPY: usize = 2048;
 pub const COPY_SECTORS: u64 = 4;
 /// Catalog area read at mount: both copies plus the reserved sectors 8-15.
@@ -130,11 +132,31 @@ impl Catalog {
 /// `scope_sectors` sectors. This is the mount validator and the pre-write
 /// validator of 2.7 step 4.
 pub fn decode(bytes: &[u8; COPY], scope_sectors: u64) -> Option<Catalog> {
+    if bytes[RECORDS_END..SUM_AT].iter().any(|byte| *byte != 0) {
+        return None;
+    }
+    let mut catalog = decode_header(bytes, scope_sectors, VERSION)?;
+    let mut end = DATA_START;
+    let mut previous = 0;
+    let mut previous_sealed = 0;
+    for index in 0..catalog.count {
+        let record = decode_record(bytes, index, &catalog, previous, previous_sealed)?;
+        if record.first != end {
+            return None;
+        }
+        end = record.end();
+        previous = record.id;
+        previous_sealed = record.sealed_sequence;
+        catalog.records[index] = record;
+    }
+    (catalog.next_free == end).then_some(catalog)
+}
+
+fn decode_header(bytes: &[u8; COPY], scope_sectors: u64, version: u16) -> Option<Catalog> {
     if bytes[..8] != MAGIC
-        || u16::from_le_bytes([bytes[8], bytes[9]]) != VERSION
+        || u16::from_le_bytes([bytes[8], bytes[9]]) != version
         || fnv64(FNV_OFFSET, &bytes[..SUM_AT]) != get64(bytes, SUM_AT)
         || bytes[11..16] != [0; 5]
-        || bytes[RECORDS_END..SUM_AT].iter().any(|byte| *byte != 0)
     {
         return None;
     }
@@ -155,51 +177,41 @@ pub fn decode(bytes: &[u8; COPY], scope_sectors: u64) -> Option<Catalog> {
         || catalog.formatted != scope_sectors
         || catalog.next_free < DATA_START
         || catalog.next_free > catalog.formatted
+        || bytes[RECORDS_AT + count * RECORD..RECORDS_END]
+            .iter()
+            .any(|byte| *byte != 0)
     {
         return None;
     }
-    let mut end = DATA_START;
-    let mut previous = 0;
-    let mut previous_sealed = 0;
-    for index in 0..MAX_ENTRIES {
-        let raw = &bytes[RECORDS_AT + index * RECORD..RECORDS_AT + (index + 1) * RECORD];
-        if index >= count {
-            if raw.iter().any(|byte| *byte != 0) {
-                return None;
-            }
-            continue;
-        }
-        let record = Record::decode(raw);
-        let label_length = usize::from(record.label_length);
-        // Entry IDs are never 0 (2.3) and strictly ascending; extents are
-        // contiguous from sector 16, which also makes first sectors ascend.
-        // Sealing sequences: FORMAT commits sequence 1 without records and
-        // each SEAL adds one record at the new sequence, so they are >= 2,
-        // <= the copy's sequence and strictly ascending (revision 3).
-        if record.id <= previous
-            || record.sealed_sequence < 2
-            || record.sealed_sequence > catalog.sequence
-            || record.sealed_sequence <= previous_sealed
-            || record.id >= catalog.next_entry
-            || record.first != end
-            || record.length < MIN_ARCHIVE
-            || record.length > MAX_ARCHIVE
-            || label_length == 0
-            || label_length > LABEL
-            || raw[41..48].iter().any(|byte| *byte != 0)
-            || record.label[label_length..].iter().any(|byte| *byte != 0)
-            // O14: label content at mount, the CREATE rule of 2.3 in full.
-            // After the length clauses, so the slice is within the label.
-            || !crate::valid_name(&record.label[..label_length])
-        {
-            return None;
-        }
-        end = record.end();
-        previous = record.id;
-        previous_sealed = record.sealed_sequence;
-        catalog.records[index] = record;
+    Some(catalog)
+}
+
+fn decode_record(
+    bytes: &[u8; COPY],
+    index: usize,
+    catalog: &Catalog,
+    previous: u64,
+    previous_sealed: u64,
+) -> Option<Record> {
+    let raw = &bytes[RECORDS_AT + index * RECORD..RECORDS_AT + (index + 1) * RECORD];
+    let record = Record::decode(raw);
+    let label_length = usize::from(record.label_length);
+    if record.id <= previous
+        || record.sealed_sequence < 2
+        || record.sealed_sequence > catalog.sequence
+        || record.sealed_sequence <= previous_sealed
+        || record.id >= catalog.next_entry
+        || record.length < MIN_ARCHIVE
+        || record.length > MAX_ARCHIVE
+        || label_length == 0
+        || label_length > LABEL
+        || raw[41..48].iter().any(|byte| *byte != 0)
+        || record.label[label_length..].iter().any(|byte| *byte != 0)
+        || !crate::valid_name(&record.label[..label_length])
+    {
+        return None;
     }
-    (catalog.next_free == end).then_some(catalog)
+    Some(record)
 }
 
 /// The higher-sequence copy `higher` extends `lower` (2.6 mount rule).

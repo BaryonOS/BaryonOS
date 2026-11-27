@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "3009755beedc3cd98605d3a8a2e2f6441ba2ae5b",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/l01-artifact-generation-20261127",
+  "task": "L01 artifact generation P2 repair: bind kernel-core frame ownership and sealing to artifact identity and generation, reject a different live generation with the same id, and regress the stale-generation seal of reused frames",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The kernel-core regression failed on the parent implementation and passes after the fix; 69 unit and 12 integration tests pass. The native-ai-job build and QEMU regression pass (raw exit 33), but that profile does not execute the new artifact mapping path. L01 model mapping, production S1b integration, full model inference and formal L01 acceptance remain open."
+}

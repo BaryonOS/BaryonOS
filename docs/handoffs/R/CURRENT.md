@@ -19,7 +19,15 @@ Release). It is not a backlog: criteria live in `docs/progress.json` (R01–R03)
   before any numeric budget becomes binding; budgets are never relaxed after a
   failed measurement.
 
-## Review checkpoint (27 November 2026, 19:44Z UTC)
+## Output-path follow-up (27 November 2026, 20:26Z UTC)
+
+#632 landed as `3009755b`; the landed tree matched the merge of its parent and
+reviewed head. A late Graphify finding identified a relative output-directory
+failure in the diagnostic rerun script. This branch resolves the new directory
+before changing worktrees and adds a stubbed path regression. The original
+reports and hashes are not altered; this does not accept R02.
+
+## Review checkpoint (27 November 2026, 19:44Z UTC; historical)
 
 The following corrects the 15:42Z #530 handoff and supersedes conflicting
 measurement interpretations below. The authoritative live handoff remains
