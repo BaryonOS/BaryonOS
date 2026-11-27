@@ -1,6 +1,6 @@
 {
   "date": "2026-11-27",
-  "source_commit": "d5124431",
+  "source_commit": "d5124431e3ee20c246ad3d8170f1c502f0ddfa29",
   "assessment_basis": "parent_commit",
   "branch": "fix/ui-u05-compact-recovery",
   "task": "UI-U-C13-20261127 U05 compact recovery (#630, ADR-U-OWNER-20261127): compact status copy and the save-progress bar inside the viewport; SR11 enabled",
