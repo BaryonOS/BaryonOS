@@ -147,6 +147,32 @@ commit of #572.
   `merge_group.base_sha`; they never narrow on it, so this is harmless here.
   PR B must plan them from T before any job is skipped on `merge_group`.
 
+**Amendment (PR B, 27 November 2026, CI specialist, #494).** PR B
+(branch `ci/merge-group-skip-20261126`) is the later change named under
+Source; the statements above that describe the state "until PR B" are
+superseded as follows.
+
+- Each of the 19 workflows that merge-hold can leave out of a merge group
+  gains a `merge-group-gate` job (`merge_group` only). It loads
+  `tools/merge_hold.py` from T through `./.github/actions/trusted-base` and
+  asks `merge_group_skip()`. Only an explicit `True` skips the workflow's
+  jobs on the queue commit; a missing function, an error or any other answer
+  runs every job. On every other event the gate is skipped and changes
+  nothing. Unselected suites therefore no longer start or use runners on the
+  queue commit.
+- `ci.yml`, CodeQL and the three workflows with a `select` job have no gate
+  and still run whole on `merge_group`. Those three `select` jobs now plan
+  `merge_group` from T, not from `merge_group.base_sha`.
+- The two-source rule stays unchanged; consolidating the selection logic is
+  separate work.
+- Accepted risk (D2 finding F1): the gate jobs and merge-hold fetch `main`
+  separately. In a stacked queue an entry ahead can land between those
+  fetches, so a gate can derive a newer T and skip a workflow that merge-hold
+  still expects. merge-hold does not accept the skipped jobs, and the group
+  is ejected and re-queued. This costs a queue round but never passes an
+  untested gate (fail-closed), so it is accepted rather than adding a shared
+  T between workflows.
+
 **Revise when:** the first queue trial shows a stacked group's base or run
 payloads that differ from the above; PR B lands; or GitHub documents the
 queue ref and base of stacked groups.

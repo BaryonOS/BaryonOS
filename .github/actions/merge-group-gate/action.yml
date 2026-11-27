@@ -40,6 +40,7 @@ runs:
         set -euo pipefail
         python3 -B -I - "$RUNNER_TEMP/merge-hold-base/merge_hold.py" <<'PY'
         import importlib.util
+        import json
         import os
         import sys
 
@@ -54,7 +55,9 @@ runs:
             elif skip(os.environ["WORKFLOW"]) is True:
                 run, reason = "false", "merge-hold leaves this workflow out of the queue commit, so its jobs skip"
         except BaseException as error:  # any doubt runs every job; merge-hold still judges them
-            run, reason = "true", f"{type(error).__name__}: {error}; every job runs"
+            # As merge_hold.hidden_listing: ASCII-escape the text and escape % so the runner decodes nothing.
+            detail = json.dumps(f"{type(error).__name__}: {error}", ensure_ascii=True).replace("%", "%25")
+            run, reason = "true", f"{detail}; every job runs"
         print(f"::notice::merge-group gate: {reason}.")
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
             output.write(f"run={run}\n")
