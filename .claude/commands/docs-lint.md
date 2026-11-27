@@ -1,5 +1,8 @@
 # /docs-lint -- integrity check for the docs wiki
 
+Compatibility alias. The model-independent procedure is in
+`docs/project-docs/operations/documentation-workflow.md`.
+
 Run the script for anything a script can decide.
 
 ```bash
@@ -14,7 +17,7 @@ missing frontmatter, citations past end of file, unfinished checklists,
 
 | | Meaning | What to do |
 |---|---|---|
-| **stale** | the code this page points at **changed** | `/docs-sync` |
+| **stale** | the code this page points at **changed** | run the sync procedure |
 | **unverified** | freshness **cannot be decided** | a human has to read it |
 
 Three ways a page becomes unverified:

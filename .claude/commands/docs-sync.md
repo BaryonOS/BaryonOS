@@ -1,6 +1,8 @@
 # /docs-sync -- reflect code changes into the docs wiki
 
-Follow **Workflow > /docs-sync** in `docs/project-docs/CLAUDE.md`.
+Compatibility alias. Follow the model-independent procedure in
+`docs/project-docs/operations/documentation-workflow.md` and the maintenance contract in
+`docs/project-docs/AGENTS.md`.
 
 ## Procedure
 
@@ -19,7 +21,9 @@ docs still moves HEAD. Without this filter you keep seeing "N commits behind" wh
 there is nothing to do.
 
 ```bash
-git log <baseline>..HEAD --oneline -- . ':(exclude)docs' ':(exclude).claude' ':(exclude)CLAUDE.md'
+git log <baseline>..HEAD --oneline -- . \
+  ':(exclude)docs' ':(exclude).agents' ':(exclude).claude' \
+  ':(exclude).codex' ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md'
 ```
 
 **If it is empty, stop: "no code changes, /docs-sync not needed".**
@@ -28,7 +32,9 @@ Leave `verified_at` alone -- the code has not moved, so it is still valid.
 ### 2-1. Collect changed files
 
 ```bash
-git log <baseline>..HEAD --name-only --pretty=format: -- . ':(exclude)docs' ':(exclude).claude' ':(exclude)CLAUDE.md' \
+git log <baseline>..HEAD --name-only --pretty=format: -- . \
+  ':(exclude)docs' ':(exclude).agents' ':(exclude).claude' \
+  ':(exclude).codex' ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md' \
   | sort -u | grep -v '^$'
 ```
 

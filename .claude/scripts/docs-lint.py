@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Integrity check for a docs/ wiki.
+"""Model-independent integrity check for the maintained documentation layer.
 
   python3 lint.py --root .
   python3 lint.py --root . --quiet          summary only
   python3 lint.py --root . --exclude raw,promo
 
 Only checks what a script can decide mechanically. Contradictions between pages and
-duplicated prose need reading — see the /docs-lint command for those.
+duplicated prose need reading — see docs/project-docs/operations/documentation-workflow.md.
 
 Exit code: 1 if there are problems.
 """
@@ -22,10 +22,10 @@ from pathlib import Path
 # Bumped when this file's behaviour changes. The SessionStart hook compares the copy
 # in a repository against the plugin's and says so when they differ; a translated
 # fork keeps the same number once it has the same logic.
-LINT_VERSION = "4"
+LINT_VERSION = "5"
 
 REQUIRED_FM = ("title", "type", "verified_at")
-META_PAGES = {"index", "log", "CLAUDE", "README"}
+META_PAGES = {"index", "log", "AGENTS", "CLAUDE", "README"}
 DEFAULT_EXCLUDE_DIRS = ["raw"]
 
 # Extensions treated as code citations. Kept wide because it varies by project;
@@ -356,7 +356,7 @@ def main() -> int:
             for f in scaffold_todo:
                 print(f"   ! {f}")
         if stale:
-            print(f"\n{len(stale)} stale -> run /docs-sync")
+            print(f"\n{len(stale)} stale -> run the documentation sync procedure")
             for n, c in stale:
                 print(f"   ! {n} ({c} commits)")
         if unverified:

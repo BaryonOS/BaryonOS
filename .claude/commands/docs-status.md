@@ -1,14 +1,18 @@
 # /docs-status -- docs wiki status
 
+Compatibility alias. The model-independent procedure is in
+`docs/project-docs/operations/documentation-workflow.md`.
+
 ## 1. Commits not yet reflected (first)
 
 Against the oldest `verified_at` across all pages. **Count code and docs separately** --
 a docs-only commit is not something `/docs-sync` acts on.
 
 ```bash
-EXCL=". :(exclude)docs :(exclude).claude :(exclude)CLAUDE.md"
-git log <baseline>..HEAD --oneline -- $EXCL | wc -l          # code
-git log <baseline>..HEAD --oneline -- docs .claude | wc -l   # docs
+git log <baseline>..HEAD --oneline -- . \
+  ':(exclude)docs' ':(exclude).agents' ':(exclude).claude' \
+  ':(exclude).codex' ':(exclude)AGENTS.md' ':(exclude)CLAUDE.md' | wc -l
+git log <baseline>..HEAD --oneline -- docs .agents .claude .codex AGENTS.md CLAUDE.md | wc -l
 ```
 
 ```
