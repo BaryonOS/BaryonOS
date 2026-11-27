@@ -242,6 +242,13 @@ KV/scratch) need their own owner decisions (section 7).
   under the artifact feature `Paging::destroy` asserts that PDPT entry 2 is zero,
   so a live link can never be dropped silently with the process PDPT frame.
   `retire_authority` (`kernel/src/m2/m3.rs:2871`) also revokes the capability.
+  The exit and terminate paths unlink a remaining link themselves (PDPT entry 2
+  cleared, link count decremented by one) before `Paging::destroy`; a native
+  negative test proves that a process exiting while linked leaves a link count of
+  0 and an empty entry 2 (K, #534 issuecomment-7220081163). The release order is:
+  unlink everywhere (link count 0), then free the shared artifact tables, then
+  free the artifact frames, a step that refuses frames still mapped
+  (K, #534 issuecomment-7220170046).
 - `audit_process` (`kernel/src/m2/m3.rs:1322`) is extended: PDPT entry 2 is zero,
   or exactly the shared artifact directory with the flags above while the process
   holds `ARTIFACT_MAP` and the artifact is `Verified`. The shared directory and its
@@ -265,7 +272,8 @@ Follow the manifest-only, non-delegable rights in `capability-core`
 artifact object, issued by the manifest, without DERIVE or TRANSFER, bound to PID
 and generation. A second right `ARTIFACT_VERIFY` has the same properties and
 names the same object. Syscall numbers were assigned by K in the `0xA0` block
-(#534 issuecomment-7219369139); `0xA3–0xAF` stay reserved for later artifact
+(#534 issuecomment-7219369139), and K assigned `0xA3` to `artifact_unmap`
+(#534 issuecomment-7220081163); `0xA4–0xAF` stay reserved for later artifact
 calls, and outside the `native-ai-artifact` profile every `0xA*` number returns
 `-2` (ENOSYS) as contract §4 requires. The shape is:
 
@@ -273,7 +281,7 @@ calls, and outside the `native-ai-artifact` profile every `0xA*` number returns
 0xA0 artifact_map(handle)             -> Ok(base, length) | Err(Denied | Stale | NotVerified | Busy)
 0xA1 artifact_verify(handle, digest)  -> Ok | Err(Denied | Stale | NotSealed | Incomplete | Mismatch)
 0xA2 artifact_read(handle, buf, len)  -> Ok(copied, 0 at end) | Err(Denied | Stale | NotSealed | Fault)
-artifact_unmap(handle)                -> Ok | Err(Denied | Stale | NotMapped)   (number assigned in S1)
+0xA3 artifact_unmap(handle)           -> Ok | Err(Denied | Stale | NotMapped)
 ```
 
 `artifact_map` needs `ARTIFACT_MAP`; `artifact_read` and `artifact_verify` need
@@ -282,6 +290,9 @@ accepted from user space: the kernel returns base and exact length, keeps the re
 cursor in the artifact state, and `artifact_read` copies at most one fixed chunk
 (64 KiB) per call into the caller's private buffer through `bounded_copy_plan`,
 so every call is bounded (contract §3) and the user-space loop is resumable.
+`artifact_read` with a buffer in the artifact window returns `-3` (Fault) without
+writing, because the copy plan requires writable, caller-owned user pages below
+`0x80000000` (K, #534 issuecomment-7220170046).
 `artifact_verify` is an O(1) 32-byte comparison and returns `Incomplete` until the
 cursor equals the length. `Mismatch` moves the artifact to `Rejected`. Bytes after
 `length` within the last page are zero. The 32-byte `digest` argument is the
@@ -355,7 +366,8 @@ Native (QEMU, one CPU):
 14. A synthetic artifact larger than USER_QUOTA (for example 3,072 pages, 12 MiB)
     maps successfully, proving it is not charged to the process quota.
 15. A syscall that takes a user buffer, given a pointer into `0x80000000..`,
-    returns an error; no bytes are copied and the kernel does not fault (I2a).
+    returns an error; no bytes are copied and the kernel does not fault (I2a)
+    (including `artifact_read` into the artifact window).
 16. Access after unlink faults (#PF); a second link is refused; `Paging::destroy`
     with a linked window asserts; `artifact_read` or `artifact_verify` without
     `ARTIFACT_VERIFY` is refused before any state change (K's list,
@@ -383,7 +395,7 @@ link/unlink and the audit extension; one native fixture in the existing 256 MiB
 profile with a 3,072-page synthetic artifact filled by the kernel with a
 deterministic pattern, a holder, a peer without the right and one slot reuse
 (tests 7–16). The digest reported in S1 is a build-time host digest, labelled as a
-test stub until S2 adds the ring-3 verifier. The S1 pull request adds the `0xA0`–`0xA2`
+test stub until S2 adds the ring-3 verifier. The S1 pull request adds the `0xA0`–`0xA3`
 rows to `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md` §4, and K reviews the
 paging and audit hunks as interface owner. Because `native-ai-job` excludes
 `milestone-m4`, S1 needs its own profile; the name `native-ai-artifact` and a
