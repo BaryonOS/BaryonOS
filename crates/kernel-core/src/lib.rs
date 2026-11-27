@@ -3,8 +3,8 @@
 //! Fixed-capacity ownership and physical-alias policy. No physical dereferences.
 pub const PAGE: u64 = 4096;
 pub const USER_QUOTA: usize = 2048;
-/// Pages one sealed artifact may own (ADR-L01-ARTIFACT-MAP-20261127), counted
-/// separately from [`USER_QUOTA`].
+/// Pages all artifact frames together may own (ADR-L01-ARTIFACT-MAP-20261127;
+/// phase 1 has one artifact), counted separately from [`USER_QUOTA`].
 /// shortcut: a fixed 12 MiB phase-1 bound for the synthetic S1 artifact; S3
 /// replaces it with the separately accounted weight pool sized to the artifact.
 pub const ARTIFACT_QUOTA: usize = 3072;
@@ -308,8 +308,9 @@ impl<const N: usize> Frames<N> {
         Ok(())
     }
 
-    /// Artifact frames are allocated unsealed, for a nonzero id, within
-    /// [`ARTIFACT_QUOTA`]; they never count toward [`USER_QUOTA`].
+    /// Artifact frames are allocated unsealed, for a nonzero id, within one
+    /// global [`ARTIFACT_QUOTA`] across every artifact id; they never count
+    /// toward [`USER_QUOTA`].
     fn artifact_preflight(&self, owner: Owner, count: usize) -> Result<(), Error> {
         let Owner::Artifact { id, sealed } = owner else {
             return Ok(());
@@ -320,7 +321,7 @@ impl<const N: usize> Frames<N> {
         let owned = self
             .owners
             .iter()
-            .filter(|o| matches!(o, Owner::Artifact { id: i, .. } if *i == id))
+            .filter(|o| matches!(o, Owner::Artifact { .. }))
             .count();
         if owned
             .checked_add(count)

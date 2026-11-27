@@ -404,6 +404,17 @@ mod tests {
             f.allocate(owner(false), |_| panic!("zeroed on failure")),
             Err(Error::Quota)
         );
+        // The budget is global: another artifact id gets no second budget.
+        assert_eq!(
+            f.allocate(
+                Owner::Artifact {
+                    id: ID + 1,
+                    sealed: false
+                },
+                |_| {}
+            ),
+            Err(Error::Quota)
+        );
         // Id 0 and pre-sealed owners are refused.
         assert_eq!(
             f.allocate(
