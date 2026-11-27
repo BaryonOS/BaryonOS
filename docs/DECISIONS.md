@@ -1850,8 +1850,13 @@ must keep its `.text` and `.data` byte-identical.
    counter changes during a down window", now excludes exactly one thing.
    That is the device completion of a TX published before the down edge,
    which increments `tx_completed` and the new `tx_edge_completed` by one each.
-   A down window still allows no publication, doorbell, RX delivery or
-   other counter change. Further revisit triggers: a -27 outside
+   The existing RX path also stays allowed. An RX completion polled while the
+   link is down or unknown is dropped as today: `rx_completed` and
+   `rx_dropped` increase by one each, the copy is zeroed, and `post_rx`
+   hands the same pinned page back to the device. That repost is not counted
+   as a down-window publication (`docs/implementation/VIRTIO-NET.md`).
+   Apart from these two paths, a down window allows no TX publication, no
+   RX delivery and no other counter change. Further revisit triggers: a -27 outside
    `test-system-net-link*`, and a -27 counted in `denied`.
 6. **Epoch leak, recorded residual (G3).** A physical device that holds TX
    across down and then up could emit an epoch-N frame on the link of epoch N+1,
