@@ -171,7 +171,12 @@ impl MessageDecrypter for RecordsCipher {
         sequence: u64,
     ) -> Result<InboundPlainMessage<'a>, Error> {
         let length = message.payload.len();
-        if !(TAG_LEN + 1..=TLS_CIPHERTEXT_LIMIT).contains(&length) {
+        // Rustls's AAD helper uses the fixed TLS 1.3 outer type and version.
+        // Require those values on the wire before authenticating the record.
+        if message.typ != ContentType::ApplicationData
+            || message.version != ProtocolVersion::TLSv1_2
+            || !(TAG_LEN + 1..=TLS_CIPHERTEXT_LIMIT).contains(&length)
+        {
             return Err(Error::DecryptError);
         }
         let clear_length = length - TAG_LEN;
@@ -240,6 +245,15 @@ mod tests {
                 dec.decrypt(msg, sequence),
                 Err(Error::DecryptError)
             ));
+        }
+
+        for (typ, version) in [
+            (ContentType::Handshake, outbound.version),
+            (outbound.typ, ProtocolVersion::TLSv1_1),
+        ] {
+            let mut wire = outbound.payload.as_ref().to_vec();
+            let msg = InboundOpaqueMessage::new(typ, version, &mut wire);
+            assert!(matches!(dec.decrypt(msg, 7), Err(Error::DecryptError)));
         }
 
         let mut valid = outbound.payload.as_ref().to_vec();

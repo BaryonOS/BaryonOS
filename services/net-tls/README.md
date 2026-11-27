@@ -18,6 +18,22 @@ separate bounded request. TLS profile builders receive a resolved signing
 identity through their existing resolver interfaces. The provider rejects
 private-key import and traffic-key extraction.
 
+The [provider entry point](src/b1/mod.rs) combines the
+[hybrid exchange](src/b1/key_exchange.rs), the [TLS suite](src/b1/cipher_suite.rs)
+and [signature verification](src/b1/signature.rs).
+
+The independent known-answer fixture
+[`x25519mlkem768-kat.bin`](tests/fixtures/x25519mlkem768-kat.bin) contains public
+test vectors from
+[NIST ACVP key generation](https://github.com/usnistgov/ACVP-Server/blob/975de31eb83d87039ec88934fdc47d8c312b892d/gen-val/json-files/ML-KEM-keyGen-FIPS203/internalProjection.json)
+and [NIST ACVP encapsulation](https://github.com/usnistgov/ACVP-Server/blob/975de31eb83d87039ec88934fdc47d8c312b892d/gen-val/json-files/ML-KEM-encapDecap-FIPS203/internalProjection.json)
+for ML-KEM-768 (case 26 in each), combined in RFC 10024 order with
+[RFC 7748 §6.1](https://www.rfc-editor.org/rfc/rfc7748.html#section-6.1).
+Its SHA-256 is `d38234a616de28e30d6294b512055ca7d6c342899378c63db72b67b45c0bbe19`.
+The field order in bytes is Alice scalar (32), key-generation `d || z` (64),
+client share (1216), Bob scalar (32), encapsulation message (32), peer share
+(1216), server share (1120) and combined secret (64).
+
 ### Dependency provenance
 
 The direct pins below are stable releases, with defaults disabled. The

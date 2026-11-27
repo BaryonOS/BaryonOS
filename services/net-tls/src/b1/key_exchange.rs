@@ -161,6 +161,50 @@ mod tests {
         }
     }
 
+    #[derive(Debug)]
+    struct KnownDraws(Mutex<core::array::IntoIter<&'static [u8], 2>>);
+
+    impl SecureRandom for KnownDraws {
+        fn fill(&self, output: &mut [u8]) -> Result<(), GetRandomFailed> {
+            let bytes = self.0.lock().unwrap().next().ok_or(GetRandomFailed)?;
+            if output.len() != bytes.len() {
+                return Err(GetRandomFailed);
+            }
+            output.copy_from_slice(bytes);
+            Ok(())
+        }
+    }
+
+    fn known_group(draws: [&'static [u8]; 2]) -> HybridGroup {
+        use alloc::boxed::Box;
+        HybridGroup(Box::leak(Box::new(KnownDraws(Mutex::new(
+            draws.into_iter(),
+        )))))
+    }
+
+    #[test]
+    fn hybrid_wire_layout_matches_independent_known_answers() {
+        // NIST ACVP ML-KEM-768 key generation and encapsulation, plus RFC 7748 §6.1.
+        // The published sample key material belongs exclusively to this fixture.
+        let fixture = include_bytes!("../../tests/fixtures/x25519mlkem768-kat.bin");
+        let (alice, rest) = fixture.split_at(32);
+        let (seed, rest) = rest.split_at(64);
+        let (client_share, rest) = rest.split_at(1216);
+        let (bob, rest) = rest.split_at(32);
+        let (message, rest) = rest.split_at(32);
+        let (peer_share, rest) = rest.split_at(1216);
+        let (server_share, shared_secret) = rest.split_at(1120);
+        assert_eq!(shared_secret.len(), 64);
+
+        let client = known_group([alice, seed]).start().unwrap();
+        assert_eq!(client.pub_key(), client_share);
+        let server = known_group([bob, message])
+            .start_and_complete(peer_share)
+            .unwrap();
+        assert_eq!(server.pub_key, server_share);
+        assert_eq!(server.secret.secret_bytes(), shared_secret);
+    }
+
     #[test]
     fn both_roles_interoperate_with_aws_lc_and_refuse_invalid_inputs() {
         static DRAWS: Draws = Draws {
