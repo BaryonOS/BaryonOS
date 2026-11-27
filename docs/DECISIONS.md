@@ -77,9 +77,24 @@ separate ADR change, and K's queue entry for #604 had no recorded basis.
 appointed specialist without recurring permission requests. Only owner-reserved
 items and real exceptions reach the project owner.
 
+**Alternatives:** none were recorded with the owner decision. The previous
+state, a named delegation per specialist in separate ADRs and handoffs, is the
+implicit alternative this decision replaces.
+
+**Evidence:** this is a governance decision with no code change. No gate or
+test executes it; its evidence is the owner's quotation above and the merge
+conditions, required checks and gates that already apply to every integration.
+
+**Rollback:** the project owner can withdraw or narrow the mandate by a newer
+decision. Until a superseding ADR is recorded, the per-specialist delegations of
+ADR-MERGE-DELEGATION-20261123, ADR-SPECIALIST-TEAM-20261125 and
+ADR-MERGE-QUEUE-AUTONOMY-20261126 apply as before. Pull requests already
+integrated are not reverted by the rollback alone.
+
 **Review criteria:** a pull request integrated under this ADR lies within the
-author's approved area, passed every required check and the applicable gates,
-and was not approved by its own author as an independent review.
+approved area of both its author and the integrating specialist, passed every
+required check and the applicable gates, and was not approved by its own author
+as an independent review.
 
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
