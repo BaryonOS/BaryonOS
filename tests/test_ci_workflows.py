@@ -2152,6 +2152,20 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         self.assertEqual((row["class"], row["input_sets"], row["evidence"]),
                          ("rwa", ["native"], [preserve["with"]["name"]]))
 
+    def test_task_grant_broker_cases_run_in_qemu_smoke(self):
+        """A03: the normal, denied and client-fault broker cases each build their own profile and keep evidence."""
+        job = self.workflows[".github/workflows/ci.yml"]["jobs"]["qemu-smoke"]
+        preserve, = [step for step in job["steps"] if step.get("uses") == "./.github/actions/preserve-evidence"]
+        for feature, case in (("native-task-grant", "normal"), ("test-task-grant-denied", "denied"),
+                              ("test-task-grant-fault", "fault")):
+            with self.subTest(case=case):
+                step, = [step for step in job["steps"] if f"run_task_grant.py --case {case}\n" in step.get("run", "")]
+                self.assertEqual(step["run"].count(f'NOS_BUILD_DIR="$PWD/build/ci-task-grant-{case}"'), 2)
+                self.assertLess(step["run"].index(f"tools/build.py --kernel-feature {feature}\n"),
+                                step["run"].index(f"tools/run_task_grant.py --case {case}\n"))
+                self.assertIn(f"build/ci-task-grant-{case}/native-task-grant-{case}.json",
+                              preserve["with"]["path"])
+
 
 WINDOW_WORKFLOW = ".github/workflows/native-window-session.yml"
 # Every report assertion of the native window gates (CI-EVIDENCE, U02-U06),

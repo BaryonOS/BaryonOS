@@ -451,6 +451,18 @@ jobs:
           NOS_TARGET_DIR="$PWD/target/ci-task-grant-denied" \
           CARGO_TARGET_DIR="$PWD/target/ci-task-grant-denied" \
           python3 -B tools/run_task_grant.py --case denied
+      - name: A03 task-grant broker - client fault
+        shell: bash
+        run: |
+          rm -rf build/ci-task-grant-fault target/ci-task-grant-fault
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-fault" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-fault" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-fault" \
+          python3 -B tools/build.py --kernel-feature test-task-grant-fault
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-fault" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-fault" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-fault" \
+          python3 -B tools/run_task_grant.py --case fault
       - name: Preserve compact QEMU diagnostics
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
@@ -529,6 +541,14 @@ jobs:
             build/ci-task-grant-denied/run/native-task-grant-denied-*/result.json
             build/ci-task-grant-denied/run/native-task-grant-denied-*/serial.txt
             build/ci-task-grant-denied/run/native-task-grant-denied-*/stderr.txt
+            build/ci-task-grant-fault/manifest.json
+            build/ci-task-grant-fault/native-task-grant-fault.json
+            build/ci-task-grant-fault/logs/*.json
+            build/ci-task-grant-fault/logs/*.stdout.txt
+            build/ci-task-grant-fault/logs/*.stderr.txt
+            build/ci-task-grant-fault/run/native-task-grant-fault-*/result.json
+            build/ci-task-grant-fault/run/native-task-grant-fault-*/serial.txt
+            build/ci-task-grant-fault/run/native-task-grant-fault-*/stderr.txt
 
   upload-coverage-rust:
     name: upload-coverage-rust

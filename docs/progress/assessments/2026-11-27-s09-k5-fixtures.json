@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "af7415df6aa64f0f293c5e88b59970c43a2f3ff6",
+  "assessment_basis": "reviewed_main_commit",
+  "branch": "claude/s09-k5-fixtures-20261127",
+  "task": "S09 K5 native fixtures: M6e stage k5 (kernel profile test-volume-k5) showing per-disk admission (F1) and no disk-1 admission between a disk-1 timeout and the acknowledged reset (F2); stage-count pins from 34 to 35",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: a test-only native fixture for one R5 precondition of S09 (K5 broker contract, section 8.2 R5). It passes locally under QEMU TCG only and is not yet hosted; R5's other preconditions and every native destination stage stay open, so S09 is not accepted."
+}

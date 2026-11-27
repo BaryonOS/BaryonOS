@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "3de6c87ecdc4d63d96dcc6994bfb2e58ad22b72e",
+  "assessment_basis": "parent_commit",
+  "branch": "g/adr-specialist-merge-mandate",
+  "task": "Record the owner decision of 27 Nov 2026 ~11:49Z as ADR-SPECIALIST-MANDATE-20261127: every appointed specialist enqueues and integrates its own pull requests (generalises ADR-MERGE-QUEUE-AUTONOMY-20261126)",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: decision record only. Adds ADR-SPECIALIST-MANDATE-20261127 to docs/DECISIONS.md with the verbatim owner quotation and translation, and a cross-reference in ADR-MERGE-QUEUE-AUTONOMY-20261126. D1-D3, the Security Floor, required checks and owner reservations are unchanged. No code, test or criterion changes; a merge of this decision record is not acceptance of any criterion."
+}

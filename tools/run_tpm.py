@@ -3,7 +3,9 @@
 writes TEST hierarchy auth and NV (M1-HAUTH) into that disposable state only;
 loader-hauth-no-rng checks that the loader halts after the CLOSED extend, and the
 pre-seeded cases (tools/tpm_seed.py) that it halts, repairs or reads a moved DA
-counter on a prepared state."""
+counter on a prepared state. Only the boots that pin MODE:PROVISION run the TEST
+enrollment loader; every other HAUTH boot runs the verify-only loader, which halts
+TPM_UNENROLLED on a never-provisioned or cleared TPM (REL-05 §7.9)."""
 from __future__ import annotations
 
 import argparse
@@ -29,7 +31,9 @@ SEED = {"loader-hauth-squat": (0, "squat"), "loader-hauth-foreign-owner": (0, "f
         "loader-hauth-owner-squat": (0, "owner-squat"), "loader-hauth-unbound": (1, "unbound"),
         "loader-hauth-cut": (0, "cut"), "loader-hauth-owner-squat-empty": (0, "owner-squat-empty"),
         "loader-hauth-da-counted": (0, "da-counted"), "loader-hauth-lockout-cut": (0, "lockout-cut"),
-        **{f"loader-hauth-cut-{seed}": (0, seed) for seed in ("hauth-defined", "hauth-written", "lrec-written")}}
+        **{f"loader-hauth-cut-{seed}": (0, seed) for seed in ("hauth-defined", "hauth-written", "lrec-written")},
+        # REL-05 §7.9: a never-provisioned TPM, and a TPM2_Clear after a provisioning boot.
+        "loader-hauth-unenrolled": (0, "fresh"), "loader-hauth-cleared": (1, "clear")}
 # Seeded power cuts that the loader repairs by provisioning again (MODE:PROVISION on boot 0).
 CUTS = ("loader-hauth-cut-hauth-defined", "loader-hauth-cut-hauth-written", "loader-hauth-cut",
         "loader-hauth-cut-lrec-written")
@@ -43,15 +47,18 @@ FEATURES = {"normal": "native-tpm-crb", "absent": "test-tpm-crb-absent",
 LOADER = {"loader-probe": "tpm-loader-probe-test", "loader-rng": "tpm-loader-probe-test",
           **dict.fromkeys(("loader-hauth", "loader-hauth-no-rng", *SEED), "tpm-hauth-provision-test")}
 BOOTS = {"loader-hauth": 2, "loader-hauth-unbound": 2, "loader-hauth-owner-squat-empty": 2,
-         "loader-hauth-lockout-cut": 2, **dict.fromkeys(CUTS, 2)}
+         "loader-hauth-lockout-cut": 2, "loader-hauth-cleared": 2, **dict.fromkeys(CUTS, 2)}
 # Cases whose non-halt boots must provision or verify exactly like loader-hauth (or as REPAIRED).
 PROVISIONED = ("loader-hauth", "loader-hauth-unbound", "loader-hauth-owner-squat-empty",
-               "loader-hauth-da-counted", "loader-hauth-lockout-cut", *CUTS)
+               "loader-hauth-da-counted", "loader-hauth-lockout-cut", "loader-hauth-cleared", *CUTS)
 # The only case whose seed leaves a nonzero DA lockout counter; every other reads 0.
 DA_SEEDED = ("loader-hauth-da-counted",)
 PROVISION, EXISTING = "LOADER-HAUTH:MODE:PROVISION", "LOADER-HAUTH:MODE:EXISTING"
 SET, KEPT = "LOADER-HAUTH:LOCKOUT:SET", "LOADER-HAUTH:LOCKOUT:KEPT"
 CLOSED = "LOADER-HAUTH:HALT:PCR13:CLOSED"
+# REL-05 §7.9, section 10.1: without ownerAuth a cleared TPM is indistinguishable from a
+# never-provisioned one, so the verify-only loader halts both without a write.
+UNENROLLED = ("LOADER-HAUTH:FAIL:TPM_UNENROLLED:0000000000000000", "LOADER-HAUTH:RECOVERY:REQUIRED")
 # Halt boots, (case, boot) -> (TPMA_PERMANENT ownerAuthSet | lockoutAuthSet, the loader lines
 # after BEGIN and PERMANENT): the loader extends CLOSED, then stops before the kernel.
 HALT = {("loader-hauth-no-rng", 0): (0, (PROVISION, CLOSED, "LOADER-HAUTH:FAIL:RNG_ABSENT:0000000000000000")),
@@ -61,7 +68,9 @@ HALT = {("loader-hauth-no-rng", 0): (0, (PROVISION, CLOSED, "LOADER-HAUTH:FAIL:R
         ("loader-hauth-foreign-owner", 0): (1, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:TPM_RC:000000000000018b")),
         # Owner squat kept by a foreign ownerAuth: the HAUTH Name check refuses it.
         ("loader-hauth-owner-squat", 0): (1, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:PUBLIC:000000000100b304")),
-        ("loader-hauth-unbound", 1): (5, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:UNBOUND:0000000000000000"))}
+        ("loader-hauth-unbound", 1): (5, (EXISTING, CLOSED, "LOADER-HAUTH:FAIL:UNBOUND:0000000000000000")),
+        ("loader-hauth-unenrolled", 0): (0, (CLOSED, *UNENROLLED)),
+        ("loader-hauth-cleared", 1): (0, (CLOSED, *UNENROLLED))}
 HALT_EXIT = 35  # loader serial::exit(0x11), as tools/test.py pins for M1:FAIL
 # U25: the TEST profile has no firmware RNG; `loader-rng` and the HAUTH cases add a virtio-rng device.
 LOADER_RNG = {"loader-probe": "ABSENT", "loader-rng": "PASS", "loader-hauth": "PASS",
@@ -75,6 +84,18 @@ REPAIRED = {("loader-hauth-lockout-cut", 0): (EXISTING, SET, 1)}
 
 def hauth_mode(case, boot):
     return REPAIRED.get((case, boot), HAUTH_MODE[boot])
+
+
+VERIFY = "tpm-hauth-verify-test"
+
+
+def loader(case, boot=0):
+    """M1-HAUTH: the enrollment loader (TEST stand-in for S3b) runs only on the boots that pin
+    PROVISION; every other HAUTH boot runs the verify-only loader (REL-05 §7.9)."""
+    if LOADER.get(case) != "tpm-hauth-provision-test":
+        return LOADER.get(case)
+    halt = HALT.get((case, boot))
+    return LOADER[case] if (halt[1][0] if halt else hauth_mode(case, boot)[0]) == PROVISION else VERIFY
 
 
 def hauth_markers(case, boot):
@@ -314,19 +335,28 @@ def run(case):
     destination = BUILD / f"tpm-{case}-report.json"
     report = {"schema_version": 1, "passed": False, "case": case,
               "source_fingerprint_version": 3, "source_sha256": frozen,
-              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, checked against the firmware TCG2 event log, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power cuts after each provisioning step up to the one between the ownerAuth and lockoutAuth changes) and record public state before and after; no product keys, genesis, ACCEPTED or antirollback"}
+              "scope": "fixed QEMU CRB MMIO, property query, release, isolation and missing-device refusal; loader-probe adds read-only firmware TCG2 SubmitCommand and EFI_RNG_PROTOCOL presence before EBS, loader-rng the same with a TEST virtio-rng device; loader-hauth adds TEST M1-HAUTH BOUND provisioning (HAUTH, LREC, ownerAuth, lockoutAuth) and the PCR 13 CLOSED extend in a disposable swtpm state, checked against the firmware TCG2 event log, then a second boot on that state; loader-hauth-no-rng halts after that extend without a firmware RNG and never reaches the kernel; the pre-seeded cases prepare the disposable state with raw swtpm commands first (platform HAUTH squat, foreign ownerAuth, owner HAUTH squat under a foreign or the empty ownerAuth, one DA-counted failure on a removed scratch index, flipped LREC binding after a provisioning boot, power cuts after each provisioning step up to the one between the ownerAuth and lockoutAuth changes, a never-provisioned TPM and a TPM2_Clear after a provisioning boot) and record public state before and after; only boots that pin MODE:PROVISION run the TEST enrollment loader, every other HAUTH boot the verify-only loader, which halts TPM_UNENROLLED with RECOVERY:REQUIRED on an unset ownerAuth; no product keys, genesis, ACCEPTED or antirollback"}
     save_json(destination, report)
     try:
-        manifest = build(LOADER.get(case), FEATURES[case], LOADER.get(case, FEATURES[case]))
-        if (manifest["kernel_feature"] != FEATURES[case]
-                or manifest["loader_feature"] != LOADER.get(case)
-                or manifest["source_sha256"] != frozen or source_hash() != frozen):
-            raise ValueError("TPM build source/profile changed")
+        report["loader_features"] = [loader(case, boot) for boot in range(BOOTS.get(case, 1))]
+        images = {}
+        for feature in dict.fromkeys(report["loader_features"]):
+            manifest = build(feature, FEATURES[case], feature or FEATURES[case])
+            if (manifest["kernel_feature"] != FEATURES[case]
+                    or manifest["loader_feature"] != feature
+                    or manifest["source_sha256"] != frozen or source_hash() != frozen):
+                raise ValueError("TPM build source/profile changed")
+            # build() reuses BUILD/esp, so each loader profile keeps its own copy.
+            esp = BUILD / "tpm-esp" / (feature or FEATURES[case])
+            shutil.rmtree(esp, ignore_errors=True)
+            shutil.copytree(BUILD / "esp", esp)
+            images[feature] = esp, manifest
 
         def guest(control=None, boot=0):
             label = f"tpm-{case}" if boot == 0 else f"tpm-{case}-boot{boot}"
+            esp, manifest = images[loader(case, boot)]
             report["guest"] = run_guest(
-                label, required_markers=markers(case, boot), tpm_socket=control,
+                label, esp=esp, required_markers=markers(case, boot), tpm_socket=control,
                 forbidden_markers=("TPMCRB:FAIL:", "IPCWAIT:FAIL:", "PANIC", "M3:FAIL:", "LOADER-TPM:FAIL:")
                 + (() if (case, boot) in HALT else ("LOADER-HAUTH:FAIL:",)),
                 expected_exit=HALT_EXIT if (case, boot) in HALT else 33,
@@ -347,6 +377,9 @@ def run(case):
                 if SEED.get(case, (None,))[0] == boot:
                     directory = directory or fresh_state()
                     entry["seeded"] = tpm_seed.seed(*swtpm(), directory, SEED[case][1])
+                    # §7.9: nothing the loader reads tells a cleared TPM from a new one.
+                    if SEED[case][1] == "clear" and entry["seeded"] != tpm_seed.snapshot(*swtpm(), fresh_state()):
+                        raise ValueError("A cleared TPM must look exactly like a never-provisioned one")
                 with backend(report, directory) as control:
                     guest(control, boot)
                 directory = control.parent
