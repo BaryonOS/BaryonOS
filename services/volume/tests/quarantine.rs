@@ -5,7 +5,7 @@ mod common;
 
 use common::{fill, SimDisk};
 use volume_core::{
-    client::{Client, Transport},
+    client::{validate_reply, Client, Transport},
     service::Service,
     wire, Disk, Status, SECTOR,
 };
@@ -85,11 +85,31 @@ fn lane() -> Lane {
 fn status_code_is_distinct() {
     assert_eq!(Status::from_code(-24), Status::Quarantined);
     assert_eq!(Status::Quarantined as i64, -24);
+    assert_eq!(Status::from_code(-26), Status::RemountRefused);
+    assert_eq!(Status::RemountRefused as i64, -26);
     assert_eq!(Status::from_code(-13), Status::Timeout);
     assert_eq!(Status::from_code(-14), Status::NoDevice);
-    // Neighbouring unassigned codes stay Protocol (fail closed).
-    for code in [-22, -23, -25, -26] {
+    // Neighbouring codes outside the volume protocol stay Protocol.
+    for code in [-22, -23, -25, -27, -28] {
         assert_eq!(Status::from_code(code), Status::Protocol, "{code}");
+    }
+}
+
+#[test]
+fn client_distinguishes_lane_quarantine_from_remount_refusal() {
+    let request = wire::Header::new(wire::STAT, 1, EPOCH, 0);
+    for code in [-24, -26] {
+        let mut reply = request;
+        reply.status = code;
+        assert_eq!(
+            validate_reply(&request, &wire::encode(&reply, &[]), EPOCH),
+            Ok(reply)
+        );
+        reply.length = 1;
+        assert_eq!(
+            validate_reply(&request, &wire::encode(&reply, &[1]), EPOCH),
+            Err(Status::Protocol)
+        );
     }
 }
 
