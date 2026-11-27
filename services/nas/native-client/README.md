@@ -9,7 +9,9 @@ candidate verification and uncertain publication using injected test adapters.
 The adapters do not provide cryptography, durable storage or an independent
 native anchor. The existing client commit path does not yet require a durable
 checkpoint before sending. Native grants, recovery custody and guest restart
-evidence remain open.
+evidence remain open. After revocation with an uncertain publication, this
+model keeps the backend closed to replacement writes; an authorized recovery
+and transfer path for the retained checkpoints is not implemented.
 
 `no_std`, allocator-free, `forbid(unsafe_code)`. Reuses only the
 local `nieuw-os-nas-core` interface, `Session`, `Upload`, revisions and errors.
