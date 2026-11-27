@@ -81,6 +81,7 @@ enum Fault {
     ChangedListClock,
     CorruptLateRead,
     DropRead,
+    RemountRefused,
 }
 
 struct Host {
@@ -134,9 +135,15 @@ impl Host {
         let body: [u8; wire::SIZE] = request.data[..wire::SIZE].try_into().unwrap();
         let header = wire::header(&body);
         self.requests.push(header);
-        let mut response = self
-            .service
-            .handle_for(0, request.sender_pid, &body, &mut self.disk);
+        let mut response = if matches!(self.fault, Fault::RemountRefused) {
+            upload::wrap(
+                wire::error_reply(&header, EPOCH, Status::RemountRefused, 0),
+                0,
+            )
+        } else {
+            self.service
+                .handle_for(0, request.sender_pid, &body, &mut self.disk)
+        };
         if matches!(self.fault, Fault::DropCommit) && header.operation == wire::COMMIT {
             return;
         }
@@ -625,6 +632,34 @@ fn kernel_revocation_denies_next_save_and_preserves_draft() {
 #[test]
 fn malformed_envelopes_close_both_endpoints_and_keep_prior_document() {
     run(malformed_envelopes_close_both_endpoints_and_keep_prior_document_impl);
+}
+
+#[test]
+fn remount_refused_closes_endpoints_and_preserves_draft() {
+    run(|| {
+        let host = Host::new();
+        host.borrow_mut().seed(0, b"prior");
+        let (mut d, mut o, mut s) = ([0; 512], [0; 512], [0; 512]);
+        let mut e = editor(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        e.open(0).unwrap();
+        e.replace_contents(b"keep").unwrap();
+        host.borrow_mut().fault = Fault::RemountRefused;
+        assert_eq!(e.save(), Err(Error::Service(Status::RemountRefused)));
+        assert_eq!(e.draft().unwrap().contents, b"keep");
+        assert!(e.is_closed());
+        assert_eq!(host.borrow().closed.len(), 2);
+        let requests = host.borrow().requests.len();
+        assert_eq!(e.save(), Err(Error::Closed));
+        assert_eq!(host.borrow().requests.len(), requests);
+    });
 }
 
 #[test]
