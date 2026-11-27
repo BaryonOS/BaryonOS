@@ -3,15 +3,15 @@
 //! the pinned `model.safetensors`; run with `--release`. Without the variable the
 //! test returns early and proves nothing.
 
-use artifact_store_core::{
-    ArtifactDescriptor, ArtifactRef, ArtifactStore, Error as StoreError, StoreCapacity,
-    READ_CHUNK_MAX,
-};
+mod store;
+
+use artifact_store_core::{ArtifactRef, READ_CHUNK_MAX};
 use baryon_ai_reference_forward::{
     Bf16, Budget, DecoderLayer, KvCache, LayerConfig, Model, NoCancel,
 };
 use nieuw_os_model_format::{parse, Dtype, Tensor};
-use nieuw_os_model_store_contract::{open_pinned_model, Cancellation, ReadBudget};
+use nieuw_os_model_store_contract::{open_pinned_model, ReadBudget};
+use store::{Memory, Never};
 
 const LAYERS: usize = 24;
 const CONFIG: LayerConfig = LayerConfig {
@@ -24,44 +24,6 @@ const CONFIG: LayerConfig = LayerConfig {
     rope_theta: 1_000_000.,
 };
 const VOCAB: usize = 151_936;
-
-struct Never;
-impl Cancellation for Never {
-    fn is_cancelled(&self) -> bool {
-        false
-    }
-}
-
-struct Memory(Vec<u8>, ArtifactRef);
-impl ArtifactStore for Memory {
-    type Handle = ArtifactRef;
-    fn open(
-        &mut self,
-        d: &ArtifactDescriptor,
-    ) -> Result<(Self::Handle, ArtifactDescriptor), StoreError> {
-        Ok((
-            self.1,
-            ArtifactDescriptor {
-                length: self.0.len() as u64,
-                ..*d
-            },
-        ))
-    }
-    fn read_at(
-        &mut self,
-        _: &ArtifactRef,
-        offset: u64,
-        out: &mut [u8],
-    ) -> Result<usize, StoreError> {
-        let start = offset as usize;
-        let n = out.len().min(self.0.len() - start);
-        out[..n].copy_from_slice(&self.0[start..start + n]);
-        Ok(n)
-    }
-    fn capacity(&mut self) -> Result<StoreCapacity, StoreError> {
-        Err(StoreError::Io)
-    }
-}
 
 #[test]
 fn full_graph_matches_candle_oracle() {
