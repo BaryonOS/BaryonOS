@@ -112,6 +112,10 @@ def test_m3():
                               label="test-m3-idle")
         record("all-processes-exit-idle-timer-and-resources", guest,
                ["KS-08", "IDLE_CPL0_IRQ0", "RESOURCE_RECLAIM"])
+        build(kernel_feature="test-m3-syscall-spin", label="test-m3-syscall-spin")
+        guest = run_gate_case("m3", "syscall-spin-continues-within-quantum",
+                              label="test-m3-syscall-spin")
+        record("syscall-spin-continues-within-quantum", guest, ["KS-04", "KS-07", "KS-08"])
         build(kernel_feature="test-m3-large-image", label="test-m3-large-image")
         run_logged([sys.executable, "-B", "-X", "utf8", "userspace/tests/test_large_probe.py",
                     "--elf", str(BUILD / "users/probe_large.elf")], "m3-large-artifact-tests")

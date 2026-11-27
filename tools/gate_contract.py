@@ -73,6 +73,8 @@ def guest_expectation(phase, group):
             required = BOOT_MARKERS + ("M3:IDLE:PASS", "M3:PASS", "M1:PASS")
         elif group == "large-bss-image-exceeds-old-64-mapping-limit":
             required = MILESTONE_MARKERS["m3"]
+        elif group == "syscall-spin-continues-within-quantum":
+            required = MILESTONE_MARKERS["m3"] + ("M3:SYSCALL_SPIN:PASS",)
         elif group == "m1-regression-after-m3":
             required = M1_MARKERS
         else:

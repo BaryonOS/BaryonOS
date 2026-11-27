@@ -1245,6 +1245,9 @@ impl State {
         } else if slot == 0 {
             if mode() == 0 && self.round >= 2 {
                 2
+            } else if cfg!(feature = "test-m3-syscall-spin") {
+                // Kernel mode() stays 0: all 16 processes and the 64-tick check.
+                21
             } else {
                 mode()
             }
@@ -2662,6 +2665,11 @@ fn event(source: *const u64) -> *const u64 {
             assert!(state.processes[..16]
                 .iter()
                 .all(|p| p.selected >= 4 && read_word(p.physical(DATA + 8)) > 0));
+            if cfg!(feature = "test-m3-syscall-spin") {
+                // Slot 0's ordinary syscalls must continue it inside its quantum.
+                assert!(state.syscall_calls > 2 * state.selections);
+                serial::write(b"M3:SYSCALL_SPIN:PASS\n");
+            }
             state.complete_round();
         }
     }

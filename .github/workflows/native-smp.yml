@@ -1080,7 +1080,7 @@ jobs:
           rustup toolchain install 1.100.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
-      - name: All 15 legacy M3/M4 SMP native and negative profiles
+      - name: All 16 legacy M3/M4 SMP native and negative profiles
         run: python3 -B -u tools/test_smp.py
       - name: Preserve tracked source integrity
         run: git diff --exit-code

@@ -109,6 +109,7 @@ def main() -> int:
         ("m3-x87-two", "native-smp-legacy-m3,test-m3-x87", 2, "native-smp-m3-x87"),
         ("m3-unexpected-ud-two", "native-smp-legacy-m3,test-m3-ud", 2, "native-smp-m3-unexpected-ud"),
         ("m3-single-regression", "milestone-m3", 1, "m3"),
+        ("m3-syscall-spin-single", "test-m3-syscall-spin", 1, "m3-syscall-spin"),
         ("m3-four", "native-smp-legacy-m3", 4, "m3-smp"),
         ("m4-two", "native-smp-m4", 2, "m4-smp"),
         ("m4-two-repeat", "native-smp-m4", 2, "m4-smp"),
@@ -131,6 +132,12 @@ def main() -> int:
                     "m3",
                     "private-address-spaces-preemption-fairness-cleanup",
                     label="m3-single-smp-regression",
+                )
+            elif runner == "m3-syscall-spin":
+                report = run_gate_case(
+                    "m3",
+                    "syscall-spin-continues-within-quantum",
+                    label="m3-syscall-spin-single",
                 )
             elif runner == "m4-lifecycle-smp":
                 report = run_smp(cpus, profile="native-smp-m4-lifecycle")

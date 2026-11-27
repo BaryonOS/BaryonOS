@@ -96,7 +96,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "nat
                    "test-smp-clock-masked", "test-smp-clock-divisor", "test-smp-clock-other-cpu",
                    "test-smp-scratch-stall", "test-smp-scratch-slow", "native-smp-m3", "test-smp-m3-fault", "test-smp-m3-fpu-skip", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
-                   "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
+                   "milestone-m3", "test-m3-idle", "test-m3-syscall-spin", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
                    "native-smp-m4-revoke",
                    "native-smp-m3-exit",
