@@ -1,9 +1,9 @@
 {
   "date": "2026-11-27",
-  "source_commit": "478b4ba3877291a3c045a94248ccefffb743fbb4",
+  "source_commit": "d71dc04f9befc946c0236961052f154f6b517a01",
   "assessment_basis": "parent_commit",
   "branch": "claude/k-sched-continue-20261126",
-  "task": "R02-C3 (K): the single-CPU M3 scheduler continues the caller after an ordinary system call within its quantum (ADR-K-SCHED-CONTINUE-20261126), with the new regression case test-m3-syscall-spin",
+  "task": "R02-C3 (K): the single-CPU M3 scheduler continues the caller after an ordinary system call within its quantum (ADR-K-SCHED-CONTINUE-20261126), amended after a hosted network regression so that a -8 (Again) result selects like a yield; regression case test-m3-syscall-spin covers both rules",
   "previous_score": 43,
-  "summary": "43/100 unchanged. K03 stays accepted under its regression gates (milestone-m3, all test-m3-* cases including test-m3-syscall-spin, m3-single-regression); this is a performance change with local QEMU TCG and local KVM evidence only, so no criterion is opened or accepted."
+  "summary": "43/100 unchanged. K03 stays accepted under its regression gates (milestone-m3, all test-m3-* cases including test-m3-syscall-spin with its -8 polling phase, m3-single-regression); this is a performance change with local QEMU TCG and local KVM evidence only, so no criterion is opened or accepted. Hosted acceptance of the amended head is recorded on #602."
 }

@@ -1,0 +1,9 @@
+A af7415df raw [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+A duration_s [16.8, 16.69, 16.77, 17.52, 16.7] median 16.77 | qemu_cpu_s [11.59, 11.26, 11.52, 12.07, 11.47] median 11.52
+A phases 31 phases with >1 frame hash none
+B 6a74ad67 raw [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+B duration_s [16.33, 16.29, 15.78, 15.75, 16.13] median 16.13 | qemu_cpu_s [10.55, 10.37, 9.93, 9.87, 10.16] median 10.16
+B phases 31 phases with >1 frame hash none
+C 6a74ad67 raw [33, 33, 33, 33, 33] passed [True, True, True, True, True]
+C duration_s [15.64, 15.72, 15.56, 15.35, 15.48] median 15.56 | qemu_cpu_s [10.26, 10.47, 10.52, 10.26, 10.39] median 10.39
+C phases 31 phases with >1 frame hash none

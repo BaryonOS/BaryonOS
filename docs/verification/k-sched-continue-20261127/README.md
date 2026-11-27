@@ -18,9 +18,11 @@ same on all three.
 | Native verification list (45 steps) | `0623ddf1` | `20c7e18a` | local QEMU TCG |
 | `JOB_IRQS` re-measure, `qsim-k07` re-run, supervisor gates, host tests | `478b4ba3` | `7c32e6c7` | local QEMU TCG |
 
-Commits after `478b4ba3` on the pull request add documentation and merge
+Commits after `478b4ba3` up to `6a74ad67` add documentation and merge
 `main` `3de6c87e` (#606: `tools/merge_hold.py`, its tests and CI
 documentation only); none of them changes kernel, userspace or gate code.
+The again amendment that follows (`8b580497`, `d71dc04f`) has its own
+evidence in the last section.
 
 ## Window-session A/B (D3 kill criterion)
 
@@ -128,6 +130,111 @@ assertion with raw QEMU exit 35. With the scheduler change it passes with raw
 exit 33 and both rounds report the spin marker. `tests/test_capture_gate.py`
 pins the ordered marker tuple and rejects a transcript that has only the
 first-round verdict.
+
+
+## Network regression and the again amendment (27 November 2026)
+
+Hosted CI on `6a74ad67` passed the job-level D3 rule, but the networked
+system guests ran 27–52 % longer than in same-day non-C3 controls (the
+numbers are on #602 and in the ADR). The project owner kept #602 out of the
+merge queue until a structural fix is verified, without longer timeouts or a
+relaxed D3. Root cause and amendment: see "Network regression and
+amendment" in ADR-K-SCHED-CONTINUE-20261126. A system call that returns -8
+(Again) now selects like a yield instead of continuing.
+
+Three trees, all local; QEMU TCG with `NOS_QEMU_MACHINE=pc-q35-8.2` unless
+stated; fresh build and target directories inside each checkout (the net
+runners refuse directories outside it):
+
+| Side | Tree |
+|---|---|
+| A | `main` `af7415df6aa64f0f293c5e88b59970c43a2f3ff6` (newer than B's base `3de6c87e`; the difference adds power and lock test tooling only and touches no kernel, userspace, SDK or crate code) |
+| B | C3 `6a74ad67d5f56ba4e256ae792f9c6e670ac52f4f` |
+| C | B plus the again amendment, committed unchanged as `8b580497` |
+
+### `tools/test_net_system.py`
+
+[`net-ab-run.sh`](net-ab-run.sh): one discarded warm-up per side, then three
+interleaved rounds (A B C, C B A, B C A). Every run ended with raw QEMU exit
+33 and `passed` true; [`net-ab-summary.txt`](net-ab-summary.txt) holds the
+raw lines.
+
+| Guest | A | B | C |
+|---|---|---|---|
+| `normal` | 54.8–56.8 s | 66.9–68.4 s | 42.9–43.5 s |
+| `recover` | 42.2–42.8 s | 65.4–65.9 s | 42.1–42.2 s |
+
+### Net-link gate (H04-T3)
+
+[`net-link-ab-run.sh`](net-link-ab-run.sh): per side `tools/build.py
+--kernel-feature test-system-net-link`, `tools/run_net_link.py --case normal`
+and `--case nostatus`, then the `test-system-net-link-storm` build and
+`--case storm`; one discarded warm-up per side, then two rounds (A B C,
+C B A). Raw lines: [`net-link-ab-summary.txt`](net-link-ab-summary.txt);
+each line lists `normal`, `nostatus` and `storm` in that order (the runner
+labels every case `SYSTEM normal`).
+
+Guest duration per run; every run ended with raw QEMU exit 33.
+
+| Case | A | B | C |
+|---|---|---|---|
+| `normal` | 54.3–55.9 s | 66.9–67.8 s | 43.3–44.6 s |
+| `nostatus` | 54.5–54.8 s | 65.1–65.6 s | 43.0–43.1 s |
+| `storm` | 45.8–46.4 s | 68.4–71.2 s | 46.4–46.8 s |
+
+C's `storm` range lies up to 0.4 s above A's, within the pre-registered
+limit of 1.05 × A's maximum.
+
+### Window session (D3 kill criterion, re-checked)
+
+[`win-abc-run.sh`](win-abc-run.sh): local KVM, profile
+`native-window-session-probe`, five `--clipboard` sessions per side in the
+orders A B C, C B A, B C A, A C B, C A B, with SeaBIOS ROMs as in
+[`ab-k.sh`](ab-k.sh). Summary: [`win-abc-summary.txt`](win-abc-summary.txt).
+
+All 15 sessions ended with raw QEMU exit 33 and `passed` true. None of the
+31 clipboard phases has more than one frame hash within a side.
+
+| Metric | A median (range) | B median (range) | C median (range) |
+|---|---|---|---|
+| Whole session duration | 16.77 s (16.69–17.52) | 16.13 s (15.75–16.33) | 15.56 s (15.35–15.72) |
+| QEMU host CPU time | 11.52 s (11.26–12.07) | 10.16 s (9.87–10.55) | 10.39 s (10.26–10.52) |
+
+C keeps the window-session gain: both of its ranges lie below A's and do
+not overlap them. C's CPU median lies 0.23 s above B's; the B and C
+ranges overlap.
+
+### Again gate, red control and native list on `d71dc04f`
+
+QEMU TCG with `NOS_QEMU_MACHINE=pc-q35-8.2`, fresh build and target
+directories inside the checkout.
+
+- `test-m3-syscall-spin` (`tools/build.py --kernel-feature
+  test-m3-syscall-spin`, then the gate case
+  `syscall-spin-continues-within-quantum`): raw QEMU exit 33 and
+  `M3:SYSCALL_SPIN:PASS` in both rounds.
+- Red control: the same fixture on a tree without the `-8` condition in the
+  single-CPU candidate stops at the poller assertion
+  (`M2:PANIC_LINE:0000002709`, `M1:FAIL:KERNEL_PANIC`) with raw QEMU exit 35.
+- [`native-d71dc04f.txt`](native-d71dc04f.txt): the 45-step list of the
+  section on `0623ddf1`, with fresh build directories. All 45 steps exit 0,
+  including `qsim-k07-gate`, `tools/test_smp.py` (16 profiles; the spin row
+  reports both markers) and `tools/test_milestones.py --through m4`.
+- `native-ai-job`, five passes with fresh directories: raw QEMU exit 33 and
+  `AIJOB:PASS` each; timer IRQs that landed on the job per run 43/40, 41/46,
+  50/46, 36/41, 35/40, inside the documented local range of 20–81.
+- `net-broker-quality.yml#native-network-service`: the six
+  `tools/run_network_service.py` cases (`normal`, `client-exit`, `revoke`,
+  `helper`, `device-reset`, `exhaustion`) each pass with raw QEMU exit 33.
+
+### Limits
+
+- Local TCG timings are not performance evidence on their own, and local
+  KVM is not hosted CI. The hosted rule and the step-level guest comparison
+  on the new head are recorded on #602.
+- The host was shared with other specialists' runs; interleaving spreads
+  load drift over the sides.
+
 
 ## Not run
 

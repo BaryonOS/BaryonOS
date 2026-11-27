@@ -11,7 +11,8 @@ wording and speaker.
 options D1–D6 on 26 November 2026 at 22:22 UTC, and on 27 November 2026 at
 about 12:03 UTC judged the D3 kill criterion met by the recorded A/B (see
 "Kill criterion (D3) and result"); the hosted-duration half of D3 still
-applies to the pull request. Proposed by
+applies to the pull request. Amended on 27 November 2026 after a hosted
+network regression (see "Network regression and amendment"). Proposed by
 Specialist K for issue #530 (R02 long-term stability and performance
 budgets), task R02-C3. It amends one sentence of
 `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md` §3 Scheduler and adds
@@ -36,8 +37,8 @@ Evidence: `docs/verification/k-sched-continue-20261127/`.
 
 ### Decision
 
-After an ordinary `int 0x80` (any call except yield and exit, and the caller
-not terminated), the single-CPU scheduler dispatches the caller again without
+After an ordinary `int 0x80` (any call except yield and exit whose result is
+not -8 Again, and the caller not terminated), the single-CPU scheduler dispatches the caller again without
 a new selection, as long as no timer IRQ has arrived since its last genuine
 dispatch. The candidate also requires the PID the process had on entry,
 because fixtures can respawn a fresh process into the same slot.
@@ -51,7 +52,8 @@ path is unchanged.
   (10 ms). Every tick selects round-robin from `current + 1` without a
   candidate, so continuation never renews a quantum.
 - **I2 Switch points kept.** Yield, exit, `terminate`, every exception or
-  fault vector, every call that leaves the caller non-`Ready` (a parking
+  fault vector, every call whose result is -8 (Again: a failed poll for
+  another process's progress), every call that leaves the caller non-`Ready` (a parking
   `ipc_wait`, a granted 0x90, a fixture `Dying`), an invalid saved return
   state and the timer tick never continue.
 - **I3 Housekeeping per entry.** A continuation still runs the whole
@@ -77,7 +79,8 @@ path is unchanged.
   pass in the local native verification list on `0623ddf1` (QEMU TCG; see
   the verification directory).
 - New regression case `test-m3-syscall-spin` (`M3:SYSCALL_SPIN:PASS` in both
-  rounds) fails on a kernel without continuation (red control, raw 35).
+  rounds) fails on a kernel without continuation (red control, raw 35), and
+  since the amendment also on a kernel that continues a -8 result.
 
 ### Kill criterion (D3) and result
 
@@ -101,6 +104,58 @@ The literal per-phase reading of D3 is not met. The project owner decided
 that the disjoint whole-session and CPU gains satisfy D3, and that the
 hosted native durations on the pull request must still not regress against
 recent `main`.
+
+### Network regression and amendment (27 November 2026)
+
+- **Finding.** On head `6a74ad67` the hosted rule above passed, but the
+  step-level comparison with same-day non-C3 controls showed the networked
+  system guests 27–52 % slower (ARP/UDP/DNS step 197 s against 136–154 s,
+  virtio-net link step 281 s against 194–215 s; guest wall time 88–94 s
+  against 57–72 s). The job-level rule missed it because faster
+  window-session jobs offset the network steps.
+- **Project-owner decision (27 November 2026, received 13:26:52 UTC;
+  verbatim on #602).** The regression is not an accepted residual risk:
+  #602 stays out of the merge queue until a structural fix is verified;
+  timeouts are not extended and D3 is not relaxed; the fix must not add
+  per-application exceptions.
+- **Root cause.** Userspace pollers in the system guest
+  (`sdk/examples/system/src/init.rs` `wait()` and the status loop in
+  `sdk/examples/system/src/app.rs`) loop on a non-blocking receive that
+  returns -8 (Again). Before C3 every such call switched; with C3 the poller
+  kept its whole quantum while the process it waited for could not run.
+- **Amendment.** A system call whose result is exactly -8 (Again) is a
+  failed poll for another process's progress, so it selects like a yield
+  instead of continuing (I2). The rule reads the result after the call has
+  written it and changes only the scheduling choice; return values and
+  counters are unchanged. Blocking `ipc_wait` waiters already park as
+  `Waiting`. The SMP path keeps its own pre-C3 continuation rule, which still
+  continues a -8 result (candidate K-8 in `docs/handoffs/K/CURRENT.md`).
+- **Gate.** `test-m3-syscall-spin` gains a second process: slot 1 polls a
+  fixture-only call (number 15 in that feature) that always returns -8, and
+  the kernel asserts that its loop count never exceeds its genuine
+  selections plus one. On a kernel without the amendment the assertion stops
+  the guest (red control in the verification directory).
+- **Not yet done.** The rule removes the cost of a poll that fails; it does
+  not remove the pollers. Moving `init.rs` `wait()` and the status loop to
+  `ipc_wait` is a follow-up with N and H, so the owner's aim to discourage
+  polling is met only in part.
+- **Result (local, not hosted;** A = `main` `af7415df`, B = C3 `6a74ad67`,
+  C = B plus this amendment; all raw exit 33). `tools/test_net_system.py`
+  under TCG (`pc-q35-8.2`), three interleaved runs per side after one
+  discarded warm-up: guest `normal` 54.8–56.8 s / 66.9–68.4 s /
+  42.9–43.5 s, guest `recover` 42.2–42.8 s / 65.4–65.9 s / 42.1–42.2 s.
+  Net-link gate (H04-T3), two interleaved rounds after one discarded
+  warm-up: `normal` 54.3–55.9 s / 66.9–67.8 s / 43.3–44.6 s, `nostatus`
+  54.5–54.8 s / 65.1–65.6 s / 43.0–43.1 s, `storm` 45.8–46.4 s /
+  68.4–71.2 s / 46.4–46.8 s. Window session under local KVM, five
+  `--clipboard` sessions per side: whole session 16.69–17.52 s /
+  15.75–16.33 s / 15.35–15.72 s, QEMU host CPU 11.26–12.07 s /
+  9.87–10.55 s / 10.26–10.52 s, and no phase with more than one frame hash
+  within a side. The hosted rule and the step-level comparison on the new
+  head are recorded on the pull request.
+- **D3 practice.** Every later D3 check of a scheduler change also compares
+  step-level guest durations against same-day controls; the rule itself is
+  not amended after reading the data.
 
 ### Rollback
 

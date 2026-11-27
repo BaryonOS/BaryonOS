@@ -32,6 +32,12 @@ context; client-specific notes are adapters and hold no state.
   Escalate only fundamental architecture changes, material security risks or
   changes to binding contracts. With nothing demonstrably valuable left, K is
   on call.
+- **Continuous optimisation (project owner, 27 November 2026, relayed by the
+  PR guard):** K keeps maximising safe kernel performance, scalability and
+  robustness without new permission requests inside the mandate; the
+  Security Floor and D1–D3 stay unchanged. Kernel performance changes are
+  measured against the R02-L1 budgets once ADR-R02-L1-BUDGETS-20261127
+  (#632) lands.
 - **Rules:** root `AGENTS.md`, `kernel/AGENTS.md`, the Security Floor, D1–D3
   review policy (CI files need a D2 delta review by CI), GR-12 for Graphify
   review findings.
@@ -51,7 +57,8 @@ context; client-specific notes are adapters and hold no state.
   single-CPU scheduler; its regression gates are the `milestone-m3` smoke,
   the `test-m3-*` fault cases (`tools/gate_contract.py` `M3_CASES`),
   `test-m3-syscall-spin` (its own gate group
-  `syscall-spin-continues-within-quantum`, not part of `M3_CASES`) and
+  `syscall-spin-continues-within-quantum`, not part of `M3_CASES`; it also
+  gates the -8 rule through a polling second process) and
   `m3-single-regression` (`tools/test_smp.py`).
 
 ## Invariants and security boundaries
@@ -59,7 +66,8 @@ context; client-specific notes are adapters and hold no state.
 - Single-CPU scheduling follows ADR-K-SCHED-CONTINUE-20261126 and
   `docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md` §3: a continued
   caller never outlives its quantum (I1); yield, exit, termination, faults,
-  non-`Ready` returns and the timer tick always select (I2); every entry runs
+  a -8 (Again) result, non-`Ready` returns and the timer tick always select
+  (I2); every entry runs
   the full selection housekeeping (I3); no ABI change (I4); the candidate is
   single-use (I5).
 - CR4.PCIDE and PGE stay off and every M3 entry switches address space
@@ -73,12 +81,12 @@ context; client-specific notes are adapters and hold no state.
 | Field | Value |
 |---|---|
 | cycle_id | `K-20261127-sched-continue` |
-| Task | R02-C3 (issue #530): single-CPU continuation after ordinary system calls; design revision 2 approved by the project owner on 26 November 2026 22:22 UTC (D1–D6); D3 judged met by the project owner on 27 November 2026 at about 12:03 UTC |
+| Task | R02-C3 (issue #530): single-CPU continuation after ordinary system calls; design revision 2 approved by the project owner on 26 November 2026 22:22 UTC (D1–D6); D3 judged met by the project owner on 27 November 2026 at about 12:03 UTC. Hosted step-level network regression on `6a74ad67`; project-owner decision received 13:26:52 UTC (verbatim on #602): no queue until a structural fix is verified. Amendment: a -8 (Again) result selects like a yield |
 | Prerequisite | #604 (the K05 client waits for the HELLO receipt before exit), landed as `20c7e18a` |
 | Pull request | #602, branch `claude/k-sched-continue-20261126`; this file lands with it |
 | Write set | `kernel/src/m2/m3.rs`, `kernel/Cargo.toml`, `userspace/probe.rs`, `userspace/tests/test_probe.py`, `tools/gate_contract.py`, `tools/test_milestones.py`, `tools/test_smp.py`, `tools/tests/test_smp_host.py`, `tests/test_capture_gate.py`, `tools/build.py`, `.github/workflows/native-smp.yml` (step name only, D2), `docs/DECISIONS.md` (ADR), contract §3 sentence, `docs/verification/k-sched-continue-20261127/`, `docs/progress/assessments/2026-11-27-k-sched-continue.json`, this file |
-| Evidence | `docs/verification/k-sched-continue-20261127/` (local QEMU TCG native list and local KVM A/B; not hosted acceptance). Hosted CI, the D2 review and the hosted-duration comparison are recorded on #602 |
-| Coordination | L: #598 landed before #602, so K re-measured `JOB_IRQS` on #602 (28–41 per run locally, inside the documented range; no code change). R: QEMU batches announced. CI: D2 delta review GO on 27 November 2026 (on `c1af50f8`; the CI-file hunks are unchanged since) |
+| Evidence | `docs/verification/k-sched-continue-20261127/` (local QEMU TCG native list, local KVM A/B, and the A/B/C of the -8 amendment for the net system, net-link and window-session gates; not hosted acceptance). Hosted CI, the D2 review, the pre-registered criteria and the hosted-duration comparisons are recorded on #602 |
+| Coordination | L: #598 landed before #602, so K re-measured `JOB_IRQS` on #602 (28–41 per run locally on `478b4ba3` and 35–50 on the fix head `d71dc04f`, inside the documented range; no code change). R: QEMU batches announced; its re-baseline waits on the hosted fix head. N: accepted the -8 rule on three conditions (exactly -8; scheduling only; hosted `native-network-service` run link on the fix head). H: informed for the net-link gate. CI: D2 delta review GO on 27 November 2026 (on `c1af50f8`; the CI-file hunks are unchanged since) |
 | Score | 43/100 unchanged; K03 stays accepted under its regression gates |
 
 ## Candidates (prioritised)
@@ -90,6 +98,10 @@ context; client-specific notes are adapters and hold no state.
 | K-3 | Fixture limits | Fixture guards `syscall_calls < 2_000_000` (FPU, display, memory) under a higher call rate. | Checked in the K-1 native list | None unless a guard trips. |
 | K-4 | SMP CI time | `m3-ipc-four` hosted timeout: IPC phase about one round per tick behind CPU-bound canaries; no kernel defect shown; the timeout is an owner decision. | Parked | Only on a new failure. |
 | K-5 | SMP locks | A CPU that dies while waiting on a ticket lock is not detected (K06 F19, open point 4). | Parked | Only on a reported failure. |
+| K-8 | SMP scheduler | The SMP continuation rule (pre-C3) still continues a -8 (Again) result, so an SMP poller keeps its quantum while other CPUs run the producer. No regression shown; unmeasured. | Open | Measure an SMP net guest; if it matters, apply the same -8 rule with the SMP gates. |
+| K-9 | Polling guests | The -8 rule removes the cost of a failed poll, but `sdk/examples/system` (`init.rs` `wait()`, the status loop) still polls. | Open (owners N and H) | Move those loops to `ipc_wait`; K advises. |
+| K-10 | Timing | Window and input paths measure time in 10 ms ticks only. Proposal agreed with R: a `monotonic_us` system call from a calibrated invariant TSC (calibrated as `TSC_PER_MS` in `kernel/src/m2/smp.rs`), falling back to ticks, behind a manifest right for the compositor, the input path and R02 measurement builds; no user-mode `rdtsc`. | Proposed | ADR with R and B; ABI minor bump coordinated by K. |
+| K-11 | IPC | Tile updates cross IPC in small messages; larger messages or shared-memory tiles may cut entries further. Unmeasured. | Proposed | Measure entries per tile after #602 lands; then a design note. |
 | K-7 | SMP timing | `wait_us` (`kernel/src/m2/smp.rs`) returns `false` after 2,000,000 polls of port 0x61, but `within_ms` and `within_progress` ignore it, so a capped poll silently shortens a PIT deadline. Unmeasured. | Open | Make a capped `wait_us` fatal or retried; SMP native gates. |
 
 ## Acceptance commands and evidence limits
