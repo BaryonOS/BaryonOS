@@ -3,6 +3,11 @@
 //! Fixed-capacity ownership and physical-alias policy. No physical dereferences.
 pub const PAGE: u64 = 4096;
 pub const USER_QUOTA: usize = 2048;
+/// Pages one sealed artifact may own (ADR-L01-ARTIFACT-MAP-20261127), counted
+/// separately from [`USER_QUOTA`].
+/// shortcut: a fixed 12 MiB phase-1 bound for the synthetic S1 artifact; S3
+/// replaces it with the separately accounted weight pool sized to the artifact.
+pub const ARTIFACT_QUOTA: usize = 3072;
 /// x86-64 physical-page metadata check; no CPU instruction or pointer access.
 pub fn physical_page_fits(address: u64, width: u8) -> bool {
     (32..=52).contains(&width)
@@ -11,6 +16,7 @@ pub fn physical_page_fits(address: u64, width: u8) -> bool {
             .checked_add(PAGE)
             .is_some_and(|end| end <= 1u64 << width)
 }
+pub mod artifact;
 pub mod device_execution;
 pub mod user;
 
@@ -23,6 +29,13 @@ pub enum Owner {
     Dma(DmaPin),
     PageTable(u16),
     User(u64, Kind),
+    /// One frame of an immutable artifact (L01 weights). It never has an
+    /// executable alias, a user alias only once `sealed`, and no writable alias
+    /// after sealing. `id` 0 is invalid.
+    Artifact {
+        id: u16,
+        sealed: bool,
+    },
 }
 
 /// Opaque identity for one device lease's DMA record. Copying this metadata
@@ -177,6 +190,7 @@ impl<const N: usize> Frames<N> {
         if matches!(owner, Owner::Free | Owner::Reserved | Owner::Dma(_)) {
             return Err(Error::Owner);
         }
+        self.artifact_preflight(owner, 1)?;
         if let Owner::User(pid, _) = owner {
             if pid == 0 {
                 return Err(Error::Owner);
@@ -221,6 +235,7 @@ impl<const N: usize> Frames<N> {
         if output.is_empty() {
             return Err(Error::Range);
         }
+        self.artifact_preflight(owner, output.len())?;
         if let Owner::User(pid, _) = owner {
             if pid == 0 {
                 return Err(Error::Owner);
@@ -293,6 +308,59 @@ impl<const N: usize> Frames<N> {
         Ok(())
     }
 
+    /// Artifact frames are allocated unsealed, for a nonzero id, within
+    /// [`ARTIFACT_QUOTA`]; they never count toward [`USER_QUOTA`].
+    fn artifact_preflight(&self, owner: Owner, count: usize) -> Result<(), Error> {
+        let Owner::Artifact { id, sealed } = owner else {
+            return Ok(());
+        };
+        if id == 0 || sealed {
+            return Err(Error::Owner);
+        }
+        let owned = self
+            .owners
+            .iter()
+            .filter(|o| matches!(o, Owner::Artifact { id: i, .. } if *i == id))
+            .count();
+        if owned
+            .checked_add(count)
+            .is_none_or(|total| total > ARTIFACT_QUOTA)
+        {
+            return Err(Error::Quota);
+        }
+        Ok(())
+    }
+
+    /// Seal every frame of artifact `id`: all `pages` frames must exist, be
+    /// unsealed and have no writable alias. Validation completes before any
+    /// owner changes; afterwards no writable alias can be recorded.
+    pub fn seal_artifact(&mut self, id: u16, pages: usize) -> Result<(), Error> {
+        let mut found = 0usize;
+        for (owner, alias) in self.owners.iter().zip(self.aliases.iter()) {
+            match owner {
+                Owner::Artifact { id: i, sealed } if *i == id => {
+                    if *sealed {
+                        return Err(Error::Owner);
+                    }
+                    if alias.writable != 0 {
+                        return Err(Error::Mapped);
+                    }
+                    found += 1;
+                }
+                _ => {}
+            }
+        }
+        if id == 0 || found == 0 || found != pages {
+            return Err(Error::Range);
+        }
+        for owner in self.owners.iter_mut() {
+            if matches!(owner, Owner::Artifact { id: i, .. } if *i == id) {
+                *owner = Owner::Artifact { id, sealed: true };
+            }
+        }
+        Ok(())
+    }
+
     // Device execution creates pins through this crate-internal lifecycle.
     // The existing batch preflight makes resource failure atomic; no pinned
     // owner is published until all zeroing has completed.
@@ -333,12 +401,23 @@ impl<const N: usize> Frames<N> {
         user: bool,
     ) -> Result<(), Error> {
         let i = self.index(address)?;
+        let artifact = match self.owners[i] {
+            Owner::Artifact { sealed, .. } => Some(sealed),
+            _ => None,
+        };
         if matches!(self.owners[i], Owner::Free)
-            || (user && !matches!(self.owners[i], Owner::User(_, _)))
+            || (user && !matches!(self.owners[i], Owner::User(_, _)) && artifact.is_none())
         {
             return Err(Error::Owner);
         }
         let a = self.aliases[i];
+        // Artifact: never executable; writable only while unsealed (kernel
+        // fill alias); a user alias only RO/NX and only once sealed.
+        if artifact
+            .is_some_and(|sealed| executable || (writable && (sealed || user)) || (user && !sealed))
+        {
+            return Err(Error::Permission);
+        }
         if (executable && matches!(self.owners[i], Owner::Dma(_)))
             || (writable && (executable || a.executable != 0))
             || (executable && a.writable != 0)
