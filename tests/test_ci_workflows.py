@@ -43,7 +43,8 @@ HOST_PYTHON_STEP = "Python syntax and DocumentSession host tests"
 HOST_PYTHON_COMMANDS = (
     "mkdir -p build/coverage-raw/python",
     "python3 -m compileall -q tools tests userspace/tests experiments/quantum/native "
-    "experiments/quantum/native/job .agents/skills/os-dev",
+    "experiments/quantum/native/job experiments/ai/native-job .agents/skills/os-dev",
+    "python3 -B -m unittest discover -s experiments/ai/native-job/tests",
     "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'",
     "coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'",
     "python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'",
@@ -350,6 +351,138 @@ class DependabotContractTests(unittest.TestCase):
                         "patterns": ["*"], "group-by": "dependency-name",
                     },
                 })
+
+    def test_rust_toolchain_updates_are_bounded_and_active_launchers_stay_pinned(self):
+        """Propose one compiler update and reject drift in active literal launchers."""
+        updates = [
+            update for update in self.config["updates"]
+            if update["package-ecosystem"] == "rust-toolchain"
+        ]
+        self.assertEqual(len(updates), 1)
+        update = updates[0]
+        self.assertEqual(update["directory"], "/")
+        self.assertEqual(update["schedule"], {
+            "interval": "weekly",
+            "day": "wednesday",
+            "time": "06:00",
+            "timezone": "Europe/Amsterdam",
+        })
+        self.assertEqual(update["open-pull-requests-limit"], "1")
+        self.assertEqual(update["labels"], ["dependencies"])
+        self.assertEqual(update["commit-message"]["prefix"], "chore(toolchain)")
+
+        channel = tomllib.loads(
+            (ROOT / "rust-toolchain.toml").read_text(encoding="utf-8")
+        )["toolchain"]["channel"]
+        self.assertRegex(channel, r"^\d+\.\d+\.\d+$")
+
+        toolchain = (
+            r"((?:\d+\.\d+(?:\.\d+)?|stable|beta|nightly)"
+            r"(?:-[A-Za-z0-9_.]+)*)(?![A-Za-z0-9_.-])"
+        )
+        delimiter = r"(?=$|[\s\"',;)\]}\x60])"
+        pin_patterns = {
+            "launcher_command": re.compile(
+                r"\b(?:cargo|rustc)\b[^\n]{0,80}?\+" + toolchain + delimiter
+            ),
+            "launcher_literal": re.compile(
+                r"[\"']\+" + toolchain + r"(?=[\"'])"
+            ),
+            "rustup_install": re.compile(
+                r"\brustup\s+toolchain\s+install\s+[\"']?"
+                + toolchain + delimiter
+            ),
+            "toolchain_flag": re.compile(
+                r"--toolchain(?:(?:=|\s+)\s*[\"']?|[\"']\s*,\s*[\"'])"
+                + toolchain + delimiter
+            ),
+            "toolchain_constant": re.compile(
+                rf"\b(?:RUST_)?TOOLCHAIN\s*=\s*[\"']{toolchain}[\"']"
+            ),
+            "matrix_value": re.compile(
+                rf"\btoolchain\s*=\s*[\"']{toolchain}[\"']"
+            ),
+            "action_ref": re.compile(r"\brust-toolchain@" + toolchain + delimiter),
+            "rustc_output": re.compile(
+                r"\brustc\s+(\d+(?:\\?\.)\d+(?:(?:\\?\.)\d+)?"
+                r"(?:-[A-Za-z0-9_.]+)*)(?![A-Za-z0-9_.-])" + delimiter
+            ),
+        }
+        plain_toolchain = re.compile(toolchain + delimiter)
+        source_suffixes = {".py", ".rs", ".sh", ".toml", ".yaml", ".yml"}
+        excluded_prefixes = (
+            ".agents/skills/os-dev/references/",
+            "docs/",
+            "experiments/quantum/third-party/",
+            "services/image-codec/vendor/",
+            "services/keyring/vendor/",
+        )
+        # Keep legacy evidence and synthetic parser input explicit and bounded;
+        # neither selects a compiler for normal work in this checkout.
+        allowed_legacy_pins = {
+            (
+                "drivers/virtio-snd/verification/model-mutants.py",
+                "launcher_command",
+                "1.90.0",
+            ): 1,
+            (
+                "drivers/virtio-snd/verification/model-mutants.py",
+                "launcher_literal",
+                "1.90.0",
+            ): 1,
+            ("tests/test_preflight.py", "rustc_output", "1.89.0"): 1,
+            ("tests/test_preflight.py", "rustc_output", "1.100.0-nightly"): 1,
+            ("tests/test_preflight.py", "rustc_output", "1.101.0"): 1,
+            ("tools/tests/test_agent_pipeline.py", "rustup_install", "1.90.0"): 2,
+        }
+        observed_legacy_pins = {}
+        drift = []
+        pin_count = 0
+
+        def record_pin(relative, line_number, label, found):
+            nonlocal pin_count
+            pin_count += 1
+            found = found.replace(r"\.", ".")
+            if found == channel:
+                return
+            key = (relative, label, found)
+            if key in allowed_legacy_pins:
+                observed_legacy_pins[key] = observed_legacy_pins.get(key, 0) + 1
+            else:
+                drift.append(f"{relative}:{line_number}:{label}={found}")
+
+        tracked = subprocess.check_output(
+            ["git", "ls-files", "-z"], cwd=ROOT
+        ).decode().split("\0")
+        for relative in filter(None, tracked):
+            path = Path(relative)
+            if relative.startswith(excluded_prefixes) and path.name != "AGENTS.md":
+                continue
+            if (
+                path.suffix not in source_suffixes
+                and path.name != "AGENTS.md"
+                and relative != "CODEX-WORKFLOW.md"
+            ):
+                continue
+            try:
+                lines = (ROOT / path).read_text(encoding="utf-8").splitlines()
+            except UnicodeDecodeError:
+                continue
+            for line_number, line in enumerate(lines, 1):
+                if line.lstrip().startswith("#"):
+                    continue
+                for label, pattern in pin_patterns.items():
+                    for match in pattern.finditer(line):
+                        record_pin(relative, line_number, label, match.group(1))
+                if re.search(r"\bfor\s+toolchain\s+in\b", line):
+                    for match in plain_toolchain.finditer(line):
+                        record_pin(
+                            relative, line_number, "shell_toolchain_list", match.group(1)
+                        )
+
+        self.assertGreater(pin_count, 0)
+        self.assertEqual(drift, [], "active Rust toolchain pins differ from " + channel)
+        self.assertEqual(observed_legacy_pins, allowed_legacy_pins)
 
 
 class WorkflowContractTests(unittest.TestCase):
@@ -1593,6 +1726,19 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                        'git cat-file blob "$base:tools/merge_hold.py"',
                        'git cat-file blob "$base:tools/ci_impact.py"', 'set -euo pipefail'):
             self.assertIn(needle.replace('"$second"', '"${second:-}"'), load["run"])
+        # merge_group (ADR-CI-MERGE-GROUP-SELECT-20261126): the base files come from T, the merge base of
+        # the queue commit and freshly fetched main, never from merge_group.base_sha (an unlanded entry ahead).
+        for needle in ('git fetch --no-tags --quiet origin "+refs/heads/main:$main"',
+                       'base="$(git merge-base "$tested" "$main")" || base=""',
+                       'git merge-base --is-ancestor "$base" "$main"',
+                       'git merge-base --is-ancestor "$base" "$MERGE_GROUP_BASE_SHA"',
+                       'git merge-base --is-ancestor "$MERGE_GROUP_BASE_SHA" "$tested"'):
+            self.assertIn(needle, load["run"])
+        self.assertNotIn('base="$MERGE_GROUP_BASE_SHA"', load["run"])
+        # merge_hold.py reads the same ref this step fetches (D2 N1).
+        main_ref = re.search(r'^MAIN_REF = "([^"]+)"$', (ROOT / "tools/merge_hold.py").read_text(), re.M)
+        self.assertIsNotNone(main_ref)
+        self.assertIn(f"main={main_ref.group(1)}\n", load["run"])
         self.assertEqual(load["env"], {
             "EVENT_NAME": "${{ github.event_name }}",
             "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",

@@ -236,7 +236,8 @@ impl Control for JobControl {
         bump();
         if work > self.budget { return Err(Abort::DeadlineExceeded); }
         match native::receive(self.receive) {
-            Err(error) if error.is_again() => Ok(()),
+            // Yield so the client can still queue a Cancel when the scheduler resumes the caller (C3).
+            Err(error) if error.is_again() => { yield_now(); Ok(()) }
             Err(_) => fail(20),
             Ok(message) => {
                 if message.cap_count() != 0 || message.sender() != self.peer

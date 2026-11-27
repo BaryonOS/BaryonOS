@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse
 import json
+import importlib.util
 import os
 import shutil
 import struct
@@ -111,6 +112,8 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "nat
                    "native-task-grant", "test-task-grant-denied",
                    "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
                    *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input", "native-dispi-probe"]
+# L01 native SSE2 AI job (kept out of the shared list line to avoid merge collisions).
+KERNEL_FEATURES += ["native-ai-job"]
 
 
 def inspect_elf(path):
@@ -270,6 +273,23 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     elif kernel_feature in ("native-fpu", "test-fpu-wait"):
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
+    elif kernel_feature == "native-ai-job":
+        from run_fpu import build_users as build_fpu_users, private_path
+        from build_users import inspect_user
+        extra_env, canary = build_fpu_users()
+        output = private_path(BUILD / "users/ai-job")
+        output.mkdir(parents=True, exist_ok=True)
+        for name in ("ai-job-native.elf", "build-report.json"):
+            private_path(output / name)  # Refuse bad existing outputs before Cargo.
+        run_logged([sys.executable, "-B", str(ROOT / "experiments/ai/native-job/build.py"),
+                    "--output-dir", str(output), "--target-dir", str(TARGET / "ai-job-user")],
+                   "build-ai-job-user")
+        job = json.loads((output / "build-report.json").read_text())
+        if job.get("passed") is not True or sha256(output / "ai-job-native.elf") != job.get("binary_sha256"):
+            raise ValueError("Native AI job executable failed its artifact gate")
+        extra_env = {"NOS_FPU_B_ELF": extra_env["NOS_FPU_B_ELF"],
+                     "NOS_AI_JOB_ELF": str((output / "ai-job-native.elf").resolve())}
+        qsim_report = {"job": job, "canary": canary, "job_elf": inspect_user(output / "ai-job-native.elf")}
     elif kernel_feature in ("native-qsim", "native-smp-qsim", "native-smp-m3-soak"):
         output = BUILD / "users/qsim"
         run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
@@ -482,6 +502,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     if source_hash() != source_at_start:
         raise ValueError("Source changed during the build; rebuild on an unchanged source")
+    if kernel_feature == "native-ai-job":
+        # source_hash() does not cover experiments/ai/**; recheck the job tree the report was built from.
+        spec = importlib.util.spec_from_file_location("ai_job_build", ROOT / "experiments/ai/native-job/build.py")
+        job_build = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(job_build)
+        if job_build.source_tree_sha256() != qsim_report["job"]["source_tree_sha256"]:
+            raise ValueError("AI job source changed during the build; rebuild on an unchanged source")
     loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
     kernel = TARGET / "x86_64-unknown-none/release/os-kernel"
     manifest = {"schema_version": 1, "profile": label, "kernel_feature": kernel_feature,
@@ -501,6 +528,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["memory"] = qsim_report
         elif kernel_feature in ("native-fpu", "test-fpu-wait"):
             manifest["fpu"] = qsim_report
+        elif kernel_feature == "native-ai-job":
+            manifest["ai_job"] = qsim_report
         elif kernel_feature in ("native-ipc-wait", "native-tpm-crb", "test-tpm-crb-absent"):
             manifest["ipc_wait"] = qsim_report
         elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
