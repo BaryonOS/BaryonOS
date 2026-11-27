@@ -139,7 +139,7 @@ EXECUTORS = ("worker", "lead", "owner", "external")
 # Workers additionally never edit the pipeline's own state or the shared progress views.
 RUNNER_PROTECTED = ("tools/roadmap_runner.py", "tools/tests/test_roadmap_runner.py",
                     "docs/roadmap-pipeline/", "docs/PROJECT-STATE.md", "docs/PROGRESS.md",
-                    "README.md", "docs/assets/progress.svg", "docs/DECISIONS.md")
+                    "README.md", "docs/assets/progress.svg", "docs/DECISIONS.md", "docs/decisions/")
 ALWAYS_ALLOWED = ("Cargo.lock",)
 FORBIDDEN_FLAGS = ("--continue", "-c", "--resume", "-r", "--fork-session",
                    "--dangerously-skip-permissions", "--allow-dangerously-skip-permissions",
@@ -1459,7 +1459,7 @@ Rules (binding, in addition to AGENTS.md):
   role files are not prerequisites. Claude owns S09 and Orbitaal, Codex owns this task.
 - Write ONLY inside write_paths. Never edit .github/, tools/agent_*.py, tools/common.py,
   tools/progress.py, tools/roadmap_runner.py, AGENTS.md, CLAUDE.md, docs/progress.json,
-  docs/PROGRESS.md, docs/PROJECT-STATE.md, docs/DECISIONS.md, README.md or
+  docs/PROGRESS.md, docs/PROJECT-STATE.md, docs/DECISIONS.md, docs/decisions/, README.md or
   docs/roadmap-pipeline/. The lead checks the full diff before accepting it.
 - Do not run git commands that change state, do not commit, push, fetch or use gh.
   Only `git status`, `git rev-parse` and `git branch --show-current` are allowed.

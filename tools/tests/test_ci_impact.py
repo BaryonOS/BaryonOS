@@ -1213,6 +1213,20 @@ class MergeGroupGateTests(FixtureTestCase):
         self.assertEqual(gated["docs", "push"][0], "full")
 
 
+class AdrFileSelectionTests(TestCase):
+    def test_adr_file_is_attributed_to_host_quality(self):
+        catalogue = tomllib.loads(REAL_CATALOGUE.read_text())
+        workflow = next(w for w in catalogue["workflow"] if w["path"] == ".github/workflows/ci.yml")
+        host = next(j for j in workflow["job"] if j["id"] == "host-quality")
+        always, hits, unknown = ci_impact.classify(
+            ["docs/decisions/ADR-TEST-20261127.md"], catalogue["policy"],
+            [{"id": "ci#host-quality", "globs": host.get("inputs", [])}],
+        )
+        self.assertEqual(always, [])
+        self.assertEqual(unknown, [])
+        self.assertIn("ci#host-quality", hits)
+
+
 class GlobTests(TestCase):
     def test_double_star_slash_matches_zero_or_more_directories(self):
         match = ci_impact.github_path_filter_matches

@@ -42,8 +42,9 @@ PROTECTED = (
     ".github/", ".codex/config.toml", "tools/agent_gate.py", "tools/agent_pipeline.py", "tools/agent_adapters.py",
     "tools/roadmap_runner.py", "tools/tests/test_agent_pipeline.py",
     "tools/tests/test_roadmap_runner.py", "tools/common.py", "tools/progress.py",
+    "tools/validate_adrs.py", "tools/tests/test_validate_adrs.py",
     "AGENTS.md", "CLAUDE.md", "docs/progress.json", "docs/PROJECT-STATE.md",
-    "docs/DECISIONS.md", "docs/PROGRESS.md", "docs/assets/progress.svg", "README.md",
+    "docs/DECISIONS.md", "docs/decisions/", "docs/PROGRESS.md", "docs/assets/progress.svg", "README.md",
     "docs/history/", "services/keyring/vendor/",
     "services/image-codec/vendor/", "experiments/quantum/third-party/",
     ".agents/skills/os-dev/references/", "LICENSE", "plugins/token-guard/LICENSE",
@@ -150,7 +151,7 @@ def is_protected(path: str) -> bool:
     # Agent instruction files are policy at every directory depth, not worker outputs.
     # A shared guard also protects the roadmap runner's directory write sets.
     normalized = path.replace("\\", "/")
-    if normalized.rsplit("/", 1)[-1] in {"AGENTS.md", "CLAUDE.md", ".gitattributes", ".gitmodules"}:
+    if normalized == "docs/decisions" or normalized.rsplit("/", 1)[-1] in {"AGENTS.md", "CLAUDE.md", ".gitattributes", ".gitmodules"}:
         return True
     return any(normalized == p or normalized.startswith(p) for p in PROTECTED)
 

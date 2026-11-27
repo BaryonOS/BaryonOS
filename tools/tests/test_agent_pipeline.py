@@ -457,6 +457,14 @@ class Planning(unittest.TestCase):
         self.assertFalse(ap.is_protected("ui/AGENTS.md.example"))
         self.assertFalse(ap.is_protected("docs/CODEX-PARITY.md"))
 
+    def test_decision_directory_is_protected_without_matching_siblings(self):
+        for path in ("docs/decisions", "docs/decisions/ADR-TEST-20261127.md",
+                     "docs/decisions/nested/item.md", "tools/validate_adrs.py",
+                     "tools/tests/test_validate_adrs.py"):
+            with self.subTest(path=path):
+                self.assertTrue(ap.is_protected(path))
+        self.assertFalse(ap.is_protected("docs/decisions-extra/item.md"))
+
     def test_lockfiles_also_need_explicit_owner_authority(self):
         self.assertEqual(ap.out_of_scope(["a.rs", "Cargo.lock", "b.rs", "AGENTS.md"], ["a.rs", "AGENTS.md"]),
                          ["Cargo.lock", "b.rs", "AGENTS.md"])

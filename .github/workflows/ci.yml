@@ -266,6 +266,11 @@ jobs:
         run: c8 report --temp-directory build/coverage-raw/node/raw --reporter cobertura --report-dir build/coverage-raw/node/report
       - name: Native M6c regression build
         run: python3 -B tools/build.py --kernel-feature milestone-m6c
+      - name: Report ADR file validation (advisory)
+        run: |
+          if ! python3 -B -I tools/validate_adrs.py; then
+            echo "::warning title=ADR files (advisory)::ADR file validation reported findings."
+          fi
       - name: Progress consistency and clean tree
         shell: bash
         run: |

@@ -1176,3 +1176,8 @@ Status after phase 3; phase 4 adds no new limit beyond "Selection". Limits marke
   path filter starts runs everything while merge-hold keeps verifying every applicable gate, and host-quality,
   qemu-smoke, CodeQL and the acceptance hold are unchanged. `shadow` (above)
   is the separate emergency switch for the enforcement itself.
+
+## Stable obligation references
+
+- ADR-MERGE-HOLD-20261113: `.github/workflows/merge-hold.yml` runs `tools/merge_hold.py` for the SHA-bound merge hold.
+- ADR-CI-SECURITY-ALERTS-20261111: `.github/workflows/security-alerts.yml` runs `tools/security_alerts_summary.py` for the public-safe alert summary.

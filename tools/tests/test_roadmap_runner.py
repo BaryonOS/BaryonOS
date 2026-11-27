@@ -270,6 +270,12 @@ class Scope(unittest.TestCase):
                      "tools/CLAUDE.md", ".codex/config.toml"):
             self.assertFalse(rr.in_write_set(path, writes + ["docs/", ".github/", "tools/"]), path)
 
+    def test_decision_directory_is_protected_for_runner(self):
+        for path in ("docs/decisions", "docs/decisions/ADR-TEST-20261127.md"):
+            with self.subTest(path=path):
+                self.assertTrue(rr.protected(path))
+        self.assertFalse(rr.protected("docs/decisions-extra/file.md"))
+
     def test_porcelain_parsing_handles_renames_and_quotes(self):
         text = ' M a/b.rs\n?? "c d.txt"\nR  old.rs -> new.rs\n'
         self.assertEqual(rr.parse_porcelain(text), ["a/b.rs", "c d.txt", "new.rs"])

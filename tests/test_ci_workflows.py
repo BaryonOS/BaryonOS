@@ -2841,6 +2841,13 @@ class CiImpactShadowTests(unittest.TestCase):
         self.assertLess(steps.index(candidate), steps.index(coverage))
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
 
+    def test_adr_file_report_is_advisory_in_host_quality(self):
+        steps = self.ci["jobs"]["host-quality"]["steps"]
+        report, = [step for step in steps if "tools/validate_adrs.py" in step.get("run", "")]
+        self.assertIn("if ! python3 -B -I tools/validate_adrs.py; then", report["run"])
+        self.assertIn("::warning title=ADR files (advisory)::", report["run"])
+        self.assertNotIn("continue-on-error", report)
+
     def test_shadow_job_reports_progress_rows_without_gating(self):
         """CI-PROG-1 P1 (owner, 27 Nov 2026): advisory row report, pull_request only, never fails the job."""
         steps = self.ci["jobs"]["ci-impact-shadow"]["steps"]
