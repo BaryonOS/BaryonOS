@@ -155,8 +155,8 @@ fn render_native_window_material_walkthrough_oracle() {
             assert!(ui.view().objects.is_empty());
             snapshot(&ui, "initial", directory.as_deref());
             {
-                // Interim until #541: a window switch away delivers
-                // Cancel(FocusLost) and the banner stays until the next key.
+                // A window switch away delivers Cancel(FocusLost); like on
+                // familiar desktops it shows no InputLost banner (#541).
                 let host = Host::new();
                 let (mut draft, mut original, mut staging) = ([0; 4096], [0; 4096], [0; 4096]);
                 let mut lost = controller(
@@ -172,6 +172,7 @@ fn render_native_window_material_walkthrough_oracle() {
                     .unwrap();
                 lost.set_compositor_cursor(true).unwrap();
                 lost.refresh().unwrap();
+                let before = lost.view().status;
                 lost.deliver(InputEnvelope {
                     epoch: INPUT_EPOCH,
                     sequence: 1,
@@ -179,7 +180,8 @@ fn render_native_window_material_walkthrough_oracle() {
                     event: Event::Cancel(CancelReason::FocusLost),
                 })
                 .unwrap();
-                assert_eq!(lost.view().status, Status::InputLost);
+                assert_ne!(lost.view().status, Status::InputLost);
+                assert_eq!(lost.view().status, before);
                 snapshot(&lost, "initial-focus-lost", directory.as_deref());
             }
             key(
@@ -490,7 +492,7 @@ fn render_window_draft_focus_loss_and_input_rebind_oracle() {
                 event: Event::Cancel(CancelReason::FocusLost),
             })
             .unwrap();
-            assert_eq!(ui.view().status, Status::InputLost);
+            assert_eq!(ui.view().status, Status::Dirty);
             snapshot(&ui, "dirty-focus-lost", directory.as_deref());
             ui.rebind_input(INPUT_EPOCH + 1).unwrap();
             assert_eq!(ui.view().status, Status::InputLost);

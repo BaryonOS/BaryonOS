@@ -5,6 +5,37 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
+
+**Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the
+P0 performance contract (owner, 26 November 2026 about 21:15 UTC). Proposed by the CI
+specialist for issue #494 on 27 November 2026, with an independent D2 review (GO, 27 November 2026; two minor findings recorded as follow-ups on #494:
+keep containment binding while `acceptance-pending` is set, and echo the rules-read warning in the step summary). It changes
+no required check name, workflow, trigger, permission or ruleset.
+
+**Problem:** on `pull_request`, merge-hold failed a head that did not contain the base tip. Since
+main lands only through the merge queue, whose `merge_group` run judges the merged tree and
+refuses a queue commit without its base, that rule only forced every open pull request into a
+main merge, a push and a full check round after each landing. From 25 November 09:37Z to
+26 November 22:27Z, 24 of 85 failed `pull_request` merge-hold runs failed on containment alone.
+
+**Decision:** on `pull_request`, missing base-tip containment emits a `::notice::` and the gate
+judgement continues unchanged, but only when all three hold: git positively reports a
+non-descendant (exit 1), the policy enforces, and
+`GET /repos/{repo}/rules/branches/{base ref}` lists an active `merge_queue` rule. Any error, a
+malformed answer or a missing rule keeps the binding error. `merge_group` containment and all
+member checks are unchanged. It takes effect only once on main, because merge-hold runs the
+base copy of `tools/merge_hold.py`.
+The code proves an active `merge_queue` rule, not that nobody can bypass it. On 27 November ruleset
+25967588 on `~DEFAULT_BRANCH` has no bypass actors. Adding a bypass actor to a ruleset with a
+merge queue requires revisiting this decision.
+
+**Source:** branch `ci/containment-advisory-20261126`; `tools/merge_hold.py`
+(`merge_queue_required`, `pull_request_gates`), `tools/tests/test_merge_hold.py`,
+`docs/CI-CONTRACT.md` (containment paragraph).
+
+**Rollback:** revert the commit; containment is binding again from the next main landing.
+
 ## ADR-CI-MERGE-GROUP-SELECT-20261126 — merge-hold judges a merge group by the gates selected from its trusted main base
 
 **Status:** accepted (binding acceptance contract). The project owner
@@ -146,6 +177,36 @@ commit of #572.
 - The three `select` jobs still plan `merge_group` from
   `merge_group.base_sha`; they never narrow on it, so this is harmless here.
   PR B must plan them from T before any job is skipped on `merge_group`.
+
+**Amendment (PR B, 27 November 2026, CI specialist, #494; implemented,
+hosted-unverified until the first `merge_group` run after PR B lands).** PR B
+(branch `ci/merge-group-skip-20261126`) is the later change named under
+Source; the statements above that describe the state "until PR B" are
+superseded as follows.
+
+- Each of the 19 workflows that merge-hold can leave out of a merge group
+  gains a `merge-group-gate` job (`merge_group` only). It loads
+  `tools/merge_hold.py` from T through `./.github/actions/trusted-base` and
+  asks `merge_group_skip()`. Only an explicit `True` skips the workflow's
+  jobs on the queue commit; a missing function, an error or any other answer
+  runs every job. On every other event the gate is skipped and changes
+  nothing. On the queue commit, an unselected workflow therefore still starts
+  its small gate job, but its gated suites no longer run.
+- `ci.yml`, CodeQL and the three workflows with a `select` job have no gate
+  and still run whole on `merge_group`. Those three `select` jobs now plan
+  `merge_group` from T, not from `merge_group.base_sha`.
+- The two-source rule stays unchanged; consolidating the selection logic is
+  separate work.
+- Accepted risk (D2 finding F1): the gate jobs and merge-hold fetch `main`
+  separately. In a stacked queue an entry ahead can land between those
+  fetches, so a gate can derive a newer T and skip a workflow that merge-hold
+  still expects. merge-hold reports such an expected job as failed, whether
+  GitHub lists it as `skipped` or not at all (a skipped matrix job may be
+  "missing"; `tools/merge_hold.py` accepts only `success`), so merge-hold
+  fails, the queue removes the entry, and its owner must enqueue it again;
+  nothing re-queues it automatically. This costs a queue round but
+  never passes an untested gate (fail-closed), so it is accepted rather than
+  adding a shared T between workflows.
 
 **Revise when:** the first queue trial shows a stacked group's base or run
 payloads that differ from the above; PR B lands; or GitHub documents the
