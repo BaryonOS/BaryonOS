@@ -52,6 +52,13 @@ currently open criterion has a row, references resolve locally or name an allowe
 GitHub source/run/PR, and evidence claims carry references. It does not fetch
 remote evidence, run the OS or authenticate the technical content of a claim.
 
+Under ADR-PROGRESS-OWN-ROWS-20261127 the owner of a criterion keeps that
+criterion's `delivery_review` rows current without asking permission for each
+update. Only its own rows change; the shared date and source commit above stay
+unchanged and the row text carries `updated YYYY-MM-DD @<sha>: …`. Score,
+status, rubric, weights and acceptance conditions are untouched, and the views
+are regenerated with `python3 tools/progress.py --write` and `--check`.
+
 ## Fixed criteria register
 
 <!-- OS-RUBRIC:BEGIN -->

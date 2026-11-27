@@ -5,6 +5,70 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-PROGRESS-OWN-ROWS-20261127 — criterion owners maintain their own implementation and verification snapshot rows
+
+**Status:** decided by the project owner on 27 November 2026 (given in the PR
+guard session and relayed verbatim by the PR guard; received by G before 12:45
+UTC by `date -u`), recorded by Specialist G at the owner's request. It amends
+the lead ownership of `docs/progress.json` in AGENTS.md and D2 of
+ADR-PROGRESS-ASSESSMENTS-20261125 for these rows only, and supersedes the
+narrower owner decision relayed shortly before it ("Ja, eigen rijen"), which
+limited a refresh to a pull request that touched progress anyway.
+
+**Owner quotation (Dutch, verbatim as relayed):** "Iedere criteriumeigenaar —
+huidig en toekomstig — heeft toestemming ÉN verantwoordelijkheid om de
+implementatie- en verificatiesnapshotrijen van het eigen criterium in
+docs/progress.json (delivery_review) zelfstandig actueel te houden, zonder per
+update toestemming te vragen."
+
+**English translation:** every criterion owner, current and future, has both
+permission and responsibility to keep the implementation and verification
+snapshot rows of its own criterion in `docs/progress.json` (`delivery_review`)
+current on its own, without asking permission for each update.
+
+**Problem:** the snapshot in docs/PROGRESS.md is generated from
+`delivery_review`, which is lead-owned and dated 24 November 2026. Since then
+many pull requests have landed, and rows such as those of A03 describe a state
+that no longer holds. A single owner cannot keep every row current.
+
+**Decision:**
+- **Scope.** Every owner of a criterion, now and in future, keeps the
+  `delivery_review` rows of its own criterion current, without asking
+  permission for each update and without waiting for a pull request that
+  touches progress for another reason.
+- **Conditions.**
+  - Only the rows of the owner's own criterion change.
+  - Each claim rests on current, source-bound evidence.
+  - Rubric, weights, acceptance conditions, status and score stay unchanged.
+    A score rises only after full acceptance and completed independent
+    verification, under the existing procedure.
+  - The shared `date` and `source_commit` of `delivery_review` stay unchanged,
+    because they date every row. The refresh date and commit go into the row
+    text itself (`updated YYYY-MM-DD @<sha>: …`).
+  - Derived views are regenerated with `python3 tools/progress.py --write` and
+    checked with `--check`; generated files are never edited by hand.
+  - Conflicts are avoided: one owner per row, and D3 task assessment files
+    record the task itself.
+- **Unchanged.** Lead ownership of everything else in `docs/progress.json` and
+  the generated views, D1–D3, the Security Floor and the merge conditions.
+
+**Alternatives:** the lead refreshes all rows (rejected: does not scale and left
+the snapshot stale); a refresh only in a pull request that already touches
+progress (the superseded narrower decision); per-row dates in the generator
+(would change the protected `tools/progress.py`; not needed for this decision).
+
+**Evidence:** a governance decision with no code change. `python3 -B
+tools/progress.py --check` validates every refresh; it does not authenticate the
+content of a claim.
+
+**Rollback:** the project owner can withdraw or narrow the permission by a newer
+decision; lead ownership of the rows then applies again. Rows already refreshed
+stay as evidence-bound history.
+
+**Review criteria:** a refresh changes only the author's own criterion rows,
+leaves the shared header, score, status, rubric and weights unchanged, carries
+the date and commit in the row text, and passes `progress.py --check`.
+
 ## ADR-CI-CONTAINMENT-ADVISORY-20261127 — pull_request base-tip containment is advisory behind a confirmed merge queue
 
 **Status:** accepted under the CI owner mandate (owner, 25 November 2026 16:55 UTC) and the
