@@ -8,8 +8,8 @@
 //! not formal verification and not a human audit. The kernel page-table lookup
 //! closures, the physical copy itself and TLB/SMP races are out of scope.
 use kernel_core::user::{
-    copy_plan, parse, return_flags, sector_input_plan, valid_return_layout, CopyPlan, Image,
-    PageAccess, MAX_SEGMENTS,
+    artifact_read_plan, copy_plan, parse, return_flags, sector_input_plan, valid_return_layout,
+    ChunkPlan, Image, PageAccess, MAX_SEGMENTS,
 };
 use kernel_core::{Error, PAGE, USER_QUOTA};
 use std::collections::BTreeMap;
@@ -159,14 +159,14 @@ fn reference(
 }
 
 /// Runs one plan, logs every lookup address and checks it against `reference`.
-fn check_plan(
+fn check_plan<const N: usize>(
     label: &str,
     pointer: u64,
     length: u64,
     maximum: u64,
     output: bool,
     model: Model,
-    plan: impl FnOnce(&mut dyn FnMut(u64) -> Option<PageAccess>) -> Result<CopyPlan, Error>,
+    plan: impl FnOnce(&mut dyn FnMut(u64) -> Option<PageAccess>) -> Result<ChunkPlan<N>, Error>,
 ) -> Cause {
     let mut calls = Vec::new();
     let result = catch_unwind(AssertUnwindSafe(|| {
@@ -183,7 +183,7 @@ fn check_plan(
     };
     match (&result, &expected) {
         (Ok(plan), Ok(chunks)) => {
-            assert!(plan.count == 1 || plan.count == 2, "{label}: count");
+            assert!((1..=N).contains(&plan.count), "{label}: count");
             assert_eq!(plan.count, chunks.len(), "{label}: chunk count");
             let mut cursor = pointer;
             for (i, &(physical, offset, len)) in chunks.iter().enumerate() {
@@ -934,3 +934,47 @@ fn valid_return_layout_selector_rip_rsp_product() {
     assert_eq!(accepted, CASES_RETURN_ACCEPTED);
 }
 const CASES_RETURN_ACCEPTED: usize = 24;
+
+#[test]
+fn artifact_read_plan_is_bounded_to_64_kib_of_own_writable_pages() {
+    // L01 S1b: one artifact_read call copies at most 64 KiB into the caller's
+    // own writable pages below 0x80000000; every page is checked before any copy.
+    let mut tally: BTreeMap<Cause, usize> = BTreeMap::new();
+    for length in [0u64, 1, 4095, 4096, 4097, 65535, 65536, 65537, u64::MAX] {
+        let mut pointers = pointer_edges(length);
+        if (1..=65536).contains(&length) {
+            pointers.extend((0..PAGE).step_by(7).map(|o| 0x4001_3000 + o));
+            pointers.extend([0x4001_3fff, 0x7fff_0000 - length, 0x7fff_0001 - length]);
+        }
+        pointers.sort_unstable();
+        pointers.dedup();
+        for &pointer in &pointers {
+            for model in MODELS {
+                let label = format!("artifact {pointer:#x}+{length} {model:?}");
+                let cause = check_plan(&label, pointer, length, 65536, true, model, |l| {
+                    artifact_read_plan(pointer, length, PID, l)
+                });
+                *tally.entry(cause).or_default() += 1;
+            }
+        }
+    }
+    println!("artifact_read_plan {tally:?}");
+    for cause in [
+        Cause::Accepted,
+        Cause::ZeroLength,
+        Cause::TooLong,
+        Cause::EndOverflow,
+        Cause::BelowWindow,
+        Cause::AboveWindow,
+        Cause::Missing,
+        Cause::NotUser,
+        Cause::Foreign,
+        Cause::ReadOnlyOutput,
+        Cause::UnalignedFrame,
+    ] {
+        assert!(
+            tally.get(&cause).copied().unwrap_or(0) > 0,
+            "artifact_read_plan never reached {cause:?}"
+        );
+    }
+}

@@ -180,11 +180,17 @@ const NO_CHUNK: CopyChunk = CopyChunk {
     offset: 0,
     length: 0,
 };
+/// Validated user byte range split into at most `N` page chunks.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct CopyPlan {
-    pub chunks: [CopyChunk; 2],
+pub struct ChunkPlan<const N: usize> {
+    pub chunks: [CopyChunk; N],
     pub count: usize,
 }
+pub type CopyPlan = ChunkPlan<2>;
+/// L01 `artifact_read` output bound: one 64 KiB chunk per syscall.
+pub const ARTIFACT_READ_MAX: u64 = 64 * 1024;
+/// An unaligned 64 KiB range spans at most 17 pages.
+pub type ArtifactReadPlan = ChunkPlan<17>;
 pub fn copy_plan(
     pointer: u64,
     length: u64,
@@ -194,6 +200,17 @@ pub fn copy_plan(
 ) -> Result<CopyPlan, Error> {
     bounded_copy_plan(pointer, length, 320, pid, output, lookup)
 }
+/// Output range for one L01 `artifact_read` call (at most 64 KiB). Every page is
+/// looked up and checked before the plan exists, so a refused range copies no
+/// byte; the `0x80000000` bound keeps the artifact window itself out (I2a).
+pub fn artifact_read_plan(
+    pointer: u64,
+    length: u64,
+    pid: u64,
+    lookup: impl FnMut(u64) -> Option<PageAccess>,
+) -> Result<ArtifactReadPlan, Error> {
+    bounded_copy_plan(pointer, length, ARTIFACT_READ_MAX, pid, true, lookup)
+}
 /// Exact sector input. This does not widen the 320-byte IPC/output contract.
 pub fn sector_input_plan(
     pointer: u64,
@@ -202,20 +219,20 @@ pub fn sector_input_plan(
 ) -> Result<CopyPlan, Error> {
     bounded_copy_plan(pointer, 512, 512, pid, false, lookup)
 }
-fn bounded_copy_plan(
+fn bounded_copy_plan<const N: usize>(
     pointer: u64,
     length: u64,
     maximum: u64,
     pid: u64,
     output: bool,
     mut lookup: impl FnMut(u64) -> Option<PageAccess>,
-) -> Result<CopyPlan, Error> {
+) -> Result<ChunkPlan<N>, Error> {
     let end = pointer.checked_add(length).ok_or(Error::Range)?;
     if length == 0 || length > maximum || pointer < 0x40000000 || end > 0x80000000 {
         return Err(Error::Range);
     }
-    let mut plan = CopyPlan {
-        chunks: [NO_CHUNK; 2],
+    let mut plan = ChunkPlan {
+        chunks: [NO_CHUNK; N],
         count: 0,
     };
     let mut cursor = pointer;
