@@ -141,3 +141,89 @@ jobs:
             build/nas-native-ci/users/nas/build-report.json
             build/nas-native-ci/esp/
             build/nas-native-ci/run/nas-*/
+
+  task-grant-volume:
+    name: task-grant-volume
+    # A03-T2c-2 task-grant broker over the NAS volume ELF; kept off the required qemu-smoke path.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Rust 1.100.0 and targets
+        shell: bash
+        run: |
+          rustup toolchain install 1.100.0 --profile minimal
+          rustup target add --toolchain 1.100.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Preflight
+        run: python3 -B tools/preflight.py --strict
+      - name: Fetch locked dependencies before offline native builders
+        # The SDK and NAS leaf builders run cargo --offline (build_task_grant_volume.py).
+        run: |
+          cargo +1.100.0 fetch --locked
+          cargo +1.100.0 fetch --locked --manifest-path sdk/Cargo.toml
+          cargo +1.100.0 fetch --locked --manifest-path services/nas/native-probe/Cargo.toml
+      - name: A03 task-grant broker - read-only volume grant
+        shell: bash
+        run: |
+          rm -rf build/ci-task-grant-volume target/ci-task-grant-volume
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-volume" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-volume" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-volume" \
+          python3 -B tools/build.py --kernel-feature native-task-grant-volume
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-volume" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-volume" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-volume" \
+          python3 -B tools/run_task_grant.py --case volume
+      - name: A03 task-grant broker - volume without grant
+        shell: bash
+        run: |
+          rm -rf build/ci-task-grant-volume-denied target/ci-task-grant-volume-denied
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-volume-denied" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-volume-denied" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-volume-denied" \
+          python3 -B tools/build.py --kernel-feature test-task-grant-volume-denied
+          NOS_BUILD_DIR="$PWD/build/ci-task-grant-volume-denied" \
+          NOS_TARGET_DIR="$PWD/target/ci-task-grant-volume-denied" \
+          CARGO_TARGET_DIR="$PWD/target/ci-task-grant-volume-denied" \
+          python3 -B tools/run_task_grant.py --case volume-denied
+      - name: Preserve tracked source integrity
+        run: |
+          git diff --exit-code
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+      - name: Preserve compact QEMU diagnostics
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: task-grant-volume-evidence
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          if-no-files-found: warn
+          path: |
+            build/ci-task-grant-volume/manifest.json
+            build/ci-task-grant-volume/native-task-grant-volume.json
+            build/ci-task-grant-volume/logs/*.json
+            build/ci-task-grant-volume/logs/*.stdout.txt
+            build/ci-task-grant-volume/logs/*.stderr.txt
+            build/ci-task-grant-volume/run/native-task-grant-volume-*/result.json
+            build/ci-task-grant-volume/run/native-task-grant-volume-*/serial.txt
+            build/ci-task-grant-volume/run/native-task-grant-volume-*/stderr.txt
+            build/ci-task-grant-volume-denied/manifest.json
+            build/ci-task-grant-volume-denied/native-task-grant-volume-denied.json
+            build/ci-task-grant-volume-denied/logs/*.json
+            build/ci-task-grant-volume-denied/logs/*.stdout.txt
+            build/ci-task-grant-volume-denied/logs/*.stderr.txt
+            build/ci-task-grant-volume-denied/run/native-task-grant-volume-denied-*/result.json
+            build/ci-task-grant-volume-denied/run/native-task-grant-volume-denied-*/serial.txt
+            build/ci-task-grant-volume-denied/run/native-task-grant-volume-denied-*/stderr.txt

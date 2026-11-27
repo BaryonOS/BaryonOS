@@ -32,7 +32,7 @@
 # max_parallel, matrix, check_name, evidence) are verbatim copies of the YAML.
 
 schema_version = 1
-revision = 20
+revision = 21
 
 [policy]
 mode = "select"
@@ -636,6 +636,16 @@ activation = "automatic"
 timeout_minutes = 20
 input_sets = ["native"]
 evidence = ["nas-native-normal-cold-evidence"]
+
+[[workflow.job]]
+# A03-T2c-2 task-grant broker over the NAS volume ELF, kept off qemu-smoke.
+id = "task-grant-volume"
+name = "task-grant-volume"
+class = "rwa"
+activation = "automatic"
+timeout_minutes = 20
+input_sets = ["native"]
+evidence = ["task-grant-volume-evidence"]
 
 [[workflow]]
 path = ".github/workflows/native-display-input.yml"
