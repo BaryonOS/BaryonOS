@@ -1738,13 +1738,14 @@ PIT ticks; the TSC is used only for saturating diagnostics.
    Amendment H05-T5c Q2, S side (27 November 2026; project-owner decision
    given in the S session at about 13:20Z and recorded by S on #564,
    issuecomment-7219366917): the post-wake remount check of
-   [VOLUME-POST-WAKE-REMOUNT.md](implementation/VOLUME-POST-WAKE-REMOUNT.md)
-   is approved with these binding rules:
+   the owner approved these rules for the post-wake remount check of
+   [VOLUME-POST-WAKE-REMOUNT.md](implementation/VOLUME-POST-WAKE-REMOUNT.md);
+   the rest of that specification remains design:
    - **R1, grant recipient:** the one T5f-1 read-only block grant goes only to
      the original volume service instance that ran SHUTDOWN before SUSPEND and
      survived the sleep (same slot and pid, no exit or restart since). A
-     restarted instance never receives it automatically; the volume then stays
-     unavailable until the next cold boot. The kernel keeps no copy of the
+     restarted instance never receives it automatically. No other route is
+     designed, so the volume then stays unavailable until the next cold boot. The kernel keeps no copy of the
      generation or digest that the service reports.
    - **R2, outcome:** a kernel lane quarantine reaches clients one-to-one as
      `Quarantined` -24. A remount that differs from the pre-sleep reference,
@@ -1756,12 +1757,15 @@ PIT ticks; the TSC is used only for saturating diagnostics.
      automatic repair, write or retry.
    - **Order:** the runtime order of authentication, T5f-1, the remount,
      UNLOCK and T5f-2 is not fixed here. It follows the owner's B01-LOCK
-     decision O8 (authentication → T5f-1 → UNLOCK → T5f-2), which B records in
-     ADR-KEYRING-LOCK-20261126 and agrees with H and S.
+     decision O8 (authentication → T5f-1 → UNLOCK → T5f-2), which B will
+     record in ADR-KEYRING-LOCK-20261126; the final order of authentication
+     and remount is agreed by B and H (owner, #564).
    This amendment builds nothing. The native post-wake cases still need H's
-   T5d-T, T5e and UNLOCK, and the remount runs only in TEST profiles until a
-   product claim is separately allowed. Integrity, not authenticity: FNV-64 is
-   no MAC (B's O7).
+   T5d-T, T5e and UNLOCK, and T5f-1 also waits for a kernel-checkable
+   authentication signal that does not exist yet. Per H's T5f constraints
+   (#564, issuecomment-7219429976) and O1, the remount runs only in TEST
+   profiles until a product claim is separately allowed. Integrity, not
+   authenticity: FNV-64 is no MAC (B's O7).
 4. **Time.** Sleep time does not advance the tick clock; deadlines therefore
    pause across S3. This is recorded, not hidden.
 
@@ -2265,10 +2269,12 @@ section 8.1 on 24 November 2026; this records it here. For the R5 route only:
 - B4 and B6 are unchanged: isolated, disposable images only, no product
   activation and no access to real host disks.
 
-The catalog v2 decisions of 27 November 2026 (amendment of
-ADR-S09-DESTINATION-20261119) need no further change to B3 or B5: controlled
-deletion writes only inside the destination region of device 1 under this
-grant, and no new device, capability or product authority follows.
+S's assessment, not an owner decision: the catalog v2 decisions of
+27 November 2026 (amendment of ADR-S09-DESTINATION-20261119) need no further
+change to B3 or B5 for the R5 test route. Controlled deletion uses only WRITE
+and FLUSH inside the `deleting` entry's extent and the catalog slots on
+device 1. Configured retention rules (V7) and remembered VERIFY consent (V8)
+belong to the product dialog and are not covered by B5's test dialog.
 
 ## Project-owner decision package of 19 November 2026 — scope and limits
 
@@ -2337,8 +2343,8 @@ Catalog v1 stays append-only.
   information and never authority.
 - **V4, erase:** controlled deletion overwrites the entry's data range before
   the final release, crash-consistent and safely resumable. Only what the
-  device can verify is claimed: the range reads back as zero through the
-  device. There is no physical erase guarantee, in particular for SSDs.
+  storage device can verify is claimed; there is no physical erase
+  guarantee, in particular for SSDs.
 - **V5, proof:** a successful, source-bound VERIFY inside the destination
   service suffices for retention protection. It is not evidence of a
   completed restore.

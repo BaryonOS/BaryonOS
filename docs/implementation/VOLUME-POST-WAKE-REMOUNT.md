@@ -133,18 +133,19 @@ this project shows.
    - Clients and the portal handle both `Quarantined` and `RemountRefused`
      fail-closed but report them separately: the two codes state different
      facts (the device was refused by the kernel; the content differs from
-     the reference). Neither is repaired before authentication; the next cold
-     boot recovers as usual.
+     the reference). Neither is repaired; only a cold boot recovers.
 5. **Writable again (T5f-2).** Writes come back only through a new writable
    instance: recovery runs again, then the barrier FLUSH, as on every boot
    *[design]*. No step writes before UNLOCK.
 
-The check needs no Key Service keys (B's O4). The runtime order follows the
-owner's B01-LOCK decision O8, which B records in ADR-KEYRING-LOCK-20261126:
+The check needs no Key Service keys (B's O4). The owner's B01-LOCK decision
+O8 fixes authentication → T5f-1 → UNLOCK → T5f-2; where the remount and the
+key-blob read sit inside that sequence is S's design, pending the B/H
+agreement under O8 *[design; pending B/H agreement under O8]*:
 H re-init and latch lift → authentication, independent of the locked user
 data → read-only grant (T5f-1) and this remount → init reads the key-state
 blob through the volume service → RESTORE_PERSISTENT and UNLOCK → writable
-re-grant (T5f-2), after the T5f-1 grant is revoked.
+re-grant (T5f-2), after the T5f-1 grant is revoked (H's constraint 6).
 
 That is the runtime order. The implementation order differs: the T5f-1 kernel
 path (the grant and its same-instance check) is built only after H's T5d-T,
@@ -187,9 +188,11 @@ remount still run after authentication and before UNLOCK.
 - **Decided (owner, 27 November 2026):** `RemountRefused` -26, terminal until
   a cold reboot, and the binding text of R1 and R2, in the amendment
   "H05-T5c Q2, S side" of `ADR-H05-S3-SYSTEM-20261123`.
-- **Open:** the authentication signal that T5f-1 waits for (B and U design,
-  H's kernel interface), and a refusal value for "authentication absent" if
-  one is needed; both are outside this check.
+- **Open:** the final order of authentication and remount, agreed with B and
+  H under O8; the authentication signal that T5f-1 waits for (B and U design,
+  H's kernel interface); and a refusal value for "authentication absent"
+  (-28 proposed on #564, H's kernel value). The last two are outside this
+  check.
 
 ## 5. Negative tests (planned)
 
