@@ -63,12 +63,19 @@ OBSERVE, RECALL, CLASSIFY, ABSTRACT, VALIDATE, REMEMBER, APPLY, MEASURE, CORRECT
 |---|---|
 | Decision rules GR-01 to GR-11 | hosted Graphify memory; query "decision rule GR-" |
 | Owner decisions and operational history | issue #503 (PR guard) and #494 (CI) |
-| Volatile working state (pilot cases, scores, drafts) | local scratch `~/projects/BaryonOS-scratch/g/`, never committed |
+| Durable G handoff and newer handoff notes | comments on PR #585 (first: issuecomment-7204907599) |
+| Specialist role contracts | `.agents/roles/specialist_*.md` (G-C1) |
+| Volatile working state (pilot cases, scores, drafts) | local scratch of the G session, never committed; an addition only, never the canonical state |
+
+Live state (branch, HEAD, open items, owner questions) is never kept here
+(ADR-SPECIALIST-TEAM-20261125, item 4). It is in the newest "HANDOFF" comment
+on PR #585, which uses the required fields in `docs/handoffs/README.md`.
 
 ## Resume procedure
 
 1. Read this file.
 2. Run `recall` with the `audit` profile and the query "decision rule GR-".
-3. Read the newest G handoff note in the local scratch directory.
+3. Read the newest G handoff comment on PR #585. A local scratch note may add
+   detail but never overrides that comment.
 4. Process only the event-driven cases that the PR guard or specialists have
    sent. Do not reread all chats.
