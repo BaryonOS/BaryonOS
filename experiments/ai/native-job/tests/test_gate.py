@@ -1,6 +1,10 @@
 import importlib.util
+import os
 from pathlib import Path
+import stat
+import tempfile
 import unittest
+from unittest import mock
 
 spec = importlib.util.spec_from_file_location("ai_job_build", Path(__file__).resolve().parents[1] / "build.py")
 build = importlib.util.module_from_spec(spec)
@@ -37,6 +41,49 @@ class Gate(unittest.TestCase):
                     "  40020030:\tret\n  40020031:\tint3\n  40020032:\tnop\n"):  # code after padding
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 build.inspect_instructions(OK + bad)
+
+    def test_int3_after_call_only_for_noreturn_targets(self):
+        panic = "_RNvNtCs8uuN1nrGffB_4core9panicking18panic_bounds_check"
+        unwind = "_RNvCs5WqGp7zLRnA_7___rustc17rust_begin_unwind"
+        slot = "QWORD PTR [rip+0xfffffffffffe97f7]        # 40010220 <DW.ref.rust_eh_personality+0x20>"
+        slots = {0x40010220: unwind}
+        for good in (f"400262f7 <{panic}>", "40026a10 <_RNvNtNtCs8uuN1nrGffB_4core9panicking11panic_const"
+                     "23panic_const_div_by_zero>", slot):
+            with self.subTest(good=good):
+                build.inspect_instructions(OK + f"  40020030:\tcall   {good}\n  40020035:\tint3\n", slots)
+        for bad, table in (("40020000 <job>", slots),  # returning callee
+                           (f"400262f7 <{panic}+0x4>", slots),  # not the exact symbol
+                           (f"400262f3 <{panic}-0x4>", slots),  # negative offset, not the entry
+                           ("40020000 <_RNvNtCs8uuN1nrGffB_4core3fmt5write>", slots),  # core, not panicking
+                           (slot, {}),  # unresolved slot
+                           (slot, {0x40010220: "memmove"}),  # returning slot target
+                           ("rax", slots)):  # register call
+            with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, "after call to"):
+                build.inspect_instructions(OK + f"  40020030:\tcall   {bad}\n  40020035:\tint3\n", table)
+
+    def test_publish_is_owner_only_even_with_an_open_umask(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "build-report.json"
+            path.write_bytes(b"old")
+            os.chmod(path, 0o644)
+            previous = os.umask(0)
+            try:
+                build.publish(path, b"new")
+            finally:
+                os.umask(previous)
+            self.assertEqual(path.read_bytes(), b"new")
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
+
+    def test_source_tree_rejects_directory_symlink(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "tree/real").mkdir(parents=True)
+            (root / "tree/real/a.rs").write_text("fn a() {}\n")
+            with mock.patch.object(build, "ROOT", root), mock.patch.object(build, "SOURCE_TREES", (root / "tree",)):
+                build.source_tree_sha256()
+                (root / "tree/link").symlink_to(root / "tree/real", target_is_directory=True)
+                with self.assertRaisesRegex(ValueError, "unexpected source entry"):
+                    build.source_tree_sha256()
 
 
 if __name__ == "__main__":
