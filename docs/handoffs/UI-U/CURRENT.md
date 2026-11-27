@@ -5,7 +5,7 @@ backlog: tasks live in GitHub issues, `docs/progress.json` and the roadmap
 ledger. Newer ADRs and live repository evidence take precedence over this file.
 The canonical live state is the latest `HANDOFF UI-U` comment on the open UI-U
 pull request or, when none is open, on the most recently landed UI-U pull
-request (as of 27 November 2026: the landing HANDOFF on #645). This file and GitHub are
+request (as of 27 November 2026: [#629 resume checkpoint](https://github.com/BaryonOS/BaryonOS/pull/629#issuecomment-7228152411)). This file and GitHub are
 sufficient to resume; local paths below are optional additions.
 
 ## Resuming
@@ -54,17 +54,17 @@ context; client-specific start prompts are adapters and hold no state.
 
 | Field | Value |
 |---|---|
-| cycle_id | `UI-U-C12-20261127` |
+| cycle_id | `UI-U-RESUME-20261127` |
 | Owner | UI-U specialist |
-| Task | Record the owner decisions of 27 November 2026: ADR-U-OWNER-20261127, U06 protocol §6 accepted and §12 answered, this file brought up to date |
-| Branch | `claude/ui-u-owner-decisions-20261127` |
-| PR | the open UI-U docs PR for this cycle |
-| Evidence scope | documentation only; `tools/progress.py --check`. No criterion evidence |
-| Optional local worktree | `~/projects/BaryonOS-worktrees/ui-u-adr` |
-| Next | land this PR; coordinate the bounded #589 observation and local fallback with R and K; continue the remaining #630 items |
+| Task | Resume UI-U after #629; coordinate the bounded #589 observation and local fallback |
+| Branch and PR | See the latest `HANDOFF UI-U` comment; do not infer an active source branch from this pointer |
+| Evidence scope | #629 records owner decisions; it does not accept U02–U06. Native, physical and human evidence remain distinct |
+| Next | Review R's concrete #589 compositor slice and K's reporter against their source-bound single-CPU interface; preserve the live-compositor restart hold, then continue the remaining #630 items |
 
 ## Previous cycles
 
+- `UI-U-C12-20261127`: owner decisions and U06 protocol recorded in #629,
+  merged as `dc29612c`; the landing and resume HANDOFF are on #629.
 - `UI-U-C13-20261127`: compact failure layout, save-progress bar and SR11,
   merged as #639 (`f83a4ef5`).
 - Assignment failure status colour: merged as #645 (`8d97a8de`); its landing
