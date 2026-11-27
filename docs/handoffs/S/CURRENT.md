@@ -48,6 +48,18 @@ in `docs/progress.json`, the S09 specifications and GitHub.
   are the canonical S state; no chat history, memory or specific tool is
   needed. A resuming agent first verifies branch, HEAD, `git status`,
   ownership and freshness against both.
+- **Per-PR integrity (owner, 27 November 2026, relayed by the PR guard):**
+  every S PR carries its own labels, milestone, Project #5 fields and final
+  status, an issue or criterion link (`Refs`/`Part of #N`), source-bound
+  evidence, a D3 assessment file (also for documentation and handoff PRs)
+  and names the affected functionality, acceptance criteria and the evidence
+  behind any progress claim; a merge is not acceptance. S also keeps the
+  `delivery_review` implementation and verification rows of its own
+  criterion in `docs/progress.json` current without asking per update: own
+  rows only, source-bound evidence with date and SHA in the row text, rubric,
+  weights and acceptance unchanged, the global snapshot date and
+  `source_commit` untouched, then `tools/progress.py --write` and `--check`;
+  the score rises only on full acceptance after independent verification.
 - **Communication:** #610 (handoff), #564 (post-wake remount, with the H
   track), #569 (catalog v2) and the open S PR.
 
