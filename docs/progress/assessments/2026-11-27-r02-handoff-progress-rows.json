@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "4c83f3049e23406dd96452c21c1f4d62a5bca8fc",
+  "assessment_basis": "parent_commit",
+  "branch": "claude/r02-progress-rows-20261127",
+  "task": "R02 handoff cycle (#615, portable resume state) and refresh of the R02 latency row in docs/progress.json delivery_review with #540, #578 and #603",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. Documentation and snapshot-row update only: the R02 row cites local KVM A/B evidence of three landed candidates; R02 still lacks owner budgets (R02-L1), hosted or physical latency evidence and endurance runs, so no criterion is accepted."
+}

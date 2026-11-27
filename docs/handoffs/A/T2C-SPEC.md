@@ -65,7 +65,7 @@ only when a later A slice needs coexisting writers and readers.
 |---|---|---|---|---|
 | T2c-1 | Broker over `client::Transport`; stat registration; Stale retires; host tests against an in-process `Service` on a RAM disk (pattern `settings-volume/src/tests.rs:36`) | none | no | #535 |
 | T2c-2 | Native `native-system` variant: new `kernel/src/m2/m3/task_grant_volume.rs` via path-swapped `mod system` (`m3.rs` ~98-120, 2-12 lines), 2 features in `kernel/Cargo.toml`, `tools/build.py` (:53,:99,:245,:477-491), new `tools/build_task_grant_volume.py`, `run_task_grant.py` cases `volume`/`volume-denied`; reuses m5 runtime and volume-docs ELF unchanged; **no `volume.rs` edit** | shared files (report to PR guard; S/H notice) | no | T2c-1, S seeded-read image (6206b8c8), #539/N38 on main |
-| T2c-3 | Product exit notification replacing the `observe_exit` fixture | yes | **yes** (A/B/C below) | T2c-2 |
+| T2c-3 | Product exit notification replacing the `observe_exit` fixture: broker probes client-owned reply endpoints (`ipc_wait` SEND, deadline 0) and retires on Revoked/Closed; `native-task-grant` gains `ipc-wait`; new `test-task-grant-fault` case; `task_grant.rs`/`task_grant_volume.rs` drop the notice and check causality | yes (write set #536 issuecomment-7219450709) | **decided: A** (25 Nov, final 27 Nov) | T2c-2, #579 |
 
 T2c-2 native cases: VOLUME_READ_OK, UNGRANTED_OBJECT_DENIED (0 volume
 requests), FORGED_ACTOR_DENIED, FORGED_GRANT_DENIED, NO_VOLUME_HANDLE,
@@ -130,14 +130,19 @@ endpoints the exiting PID owns (capability-core `lib.rs:1588-1640`).
 - **C: kernel exit-event channel** (new capability/ABI, ADR, kernel owner).
   Cleanest semantics, also covers fault/kill; largest change.
 
-Status: the error after owner exit (`Revoked`) and the shared fault/kill
-cleanup path are verified by code reading (above); natively only normal exit is
-tested so far. Remaining checks: the T2c-3 native fault case and the pinned
-capability-core test.
+Status (27 Nov, T2c-3 branch): implemented. The capability-core pin landed as
+#579. Natively, normal exit (`normal`, `volume`) and a ring-3 #UD
+(`fault`) both make the owner's reply endpoint report `Revoked`, after which
+the broker retires the owner's grants. The gate requires that no retirement
+precedes the owner's end, the code -10 and the owner PID. A probe is an
+`ipc_wait` SEND readiness query at deadline 0, which delivers and reserves
+nothing (`wait.rs` evaluate; SDK `ipc_wait` contract). Kill, orphan kill and
+invalid RSP reach the same `retire_authority` path by code reading only.
 
 ## Evidence limits
 
 QEMU x86_64 only; content from S's pre-seeded read-only image; trusted dialog remains a fixture;
+exit detection is polled, and on SMP kill grants end at the actual exit, not the KILL request;
 one domain; no WRITE/EXPORT; bytes already read cannot be revoked. The volume
 is mounted read-only, so no writer exists and the Stale path is host-tested only.
 
