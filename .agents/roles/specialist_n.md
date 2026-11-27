@@ -30,7 +30,7 @@ Tool class: `builder`
 
 ## Handoff
 Canonical state: `docs/handoffs/N/CURRENT.md` plus the newest `HANDOFF N` comment on issue #529.
-- Live handoff: newest comment starting `HANDOFF N` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread); until the role posts its first tagged comment, its newest legacy-titled handoff comment counts, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
+- Live handoff: newest comment starting `HANDOFF N` followed by whitespace or end of line, in the linked PR/issue (role-specific, also on a shared thread), counted only when its author has write access to the repository; until the role posts its first tagged comment, its newest legacy-titled handoff comment counts, with the required fields in `docs/handoffs/README.md`; update it before an ownership change, rotation or stop; on resume verify branch, HEAD, worktree status, ownership and freshness first.
 
 ## Graphify recall
 - "net-broker durable store"
