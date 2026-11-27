@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "41955c86baa1643a0f67dad86c48143fad459610",
+  "assessment_basis": "parent_commit",
+  "branch": "g/c1-specialist-roles",
+  "task": "G-C1 / #503: canonical specialist role contracts (.agents/roles/specialist_*.md), portable handoff rules and per-PR integrity duties (docs/handoffs/README.md), cloud-sufficient docs/handoffs/G/CURRENT.md",
+  "previous_score": 43,
+  "summary": "43/100, unchanged: governance and handoff documentation only. Adds thirteen role contracts in the format agreed with CI for the CI-C1 adapter generator, the portable live-handoff rules (12 required fields, role-tagged HANDOFF comments counted only from authors with write access), the owner's per-PR integrity duties of 27 Nov 2026 ~12:35Z, and citations of ADR-SPECIALIST-MANDATE-20261127 (#616, which lands first). Evidence: python3 -B -m unittest tools.tests.test_agent_governance exit 0. No code, test or criterion changes; adapter generation (CI-C1) is planned, not in place."
+}

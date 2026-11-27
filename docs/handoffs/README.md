@@ -50,6 +50,38 @@ and `.github`. They hold no task state.
 11. The single next safe action.
 12. Acceptance commands and evidence limits.
 
+## Per-PR integrity duties
+
+The project owner set these duties on 27 November 2026 at about 12:35Z
+("continuous progress and project integrity"). They apply to every current and
+future specialist, for each pull request the specialist owns:
+
+1. Labels under the existing conventions.
+2. A milestone (CI pull requests are exempt).
+3. Project #5 Status, Subsystem and Work Type, including the final status.
+4. An issue, roadmap or criterion link (`Refs #N` or `Part of #N`).
+5. The specialist's own task progress.
+6. Source-bound evidence.
+7. A D3 assessment file in `docs/progress/assessments/<date>-<slug>.json`
+   (ADR-PROGRESS-ASSESSMENTS-20261125), also for documentation, handoff and CI
+   pull requests. The score rises only for a fully accepted criterion; rubric
+   and weights are unchanged.
+8. The `CURRENT.md` pointer and checkpoints.
+9. Durable knowledge through Graphify `remember`, where Graphify is available.
+
+The pull request body names the functionality and acceptance criteria it
+affects and the evidence behind any progress claim. It keeps design,
+implementation, verification, accepted criterion, operational delivery and CI
+infrastructure apart. A merge is not acceptance.
+
+The PR guard checks these duties proportionally in its existing pre-check, also
+before an autonomous enqueue, and after every landing. It repairs simple missing
+metadata itself. The owning specialist repairs a missing assessment or missing
+evidence in its next own pull request, not in a separate administrative one.
+These duties add no new labels, systems, AI review rounds or merge blocks, and
+leave D1–D3, P0, the Security Floor, ownership and enqueue autonomy unchanged.
+Every live handoff and clear prompt restates them.
+
 ## Rules
 
 - Graphify memory is optional context. Every binding fact must be reproducible
