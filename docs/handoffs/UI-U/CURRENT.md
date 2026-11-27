@@ -25,25 +25,25 @@ ledger. Newer ADRs and live repository evidence take precedence over this file.
 
 ## Current cycle
 
-- **cycle_id:** `UI-U-C9-20261126`
+- **cycle_id:** `UI-U-C10-20261127`
 - **owner session:** local session "BaryonOS - Specialist U (UI/UX)".
-- **task:** #545, two observation gaps in the native window-session harness.
-  (1) The kernel reporter now samples on compositor words 464/480
-  (Material/Calculator completed frames), so a frame that completes on a
-  RETAIN without a commit is still printed. (2) After F6 the harness waits for
-  `SHELL_READY == 1` as well as the focus flip, so the following captures
-  cannot show the previous taskbar state. Guest behaviour is unchanged.
-- **branch:** `claude/ui-u-545-reporter-20261126` (based on `main`
-  `8033e2dd`, after R's #578), worktree `~/projects/BaryonOS-worktrees/ui-u-545`.
+- **task:** #537, the InputLost banner on an idle Materiaal view. The
+  controller's new `input_lost()` always starts a frame after an input
+  failure; `cancel_pointer()` is unchanged.
+- **branch:** `claude/ui-u-537-inputlost-20261127` (based on `main`
+  `20d9089f`), worktree `~/projects/BaryonOS-worktrees/ui-u-537`.
 - **PR:** recorded in the PR itself and in its HANDOFF comment after merge.
-- **Evidence scope:** host tests (`tools/test_window_session.py`) and a local
-  native clipboard/workspace scale 1 run; results are in the PR. Hosted
-  `native-window-session` legs remain the acceptance gates.
-- **Next:** #537, then #541 (InputLost banner). Review of R's R02 candidate (1)
-  (`ipc_wait` reply deadline in the SUR1 client); R is the writer.
+- **Evidence scope:** materiaal and ui-native host suites with a mutation
+  control, and local native materiaal `normal` and `recover` runs (raw exit
+  33); results are in the PR. Hosted gates run only the `normal` case.
+- **Next:** #541 (FocusLost must not show InputLost), then #589. Review of R's
+  R02 candidate (1) when R sends the draft (U decision: 150 ticks, so the
+  Delivery error comes first).
 
 ## Previous cycles
 
+- `UI-U-C9-20261126`: #545 window-session reporter sampling and settled
+  taskbar wait, merged as #586 (`627437ff`); HANDOFF comment on #586.
 - `UI-U-C8-20261125`: U03 read-only Ctrl+S refusal, merged as #523
   (`55eeccc7`) through the merge queue; HANDOFF comment on #523.
 
