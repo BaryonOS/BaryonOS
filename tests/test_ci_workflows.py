@@ -2033,6 +2033,32 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                     ".github/actions/**", "crates/artifact-store-core/**",
                 }, set(workflow["on"][event]["paths"]))
 
+    def test_task_grant_volume_cases_run_in_their_own_gate(self):
+        """A03-T2c-2: both volume cases run isolated in one rwa nas-core job, never in ci.yml."""
+        job = self.workflows[".github/workflows/nas-core.yml"]["jobs"]["task-grant-volume"]
+        self.assertEqual(job["name"], "task-grant-volume")
+        self.assertEqual(job["timeout-minutes"], "20")
+        for key in ("if", "needs", "continue-on-error", "strategy"):
+            self.assertNotIn(key, job)
+        runs = "\n".join(step.get("run", "") for step in job["steps"])
+        for feature, case in (("native-task-grant-volume", "volume"),
+                              ("test-task-grant-volume-denied", "volume-denied")):
+            with self.subTest(case=case):
+                step, = [step for step in job["steps"] if f"--case {case}\n" in step.get("run", "")]
+                build_dir = f'NOS_BUILD_DIR="$PWD/build/ci-task-grant-{case}"'
+                self.assertEqual(step["run"].count(build_dir), 2)
+                self.assertLess(step["run"].index(f"tools/build.py --kernel-feature {feature}\n"),
+                                step["run"].index(f"tools/run_task_grant.py --case {case}\n"))
+        self.assertIn("git diff --exit-code", runs)
+        self.assertIn('test -z "$(git status --porcelain)"', runs)
+        self.assertNotIn("task-grant-volume", json.dumps(self.workflows[".github/workflows/ci.yml"]))
+        catalogue = tomllib.loads((ROOT / ".github/ci-impact.toml").read_text(encoding="utf-8"))
+        nas, = [entry for entry in catalogue["workflow"] if entry["path"] == ".github/workflows/nas-core.yml"]
+        row, = [row for row in nas["job"] if row["id"] == "task-grant-volume"]
+        preserve, = [step for step in job["steps"] if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertEqual((row["class"], row["input_sets"], row["evidence"]),
+                         ("rwa", ["native"], [preserve["with"]["name"]]))
+
 
 WINDOW_WORKFLOW = ".github/workflows/native-window-session.yml"
 # Every report assertion of the native window gates (CI-EVIDENCE, U02-U06),
