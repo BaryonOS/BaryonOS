@@ -208,6 +208,22 @@ class CaptureGateArchive(unittest.TestCase):
 
         self.assertTrue(capture_gate.guest_matches("m4", "test-m4-copy", result))
 
+    def test_syscall_spin_requires_one_ordered_verdict_per_mode0_round(self):
+        group = "syscall-spin-continues-within-quantum"
+        required, expected_exit, _ = guest_expectation("m3", group)
+        self.assertEqual(expected_exit, 33)
+        self.assertEqual(required, (
+            "BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS",
+            "KS-03:PASS", "M3:SYSCALL_SPIN:PASS", "KS-04:PASS", "M3:SYSCALL_SPIN:PASS",
+            "KS-07:PASS", "KS-08:PASS", "M3:SYSCALL_DF_ENTRY:PASS", "M3:PASS", "M1:PASS"))
+        result = {"raw_qemu_exit": 33, "stdout": "\n".join(required), "timed_out": False}
+        self.assertTrue(capture_gate.guest_matches("m3", group, result))
+        # One verdict only (round 1 missing) must not pass.
+        single = list(required)
+        del single[single.index("M3:SYSCALL_SPIN:PASS", 7)]
+        result["stdout"] = "\n".join(single)
+        self.assertFalse(capture_gate.guest_matches("m3", group, result))
+
     def test_two_image_booleans_without_guest_binding_cannot_be_captured(self):
         evidence = self.build / "logs/m5-two-image-check.json"
         evidence.write_text(json.dumps({"checks": {"same_kernel": True}, "passed": True}))
