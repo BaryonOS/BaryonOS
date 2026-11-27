@@ -112,7 +112,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "nat
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
                    "milestone-m6c", *(f"test-m6c-{case}" for case in M6C_CASES), "graphics-g0", "native-qsim", "native-qsim-job",
                    "native-sdk-app", "test-sdk-app-denied", "native-ipc-wait",
-                   "native-task-grant", "test-task-grant-denied",
+                   "native-task-grant", "test-task-grant-denied", "test-task-grant-fault",
                    *TASK_GRANT_VOLUME_FEATURES,
                    "native-tpm-crb", "test-tpm-crb-absent", *VOLUME_FEATURES, *SUPERVISOR_FEATURES,
                    *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input", "native-dispi-probe"]
@@ -342,7 +342,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             "NOS_SDK_APP_ELF": str(app.resolve()),
             "NOS_SDK_SERVICE_ELF": str(service.resolve()),
         }
-    elif kernel_feature in ("native-task-grant", "test-task-grant-denied"):
+    elif kernel_feature in ("native-task-grant", "test-task-grant-denied", "test-task-grant-fault"):
         from build_users import inspect_user
         app_target = TARGET / "sdk-task-grant"
         run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/task-grant-broker/build.py")],
@@ -546,7 +546,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["ipc_wait"] = qsim_report
         elif kernel_feature in ("native-sdk-app", "test-sdk-app-denied"):
             manifest["sdk_app"] = qsim_report
-        elif kernel_feature in ("native-task-grant", "test-task-grant-denied"):
+        elif kernel_feature in ("native-task-grant", "test-task-grant-denied", "test-task-grant-fault"):
             manifest["task_grant"] = qsim_report
         elif kernel_feature in VOLUME_FEATURES:
             manifest["volume_docs"] = qsim_report

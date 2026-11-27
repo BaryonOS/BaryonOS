@@ -5,10 +5,11 @@
 //!
 //! FIXTURE: the bootstrap grant words in the broker's DATA page stand in for
 //! the trusted permission dialog (U-owned, not built). `test-task-grant-denied`
-//! omits them. FIXTURE lifecycle notice: on each client exit the kernel writes
-//! the exited PID into the broker's private DATA page (as `nas.rs` does for its
-//! admin), standing in for a product exit-notification path. No client can
-//! write that page, so the notice cannot be forged over IPC.
+//! omits them. Exit detection (A03-T2c-3, owner option A): each client owns
+//! its reply endpoint, so `Engine::exit` revokes it no later than the client's
+//! exit; the broker probes the reply handles and retires on Revoked or Closed.
+//! The kernel writes no lifecycle notice. `test-task-grant-fault` ends the
+//! owner with a ring-3 #UD instead of `exit`, covering the fault cleanup path.
 //! This module replaces `sdk_app` via a path attribute in m3.rs.
 use super::*;
 use capability_core::{RECV, SEND};
@@ -16,6 +17,11 @@ use capability_core::{RECV, SEND};
 const PROCESS_COUNT: usize = 3;
 const TIMEOUT_TICKS: u64 = 2400;
 const DENIED: bool = cfg!(feature = "test-task-grant-denied");
+const FAULT: bool = cfg!(feature = "test-task-grant-fault");
+/// Evidence code of a client that ended by #UD (0x100 | vector 6).
+const UD_END: u64 = 0x106;
+/// Capability-core `Error::Revoked` as the broker stores it (two's complement).
+const REVOKED: u64 = -10i64 as u64;
 
 // Wire values shared with sdk/examples/task-grant-broker/src/lib.rs.
 const OP_READ: u64 = 1;
@@ -230,6 +236,9 @@ pub fn manifest(state: &mut State) {
         // The value both clients put in the claimed actor field.
         put(state, slot, 184, owner);
     }
+    if FAULT {
+        put(state, 1, 16, 1);
+    }
 
     state.free_baseline = state
         .free_count()
@@ -240,8 +249,31 @@ pub fn manifest(state: &mut State) {
 }
 
 pub fn observe_exit(state: &mut State, slot: usize, counter: u64) {
+    if FAULT && slot == 1 {
+        fail(b"OWNER_EXIT_NOT_FAULT");
+    }
+    let code = state.last_event.code;
+    record_end(state, slot, counter, code);
+}
+
+pub fn observe_fault(state: &mut State, slot: usize, _context: &[u64; 22], counter: u64) {
+    if !FAULT || slot != 1 || state.last_event.vector != 6 {
+        print_number(b"TASKGRANT:FAULT_SLOT:", slot as u64);
+        fail(b"UNEXPECTED_FAULT");
+    }
+    record_end(state, slot, counter, UD_END);
+}
+
+/// Capture a client's end before cleanup (which clears its PID and pages).
+fn record_end(state: &mut State, slot: usize, counter: u64, code: u64) {
     if !(1..=2).contains(&slot) || evidence()[slot - 1].exited {
         fail(b"UNEXPECTED_EXIT");
+    }
+    // The broker may only learn of the owner's end from the kernel's own
+    // revocation, which runs after this hook; an earlier retirement is not
+    // causal. (The helper ends after the broker has retired the owner.)
+    if slot == 1 && word(state, 0, 152) != 0 {
+        fail(b"RETIRED_BEFORE_END");
     }
     let mut statuses = [0u64; 10];
     for (index, status) in statuses.iter_mut().enumerate() {
@@ -249,25 +281,12 @@ pub fn observe_exit(state: &mut State, slot: usize, counter: u64) {
     }
     evidence()[slot - 1] = ClientEvidence {
         exited: true,
-        // Captured here: the slot's PID is cleared once exit cleanup runs.
         pid: state.processes[slot].pid,
-        code: state.last_event.code,
+        code,
         counter,
         statuses,
         content: [word(state, slot, 320), word(state, slot, 328)],
     };
-    // FIXTURE lifecycle notice into the broker's private page: PID first, then
-    // the count the broker polls. The PID is kernel bookkeeping, not app data.
-    let notices = word(state, 0, 448);
-    if notices >= 2 {
-        fail(b"EXIT_NOTICES");
-    }
-    put(state, 0, 456 + notices * 8, state.processes[slot].pid);
-    put(state, 0, 448, notices + 1);
-}
-
-pub fn observe_fault(_state: &mut State, _slot: usize, _context: &[u64; 22], _counter: u64) {
-    fail(b"UNEXPECTED_FAULT");
 }
 
 fn entry(pid: u64, op: u64, object: u64, status: u64) -> u64 {
@@ -275,7 +294,9 @@ fn entry(pid: u64, op: u64, object: u64, status: u64) -> u64 {
 }
 
 pub fn poll(state: &mut State) -> Option<*const u64> {
-    if state.ticks >= TIMEOUT_TICKS || state.fault || state.unexpected {
+    // Only the fault case may fault, and only as the recorded owner #UD.
+    let expected_fault = FAULT && evidence()[0].code == UD_END;
+    if state.ticks >= TIMEOUT_TICKS || state.fault && !expected_fault || state.unexpected {
         fail(b"TIMEOUT_OR_FAULT");
     }
     let [owner_evidence, helper_evidence] = *evidence();
@@ -293,7 +314,8 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
     {
         fail(b"LIFECYCLE");
     }
-    if owner_evidence.code != 0 || helper_evidence.code != 0 {
+    let owner_end = if FAULT { UD_END } else { 0 };
+    if owner_evidence.code != owner_end || helper_evidence.code != 0 {
         fail(b"CLIENT_EXIT_CODE");
     }
 
@@ -352,9 +374,10 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         || word(state, 0, 232) != held
         || word(state, 0, 240) != held
         || word(state, 0, 248) != 0
-        || word(state, 0, 448) != 2
+        // The owner's reply endpoint reported Revoked after its end.
+        || word(state, 0, 448) != REVOKED
         || word(state, 0, 456) != owner
-        || word(state, 0, 464) != helper
+        || word(state, 0, 440) != 0
     {
         fail(b"EXIT_RETIREMENT");
     }
@@ -388,6 +411,9 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
 TASKGRANT:HELPER_DENIED:PASS\nTASKGRANT:CLOSE_REVOKES:PASS\n\
 TASKGRANT:FORGED_RETIRE_DENIED:PASS\nTASKGRANT:EXIT_RETIRES:PASS\n",
         );
+    }
+    if FAULT {
+        serial::write(b"TASKGRANT:FAULT_RETIRES:PASS\n");
     }
 
     // Both clients completed exit cleanup. Keep the established address-space

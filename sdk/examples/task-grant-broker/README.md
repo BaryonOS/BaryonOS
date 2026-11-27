@@ -1,4 +1,4 @@
-# Native example: task-grant broker (A03-T2a, T2b)
+# Native example: task-grant broker (A03-T2a, T2b, T2c)
 
 A ring-3 grant broker and one client ELF that runs as two processes: the
 owner app and a hostile helper. The broker is the trusted adapter of
@@ -42,18 +42,22 @@ bootstrap ABI. A second decision of the same form (words 360..400) is applied
 by the broker after the owner's close, so the owner holds a fresh grant when it
 exits. The negative profile `test-task-grant-denied` omits both.
 
-## Fixture standing in for exit notification
+## Exit notification (A03-T2c-3, owner option A)
 
-When a client exits, the kernel's `observe_exit` writes the exited PID into
-the broker's private startup page (count at 448, PIDs from 456), the same
-kernel-written observation that `nas.rs` uses for its admin. The broker polls
-that word, checks the PID against its bootstrap owner PID, and calls
-`retire_process` for it. The page is mapped only in the broker's address
-space. The kernel writes the exit-notice slots (448 and 456+), and the broker
-itself writes its counters and retirement results to other words of the same
-page. No client maps the page and no IPC path reaches it, so a client cannot
-forge a notice. The broker is trusted not to write the notice slots. This is a **test fixture**,
-not a product lifecycle ABI; no new syscall or capability type is involved.
+Each client owns the RECV side of its reply endpoint; the broker holds only a
+SEND handle to it. When a client ends (exit syscall, ring-3 fault, invalid RSP,
+kill or orphan kill), the kernel's `retire_authority` runs `m4::process_exit`,
+whose `Engine::exit` revokes every node the client owns before closing its
+endpoints. The broker's SEND handle then resolves `Revoked` (-10); `Closed`
+(-9) arises if a live client drops its last RECV. The broker probes its reply
+handles with `ipc_wait` and a SEND condition at deadline 0, an immediate query
+that reserves and delivers nothing, and calls `retire_process` for the client
+whose handle reports either code (`client_gone`). A reply SEND that fails with
+those codes retires the same way instead of aborting the broker. Any other
+error is a broker fault, never an exit. No kernel-written notice, syscall or
+capability type is involved. Detection is polled. The pinned capability-core
+contract "an owned endpoint closes no later than its owner's exit" landed as
+#579.
 
 ## Native acceptance
 
@@ -64,7 +68,7 @@ helper READ 1 claiming the owner's PID (denied) and CLOSE 1 (denied); then the
 owner READ 1 (still ok), CLOSE 1 (ok), READ 1 (denied). The broker then
 applies the second fixture grant: owner READ 1 (ok); helper RETIRE claiming the
 owner (denied, and the owner's grant count stays 1); owner READ 1 (ok); the
-owner exits; on the kernel exit notice the broker retires the owner's grants
+owner exits; when its reply endpoint reports `Revoked` the broker retires the owner's grants
 (table-derived count 1 before, 1 retired, 0 after); then helper READ 1 claiming
 the exited owner (denied). The kernel compares the broker's twelve-entry
 decision log, its counters, the retirement counts and the clients' recorded
@@ -77,7 +81,15 @@ python3 -B tools/build.py --kernel-feature native-task-grant
 python3 -B tools/run_task_grant.py --case normal
 python3 -B tools/build.py --kernel-feature test-task-grant-denied
 python3 -B tools/run_task_grant.py --case denied
+python3 -B tools/build.py --kernel-feature test-task-grant-fault
+python3 -B tools/run_task_grant.py --case fault
 ```
+
+The `fault` case ends the owner with a ring-3 #UD instead of `exit`. The kernel
+accepts only that one recorded fault and requires the same retirement, the
+`Revoked` code and the owner PID in the broker's evidence (words 448 and 456).
+At the owner's end the broker must not yet have retired anything (word 152 is
+0), so the retirement is caused by the kernel's revocation.
 
 ## Trust assumptions
 
