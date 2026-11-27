@@ -1,6 +1,6 @@
 # raw/ -- source material
 
-**The LLM does not modify files in this directory.** It only reads them.
+**Agents do not modify files in this directory.** They only read them.
 
 ## What goes here
 
