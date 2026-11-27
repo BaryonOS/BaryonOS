@@ -3,7 +3,8 @@
 
 Cases `volume`/`volume-denied` (A03-T2c-2) run the broker as sole client of a
 read-only volume domain 0 over a fresh `seeded-read` image attached writable;
-the image must be byte-identical to a fresh seed afterwards."""
+the image must be byte-identical to a fresh seed afterwards. Case `fault`
+(A03-T2c-3) ends the owner by a ring-3 #UD; its grants must still be retired."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -28,6 +29,7 @@ VOLUME_NORMAL = ("TASKGRANT:VOLUME_READ_OK:PASS", "TASKGRANT:OWNER_READ:PASS",
                  "TASKGRANT:CLOSE_REVOKES:PASS", "TASKGRANT:FORGED_RETIRE_DENIED:PASS",
                  "TASKGRANT:EXIT_RETIRES:PASS")
 FEATURES = {"normal": "native-task-grant", "denied": "test-task-grant-denied",
+            "fault": "test-task-grant-fault",
             "volume": "native-task-grant-volume", "volume-denied": "test-task-grant-volume-denied"}
 NUMERIC = re.compile(r"TASKGRANT:[A-Z0-9_]+:[0-9]{20}")
 VOLUME_NUMBERS = frozenset(f"TASKGRANT:{label}:" for label in (
@@ -70,7 +72,8 @@ def main() -> int:
                     + ("TASKGRANT:DENIED_NO_VOLUME_REQUEST:PASS", "TASKGRANT:CLEANUP:PASS", case_marker)
                     + END[1:])
     else:
-        expected_cases = NORMAL if args.case == "normal" else DENIED
+        expected_cases = {"normal": NORMAL, "denied": DENIED,
+                          "fault": NORMAL + ("TASKGRANT:FAULT_RETIRES:PASS",)}[args.case]
         required = BOOT + ("TASKGRANT:MANIFEST:PASS",) + expected_cases + END
     try:
         guest = run_guest(

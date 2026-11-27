@@ -16,3 +16,17 @@ Append-only. Newest entries at the bottom.
 - Added a root documentation delegation and kept the vendored linter scoped to
   `docs/project-docs`, because the repository's existing `docs/` tree is not a single
   frontmatter-based wiki.
+
+## [2026-11-27] structure | made the documentation layer model-independent
+
+- Made `docs/project-docs/AGENTS.md` the canonical maintenance contract.
+- Reduced `CLAUDE.md` files and `/docs-*` commands to compatibility adapters.
+- Added [[documentation-workflow]] as the direct procedure for Claude, Codex, Copilot,
+  Ollama, OpenCode and other agents.
+- Kept the grow-on-use model and existing canonical documents in place; no project facts
+  or historical records were migrated or duplicated.
+- Separated unclassified product-change discovery from explicit page-source freshness,
+  so documentation and adapter sources cannot be hidden by the product-code filter.
+- Kept unverified freshness open for judgement instead of treating it as clean or stale.
+- Kept stale and unverified diagnostics visible in the documented status and sync
+  commands, so their no-sync decision cannot silently discard freshness warnings.

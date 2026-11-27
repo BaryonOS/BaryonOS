@@ -186,8 +186,11 @@ native-ai-job = ["fpu-context", "monotonic-clock"]
 native-sdk-app = ["milestone-m4"]
 test-sdk-app-denied = ["native-sdk-app"]
 # A03 grant broker; reuses the sdk-app dispatch with a three-process manifest.
-native-task-grant = ["native-sdk-app"]
+# ipc-wait: the broker probes client reply endpoints (A03-T2c-3, owner option A).
+native-task-grant = ["native-sdk-app", "ipc-wait"]
 test-task-grant-denied = ["native-task-grant"]
+# A03-T2c-3: the owner ends by a ring-3 #UD; its grants must still be retired.
+test-task-grant-fault = ["native-task-grant"]
 # A03-T2c-2: the task-grant broker as sole client of a read-only volume domain 0.
 native-task-grant-volume = ["native-system", "monotonic-clock", "ipc-wait"]
 test-task-grant-volume-denied = ["native-task-grant-volume"]
@@ -438,6 +441,9 @@ test-volume-o13-latch = ["test-volume-archive-device"]
 # S09 O13 N38 slice 2 (f): syscall 0x44 on test-scripted disk-1 latch entries
 # and handle scopes; no injected fault; never with test-volume-o13-latch.
 test-volume-o13-latch-0x44 = ["test-volume-archive-device"]
+# S09 K5 per-disk admission fixtures (F1, F2) on the device-1 disk: the kernel
+# postpones observing a held lane only; never with the N38 or power profiles.
+test-volume-k5 = ["test-volume-archive-device"]
 # S09 phase 3 L2 export/restore on the device-1 archive disk (cases 25-28).
 test-volume-l2-export = ["test-volume-archive-device"]
 test-volume-l2-restore = ["test-volume-archive-device"]
