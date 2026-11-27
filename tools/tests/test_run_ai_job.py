@@ -74,10 +74,6 @@ class SerialParser(unittest.TestCase):
             gate.validate_sequence(fixture(run2_irqs=2, totals={"TIMER_A": 27, "TIMER_IRQS": 84}), ORACLE)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class StaleResult(unittest.TestCase):
     def test_failure_before_the_guarded_run_removes_an_earlier_result(self):
         (gate.ROOT / "build").mkdir(exist_ok=True)
@@ -90,3 +86,7 @@ class StaleResult(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     gate.run_ai_job()
             self.assertFalse(stale.exists())
+
+
+if __name__ == "__main__":
+    unittest.main()
