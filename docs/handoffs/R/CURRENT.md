@@ -271,6 +271,15 @@ directory. Request U review (UI/a11y); U does not merge. R updates
    `native-window-session-probe` build and the ELF policy test pass locally.
    Calculator (84118 of 131072 bytes) and window-session stay within budget.
    Open: (a), (c), native runs and A/B with K; U is informed of the budget change.
+   U decisions (27 Nov 2026, 08:24Z and 08:30Z): (c) is relaxed to "no new
+   frozen end state compared with `main`"; live-compositor recovery moves to
+   U follow-up #589. (a): measured worst replies were KVM 3, local TCG 8
+   (scale 1) and 7 (scale 2) ticks; hosted is estimated at ~20 and ~12. The
+   deadline is therefore 150 ticks, not 100, and not 200: the compositor
+   expires a staged tile at `begin + 200` and an undeliverable reply after
+   `start + 200` on its pass clock, so 150 keeps the client's Delivery error
+   50 ticks ahead, assuming the Begin-to-wait gap and pass skew stay below 50
+   ticks. A Materiaal host test covers a blocking surface that never replies.
 2. Candidate (3) (single-CPU scheduler continuation) belongs to Specialist K
    (project-owner decision, 26 Nov 2026, 21:25Z). R does not write `kernel/`
    and supplies window-session A/B measurements on request.
