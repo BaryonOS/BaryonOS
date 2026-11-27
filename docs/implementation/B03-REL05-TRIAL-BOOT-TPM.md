@@ -638,8 +638,8 @@ halts with authenticated recovery (option B as the fail-closed fallback).
   bad signature) → halt `BOOT:FAIL:TPM_IDENTITY`. The UEFI floor is raised
   only after a verified identity (heal, F1); the anti-rollback floor is never
   lowered silently.
-- **Accepted-serial store** (open design item U13c; mechanism open for the
-  design review, rules normative): the signature shows that a record is
+- **Accepted-serial store** (U13c design approved; implementation open): the
+  signature shows that a record is
   authentic, not that it is current. The issuer gives every newly signed
   `ENROLL` or recovery record a unique serial, strictly greater than every
   serial it issued before, across both record types. The loader keeps the
@@ -647,20 +647,24 @@ halts with authenticated recovery (option B as the fail-closed fallback).
   copies with independent failure modes: one in a loader-only, phase-bound TPM
   index (`PolicyPCR(13 = 0³²)`) and one in a UEFI variable; the effective pair
   is the surviving copy with the higher serial, and two surviving copies with
-  the same serial but different digests halt. A record is accepted only if
+  the same serial but different digests halt. If both copies are absent, the
+  normal loader halts until independently authorised recovery; it cannot
+  infer first enrollment from missing state. A record is accepted only if
   its serial is greater than the accepted serial, or equal to it with the same
   record digest (the current record on a normal restart). An equal-serial
   record with another digest is refused, so a second record that reused a
-  serial cannot pass even if it names the same EK. A record replacement writes
-  the TPM copy, then the UEFI copy, then the new ESP record; a cut leaves the
-  old record below the accepted serial, which halts (denial, never acceptance
-  of an older record) until the new record is written. A record naming another EK fails the identity proof regardless of
-  its serial. Not defended: rolling back both copies together with the TPM
+  serial cannot pass even if it names the same EK. A record replacement stages
+  the signed record on the second ESP path before boot. The loader advances
+  the TPM copy and then the UEFI copy; promotion to the primary ESP path
+  follows only after both copies have advanced. A cut never authorises an
+  older record. A record naming another EK fails the identity proof regardless
+  of its serial. Not defended: rolling back both copies together with the TPM
   state and the disk (T7, section 10.4). Until U13c is implemented, C28 is
   open.
-- **Record staging** (*proposed* for U13c, awaiting the project owner's
-  decision; the rules above stay normative until then): the deliverer (the
-  host tool in the TEST profile) writes a new `ENROLL` or recovery record to
+- **Record staging** (U13c TEST route approved by the project owner on
+  27 November 2026, issue #529; implementation and native evidence open):
+  the deliverer (the host tool in the TEST profile) writes a new `ENROLL` or
+  recovery record to
   a second, staging ESP path and makes it durable before the next boot; it
   never overwrites the current record first. The loader reads both paths
   read-only, verifies each, and uses the newest record the rules above
@@ -678,11 +682,8 @@ halts with authenticated recovery (option B as the fail-closed fallback).
   `ExitBootServices` is not power-loss safe). Host model:
   `staged_record_replacement_converges` (stray-extend, foreign and
   foreign-without-lockout recovery, every cut and promotion state).
-  Approval would change: the replacement-order sentence and its halt-after-cut
-  clause above, the C28 row of section 11 ("cut replacement halts until the
-  new record is written"), and the write-order paragraph of
-  [COLD-FRESHNESS-ANCHOR.md](COLD-FRESHNESS-ANCHOR.md) (provisioning and
-  recovery).
+  The TEST route does not authorise production keys or a production recovery
+  procedure. The current host model cannot prove EK binding or ESP durability.
 - **Authenticated recovery** (TPM replacement, motherboard replacement, TPM
   clear, NVRAM reset): a recovery record signed like `ENROLL` names the new EK
   and a floor `≥` every surviving copy (UEFI, compiled-in minimum). The loader
@@ -737,7 +738,7 @@ named marker (TEST hook markers emitted before each write in a test feature).
 | C26 | identity: lower reported floor | replacement with `FLOOR.floor < UEFI` | halt; UEFI floor never lowered |
 | C27 | NVRAM reset | fresh `OVMF_VARS`, enrolled TPM intact | `BOOT:FAIL:UEFI_FLOOR_MISSING`, no write; after authenticated recovery the floor is restored and the known-good release boots |
 | C27a | enrollment deleted | `ENROLL` removed from the ESP of an enrolled device (optionally with a replaced TPM) | `BOOT:FAIL:TPM_UNENROLLED`, `BOOT:RECOVERY:REQUIRED`, no write, no boot |
-| C28 | replay | an old `ENROLL` or recovery record (serial below the accepted serial); a different record with the accepted serial (same or other EK); a replacement cut after each of its three writes; the current record on a normal restart; or a recorded TPM response | older or equal-serial different record refused, cut replacement halts until the new record is written, the current record is accepted (accepted-serial store, 10.5); a replayed TPM response fails the session HMAC → halt |
+| C28 | replay | an old `ENROLL` or recovery record (serial below the accepted serial); a different record with the accepted serial (same or other EK); a cut after staging or either accepted-pair write; loss of one or both copies; the current record on a normal restart; or a recorded TPM response | older or equal-serial different record refused; a durable staged record permits restart after either write, while loss of both accepted-pair copies halts until independently authorised recovery; the current record is accepted (accepted-serial store, 10.5); a replayed TPM response fails the session HMAC → halt |
 | C29 | failed authentication | recovery record with a bad signature or a foreign key | refused; normal boot stays blocked |
 | C30 | interrupted recovery | power loss at every recovery write | the old record stays in force or the new one is complete; never a lower floor |
 
