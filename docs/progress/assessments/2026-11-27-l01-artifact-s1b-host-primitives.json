@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-27",
+  "source_commit": "e78814adf70494ee48546a2f7a4689b5c1f4633f",
+  "assessment_basis": "parent_commit",
+  "branch": "codex/l01-artifact-s1b-post654-20261127",
+  "task": "L01 S1b host primitives: bounded 17-page artifact_read copy plan and feature-gated shared RO/NX artifact page tables",
+  "previous_score": 43,
+  "summary": "43/100 unchanged. The 64 KiB unaligned output range, invalid last page, over-limit range, original IPC limit and exact sector input have host regression coverage. Kernel-core tests and clippy, Rust formatting, tool tests and compileall, and the native-ai-artifact cross-build pass. The paging primitives are not called by a native artifact syscall yet; no model bytes are mapped at runtime. K paging review, B security review, native negative tests, full model inference and formal L01 acceptance remain open."
+}

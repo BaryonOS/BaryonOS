@@ -184,6 +184,8 @@ native-qsim-job = ["milestone-m4"]
 # L01: one ring-3 SSE2 AI job plus the fpu-b canary; single CPU, no sleep/wake.
 native-ai-job = ["fpu-context", "monotonic-clock"]
 native-sdk-app = ["milestone-m4"]
+# L01 S1: sealed read-only artifact window at PDPT entry 2; single CPU.
+native-ai-artifact = ["milestone-m4"]
 test-sdk-app-denied = ["native-sdk-app"]
 # A03 grant broker; reuses the sdk-app dispatch with a three-process manifest.
 # ipc-wait: the broker probes client reply endpoints (A03-T2c-3, owner option A).

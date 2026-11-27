@@ -11,6 +11,73 @@ const WRITE: u64 = 2;
 const USER: u64 = 4;
 const NX: u64 = 1 << 63;
 const ADDRESS: u64 = 0x000f_ffff_ffff_f000;
+#[cfg(feature = "native-ai-artifact")]
+const ARTIFACT_PDPT_INDEX: usize = 2;
+/// L01: first VA of the shared artifact window (PDPT entry 2).
+#[cfg(feature = "native-ai-artifact")]
+pub const ARTIFACT_BASE: u64 = 0x8000_0000;
+/// L01: reserved table owner for the shared artifact directory and its PTs; no
+/// process slot (asid = slot + 1) and not the kernel (0) can ever equal it.
+#[cfg(feature = "native-ai-artifact")]
+pub const ARTIFACT_ASID: u16 = u16::MAX;
+/// L01: shared directory for one sealed artifact: a PD and the PTs whose
+/// leaves are `PRESENT | USER | NX` (no `WRITE`) over `pages`, in order from
+/// `ARTIFACT_BASE`. Each frame gets its single RO/NX user alias here, so
+/// linking and unlinking never change alias counts (design 4.1).
+#[cfg(feature = "native-ai-artifact")]
+pub fn build_artifact_tables(
+    frames: &mut Frames<FRAME_COUNT>,
+    pages: &[u64],
+    tables: &mut [u64],
+) -> Result<(u64, usize), kernel_core::Error> {
+    let count = 1 + pages.len().div_ceil(512);
+    if count > tables.len() || pages.len() > 512 * 512 {
+        return Err(kernel_core::Error::Range);
+    }
+    let mut built = 0;
+    let result = (|| {
+        for slot in tables.iter_mut().take(count) {
+            *slot = frames.allocate(Owner::PageTable(ARTIFACT_ASID), zero_dynamic)?;
+            built += 1;
+        }
+        let pd = tables[0];
+        for (i, &pa) in pages.iter().enumerate() {
+            let pt = tables[1 + i / 512];
+            if i % 512 == 0 {
+                write(pd, i / 512, pt | PRESENT | USER | NX);
+            }
+            frames.map(pa, false, false, true)?;
+            write(pt, i % 512, pa | PRESENT | USER | NX);
+        }
+        Ok(pd)
+    })();
+    match result {
+        Ok(pd) => Ok((pd, count)),
+        Err(e) => {
+            free_artifact_tables(frames, &tables[..built], pages);
+            Err(e)
+        }
+    }
+}
+/// L01: drop the leaf aliases recorded by `build_artifact_tables` and free its
+/// tables. Only valid with zero links (no live translation can remain).
+#[cfg(feature = "native-ai-artifact")]
+pub fn free_artifact_tables(frames: &mut Frames<FRAME_COUNT>, tables: &[u64], pages: &[u64]) {
+    for (i, &pa) in pages.iter().enumerate() {
+        let Some(&pt) = tables.get(1 + i / 512) else {
+            break;
+        };
+        if read(pt, i % 512) != 0 {
+            write(pt, i % 512, 0);
+            frames.unmap(pa, false, false).unwrap();
+        }
+    }
+    for &table in tables {
+        frames
+            .free(table, Owner::PageTable(ARTIFACT_ASID), zero_dynamic)
+            .unwrap();
+    }
+}
 const MAX_TABLES: usize = 256;
 /// CPUs (BSP plus APs) with a scratch slot; smp.rs starts at most this many.
 pub const MAX_CPUS: usize = 8;
@@ -818,6 +885,13 @@ impl Paging {
             core::arch::asm!("mov {}, cr3",out(reg) active,options(nomem,nostack));
         }
         assert_ne!(self.root, active);
+        // L01: a live artifact link is dropped only by unlink_artifact, never
+        // silently with the PDPT frame (design 4.2).
+        #[cfg(feature = "native-ai-artifact")]
+        assert!(
+            self.count < 2 || self.artifact_entry() == 0,
+            "L01: artifact window still linked at destroy"
+        );
         for &table in &self.tables[..self.count] {
             frames
                 .free(table, Owner::PageTable(self.asid), zero_dynamic)
@@ -829,6 +903,37 @@ impl Paging {
     #[cfg(feature = "milestone-m3")]
     pub fn owned_table_count(&self) -> usize {
         self.count
+    }
+    /// L01: PDPT entry 2 of this space (VA `0x80000000..0xC0000000`).
+    #[cfg(feature = "native-ai-artifact")]
+    pub fn artifact_entry(&self) -> u64 {
+        read(read(self.root, 0) & ADDRESS, ARTIFACT_PDPT_INDEX)
+    }
+    /// L01: link the shared artifact directory read-only/NX into this space.
+    /// Refused if the entry is in use. The shared tables are not owned by this
+    /// space and never enter `tables`. Callers run on the kernel CR3, so the
+    /// return CR3 load flushes this space's translations (PCID/PGE off, K-2).
+    #[cfg(feature = "native-ai-artifact")]
+    pub fn link_artifact(&mut self, pd: u64) -> bool {
+        assert!(pd != 0 && pd & !ADDRESS == 0);
+        if self.artifact_entry() != 0 {
+            return false;
+        }
+        write(
+            read(self.root, 0) & ADDRESS,
+            ARTIFACT_PDPT_INDEX,
+            pd | PRESENT | USER | NX,
+        );
+        true
+    }
+    /// L01: clear PDPT entry 2; false if nothing was linked.
+    #[cfg(feature = "native-ai-artifact")]
+    pub fn unlink_artifact(&mut self) -> bool {
+        if self.artifact_entry() == 0 {
+            return false;
+        }
+        write(read(self.root, 0) & ADDRESS, ARTIFACT_PDPT_INDEX, 0);
+        true
     }
     pub fn map_tables(&mut self, frames: &mut Frames<FRAME_COUNT>) {
         // Newly needed PTs can themselves require identity mappings. The fixed

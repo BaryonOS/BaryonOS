@@ -120,6 +120,8 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "nat
                    *KEYRING_FEATURES, *MATERIAAL_FEATURES, *NAS_FEATURES, *UPDATE_FEATURES, *SYSTEM_FEATURES, *MEMORY_FEATURES, "native-fpu", "test-fpu-wait", "framebuffer", "native-display-probe", "native-system-display-input", "native-dispi-probe"]
 # L01 native SSE2 AI job (kept out of the shared list line to avoid merge collisions).
 KERNEL_FEATURES += ["native-ai-job"]
+# L01 S1 sealed artifact window (own line, same reason).
+KERNEL_FEATURES += ["native-ai-artifact"]
 
 
 def inspect_elf(path):
@@ -487,11 +489,12 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         qsim_report = {f"{name}_sha256": sha256(path) for name, path in binaries.items()}
         qsim_report.update({f"{name}_elf": inspect_user(path) for name, path in binaries.items()})
         extra_env = {f"NOS_KEYRING_{name.upper()}_ELF": str(path.resolve()) for name, path in binaries.items()}
-    if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
+    if kernel_feature and (any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c"))
+                           or kernel_feature == "native-ai-artifact"):
         from build_users import build_users
         extra_env = {**(extra_env or {}), "NOS_USER_ELF": str(build_users("smp-unmap" if kernel_feature in ("native-smp-m3-unmap", "test-smp-m3-no-shootdown") else "large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
         if (any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c"))
-                or kernel_feature == "native-smp-m3-soak"):
+                or kernel_feature in ("native-smp-m3-soak", "native-ai-artifact")):
             extra_env["NOS_IPC_ELF"] = str(build_users("ipc").resolve())
         if any(m in kernel_feature for m in ("m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_M5_ELF"] = str(build_users("m5").resolve())
