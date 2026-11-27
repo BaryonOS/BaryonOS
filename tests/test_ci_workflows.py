@@ -2841,6 +2841,21 @@ class CiImpactShadowTests(unittest.TestCase):
         self.assertLess(steps.index(candidate), steps.index(coverage))
         self.assertEqual(steps[1]["with"], {"host-dependencies": "true"})
 
+    def test_shadow_job_reports_progress_rows_without_gating(self):
+        """CI-PROG-1 P1 (owner, 27 Nov 2026): advisory row report, pull_request only, never fails the job."""
+        steps = self.ci["jobs"]["ci-impact-shadow"]["steps"]
+        report, = [step for step in steps if "progress.py --check-rows" in step.get("run", "")]
+        self.assertEqual(report["if"], "${{ !cancelled() && github.event_name == 'pull_request' }}")
+        self.assertNotIn("${{", report["run"])
+        self.assertNotIn("continue-on-error", report)
+        self.assertIn('base="$(git rev-parse HEAD^1)" || exit 0', report["run"])
+        self.assertIn('if ! python3 -B -I tools/progress.py --check-rows --base "$base"', report["run"])
+        self.assertIn("::warning title=Progress rows (advisory)::", report["run"])
+        coverage, = [step for step in steps if "ci_impact.py coverage" in step.get("run", "")]
+        preserve, = [step for step in steps if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertLess(steps.index(coverage), steps.index(report))
+        self.assertLess(steps.index(report), steps.index(preserve))
+
     def test_only_the_shadow_job_reads_the_candidate_catalogue(self):
         """#494 phase 5 C3: no selection or enforcement step consumes the candidate; host-quality only validates it."""
         users = {}

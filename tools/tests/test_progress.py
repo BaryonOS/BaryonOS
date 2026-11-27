@@ -4,7 +4,9 @@ import contextlib
 import copy
 import io
 import json
+import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -279,6 +281,120 @@ class ProgressReviewTests(unittest.TestCase):
         rendered = progress.svg(self.load())
         self.assertIn("No criteria accepted", rendered)
         self.assertNotIn("Not started", rendered)
+
+
+class RowReportTests(unittest.TestCase):
+    """CI-PROG-1 (owner, 27 Nov 2026): P1 advisory --check-rows report and the P2 optional criteria field."""
+    load = ProgressReviewTests.load
+    item = ProgressReviewTests.item
+    task_file = ProgressReviewTests.task_file
+
+    def setUp(self):
+        ProgressReviewTests.setUp(self)
+        env = patch.dict(os.environ, {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}, clear=True)
+        env.start()
+        self.addCleanup(env.stop)
+        self.git("init", "-q")
+        self.data["delivery_review"]["source_commit"] = self.commit("evidence at the header source commit")
+        self.base = self.commit("base register")
+
+    def git(self, *args):
+        return subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid", *args],
+                              cwd=self.root, capture_output=True, text=True, check=True).stdout.strip()
+
+    def commit(self, message):
+        self.path.write_text(json.dumps(self.data, indent=2))
+        self.git("add", "-A")
+        self.git("commit", "-q", "--no-gpg-sign", "--allow-empty", "-m", message)
+        return self.git("rev-parse", "HEAD")
+
+    def report(self, base=None):
+        self.path.write_text(json.dumps(self.data, indent=2))
+        output = io.StringIO()
+        with patch.object(sys, "argv", ["progress.py", "--check-rows", "--base", base or self.base]), \
+                contextlib.redirect_stdout(output):
+            status = progress.main()
+        return status, output.getvalue()
+
+    def test_unchanged_register_reports_nothing(self):
+        status, out = self.report()
+        self.assertEqual(status, 0, out)
+        self.assertIn("changed criteria: none; 0 finding(s)", out)
+
+    def test_marked_and_named_row_edit_with_pinned_evidence_is_clean(self):
+        self.item()["observation"] += " updated 2026-11-27 @abcdef1: native rerun."
+        self.item()["evidence"].append("https://github.com/BaryonOS/BaryonOS/blob/" + "d" * 40 + "/x.md")
+        self.item()["evidence"].append("README.md")  # exists at the header source commit
+        self.task_file(criteria=["B01"])
+        status, out = self.report()
+        self.assertEqual(status, 0, out)
+        self.assertIn("changed criteria: B01; 0 finding(s)", out)
+
+    def test_unmarked_or_unnamed_row_edits_are_reported_without_row_text(self):
+        self.item()["observation"] += " secret-ish prose updated 2026-13-01 @abcdef1"  # invalid date
+        status, out = self.report()
+        self.assertEqual(status, 1)
+        self.assertIn("- row-without-new-updated-marker: B01 row 1", out)
+        self.assertIn("- criterion-not-named-in-added-assessment: B01", out)
+        self.assertNotIn("secret-ish", out)
+        # A marker already present at base is not a new update.
+        self.item()["observation"] = "Host fixture only. updated 2026-11-26 @abcdef2: old."
+        self.base = self.commit("marker at base")
+        self.item()["remaining"] = "Native integration, reworded."
+        self.task_file(criteria=["B01"])
+        self.assertIn("row-without-new-updated-marker: B01 row 1", self.report()[1])
+
+    def test_renamed_row_cannot_reuse_a_base_marker(self):
+        # CI follow-up (i): a description edit leaves no description-keyed predecessor.
+        self.item()["observation"] += " updated 2026-11-26 @abcdef2: old."
+        self.base = self.commit("marker at base")
+        self.item()["description"] += " Reworded."
+        self.task_file(criteria=["B01"])
+        self.assertIn("- row-without-new-updated-marker: B01 row 1", self.report()[1])
+        self.item()["observation"] += " updated 2026-11-27 @abcdef3: reworded."
+        self.assertNotIn("row-without-new-updated-marker", self.report()[1])
+
+    def test_added_local_evidence_must_exist_at_the_header_source_commit(self):
+        (self.root / "later.txt").write_text("Added after the header source commit.\n")
+        self.base = self.commit("later evidence")
+        self.item()["observation"] += " updated 2026-11-27 @abcdef1: rerun."
+        self.item()["evidence"].append("later.txt")
+        self.task_file(criteria=["B01"])
+        self.assertIn("- evidence-not-at-source-commit: B01 row 1", self.report()[1])
+        # A header commit missing from the clone is unknown, never reported as missing.
+        self.data["delivery_review"]["source_commit"] = "f" * 40
+        self.item()["evidence"].remove("later.txt")
+        self.base = self.commit("unknown header commit")
+        self.item()["evidence"].append("later.txt")
+        out = self.report()[1]
+        self.assertIn("- evidence-source-commit-unknown: B01 row 1", out)
+        self.assertNotIn("evidence-not-at-source-commit", out)
+
+    def test_header_and_score_changes_are_reported_for_the_guard(self):
+        self.data["delivery_review"]["date"] = "2026-11-27"
+        self.data["tracks"][0]["gates"][0].update(status="accepted", evidence=["evidence.txt"])
+        status, out = self.report()
+        self.assertEqual(status, 1)
+        self.assertIn("- header-changed: delivery_review.date", out)
+        self.assertIn("- guard-only-change: tracks", out)
+
+    def test_report_failures_are_skipped_never_raised(self):
+        for base in ("not-hex", "0" * 40):
+            with self.subTest(base=base):
+                self.assertEqual(self.report(base), (0, "Progress row report skipped (ValueError).\n"))
+        with patch.object(sys, "argv", ["progress.py", "--check-rows"]), \
+                contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            progress.main()
+
+    def test_assessment_criteria_field_is_optional_and_validated(self):
+        self.task_file(criteria=["B01"])
+        self.assertEqual(len(self.load()["task_assessments"]), 1)
+        for bad in (["Z99"], [], ["B01", "B01"], "B01"):
+            with self.subTest(criteria=bad):
+                path = self.task_file(criteria=bad)
+                with self.assertRaisesRegex(ValueError, "criteria must list distinct criterion IDs"):
+                    progress.load_progress()
+                path.unlink()
 
 
 if __name__ == "__main__":
